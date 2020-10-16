@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script src="//localhost:3000/extension/browser-client/public/js/jsreport.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/bluebird/3.3.4/bluebird.min.js"></script>
+
+  </head>
+  <body>
+    Hello world
+
+    <div id="response"></div>
+
+    <embed id="pdf" style="width:200px;height:200px;"/>
+
+    <script>
+      function ab2str(buf) {
+        return String.fromCharCode.apply(null, new Uint8Array(buf));
+      }
+
+      var longone = '';
+
+      for (var i = 0; i < 1000; i++) {
+        longone += 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa<br/>';
+      }
+
+      jsreportInit = function() {
+          jsreport.serverUrl = 'http://localhost:3000'
+          jsreport.render('_blank', {
+              template: {
+                  content: '<h1>foooo{{:foo}}</h1>' + longone,
+                  recipe: 'phantom-pdf',
+                  engine: 'jsrender'
+              }, data: {foo: 'xxxx'}
+          });
+      }
+
+
+/*
+      var p = jsreport.renderAsync({template: { content: '<h1>foooo{{:foo}}</h1>' + longone, recipe: 'phantom-pdf', engine: 'jsrender'}, data: { foo: 'xxxx'}, options: { 'Content-Disposition': 'attachment;filename=test.pdf'}});
+
+      p.then(function(r) {
+        //document.getElementById('response').innerHTML = ab2str(r);
+
+        var blob = new Blob([r], {type: "application/pdf"});
+        var objectUrl = URL.createObjectURL(blob);
+
+        if (window.navigator && window.navigator.msSaveOrOpenBlob) {
+          window.navigator.msSaveOrOpenBlob(blob, "report.pdf");
+        } else {
+          var a = document.createElement("a");
+          document.body.appendChild(a);
+          a.style = "display: none";
+          a.href = objectUrl;
+          a.download = 'uuu.pdf';
+          a.click();
+        }
+        //document.getElementById('pdf').setAttribute('src', URL.createObjectURL(new Blob([r], { type: 'application/pdf'})));
+        console.log(r);
+      }).catch(function(e) {
+        console.log(e);
+      });*/
+    </script>
+  </body>
+
+</html>
