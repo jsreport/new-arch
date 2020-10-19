@@ -22,5 +22,15 @@
     "fs-store": {
       "syncModifications": false
     }
-  }
+  },
+  "templatingEngines": {
+    "strategy": "worker-threads"
+  },
+  "extensionsList": [
+    "studio",
+    "express",
+    "templates",
+    "handlebars",
+    "fs-store"
+  ]
 }

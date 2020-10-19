@@ -9,6 +9,7 @@
     "entryPoint": "server.js"
   },
   "dependencies": {
-    "jsreport": "^2.10.0"
+    "jsreport": "^2.10.0",
+    "script-manager": "github:pofider/node-script-manager#v3"
   }
 }
