@@ -31,6 +31,9 @@
     "express",
     "templates",
     "handlebars",
-    "fs-store"
+    "fs-store",
+    "data",
+    "child-templates",
+    "chrome-pdf"
   ]
 }

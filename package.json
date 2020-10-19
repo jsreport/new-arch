@@ -10,6 +10,6 @@
   },
   "dependencies": {
     "jsreport": "^2.10.0",
-    "script-manager": "github:pofider/node-script-manager#v3"
+    "script-manager": "github:pofider/node-script-manager#f8c2f48df2fb219667cd06e1e111d7b468a46dc8"
   }
 }
