@@ -34,6 +34,10 @@
     "fs-store",
     "data",
     "child-templates",
-    "chrome-pdf"
+    "chrome-pdf",
+    "scripts",
+    "assets",
+    "import-export",
+    "pdf-utils"
   ]
 }
