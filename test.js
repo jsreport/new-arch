@@ -1,27 +1,53 @@
-const Piscina = require('piscina');
-const { resolve } = require('path');
-const { MessageChannel } = require('worker_threads');
-const EventEmitter = require('events')
+const client = require('jsreport-client')('http://localhost:5488')
+const fs = require('fs')
+const Promise = require('bluebird')
 
-const piscina = new Piscina({
-  filename: resolve(__dirname, 'worker.js'),
-  minThreads: 1,
-  maxThreads: 1,
-  idleTimeout: Infinity
-});
+const mainData = JSON.parse(fs.readFileSync('stockdata.json').toString())
+mainData.fakeItems = []
+
+/*
+for (let i = 0; i < 5000000; i++) {
+  mainData.fakeItems.push(i)
+}
+*/
 
 async function run () {
-    const abortEmitter = new EventEmitter()
-    let { port1: workerPort, port2: managerPort } = new MessageChannel()
-    workerPort.on('message', (message) => {
-      console.log(message);
-      workerPort.close();
-    });
-    await piscina.runTask({ managerPort }, [managerPort], abortEmitter);
-    workerPort.close()
+  console.time('render')  
+  
+  for (let i = 0; i < 1; i++) {
+    const promises = []
+    for (let j = 0; j < 1; j++) {
+      promises.push(client.render({
+        template: {
+          name: 'main'
+        },
+        data: mainData
+      }))
+    }
+    await Promise.all(promises)
+  }
+
+  console.timeEnd('render')
 }
 
-(async function () {
-  await run ()
-  await run () 
-})();
+async function runMany () {
+  console.time('render')  
+  const promises = []  
+  for (let i = 0; i < 10; i++) {
+
+    //for (let j = 0; j < 1; j++) {
+      promises.push(client.render({
+        template: {
+          name: 'main'
+        },
+        data: mainData
+      }))
+    //}   
+  }
+  await Promise.all(promises)
+
+  console.timeEnd('render')
+}
+
+
+runMany().catch(e => console.error(e.message))

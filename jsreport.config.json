@@ -1,11 +1,16 @@
 {
   "httpPort": 5488,
-  "allowLocalFilesAccess": false,
+  "allowLocalFilesAccess": true,
   "store": {
     "provider": "fs"
   },
   "blobStorage": {
     "provider": "fs"
+  },
+  "logger": {
+    "console": {
+      "level": "info"
+    }
   },
   "reportTimeout": 60000,
   "extensions": {
@@ -24,7 +29,8 @@
     }
   },
   "templatingEngines": {
-    "strategy": "worker-threads"
+    "strategy": "worker-threads",
+    "numberOfWorkers": 4
   },
   "extensionsList": [
     "studio",
