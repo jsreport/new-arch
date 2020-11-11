@@ -7,11 +7,6 @@
   "blobStorage": {
     "provider": "fs"
   },
-  "logger": {
-    "console": {
-      "level": "info"
-    }
-  },
   "reportTimeout": 60000,
   "extensions": {
     "authentication": {
