@@ -509,6 +509,16 @@ class WorkbookWriter {
     // find the next unique spot to add worksheet
     let i;
 
+    if (this.templateInfo && this.templateInfo.lastSheetFileId != null) {
+      const existingSheetsId = this.templateInfo.sheets.map((s) => s.sheetFileId);
+
+      const existingSheets = Object.values(this._worksheets).filter((o) => {
+        return existingSheetsId.includes(o.id) === false;
+      });
+
+      return this.templateInfo.lastSheetFileId + existingSheets.length + 1;
+    }
+
     for (i = 1; i < this._worksheets.length; i++) {
       if (!this._worksheets[i]) {
         id = i;
@@ -518,10 +528,6 @@ class WorkbookWriter {
 
     if (id == null) {
       id = this._worksheets.length || 1;
-    }
-
-    if (this.templateInfo && this.templateInfo.lastSheetFileId != null) {
-      return this.templateInfo.lastSheetFileId + id;
     }
 
     return id;

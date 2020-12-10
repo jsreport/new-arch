@@ -94,7 +94,7 @@ function equalIgnoreNewLine (x, y) {
   return false
 }
 
-function deepEqual (x, y) {
+function deepEqual (x, y, isRootCall = true) {
   if (equalIgnoreNewLine(x, y)) {
     return true
   }
@@ -105,6 +105,14 @@ function deepEqual (x, y) {
 
   if (x != null && y == null) {
     return false
+  }
+
+  if (isRootCall && x.modificationDate && y.modificationDate && x.modificationDate.getTime() === y.modificationDate.getTime()) {
+    return true
+  }
+
+  if (Buffer.isBuffer(x) && Buffer.isBuffer(y)) {
+    return x.equals(y)
   }
 
   for (var p in x) {
@@ -124,7 +132,7 @@ function deepEqual (x, y) {
       return false
     }
 
-    if (!deepEqual(x[p], y[p])) {
+    if (!deepEqual(x[p], y[p], false)) {
       return false
     }
   }

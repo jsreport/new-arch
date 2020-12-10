@@ -81,6 +81,57 @@ module.exports = (jsreport, reload = () => {}) => {
     await jsreport().versionControl.revert(req)
   })
 
+  it('should deal with windows line endings', async () => {
+    const req = jsreport().Request({})
+
+    await jsreport().documentStore.collection('templates').insert({ name: 'foo', engine: 'none', recipe: 'html', content: 'a' }, req)
+    await jsreport().versionControl.commit('1', undefined, req)
+    await jsreport().documentStore.collection('templates').update({ name: 'foo' }, { $set: { content: 'a\r\nb' } }, req)
+    await jsreport().versionControl.commit('2', undefined, req)
+    await jsreport().documentStore.collection('templates').update({ name: 'foo' }, { $set: { content: 'a\r\nx\r\nb' } }, req)
+    await jsreport().versionControl.commit('3', undefined, req)
+    const diff = await jsreport().versionControl.localChanges(req)
+    diff.length.should.be.eql(0)
+  })
+
+  it('should deal with multiple line ending at the end of document', async () => {
+    const req = jsreport().Request({})
+
+    await jsreport().documentStore.collection('templates').insert({ name: 'foo', engine: 'none', recipe: 'html', content: 'a' }, req)
+    await jsreport().versionControl.commit('1', undefined, req)
+    await jsreport().documentStore.collection('templates').update({ name: 'foo' }, { $set: { content: 'a\r\nb' } }, req)
+    await jsreport().versionControl.commit('2', undefined, req)
+    await jsreport().documentStore.collection('templates').update({ name: 'foo' }, { $set: { content: 'a\r\nb\r\n\r\n' } }, req)
+    await jsreport().versionControl.commit('3', undefined, req)
+    const diff = await jsreport().versionControl.localChanges(req)
+    diff.length.should.be.eql(0)
+  })
+
+  it('should deal with line ending at the end of document', async () => {
+    const req = jsreport().Request({})
+
+    await jsreport().documentStore.collection('templates').insert({ name: 'foo', engine: 'none', recipe: 'html', content: 'a' }, req)
+    await jsreport().versionControl.commit('1', undefined, req)
+    await jsreport().documentStore.collection('templates').update({ name: 'foo' }, { $set: { content: 'a\r\n' } }, req)
+    const diff = await jsreport().versionControl.localChanges(req)
+    should(diff.find(d => d.path === '/foo/content')).be.ok()
+  })
+
+  it('should deal with mutiple line endings during revert', async () => {
+    const req = jsreport().Request({})
+
+    await jsreport().documentStore.collection('templates').insert({ name: 'foo', engine: 'none', recipe: 'html', content: 'a' }, req)
+    await jsreport().versionControl.commit('1', undefined, req)
+    await jsreport().documentStore.collection('templates').update({ name: 'foo' }, { $set: { content: 'a\r\n\r\n' } }, req)
+    await jsreport().versionControl.commit('2', undefined, req)
+    await jsreport().documentStore.collection('templates').update({ name: 'foo' }, { $set: { content: 'a\r\n\r\n\r\n\r\n' } }, req)
+    await jsreport().versionControl.commit('3', undefined, req)
+    await jsreport().documentStore.collection('templates').update({ name: 'foo' }, { $set: { content: 'a\r\n\r\n\r\n\r\n\r\n' } }, req)
+    await jsreport().versionControl.revert(req)
+    const template = await jsreport().documentStore.collection('templates').findOne({})
+    template.content.should.be.eql('a\r\n\r\n\r\n\r\n')
+  })
+
   it('history should list changed files', async () => {
     const req = jsreport().Request({})
     await jsreport().documentStore.collection('templates').insert({ name: 'foo', engine: 'none', recipe: 'html' }, req)
@@ -160,6 +211,29 @@ module.exports = (jsreport, reload = () => {}) => {
     const commit2 = await jsreport().versionControl.commit('2', undefined, req)
     const diff = await jsreport().versionControl.diff(commit2._id, req)
     diff.find((p) => p.path.includes('a/content')).patch.should.containEql('č')
+  })
+
+  it('diff should include also context lines', async () => {
+    const req = jsreport().Request({})
+    await jsreport().documentStore.collection('templates').insert({ name: 'a', engine: 'none', recipe: 'html', content: 'a\nb\nc\nd\ne\nf' }, req)
+    await jsreport().versionControl.commit('1', undefined, req)
+    await jsreport().documentStore.collection('templates').update({ name: 'a' }, { $set: { content: 'a\nb\ncX\nd\ne\nf' } }, req)
+    const commit2 = await jsreport().versionControl.commit('2', undefined, req)
+    const diff = await jsreport().versionControl.diff(commit2._id, req)
+    const patch = diff.find((p) => p.path.includes('a/content')).patch
+    patch.should.containEql(' a')
+    patch.should.containEql(' f')
+  })
+
+  it('diff should include proper old and new lines in patch', async () => {
+    const req = jsreport().Request({})
+    await jsreport().documentStore.collection('templates').insert({ name: 'a', engine: 'none', recipe: 'html', content: 'a' }, req)
+    await jsreport().versionControl.commit('1', undefined, req)
+    await jsreport().documentStore.collection('templates').update({ name: 'a' }, { $set: { content: 'ab' } }, req)
+    const diff = await jsreport().versionControl.localChanges(req)
+    const patch = diff.find((p) => p.path.includes('/a')).patch
+    // it should start from the beginning
+    patch.should.containEql('1,')
   })
 
   it('diff should provide patch also for deletes', async () => {

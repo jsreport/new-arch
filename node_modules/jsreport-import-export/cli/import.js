@@ -186,6 +186,11 @@ exports.handler = async (argv) => {
       jsreportInstance.options.extensions.express,
       { enabled: false }
     )
+    jsreportInstance.options.extensions.authentication = Object.assign(
+      {},
+      jsreportInstance.options.extensions.authentication,
+      { enabled: false }
+    )
 
     await initInstance(jsreportInstance)
 

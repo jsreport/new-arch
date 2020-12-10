@@ -2,6 +2,7 @@
 
 const PDFName = require('./name')
 const PDFValue = require('./value')
+const PDFString = require('./string')
 
 class PDFDictionary {
   constructor(dictionary) {
@@ -44,10 +45,15 @@ class PDFDictionary {
     return length
   }
 
-  toString() {
+  toString(encryptionFn) {
     let str = ''
     for (const key in this.dictionary) {
-      const val = this.dictionary[key]
+      // pofider change
+      // the toString call with encryptionFn fails on Numbers so we just do it for PDFStrings      
+      let val = this.dictionary[key]
+      if (val instanceof PDFString) {
+        val = val.toString(encryptionFn)
+      }
       str += `${key} ${val === null ? 'null' : val}`.replace(/^/gm, '\t') + '\n'
     }
     return `<<\n${str}>>`

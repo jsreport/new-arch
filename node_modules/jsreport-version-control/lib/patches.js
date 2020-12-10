@@ -2,12 +2,11 @@
  * Diff two entities into patch which can be latter applied to replay the modification
  * The diff for document store properties is stored extra for each one
  */
-
-const jsdiff = require('diff')
 const extend = require('node.extend.without.arrays')
 const isbinaryfile = require('isbinaryfile')
 const { serialize, parse, deepGet, deepSet, deepDelete } = require('./customUtils')
 const sortVersions = require('./sortVersions')
+const diff = require('./diff.js')
 
 function serializeConfig (doc, entitySet, documentModel) {
   const clone = extend(true, {}, doc)
@@ -54,14 +53,14 @@ function applyPatch (doc, patch, entitySet, documentModel) {
       deepSet(doc, p.path, p.patch ? Buffer.from(p.patch, 'base64') : null)
     } else {
       if (Buffer.isBuffer(prevVal)) {
-        deepSet(doc, p.path, Buffer.from(jsdiff.applyPatch(prevVal.toString('base64'), p.patch), 'base64'))
+        deepSet(doc, p.path, Buffer.from(diff.applyPatch(prevVal.toString('base64'), p.patch), 'base64'))
       } else {
-        deepSet(doc, p.path, jsdiff.applyPatch(prevVal, p.patch))
+        deepSet(doc, p.path, diff.applyPatch(prevVal, p.patch))
       }
     }
   })
   // important to do deep merge, because config can have { chrome: {} } and shallow merge wouldthe headerTemplate previously set
-  extend(true, doc, parse(jsdiff.applyPatch(serializeConfig(doc, entitySet, documentModel), patch.config)))
+  extend(true, doc, parse(diff.applyPatch(serializeConfig(doc, entitySet, documentModel), patch.config)))
 }
 
 function createPatch ({
@@ -100,8 +99,8 @@ function createPatch ({
     // big files or binary files are not diffed
     if (
       olderLength > diffLimit || newerLength > diffLimit ||
-      (Buffer.isBuffer(newer) && isbinaryfile.sync(newer, newerLength)) ||
-      (Buffer.isBuffer(older) && isbinaryfile.sync(older, olderLength))
+        (Buffer.isBuffer(newer) && isbinaryfile.sync(newer, newerLength)) ||
+        (Buffer.isBuffer(older) && isbinaryfile.sync(older, olderLength))
     ) {
       return patch.documentProperties.push({
         path: p.path,
@@ -115,17 +114,15 @@ function createPatch ({
 
     patch.documentProperties.push({
       path: p.path,
-      patch: jsdiff.createPatch(name, older || '', newer || '', '', '', { context })
+      patch: diff.createPatch(name, older || '', newer || '', context)
     })
   })
 
-  patch.config = jsdiff.createPatch(
+  patch.config = diff.createPatch(
     name,
     serializeConfig(oldEntity, entitySet, documentModel),
     serializeConfig(newEntity, entitySet, documentModel),
-    '',
-    '',
-    { context }
+    context
   )
 
   return patch

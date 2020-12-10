@@ -32,7 +32,7 @@ class PDFObject {
 
   toString(encryptionFn) {
     let str = this.id.toString() + ' ' + this.rev + ' obj\n'
-    str += this.properties.length ? this.properties.toString() + '\n' : ''    
+    str += this.properties.length ? this.properties.toString(encryptionFn) + '\n' : ''    
     // pofider change, we want to encrypt just streams
     if (this.content instanceof PDFStream) {
       str += this.content.toString(encryptionFn) + '\n'

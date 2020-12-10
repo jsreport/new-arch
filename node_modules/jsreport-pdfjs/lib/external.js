@@ -38,7 +38,7 @@ module.exports = class ExternalDocument {
   }
 
   // TODO: add mutex to not write concurrently (because of document specific _registerObject)
-  async write(doc, page) {
+  async write(doc, page) { 
     await doc._endPage()
 
     const kids = this.pages.get('Kids')

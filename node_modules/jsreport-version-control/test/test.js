@@ -1,4 +1,3 @@
-
 const Promise = require('bluebird')
 const JsReport = require('jsreport-core')
 const common = require('./common')
@@ -8,7 +7,12 @@ describe('version control', () => {
   let jsreport
 
   beforeEach(async () => {
-    jsreport = JsReport()
+    jsreport = JsReport({
+      templatingEngines: {
+        strategy: 'in-process',
+        timeout: 9999999
+      }
+    })
     jsreport.use(require('jsreport-templates')())
     jsreport.use(require('jsreport-data')())
     jsreport.use(require('jsreport-chrome-pdf')())
