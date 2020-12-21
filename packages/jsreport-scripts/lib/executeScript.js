@@ -84,13 +84,20 @@ module.exports = async function executeScript (reporter, inputs, req, onLog) {
     // and unwrap proxies and descriptors into new sandbox object
     const restoredSandbox = restore()
 
+    if (
+      err == null &&
+      !isObject(restoredSandbox.__request.data)
+    ) {
+      err = new Error('Script invalid assignment: req.data must be an object, make sure you are not changing its value in the script to a non object value')
+    }
+
     return {
       // we only propagate well known properties from the req executed in scripts
       // we also create new object that avoids passing a proxy object to rest of the
       // execution flow when script is running in in-process strategy
       request: {
         template: restoredSandbox.__request.template,
-        data: restoredSandbox.__request.data,
+        data: err == null ? restoredSandbox.__request.data : undefined,
         options: restoredSandbox.__request.options,
         context: {
           ...restoredSandbox.__request.context,
@@ -221,4 +228,14 @@ module.exports = async function executeScript (reporter, inputs, req, onLog) {
   } catch (e) {
     return getScriptResult(e)
   }
+}
+
+function isObject (input) {
+  if (Object.prototype.toString.call(input) !== '[object Object]') {
+    return false
+  }
+
+  const prototype = Object.getPrototypeOf(input)
+
+  return prototype === null || prototype === Object.prototype
 }
