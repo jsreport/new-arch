@@ -39,6 +39,7 @@
     "scripts",
     "assets",
     "import-export",
-    "pdf-utils"
+    "pdf-utils",
+    "studio-theme-dark"
   ]
 }
