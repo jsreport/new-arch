@@ -1,6 +1,7 @@
 const path = require('path')
 const EventEmitter = require('events')
 const { MessageChannel } = require('worker_threads')
+const serializator = require('serializator')
 const uuid = require('uuid').v4
 const Piscina = require('piscina')
 const convertUint8ArrayProperties = require('../shared/convertUint8ArrayProperties')
@@ -209,11 +210,14 @@ class ScriptsManager {
             }
 
             try {
+              // NOTE: we only care to serialize the data in the callback case,
+              // for the rest we let the thread handle it with the data structured
+              // clone algorithm
               workerPort.postMessage({
                 rid: msgPayload.rid,
                 cid: msgPayload.cid,
                 action: 'callback-response',
-                data: args
+                data: serializator.serialize(args)
               })
             } catch (e) {
               // usually error about some value could not be cloned
@@ -226,7 +230,10 @@ class ScriptsManager {
             }
           }
 
-          convertUint8ArrayProperties(msgPayload.data)
+          // NOTE: we only care to parse the data in the callback case,
+          // for the rest we let the thread handle it with the data structured
+          // clone algorithm
+          msgPayload.data = serializator.parse(msgPayload.data)
 
           maincallback(...msgPayload.data).then((result) => {
             onDone(null, result)
