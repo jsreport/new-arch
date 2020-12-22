@@ -1,5 +1,6 @@
 const should = require('should')
 const core = require('../../index')
+const createRequest = require('../../lib/shared/request')
 
 describe('render', () => {
   let reporter
@@ -19,13 +20,7 @@ describe('render', () => {
       }
     })
 
-    reporter.use({
-      name: 'render-testing',
-      directory: __dirname,
-      main: 'renderExtMain.js',
-      worker: 'renderExtWorker.js'
-    })
-
+    reporter.use(core.tests.listenersExtension)
     await reporter.init()
   })
 
@@ -36,58 +31,46 @@ describe('render', () => {
   })
 
   it('should initialize data', async () => {
-    const functions = {
-      beforeRender: ((req) => {
-        req.context.baseData = Object.assign({}, req.data)
-      }).toString(),
-      afterRender: ((req, res) => {
-        res.content = Buffer.from(JSON.stringify({
-          originalInputDataIsEmpty: req.context.originalInputDataIsEmpty,
-          baseData: req.context.baseData
-        }))
-      }).toString()
-    }
+    let context
+    let data
 
-    const res = await reporter.render({
+    reporter.beforeRenderListeners.add('test', (req) => {
+      context = req.context
+      data = req.data
+    })
+
+    await reporter.render({
       template: {
         engine: 'none',
-        content: JSON.stringify(functions),
+        content: 'foo',
         recipe: 'html'
       }
     })
 
-    const result = JSON.parse(res.content.toString())
-
-    should(result.originalInputDataIsEmpty).be.eql(true)
-    should(result.baseData).be.eql({})
+    context.originalInputDataIsEmpty.should.be.eql(true)
+    data.should.be.eql({})
   })
 
   it('should take data', async () => {
-    const functions = {
-      beforeRender: ((req) => {
-        req.context.baseData = Object.assign({}, req.data)
-      }).toString(),
-      afterRender: ((req, res) => {
-        res.content = Buffer.from(JSON.stringify({
-          data: req.context.baseData
-        }))
-      }).toString()
-    }
+    let context
+    let data
 
-    const res = await reporter.render({
-      template: {
-        engine: 'none',
-        content: JSON.stringify(functions),
-        recipe: 'html'
-      },
-      data: {
-        a: 'a'
-      }
+    reporter.beforeRenderListeners.add('test', (req) => {
+      context = req.context
+      data = req.data
     })
 
-    const result = JSON.parse(res.content.toString())
+    await reporter.render({
+      template: {
+        engine: 'none',
+        content: 'foo',
+        recipe: 'html'
+      },
+      data: { a: 'a' }
+    })
 
-    should(result.data).be.eql({ a: 'a' })
+    context.originalInputDataIsEmpty.should.be.eql(false)
+    data.should.be.eql({ a: 'a' })
   })
 
   it('should not be able to pass data as array', async () => {
@@ -102,45 +85,39 @@ describe('render', () => {
   })
 
   it('should not change input data type', async () => {
-    const functions = {
-      beforeRender: ((req) => {
-        req.context.dataWasArray = Array.isArray(req.data)
-        req.data = {}
-      }).toString(),
-      afterRender: ((req, res) => {
-        res.content = Buffer.from(JSON.stringify({
-          dataWasArray: req.context.dataWasArray
-        }))
-      }).toString()
-    }
+    let dataIsArray = false
 
-    const res = await reporter.render({
+    reporter.beforeRenderListeners.add('test', (req) => {
+      if (Array.isArray(req.data)) {
+        dataIsArray = true
+      }
+
+      req.data = {}
+    })
+
+    await reporter.render({
       template: {
         engine: 'none',
-        content: JSON.stringify(functions),
+        content: 'foo',
         recipe: 'html'
       },
       data: [{ name: 'item1' }, { name: 'item2' }]
     })
 
-    const result = JSON.parse(res.content.toString())
-
-    should(result.dataWasArray).be.true()
+    dataIsArray.should.be.True()
   })
 
   it('should validate and coerce template input according to template type schema', async () => {
-    const functions = {
-      afterRender: ((req, res) => {
-        res.content = Buffer.from(JSON.stringify({
-          request: req
-        }))
-      }).toString()
-    }
+    let request
 
-    const res = await reporter.render({
+    reporter.beforeRenderListeners.add('test', (req) => {
+      request = req
+    })
+
+    await reporter.render({
       template: {
         engine: 'none',
-        content: JSON.stringify(functions),
+        content: 'foo',
         recipe: 'html',
         chrome: {
           printBackground: 'true',
@@ -149,33 +126,23 @@ describe('render', () => {
       }
     })
 
-    const result = JSON.parse(res.content.toString())
-
-    should(result.request.template.engine).be.eql('none')
-    should(result.request.template.chrome.printBackground).be.true()
-    should(result.request.template.chrome.timeout).be.eql(10000)
+    request.template.engine.should.be.eql('none')
+    request.template.chrome.printBackground.should.be.true()
+    request.template.chrome.timeout.should.be.eql(10000)
   })
 
   it('should fail validation of template input according to template type schema', async () => {
-    const functions = {
-      afterRender: ((req, res) => {
-        res.content = Buffer.from(JSON.stringify({
-          request: req
-        }))
-      }).toString()
-    }
-
-    return should(reporter.render({
+    return reporter.render({
       template: {
         engine: 'none',
-        content: JSON.stringify(functions),
+        content: 'foo',
         recipe: 'html',
         chrome: {
           printBackground: 3000,
           timeout: 'invalid'
         }
       }
-    })).be.rejectedWith(/does not match the defined schema/)
+    }).should.be.rejectedWith(/does not match the defined schema/)
   })
 
   it('should render simple none engine for html recipe', async () => {
@@ -244,40 +211,18 @@ describe('render', () => {
   })
 
   it('should call listeners in render', async () => {
-    const functions = {
-      beforeRender: ((req) => {
-        req.context.listenersCall = ['before']
-      }).toString(),
-      validateRender: ((req) => {
-        req.context.listenersCall.push('validateRender')
-      }).toString(),
-      afterTemplatingEnginesExecuted: ((req) => {
-        req.context.listenersCall.push('afterTemplatingEnginesExecuted')
-      }).toString(),
-      afterRender: ((req, res) => {
-        req.context.listenersCall.push('after')
+    const listenersCall = []
 
-        res.content = Buffer.from(JSON.stringify({
-          listenersCall: req.context.listenersCall
-        }))
-      }).toString()
-    }
+    reporter.beforeRenderListeners.add('test', this, () => listenersCall.push('before'))
+    reporter.validateRenderListeners.add('test', this, () => listenersCall.push('validateRender'))
+    reporter.afterTemplatingEnginesExecutedListeners.add('test', this, () => listenersCall.push('afterTemplatingEnginesExecuted'))
+    reporter.afterRenderListeners.add('test', this, () => listenersCall.push('after'))
 
-    const res = await reporter.render({
-      template: {
-        engine: 'none',
-        content: JSON.stringify(functions),
-        recipe: 'html'
-      }
-    })
-
-    const result = JSON.parse(res.content.toString())
-
-    should(result.listenersCall).have.length(4)
-    should(result.listenersCall[0]).be.eql('before')
-    should(result.listenersCall[1]).be.eql('validateRender')
-    should(result.listenersCall[2]).be.eql('afterTemplatingEnginesExecuted')
-    should(result.listenersCall[3]).be.eql('after')
+    await reporter.render({ template: { content: 'Hey', engine: 'none', recipe: 'html' } })
+    listenersCall[0].should.be.eql('before')
+    listenersCall[1].should.be.eql('validateRender')
+    listenersCall[2].should.be.eql('afterTemplatingEnginesExecuted')
+    listenersCall[3].should.be.eql('after')
   })
 
   it('should call renderErrorListeners', async () => {
@@ -323,341 +268,211 @@ describe('render', () => {
   })
 
   it('should provide logs in response meta', async () => {
-    const functions = {
-      beforeRender: ((req, res, reporter) => {
-        reporter.logger.debug('foo', req)
-      }).toString()
-    }
-
-    const res = await reporter.render({
-      template: {
-        engine: 'none',
-        content: JSON.stringify(functions),
-        recipe: 'html'
-      }
+    reporter.beforeRenderListeners.add('test', (req, res) => {
+      reporter.logger.debug('foo', req)
     })
 
-    should(res.meta.logs.find((l) => l.message === 'foo')).be.ok()
+    const response = await reporter.render({ template: { engine: 'none', content: 'none', recipe: 'html' } })
+    response.meta.logs.find((l) => l.message === 'foo').should.be.ok()
   })
 
   it('should propagate logs to the parent request', async () => {
-    const functions = {
-      beforeRender: (async (req, res, reporter) => {
-        reporter.logger.debug('hello', req)
-
-        await reporter.render({
-          context: {
-            skipRenderExt: true
-          },
-          template: {
-            content: 'foo',
-            engine: 'none',
-            recipe: 'html'
-          }
-        }, req)
-      }).toString()
-    }
-
-    const res = await reporter.render({
-      template: {
-        content: JSON.stringify(functions),
-        engine: 'none',
-        recipe: 'html'
+    const parentReq = createRequest({
+      template: {},
+      options: {},
+      context: {
+        logs: [{ message: 'hello' }]
       }
     })
 
-    const logs = res.meta.logs.map(l => l.message)
+    await reporter.render({
+      template: { content: 'Hey', engine: 'none', recipe: 'html' }
+    }, parentReq)
+
+    const logs = parentReq.context.logs.map(l => l.message)
 
     logs.should.containEql('hello')
-    logs.should.matchAny((l) => l.should.startWith('Starting rendering request 2'))
   })
 
   it('should propagate logs to the parent request (error case)', async () => {
-    const functions = {
-      beforeRender: (async (req, res, reporter) => {
-        reporter.logger.debug('hello', req)
-
-        const childFunctions = {
-          afterRender: (() => {
-            throw new Error('intentional error')
-          }).toString()
-        }
-
-        try {
-          await reporter.render({
-            template: {
-              content: JSON.stringify(childFunctions),
-              engine: 'none',
-              recipe: 'html'
-            }
-          }, req)
-        } catch (e) {
-          req.context.childRequestFailed = true
-        }
-      }).toString(),
-      afterRender: ((req, res) => {
-        res.content = Buffer.from(JSON.stringify({
-          childRequestFailed: req.context.childRequestFailed
-        }))
-      }).toString()
-    }
-
-    const res = await reporter.render({
-      template: {
-        content: JSON.stringify(functions),
-        engine: 'none',
-        recipe: 'html'
+    const parentReq = createRequest({
+      template: {},
+      options: {},
+      context: {
+        logs: [{ message: 'hello' }]
       }
     })
 
-    const result = JSON.parse(res.content.toString())
+    reporter.afterRenderListeners.add('test', () => {
+      throw new Error('child error')
+    })
 
-    should(result.childRequestFailed).be.true()
+    try {
+      await reporter.render({
+        template: { content: 'Hey', engine: 'none', recipe: 'html' }
+      }, parentReq)
 
-    const logs = res.meta.logs.map(l => l.message)
+      throw new Error('render should fail')
+    } catch (e) {
+      const logs = parentReq.context.logs.map(l => l.message)
 
-    logs.should.containEql('hello')
-    logs.should.matchAny((l) => l.should.startWith('Starting rendering request 2'))
-    logs.should.matchAny((l) => l.should.containEql('intentional error'))
+      logs.should.containEql('hello')
+    }
   })
 
-  it('should propagate context.shared to the parent request', async () => {
-    const functions = {
-      beforeRender: (async (req, res, reporter) => {
-        const childFunctions = {
-          beforeRender: ((req) => {
-            req.context.shared.array.push(2)
-          }).toString(),
-          afterRender: ((req) => {
-            req.context.shared.array.push(3)
-          }).toString()
-        }
-
-        await reporter.render({
+  // TODO check this
+  it.skip('should propagate context.shared to the parent request', async () => {
+    reporter.beforeRenderListeners.add('test', (req) => {
+      req.context.shared.value += 'before'
+      if (req.template.content === 'main') {
+        return reporter.render({
           template: {
-            content: JSON.stringify(childFunctions),
+            content: 'child',
             engine: 'none',
             recipe: 'html'
           }
         }, req)
-      }).toString(),
-      afterRender: ((req, res) => {
-        res.content = Buffer.from(JSON.stringify({
-          shared: req.context.shared
-        }))
-      }).toString()
-    }
+      }
+    })
 
-    const res = await reporter.render({
+    reporter.afterRenderListeners.add('test', (req) => {
+      req.context.shared.value += 'after'
+
+      if (req.template.content === 'main') {
+        req.context.shared.value.should.be.eql('beforebeforeafterafter')
+      }
+    })
+
+    await reporter.render({
       context: {
-        shared: { array: [1] }
+        shared: { value: '' }
       },
       template: {
-        content: JSON.stringify(functions),
+        content: 'main',
         engine: 'none',
         recipe: 'html'
       }
     })
-
-    const result = JSON.parse(res.content.toString())
-
-    should(result.shared.array).be.eql([1, 2, 3])
   })
 
   it('should add isChildRequest to the nested render', async () => {
-    const functions = {
-      beforeRender: (async (req, res, reporter) => {
-        const childFunctions = {
-          afterRender: ((req, res) => {
-            res.content = Buffer.from(JSON.stringify({
-              isChildRequest: req.context.isChildRequest
-            }))
-          }).toString()
-        }
+    let context
+    reporter.beforeRenderListeners.add('test', this, (req) => (context = req.context))
 
-        const renderResult = await reporter.render({
-          template: {
-            content: JSON.stringify(childFunctions),
-            engine: 'none',
-            recipe: 'html'
-          }
-        }, req)
-
-        req.context.childRequestResult = JSON.parse(renderResult.content.toString())
-      }).toString(),
-      afterRender: ((req, res) => {
-        res.content = Buffer.from(JSON.stringify({
-          isChildRequest: req.context.isChildRequest,
-          child: req.context.childRequestResult
-        }))
-      }).toString()
-    }
-
-    const res = await reporter.render({
-      template: {
-        content: JSON.stringify(functions),
-        engine: 'none',
-        recipe: 'html'
+    const parentReq = createRequest({
+      template: {},
+      options: {},
+      context: {
+        logs: []
       }
     })
 
-    const result = JSON.parse(res.content.toString())
+    await reporter.render({
+      template: { content: 'Hey', engine: 'none', recipe: 'html' }
+    }, parentReq)
 
-    should(result.isChildRequest).not.be.true()
-    should(result.child.isChildRequest).be.true()
+    context.isChildRequest.should.be.true()
+    should(parentReq.context.isChildRequest).not.be.true()
   })
 
   it('should detect initial data on current request correctly', async () => {
-    const functions = {
-      beforeRender: (async (req, res, reporter) => {
-        const childFunctions = {
-          afterRender: ((req, res) => {
-            res.content = Buffer.from(JSON.stringify({
-              data: req.data,
-              originalInputDataIsEmpty: req.context.originalInputDataIsEmpty
-            }))
-          }).toString()
-        }
+    let data
+    let childOriginalInputDataIsEmpty
 
-        const renderResult = await reporter.render({
-          template: {
-            content: JSON.stringify(childFunctions),
-            engine: 'none',
-            recipe: 'html'
-          },
-          data: { a: 'a' }
-        }, req)
+    reporter.beforeRenderListeners.add('test', this, (req) => {
+      data = req.data
+      childOriginalInputDataIsEmpty = req.context.originalInputDataIsEmpty
+    })
 
-        req.context.childRequestResult = JSON.parse(renderResult.content.toString())
-      }).toString(),
-      afterRender: ((req, res) => {
-        res.content = Buffer.from(JSON.stringify({
-          originalInputDataIsEmpty: req.context.originalInputDataIsEmpty,
-          child: req.context.childRequestResult
-        }))
-      }).toString()
-    }
-
-    const res = await reporter.render({
-      template: {
-        content: JSON.stringify(functions),
-        engine: 'none',
-        recipe: 'html'
+    const parentReq = createRequest({
+      template: {},
+      options: {},
+      context: {
+        logs: []
       }
     })
 
-    const result = JSON.parse(res.content.toString())
+    parentReq.context.originalInputDataIsEmpty.should.be.eql(true)
 
-    should(result.originalInputDataIsEmpty).be.true()
-    should(result.child.originalInputDataIsEmpty).be.not.true()
-    should(result.child.data).have.property('a')
+    await reporter.render({
+      template: { content: 'Hey', engine: 'none', recipe: 'html' },
+      data: { a: 'a' }
+    }, parentReq)
+
+    childOriginalInputDataIsEmpty.should.be.eql(false)
+    data.should.have.property('a')
   })
 
   it('should inherit parent data to the current request', async () => {
-    const functions = {
-      beforeRender: (async (req, res, reporter) => {
-        const childFunctions = {
-          afterRender: ((req, res) => {
-            res.content = Buffer.from(JSON.stringify({
-              data: req.data,
-              options: req.options,
-              originalInputDataIsEmpty: req.context.originalInputDataIsEmpty
-            }))
-          }).toString()
-        }
+    let data
+    let options
+    let childOriginalInputDataIsEmpty
 
-        const renderResult = await reporter.render({
-          template: {
-            content: JSON.stringify(childFunctions),
-            engine: 'none',
-            recipe: 'html'
-          },
-          options: { b: 'b', c: 'x' }
-        }, req)
-
-        req.context.childRequestResult = JSON.parse(renderResult.content.toString())
-      }).toString(),
-      afterRender: ((req, res) => {
-        res.content = Buffer.from(JSON.stringify({
-          originalInputDataIsEmpty: req.context.originalInputDataIsEmpty,
-          child: req.context.childRequestResult
-        }))
-      }).toString()
-    }
-
-    const res = await reporter.render({
-      template: {
-        content: JSON.stringify(functions),
-        engine: 'none',
-        recipe: 'html'
-      },
-      data: { a: 'a' },
-      options: { a: 'a', c: 'c' }
+    reporter.beforeRenderListeners.add('test', this, (req) => {
+      childOriginalInputDataIsEmpty = req.context.originalInputDataIsEmpty
+      data = req.data
+      options = req.options
     })
 
-    const result = JSON.parse(res.content.toString())
+    const parentReq = createRequest({
+      template: {},
+      options: { a: 'a', c: 'c' },
+      data: { a: 'a' },
+      context: {
+        logs: []
+      }
+    })
 
-    should(result.originalInputDataIsEmpty).be.not.true()
-    should(result.child.originalInputDataIsEmpty).be.not.true()
-    should(result.child.data).have.property('a')
-    should(result.child.options).have.property('a')
-    should(result.child.options).have.property('b')
-    should(result.child.options).have.property('c')
-    should(result.child.options.c).be.eql('x')
+    parentReq.context.originalInputDataIsEmpty.should.be.eql(false)
+
+    await reporter.render({
+      template: { content: 'Hey', engine: 'none', recipe: 'html' },
+      options: { b: 'b', c: 'x' }
+    }, parentReq)
+
+    childOriginalInputDataIsEmpty.should.be.eql(false)
+    data.should.have.property('a')
+    options.should.have.property('a')
+    options.should.have.property('b')
+    options.should.have.property('c')
+    options.c.should.be.eql('x')
   })
 
   it('should merge parent to the current request', async () => {
-    const functions = {
-      beforeRender: (async (req, res, reporter) => {
-        const childFunctions = {
-          afterRender: ((req, res) => {
-            res.content = Buffer.from(JSON.stringify({
-              data: req.data,
-              options: req.options,
-              originalInputDataIsEmpty: req.context.originalInputDataIsEmpty
-            }))
-          }).toString()
-        }
+    let data
+    let options
+    let childOriginalInputDataIsEmpty
 
-        const renderResult = await reporter.render({
-          template: {
-            content: JSON.stringify(childFunctions),
-            engine: 'none',
-            recipe: 'html'
-          },
-          data: { b: 'b' },
-          options: { b: 'b', c: 'x' }
-        }, req)
-
-        req.context.childRequestResult = JSON.parse(renderResult.content.toString())
-      }).toString(),
-      afterRender: ((req, res) => {
-        res.content = Buffer.from(JSON.stringify({
-          originalInputDataIsEmpty: req.context.originalInputDataIsEmpty,
-          child: req.context.childRequestResult
-        }))
-      }).toString()
-    }
-
-    const res = await reporter.render({
-      template: {
-        content: JSON.stringify(functions),
-        engine: 'none',
-        recipe: 'html'
-      },
-      data: { a: 'a' },
-      options: { a: 'a', c: 'c' }
+    reporter.beforeRenderListeners.add('test', this, (req) => {
+      childOriginalInputDataIsEmpty = req.context.originalInputDataIsEmpty
+      data = req.data
+      options = req.options
     })
 
-    const result = JSON.parse(res.content.toString())
+    const parentReq = createRequest({
+      template: {},
+      options: { a: 'a', c: 'c' },
+      data: { a: 'a' },
+      context: {
+        logs: []
+      }
+    })
 
-    should(result.originalInputDataIsEmpty).be.not.true()
-    should(result.child.originalInputDataIsEmpty).be.not.true()
-    should(result.child.data).have.property('a')
-    should(result.child.options).have.property('a')
-    should(result.child.options).have.property('b')
-    should(result.child.options).have.property('c')
-    should(result.child.options.c).be.eql('x')
+    parentReq.context.originalInputDataIsEmpty.should.be.eql(false)
+
+    await reporter.render({
+      template: { content: 'Hey', engine: 'none', recipe: 'html' },
+      data: { b: 'b' },
+      options: { b: 'b', c: 'x' }
+    }, parentReq)
+
+    childOriginalInputDataIsEmpty.should.be.eql(false)
+    data.should.have.property('a')
+    data.should.have.property('b')
+    options.should.have.property('a')
+    options.should.have.property('b')
+    options.should.have.property('c')
+    options.c.should.be.eql('x')
   })
 })
 
@@ -686,13 +501,7 @@ function timeoutTests (asReqOption = false) {
 
     reporter = core(opts)
 
-    reporter.use({
-      name: 'render-testing',
-      directory: __dirname,
-      main: 'renderExtMain.js',
-      worker: 'renderExtWorker.js'
-    })
-
+    reporter.use(core.tests.listenersExtension)
     return reporter.init()
   })
 
@@ -703,20 +512,18 @@ function timeoutTests (asReqOption = false) {
   })
 
   it('should timeout', async () => {
-    const functions = {
-      beforeRender: (async (req, res, reporter) => {
-        await new Promise((resolve) => setTimeout(resolve, reporter.options.reportTimeout + 10))
-      }).toString()
-    }
+    reporter.beforeRenderListeners.add('test', async () => {
+      await new Promise((resolve) => setTimeout(resolve, reportTimeout + 10))
+    })
 
-    return should(reporter.render({
+    return reporter.render({
       template: {
         engine: 'none',
-        content: JSON.stringify(functions),
+        content: 'foo',
         recipe: 'html'
       },
       options: renderOpts
-    })).be.rejectedWith(/Report timeout/)
+    }).should.be.rejectedWith(/Report timeout/)
   })
 
   it('should timeout with blocking template engine', async () => {
@@ -735,31 +542,30 @@ function timeoutTests (asReqOption = false) {
   })
 
   it('should timeout with child requests', async () => {
-    const functions = {
-      beforeRender: (async (req, res, reporter) => {
-        const childFunctions = {
-          beforeRender: (async (req, res, reporter) => {
-            await new Promise((resolve) => setTimeout(resolve, reporter.options.reportTimeout + 10))
-          }).toString()
-        }
-
-        await reporter.render({
+    reporter.beforeRenderListeners.add('test', async (req) => {
+      if (req.context.isChildRequest) {
+        await new Promise((resolve) => setTimeout(resolve, reportTimeout + 10))
+      } else {
+        const resp = await reporter.render({
           template: {
-            content: JSON.stringify(childFunctions),
             engine: 'none',
+            content: 'bar',
             recipe: 'html'
-          }
+          },
+          options: renderOpts
         }, req)
-      }).toString()
-    }
 
-    return should(reporter.render({
+        req.template.content += ` ${resp.content}`
+      }
+    })
+
+    return reporter.render({
       template: {
         engine: 'none',
-        content: JSON.stringify(functions),
+        content: 'foo',
         recipe: 'html'
       },
       options: renderOpts
-    })).be.rejectedWith(/Report timeout/)
+    }).should.be.rejectedWith(/Report timeout/)
   })
 }
