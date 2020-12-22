@@ -104,12 +104,16 @@ class WorkerReporter extends Reporter {
     this._proxyRegistrationFns.push(registrationFn)
   }
 
-  createProxy (contextParam, { afterMethodExecute } = {}) {
+  createProxy (contextParam, { beforeMethodExecute, afterMethodExecute } = {}) {
     const context = Object.assign({}, contextParam)
     context.require = context.require || require
 
     const defineMethod = (method) => {
       return async (...params) => {
+        if (typeof beforeMethodExecute === 'function') {
+          beforeMethodExecute(params)
+        }
+
         const methodResult = await method(context, ...params)
 
         if (typeof afterMethodExecute === 'function') {
