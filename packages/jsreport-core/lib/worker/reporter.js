@@ -10,22 +10,16 @@ const registerProxyMethods = require('./registerProxyMethods')
 const Reporter = require('../shared/reporter')
 
 class WorkerReporter extends Reporter {
-  #registry
-  #initialized
-  #documentStoreData
-  #requestContextMetaConfigCollection
-  #proxyRegistrationFns
-
   constructor (workerData, registry) {
     const { options, documentStore, extensionsDefs } = workerData
 
     super(options)
 
-    this.#registry = registry
-    this.#initialized = false
-    this.#documentStoreData = documentStore
-    this.#requestContextMetaConfigCollection = new Map()
-    this.#proxyRegistrationFns = []
+    this._registry = registry
+    this._initialized = false
+    this._documentStoreData = documentStore
+    this._requestContextMetaConfigCollection = new Map()
+    this._proxyRegistrationFns = []
 
     this.requestModulesCache = new Map()
 
@@ -44,7 +38,7 @@ class WorkerReporter extends Reporter {
   }
 
   async init () {
-    if (this.#initialized === true) {
+    if (this._initialized === true) {
       throw new Error('jsreport already initialized. Make sure init is called only once')
     }
 
@@ -52,7 +46,7 @@ class WorkerReporter extends Reporter {
 
     await this.extensionsManager.init()
 
-    this.documentStore = DocumentStore(this.#registry, this.#documentStoreData)
+    this.documentStore = DocumentStore(this._registry, this._documentStoreData)
 
     this.addRequestContextMetaConfig('rootId', { sandboxReadOnly: true })
     this.addRequestContextMetaConfig('id', { sandboxReadOnly: true })
@@ -78,14 +72,14 @@ class WorkerReporter extends Reporter {
 
     await this.initializeListeners.fire()
 
-    this.#initialized = true
+    this._initialized = true
   }
 
   /**
    * @public
    */
   addRequestContextMetaConfig (property, options) {
-    this.#requestContextMetaConfigCollection.set(property, options)
+    this._requestContextMetaConfigCollection.set(property, options)
   }
 
   /**
@@ -95,18 +89,18 @@ class WorkerReporter extends Reporter {
     if (property === undefined) {
       const all = {}
 
-      for (const [key, value] of this.#requestContextMetaConfigCollection.entries()) {
+      for (const [key, value] of this._requestContextMetaConfigCollection.entries()) {
         all[key] = value
       }
 
       return all
     }
 
-    return this.#requestContextMetaConfigCollection.get(property)
+    return this._requestContextMetaConfigCollection.get(property)
   }
 
   extendProxy (registrationFn) {
-    this.#proxyRegistrationFns.push(registrationFn)
+    this._proxyRegistrationFns.push(registrationFn)
   }
 
   createProxy (contextParam, { afterMethodExecute } = {}) {
@@ -125,7 +119,7 @@ class WorkerReporter extends Reporter {
       }
     }
 
-    return this.#proxyRegistrationFns.reduce((proxyInstance, registrationFn) => {
+    return this._proxyRegistrationFns.reduce((proxyInstance, registrationFn) => {
       registrationFn(proxyInstance, defineMethod)
       return proxyInstance
     }, {})
@@ -202,9 +196,7 @@ class WorkerReporter extends Reporter {
       })();
     `
 
-    const defaultMainFilename = options.fileInfo && options.fileInfo.filename ? (
-      options.fileInfo.filename
-    ) : `main-eval-sandbox${runId}.js`
+    const defaultMainFilename = options.fileInfo && options.fileInfo.filename ? options.fileInfo.filename : `main-eval-sandbox${runId}.js`
 
     const promise = run(executionCode, {
       filename: defaultMainFilename,

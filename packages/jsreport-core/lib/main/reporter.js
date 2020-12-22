@@ -29,22 +29,15 @@ const Request = require('../shared/request')
 const generateRequestId = require('../shared/generateRequestId')
 
 class MainReporter extends Reporter {
-  #fnAfterConfigLoaded
-  #reaperTimerRef
-  #extraPathsToCleanupCollection
-  #scriptManager
-  #requestsMap
-  #callbackActions
-
   constructor (options, defaults) {
     super(options)
 
     this.defaults = defaults || {}
-    this.#fnAfterConfigLoaded = () => {}
-    this.#reaperTimerRef = null
-    this.#extraPathsToCleanupCollection = new Set()
-    this.#requestsMap = new Map()
-    this.#callbackActions = CallbackActions(this)
+    this._fnAfterConfigLoaded = () => {}
+    this._reaperTimerRef = null
+    this._extraPathsToCleanupCollection = new Set()
+    this._requestsMap = new Map()
+    this._callbackActions = CallbackActions(this)
 
     this._initialized = false
     this._initializing = false
@@ -86,7 +79,7 @@ class MainReporter extends Reporter {
       validator: this.optionsValidator,
       fallbackParentModuleDirectory: path.dirname(module.parent.filename),
       onConfigLoaded: async () => {
-        await this.#fnAfterConfigLoaded(this)
+        await this._fnAfterConfigLoaded(this)
       }
     })
 
@@ -123,9 +116,9 @@ class MainReporter extends Reporter {
     }
 
     if (userSuppliedOptions.templatingEngines && userSuppliedOptions.templatingEngines.timeout != null && this.options.reportTimeout != null) {
-      this.logger.warn(`"templatingEngines.timeout" configuration is ignored when "reportTimeout" is set`)
+      this.logger.warn('"templatingEngines.timeout" configuration is ignored when "reportTimeout" is set')
     } else if (userSuppliedOptions.templatingEngines && userSuppliedOptions.templatingEngines.timeout != null) {
-      this.logger.warn(`"templatingEngines.timeout" configuration is deprecated and will be removed in the future, please use "reportTimeout" instead`)
+      this.logger.warn('"templatingEngines.timeout" configuration is deprecated and will be removed in the future, please use "reportTimeout" instead')
     }
 
     return this
@@ -139,7 +132,7 @@ class MainReporter extends Reporter {
    * @public
    */
   afterConfigLoaded (fn) {
-    this.#fnAfterConfigLoaded = fn
+    this._fnAfterConfigLoaded = fn
     return this
   }
 
@@ -209,7 +202,7 @@ class MainReporter extends Reporter {
 
       const extensionsForWorkers = this.extensionsManager.extensions.filter(e => e.worker)
 
-      this.#scriptManager = this.options.templatingEngines.scriptManager || new ScriptsManager(this.options.templatingEngines, {
+      this._scriptManager = this.options.templatingEngines.scriptManager || new ScriptsManager(this.options.templatingEngines, {
         options: { ...this.options },
         // we do map and copy to unproxy the value
         extensionsDefs: extensionsForWorkers.map(e => Object.assign({}, e)),
@@ -229,7 +222,7 @@ class MainReporter extends Reporter {
 
       this.logger.debug(`Extensions in workers: ${extensionsForWorkers.map((e) => e.name).join(', ')}`)
 
-      await this.#scriptManager.ensureStarted()
+      await this._scriptManager.ensureStarted()
 
       this.logger.info(`${this.options.templatingEngines.numberOfWorkers} worker threads initialized in ${new Date().getTime() - workersStart}ms`)
 
@@ -239,7 +232,7 @@ class MainReporter extends Reporter {
 
       await this.initializeListeners.fire()
 
-      await this.#startReaper(this.getPathsToWatchForAutoCleanup())
+      await this._startReaper(this.getPathsToWatchForAutoCleanup())
 
       this.extensionsManager.recipes.push({
         name: 'html'
@@ -262,14 +255,14 @@ class MainReporter extends Reporter {
    * @public
    */
   addPathToWatchForAutoCleanup (customPath) {
-    this.#extraPathsToCleanupCollection.add(customPath)
+    this._extraPathsToCleanupCollection.add(customPath)
   }
 
   /**
    * @public
    */
   getPathsToWatchForAutoCleanup () {
-    return [this.options.tempAutoCleanupDirectory].concat(Array.from(this.#extraPathsToCleanupCollection.values()))
+    return [this.options.tempAutoCleanupDirectory].concat(Array.from(this._extraPathsToCleanupCollection.values()))
   }
 
   async checkValidEntityName (c, doc, req) {
@@ -290,7 +283,7 @@ class MainReporter extends Reporter {
    * Execute a script in the workers
    */
   async executeScript (inputs, options, req) {
-    return executeScriptFn(this, this.#scriptManager, inputs, options, req)
+    return executeScriptFn(this, this._scriptManager, inputs, options, req)
   }
 
   /**
@@ -323,7 +316,7 @@ class MainReporter extends Reporter {
     request.context.rootId = generateRequestId()
     request.context.id = request.context.rootId
 
-    this.#requestsMap.set(request.context.rootId, request)
+    this._requestsMap.set(request.context.rootId, request)
 
     let reportTimeout = this.options.reportTimeout
 
@@ -340,7 +333,7 @@ class MainReporter extends Reporter {
     let responseResult
 
     try {
-      responseResult = await this.#scriptManager.execute({
+      responseResult = await this._scriptManager.execute({
         req: request,
         // TODO: decide how we are going to work with parent request, if we decide to merge
         // just here in main and pass single request, or if we pass both objects.
@@ -355,8 +348,8 @@ class MainReporter extends Reporter {
           this.logger[log.level](log.message, { ...request, ...log.meta, timestamp: log.timestamp })
         },
         callback: async (data) => {
-          const request = this.#requestsMap.get(data.requestRootId)
-          const result = await this.#callbackActions(data, request)
+          const request = this._requestsMap.get(data.requestRootId)
+          const result = await this._callbackActions(data, request)
           return result
         }
       })
@@ -371,7 +364,7 @@ class MainReporter extends Reporter {
 
       throw err
     } finally {
-      this.#requestsMap.delete(request.context.rootId)
+      this._requestsMap.delete(request.context.rootId)
     }
 
     return response
@@ -384,12 +377,12 @@ class MainReporter extends Reporter {
   async close () {
     this.logger.info('Closing jsreport instance')
 
-    if (this.#reaperTimerRef) {
-      clearInterval(this.#reaperTimerRef)
+    if (this._reaperTimerRef) {
+      clearInterval(this._reaperTimerRef)
     }
 
-    if (this.#scriptManager) {
-      await this.#scriptManager.kill()
+    if (this._scriptManager) {
+      await this._scriptManager.kill()
     }
 
     await this.closeListeners.fire()
@@ -408,7 +401,7 @@ class MainReporter extends Reporter {
    *
    * @private
    */
-  #startReaper (dir) {
+  _startReaper (dir) {
     const dirsToWatch = !Array.isArray(dir) ? [dir] : dir
 
     if (this.options.autoTempCleanup === false) {
@@ -416,7 +409,7 @@ class MainReporter extends Reporter {
     }
 
     // 3 minutes old files will be deleted
-    const reaper = new Reaper({threshold: 180000})
+    const reaper = new Reaper({ threshold: 180000 })
 
     dirsToWatch.forEach(d => reaper.watch(d))
 
@@ -426,7 +419,7 @@ class MainReporter extends Reporter {
       }
     })
 
-    this.#reaperTimerRef = setInterval(() => {
+    this._reaperTimerRef = setInterval(() => {
       try {
         reaper.start((err, files) => {
           if (err) {
@@ -441,7 +434,7 @@ class MainReporter extends Reporter {
       }
     }, 30000 /* check every 30s for old files */)
 
-    this.#reaperTimerRef.unref()
+    this._reaperTimerRef.unref()
   }
 }
 

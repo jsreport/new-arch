@@ -83,14 +83,9 @@
     "test:watch": "mocha --watch --recursive test"
   },
   "standard": {
-    "globals": [
-      "describe",
-      "it",
-      "beforeEach",
-      "define",
-      "ace",
-      "afterEach"
-    ]
+    "env": {
+      "mocha": true
+    }
   },
   "version": "2.10.1"
 }

@@ -6,28 +6,23 @@ const Piscina = require('piscina')
 const convertUint8ArrayProperties = require('../shared/convertUint8ArrayProperties')
 
 class ScriptsManager {
-  #exitListener
-  #isStarted
-  #workerData
-  #workerManager
-
   constructor (baseOptions, workerData) {
-    this.#isStarted = false
-    this.#workerData = workerData
+    this._isStarted = false
+    this._workerData = workerData
 
     this.options = Object.assign({}, baseOptions)
     this.options.numberOfWorkers = this.options.numberOfWorkers || 1
 
-    this.#exitListener = () => {
+    this._exitListener = () => {
       this.kill()
     }
 
-    process.once('exit', this.#exitListener)
+    process.once('exit', this._exitListener)
   }
 
   async start () {
-    this.#workerManager = new Piscina({
-      workerData: this.#workerData,
+    this._workerManager = new Piscina({
+      workerData: this._workerData,
       filename: path.join(__dirname, '../worker/worker.js'),
       minThreads: this.options.numberOfWorkers,
       maxThreads: this.options.numberOfWorkers,
@@ -35,11 +30,11 @@ class ScriptsManager {
     })
 
     // NOTE: it is important to handle this error event to have thread restart working properly
-    this.#workerManager.on('error', (err) => {
+    this._workerManager.on('error', (err) => {
       console.error('Got uncaught exception in worker thread pool manager:', err)
     })
 
-    let workersPendingToBeOnline = this.#workerManager.threads.length
+    let workersPendingToBeOnline = this._workerManager.threads.length
 
     const startExecution = {}
 
@@ -47,7 +42,7 @@ class ScriptsManager {
       startExecution.resolve = resolve
     })
 
-    for (const worker of this.#workerManager.threads) {
+    for (const worker of this._workerManager.threads) {
       worker.once('message', (message) => {
         // we wait for the ready message, this is send
         // by piscina after waiting for the the promise initialization
@@ -57,7 +52,7 @@ class ScriptsManager {
         }
 
         if (workersPendingToBeOnline === 0) {
-          this.#isStarted = true
+          this._isStarted = true
           startExecution.resolve()
         }
       })
@@ -67,7 +62,7 @@ class ScriptsManager {
   }
 
   async ensureStarted () {
-    if (this.#isStarted) {
+    if (this._isStarted) {
       return
     }
 
@@ -75,17 +70,17 @@ class ScriptsManager {
   }
 
   async kill () {
-    if (this.#workerManager) {
-      this.#isStarted = false
+    if (this._workerManager) {
+      this._isStarted = false
 
       try {
-        await this.#workerManager.destroy()
+        await this._workerManager.destroy()
       } catch (e) {
-        console.error('Got exception when killing workers:', err)
+        console.error('Got exception when killing workers:', e)
       }
     }
 
-    process.removeListener('exit', this.#exitListener)
+    process.removeListener('exit', this._exitListener)
   }
 
   async execute (inputs, baseOptions) {
@@ -142,7 +137,7 @@ class ScriptsManager {
       }, timeoutValue)
     }
 
-    this.#runTask(
+    this._runTask(
       taskData,
       callback,
       onLog,
@@ -184,7 +179,7 @@ class ScriptsManager {
     return execution.promise
   }
 
-  async #runTask (taskData, callback, onLog, executionController) {
+  async _runTask (taskData, maincallback, onLog, executionController) {
     const rid = uuid()
     // we create a message channel to be able to pass messages with the worker
     const { port1: workerPort, port2: managerPort } = new MessageChannel()
@@ -233,7 +228,7 @@ class ScriptsManager {
 
           convertUint8ArrayProperties(msgPayload.data)
 
-          callback(...msgPayload.data).then((result) => {
+          maincallback(...msgPayload.data).then((result) => {
             onDone(null, result)
           }).catch((err) => {
             onDone(err)
@@ -256,7 +251,7 @@ class ScriptsManager {
       }
     })
 
-    const result = this.#workerManager.runTask({
+    const result = this._workerManager.runTask({
       rid,
       data: taskData,
       managerPort
