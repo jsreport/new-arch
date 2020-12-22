@@ -1,0 +1,79 @@
+{
+  "author": {
+    "name": "Jan Blaha"
+  },
+  "bugs": {
+    "url": "https://github.com/jsreport/jsreport-authentication/issues"
+  },
+  "bundleDependencies": false,
+  "dependencies": {
+    "axios": "0.19.2",
+    "body-parser": "1.19.0",
+    "client-sessions": "0.8.0",
+    "ejs": "2.6.2",
+    "passport": "0.4.0",
+    "passport-http": "0.3.0",
+    "passport-http-bearer": "1.0.1",
+    "passport-local": "1.0.0",
+    "password-hash": "1.2.2"
+  },
+  "deprecated": false,
+  "description": "jsreport extension adding user authentication",
+  "devDependencies": {
+    "babel-eslint": "8.2.1",
+    "eslint": "4.17.0",
+    "eslint-config-standard-jsx": "4.0.2",
+    "eslint-plugin-babel": "4.1.2",
+    "express": "4.17.1",
+    "in-publish": "2.0.1",
+    "jsreport-core": "2.10.1",
+    "jsreport-express": "2.8.1",
+    "jsreport-studio-dev": "1.6.0",
+    "jsreport-templates": "2.4.0",
+    "lodash.clonedeep": "4.5.0",
+    "mocha": "5.2.0",
+    "should": "13.2.3",
+    "standard": "10.0.3",
+    "supertest": "3.4.2"
+  },
+  "engines": {
+    "node": ">=8.9"
+  },
+  "files": [
+    "lib",
+    "public",
+    "studio",
+    "index.js",
+    "jsreport.config.js"
+  ],
+  "homepage": "https://github.com/jsreport/jsreport-authentication",
+  "keywords": [
+    "jsreport",
+    "authentication"
+  ],
+  "license": "LGPL",
+  "name": "jsreport-authentication",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/jsreport/jsreport-authentication.git"
+  },
+  "scripts": {
+    "build": "jsreport-studio-build",
+    "prepublish": "in-publish && jsreport-studio-build || not-in-publish",
+    "start": "jsreport-studio-start --httpPort 5488",
+    "test": "mocha \"./test/*.spec.js\" --timeout 10000 --exit && standard"
+  },
+  "standard": {
+    "ignore": [
+      "main.js",
+      "public/**"
+    ],
+    "parser": "babel-eslint",
+    "env": {
+      "node": true,
+      "mocha": true,
+      "browser": true
+    }
+  },
+  "version": "2.6.1"
+}

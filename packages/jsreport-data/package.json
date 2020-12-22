@@ -1,0 +1,65 @@
+{
+  "author": {
+    "name": "Jan Blaha"
+  },
+  "bugs": {
+    "url": "https://github.com/jsreport/jsreport-data/issues"
+  },
+  "bundleDependencies": false,
+  "dependencies": {},
+  "deprecated": false,
+  "description": "jsreport extension adding support for using sample data for previewing templates",
+  "devDependencies": {
+    "babel-eslint": "10.0.3",
+    "eslint": "5.16.0",
+    "eslint-config-standard-jsx": "6.0.2",
+    "eslint-plugin-babel": "5.3.1",
+    "handlebars": "4.7.6",
+    "in-publish": "2.0.1",
+    "jsreport-core": "2.10.0",
+    "jsreport-handlebars": "2.1.0",
+    "jsreport-studio-dev": "1.6.0",
+    "jsreport-templates": "2.4.0",
+    "mocha": "6.1.4",
+    "should": "13.2.3",
+    "standard": "12.0.1"
+  },
+  "engines": {
+    "node": ">=8.9"
+  },
+  "files": [
+    "lib",
+    "studio",
+    "index.js",
+    "jsreport.config.js"
+  ],
+  "homepage": "https://github.com/jsreport/jsreport-data",
+  "keywords": [
+    "jsreport",
+    "data"
+  ],
+  "license": "LGPL",
+  "name": "jsreport-data",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/jsreport/jsreport-data.git"
+  },
+  "scripts": {
+    "build": "jsreport-studio-build",
+    "prepublish": "in-publish && jsreport-studio-build || not-in-publish",
+    "start": "jsreport-studio-start --httpPort 5488",
+    "test": "mocha test --timeout 5000 && standard"
+  },
+  "standard": {
+    "ignore": [
+      "main.js"
+    ],
+    "env": {
+      "node": true,
+      "mocha": true,
+      "browser": true
+    },
+    "parser": "babel-eslint"
+  },
+  "version": "2.4.0"
+}

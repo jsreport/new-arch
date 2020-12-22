@@ -1,0 +1,68 @@
+{
+  "author": {
+    "name": "Jan Blaha"
+  },
+  "bugs": {
+    "url": "https://github.com/jsreport/jsreport-freeze/issues"
+  },
+  "bundleDependencies": false,
+  "dependencies": {},
+  "deprecated": false,
+  "description": "jsreport extension allowing to freeze editing of templates",
+  "devDependencies": {
+    "babel-eslint": "8.2.2",
+    "eslint": "4.19.1",
+    "eslint-config-standard-jsx": "5.0.0",
+    "eslint-plugin-babel": "5.0.0",
+    "in-publish": "2.0.0",
+    "jsreport-core": "2.0.0",
+    "jsreport-studio-dev": "1.1.2",
+    "jsreport-templates": "2.0.0",
+    "mocha": "5.0.5",
+    "should": "13.2.1",
+    "standard": "11.0.1"
+  },
+  "engines": {
+    "node": ">=8.9"
+  },
+  "files": [
+    "lib",
+    "index.js",
+    "jsreport.config.js",
+    "studio"
+  ],
+  "homepage": "https://github.com/jsreport/jsreport-freeze",
+  "keywords": [
+    "jsreport"
+  ],
+  "license": "MIT",
+  "maintainers": [
+    {
+      "name": "pofider",
+      "email": "jan.blaha@hotmail.com"
+    }
+  ],
+  "name": "jsreport-freeze",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/jsreport/jsreport-freeze.git"
+  },
+  "scripts": {
+    "build": "jsreport-studio-build",
+    "prepublish": "in-publish && jsreport-studio-build || not-in-publish",
+    "start": "jsreport-studio-start --httpPort 5488",
+    "test": "mocha test --timeout 5000 && standard"
+  },
+  "standard": {
+    "ignore": [
+      "main.js"
+    ],
+    "parser": "babel-eslint",
+    "env": {
+      "node": true,
+      "mocha": true,
+      "browser": true
+    }
+  },
+  "version": "2.0.0"
+}

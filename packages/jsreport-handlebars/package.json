@@ -1,0 +1,53 @@
+{
+  "author": {
+    "name": "Jan Blaha"
+  },
+  "bugs": {
+    "url": "https://github.com/jsreport/jsreport-handlebars/issues"
+  },
+  "bundleDependencies": false,
+  "deprecated": false,
+  "description": "jsreport handlebars templating engine",
+  "devDependencies": {
+    "eslint": "4.18.1",
+    "handlebars": "4.1.2",
+    "jsreport-core": "2.6.1",
+    "jsreport-studio-dev": "1.5.0",
+    "mocha": "5.0.1",
+    "should": "13.2.3",
+    "standard": "11.0.0"
+  },
+  "engines": {
+    "node": ">=8.9"
+  },
+  "files": [
+    "lib",
+    "index.js",
+    "jsreport.config.js"
+  ],
+  "homepage": "https://github.com/jsreport/jsreport-handlebars",
+  "keywords": [
+    "jsreport",
+    "handlebars"
+  ],
+  "license": "LGPL",
+  "name": "jsreport-handlebars",
+  "peerDependencies": {
+    "handlebars": "4.x.x"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/jsreport/jsreport-handlebars.git"
+  },
+  "scripts": {
+    "start": "jsreport-studio-start --httpPort 4300",
+    "test": "mocha test --timeout=5000 && standard"
+  },
+  "standard": {
+    "env": {
+      "node": true,
+      "mocha": true
+    }
+  },
+  "version": "2.1.0"
+}

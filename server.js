@@ -1,4 +1,6 @@
-const jsreport = require('jsreport')()
+const jsreport = require('./')({
+  rootDirectory: __dirname
+})
 
 if (process.env.JSREPORT_CLI) {
   // export jsreport instance to make it possible to use jsreport-cli

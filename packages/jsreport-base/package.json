@@ -1,0 +1,48 @@
+{
+  "author": {
+    "name": "Jan Blaha"
+  },
+  "bugs": {
+    "url": "https://github.com/jsreport/jsreport-base/issues"
+  },
+  "bundleDependencies": false,
+  "dependencies": {},
+  "deprecated": false,
+  "description": "jsreport extension automatically adding html base tag",
+  "devDependencies": {
+    "eslint": "4.19.1",
+    "jsreport-core": "2.0.1",
+    "mocha": "5.1.1",
+    "should": "13.2.1",
+    "standard": "11.0.1"
+  },
+  "engines": {
+    "node": ">=8.9"
+  },
+  "files": [
+    "lib",
+    "index.js",
+    "jsreport.config.js"
+  ],
+  "homepage": "https://github.com/jsreport/jsreport-base",
+  "keywords": [
+    "jsreport",
+    "base"
+  ],
+  "license": "MIT",
+  "name": "jsreport-base",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/jsreport/jsreport-base.git"
+  },
+  "scripts": {
+    "test": "mocha test --timeout 5000 && standard",
+    "test:watch": "mocha test --watch"
+  },
+  "standard": {
+    "env": {
+      "mocha": true
+    }
+  },
+  "version": "2.0.2"
+}

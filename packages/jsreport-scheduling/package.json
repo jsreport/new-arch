@@ -1,0 +1,74 @@
+{
+  "author": {
+    "name": "Jan Blaha"
+  },
+  "bugs": {
+    "url": "https://github.com/jsreport/jsreport-scheduling/issues"
+  },
+  "bundleDependencies": false,
+  "dependencies": {
+    "cron-parser": "2.7.3",
+    "moment": "2.24.0"
+  },
+  "deprecated": false,
+  "description": "jsreport extension for scheduling background rendering jobs",
+  "devDependencies": {
+    "babel-eslint": "8.2.3",
+    "cron-builder": "0.3.0",
+    "cronstrue": "1.64.0",
+    "eslint": "4.19.1",
+    "eslint-config-standard-jsx": "5.0.0",
+    "eslint-plugin-babel": "5.3.1",
+    "in-publish": "2.0.1",
+    "jsreport-authentication": "2.6.0",
+    "jsreport-authorization": "2.4.0",
+    "jsreport-core": "2.10.0",
+    "jsreport-reports": "2.5.0",
+    "jsreport-studio-dev": "1.6.0",
+    "jsreport-templates": "2.4.0",
+    "lodash": "4.17.15",
+    "mocha": "5.2.0",
+    "ordinal-number-suffix": "0.1.2",
+    "should": "13.2.3",
+    "standard": "11.0.1"
+  },
+  "engines": {
+    "node": ">=8.9"
+  },
+  "files": [
+    "lib",
+    "studio",
+    "index.js",
+    "jsreport.config.js"
+  ],
+  "homepage": "https://github.com/jsreport/jsreport-scheduling",
+  "keywords": [
+    "jsreport",
+    "scheduling"
+  ],
+  "license": "LGPL",
+  "name": "jsreport-scheduling",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/jsreport/jsreport-scheduling.git"
+  },
+  "scripts": {
+    "build": "jsreport-studio-build",
+    "prepublish": "in-publish && jsreport-studio-build || not-in-publish",
+    "run": "npm run build && jsreport-studio-start --httpPort 5488 --run-only",
+    "start": "jsreport-studio-start --httpPort 5488",
+    "test": "mocha test --timeout=10000 && standard"
+  },
+  "standard": {
+    "ignore": [
+      "main.js"
+    ],
+    "parser": "babel-eslint",
+    "env": {
+      "node": true,
+      "mocha": true,
+      "browser": true
+    }
+  },
+  "version": "2.5.0"
+}

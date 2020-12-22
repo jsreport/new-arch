@@ -1,0 +1,68 @@
+{
+  "author": {
+    "name": "Jan Blaha"
+  },
+  "bugs": {
+    "url": "https://github.com/jsreport/jsreport-public-templates/issues"
+  },
+  "bundleDependencies": false,
+  "dependencies": {
+    "uuid": "3.3.2"
+  },
+  "deprecated": false,
+  "description": "jsreport extension for granting public access to particular templates",
+  "devDependencies": {
+    "babel-eslint": "9.0.0",
+    "eslint": "5.5.0",
+    "eslint-config-standard-jsx": "6.0.2",
+    "eslint-plugin-babel": "5.3.1",
+    "in-publish": "2.0.1",
+    "jsreport-authentication": "2.6.0",
+    "jsreport-authorization": "2.4.0",
+    "jsreport-core": "2.10.0",
+    "jsreport-express": "2.8.0",
+    "jsreport-studio-dev": "1.6.0",
+    "jsreport-templates": "2.4.0",
+    "mocha": "5.2.0",
+    "should": "13.2.3",
+    "standard": "12.0.1",
+    "supertest": "3.4.2"
+  },
+  "engines": {
+    "node": ">=8.9"
+  },
+  "files": [
+    "lib",
+    "studio",
+    "index.js",
+    "jsreport.config.js"
+  ],
+  "homepage": "https://github.com/jsreport/jsreport-public-templates",
+  "keywords": [
+    "jsreport"
+  ],
+  "license": "LGPL",
+  "name": "jsreport-public-templates",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/jsreport/jsreport-public-templates.git"
+  },
+  "scripts": {
+    "build": "jsreport-studio-build",
+    "prepublish": "in-publish && jsreport-studio-build || not-in-publish",
+    "start": "jsreport-studio-start --httpPort 5488",
+    "test": "mocha test --timeout=5000"
+  },
+  "standard": {
+    "ignore": [
+      "main.js"
+    ],
+    "parser": "babel-eslint",
+    "env": {
+      "node": true,
+      "mocha": true,
+      "browser": true
+    }
+  },
+  "version": "2.2.0"
+}

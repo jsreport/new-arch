@@ -1,0 +1,63 @@
+{
+  "author": {
+    "name": "Jan Blaha"
+  },
+  "bugs": {
+    "url": "https://github.com/jsreport/jsreport-templates/issues"
+  },
+  "bundleDependencies": false,
+  "dependencies": {
+    "node.extend.without.arrays": "1.1.6"
+  },
+  "deprecated": false,
+  "description": "jsreport extension adding support for storing templates",
+  "devDependencies": {
+    "babel-eslint": "8.2.1",
+    "eslint": "4.19.1",
+    "eslint-config-standard-jsx": "5.0.0",
+    "eslint-plugin-babel": "5.1.0",
+    "in-publish": "2.0.1",
+    "jsreport-core": "file:../jsreport-core",
+    "jsreport-studio-dev": "1.5.0",
+    "mocha": "5.1.1",
+    "should": "13.2.3",
+    "standard": "11.0.1"
+  },
+  "engines": {
+    "node": ">=8.9"
+  },
+  "files": [
+    "lib",
+    "studio",
+    "index.js",
+    "jsreport.config.js"
+  ],
+  "homepage": "https://github.com/jsreport/jsreport-templates",
+  "keywords": [
+    "jsreport"
+  ],
+  "license": "LGPL",
+  "name": "jsreport-templates",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/jsreport/jsreport-templates.git"
+  },
+  "scripts": {
+    "build": "jsreport-studio-build",
+    "prepublish": "in-publish && jsreport-studio-build || not-in-publish",
+    "start": "jsreport-studio-start --httpPort 5488",
+    "test": "mocha test --timeout 10000 && standard"
+  },
+  "standard": {
+    "ignore": [
+      "main.js"
+    ],
+    "env": {
+      "node": true,
+      "mocha": true,
+      "browser": true
+    },
+    "parser": "babel-eslint"
+  },
+  "version": "2.4.0"
+}
