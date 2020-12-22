@@ -2,12 +2,13 @@ const { nanoid } = require('nanoid')
 const ExtensionsManager = require('./extensionsManager')
 const DocumentStore = require('./documentStore')
 const createLogger = require('./logger')
-const render = require('./render/render')
 const safeSandbox = require('./render/safeSandbox')
 const createNoneEngine = require('./render/noneEngine')
 const htmlRecipe = require('./render/htmlRecipe')
 const registerProxyMethods = require('./registerProxyMethods')
+const { getCallback } = require('./registryUtils')
 const Reporter = require('../shared/reporter')
+const _omit = require('lodash.omit')
 
 class WorkerReporter extends Reporter {
   constructor (workerData, registry) {
@@ -46,7 +47,7 @@ class WorkerReporter extends Reporter {
 
     await this.extensionsManager.init()
 
-    this.documentStore = DocumentStore(this._registry, this._documentStoreData)
+    this.documentStore = DocumentStore(this._documentStoreData, this.executeActionInMain.bind(this))
 
     this.addRequestContextMetaConfig('rootId', { sandboxReadOnly: true })
     this.addRequestContextMetaConfig('id', { sandboxReadOnly: true })
@@ -126,7 +127,18 @@ class WorkerReporter extends Reporter {
   }
 
   render (req, parentReq) {
+    // TODO lazy load optimization, what it will do with the compile
+    const render = require('./render/render')
     return render(this, req, parentReq)
+  }
+
+  executeActionInMain (actionName, data, req) {
+    return getCallback(this._registry, req)({
+      action: actionName,
+      requestRootId: req.context.rootId,
+      req: _omit(req, 'data'),
+      data
+    })
   }
 
   async runInSandbox (fn, options = {}) {

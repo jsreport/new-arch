@@ -23,10 +23,11 @@ const { validateDuplicatedName } = require('./folders/validateDuplicatedName')
 const { validateReservedName } = require('./folders/validateReservedName')
 const setupValidateId = require('./store/setupValidateId')
 const setupValidateHumanReadableKey = require('./store/setupValidateHumanReadableKey')
-const CallbackActions = require('./callbackActions')
+const documentStoreActions = require('./store/mainActions')
 const Reporter = require('../shared/reporter')
 const Request = require('../shared/request')
 const generateRequestId = require('../shared/generateRequestId')
+const extend = require('node.extend.without.arrays')
 
 class MainReporter extends Reporter {
   constructor (options, defaults) {
@@ -37,10 +38,10 @@ class MainReporter extends Reporter {
     this._reaperTimerRef = null
     this._extraPathsToCleanupCollection = new Set()
     this._requestsMap = new Map()
-    this._callbackActions = CallbackActions(this)
 
     this._initialized = false
     this._initializing = false
+    this._mainActions = new Map()
 
     this.settings = new Settings()
     this.extensionsManager = ExtensionsManager(this)
@@ -162,6 +163,7 @@ class MainReporter extends Reporter {
       this.encryption = encryption(this)
 
       this.documentStore = DocumentStore(Object.assign({}, this.options, { logger: this.logger }), this.entityTypeValidator, this.encryption)
+      documentStoreActions(this)
       this.blobStorage = BlobStorage(this.options)
 
       this.documentStore.registerEntityType('TemplateType', {
@@ -349,7 +351,8 @@ class MainReporter extends Reporter {
         },
         callback: async (data) => {
           const request = this._requestsMap.get(data.requestRootId)
-          const result = await this._callbackActions(data, request)
+          extend(true, request, data.req)
+          const result = await this._invokeMainAction(data, request)
           return result
         }
       })
@@ -394,6 +397,14 @@ class MainReporter extends Reporter {
     this.logger.info('jsreport instance has been closed')
 
     return this
+  }
+
+  registerMainAction (actionName, fn) {
+    this._mainActions.set(actionName, fn)
+  }
+
+  _invokeMainAction (data, request) {
+    return this._mainActions.get(data.action)(data.data, request)
   }
 
   /**

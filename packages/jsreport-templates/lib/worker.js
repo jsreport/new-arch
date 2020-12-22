@@ -9,7 +9,7 @@ async function resolveCurrentPath (reporter, req) {
   let currentFolder = req.template.folder
 
   if (currentFolder) {
-    currentFolder = await reporter.documentStore.collection('folders').findOne({shortid: currentFolder.shortid}, req)
+    currentFolder = await reporter.documentStore.collection('folders').findOne({ shortid: currentFolder.shortid }, req)
   }
 
   while (currentFolder) {
@@ -18,7 +18,7 @@ async function resolveCurrentPath (reporter, req) {
     if (!currentFolder.folder) {
       currentFolder = null
     } else {
-      currentFolder = await reporter.documentStore.collection('folders').findOne({shortid: currentFolder.folder.shortid}, req)
+      currentFolder = await reporter.documentStore.collection('folders').findOne({ shortid: currentFolder.folder.shortid }, req)
     }
   }
 

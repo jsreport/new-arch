@@ -201,7 +201,7 @@ class ScriptsManager {
             const args = []
 
             if (err != null) {
-              args.push(err.message)
+              args.push(err.stack)
               args.push(null)
             } else {
               args.push(null)

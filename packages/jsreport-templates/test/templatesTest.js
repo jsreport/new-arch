@@ -7,70 +7,73 @@ describe('templating', function () {
   beforeEach(() => {
     jsreport = new JsReport()
     jsreport.use(require('../')())
+    jsreport.use(JsReport.tests.listenersExtension)
 
     return jsreport.init()
   })
 
+  afterEach(() => jsreport.close())
+
   it('should find by _id and use template', async () => {
-    const template = await jsreport.documentStore.collection('templates').insert({content: 'foo', name: 'foo', engine: 'none', recipe: 'html'})
+    const template = await jsreport.documentStore.collection('templates').insert({ content: 'foo', name: 'foo', engine: 'none', recipe: 'html' })
     const response = await jsreport.render({ template: { _id: template._id } })
     response.content.toString().should.be.eql('foo')
   })
 
   it('should callback weak error when missing template', () => {
-    return jsreport.render({template: { _id: 'aaa' }}).should.be.rejectedWith(/Unable to find specified template/)
+    return jsreport.render({ template: { _id: 'aaa' } }).should.be.rejectedWith(/Unable to find specified template/)
   })
 
   it('should find by shortid and use template', async () => {
-    const template = await jsreport.documentStore.collection('templates').insert({content: 'foo', name: 'foo', recipe: 'html', engine: 'none'})
+    const template = await jsreport.documentStore.collection('templates').insert({ content: 'foo', name: 'foo', recipe: 'html', engine: 'none' })
     const res = await jsreport.render({ template: { shortid: template.shortid } })
     res.content.toString().should.be.eql('foo')
   })
 
   it('should find by name and use template', async () => {
-    const template = await jsreport.documentStore.collection('templates').insert({name: 'xxx', content: 'foo', recipe: 'html', engine: 'none'})
+    const template = await jsreport.documentStore.collection('templates').insert({ name: 'xxx', content: 'foo', recipe: 'html', engine: 'none' })
     const res = await jsreport.render({ template: { name: template.name } })
     res.content.toString().should.be.eql('foo')
   })
 
   it('should fallback to use inline content when template not found', async () => {
-    const res = await jsreport.render({ template: { name: 'unknown', content: 'foo', recipe: 'html', 'engine': 'none' } })
+    const res = await jsreport.render({ template: { name: 'unknown', content: 'foo', recipe: 'html', engine: 'none' } })
     res.content.toString().should.be.eql('foo')
   })
 
   it('should set report name as template name by default', async () => {
-    const template = await jsreport.documentStore.collection('templates').insert({name: 'baz', content: 'foo', recipe: 'html', engine: 'none'})
+    const template = await jsreport.documentStore.collection('templates').insert({ name: 'baz', content: 'foo', recipe: 'html', engine: 'none' })
     const res = await jsreport.render({ template: { name: template.name } })
     res.meta.reportName.should.be.eql('baz')
   })
 
   it('should not override custom report name', async () => {
-    const template = await jsreport.documentStore.collection('templates').insert({name: 'bar', content: 'foo', recipe: 'html', engine: 'none'})
+    const template = await jsreport.documentStore.collection('templates').insert({ name: 'bar', content: 'foo', recipe: 'html', engine: 'none' })
     const res = await jsreport.render({ template: { name: template.name }, options: { reportName: 'custom-report-name' } })
     res.meta.reportName.should.be.eql('custom-report-name')
   })
 
   it('render should throw when no content and id specified', () => {
-    return jsreport.render({template: { }}).should.be.rejectedWith(/emplate must contains _id/)
+    return jsreport.render({ template: { } }).should.be.rejectedWith(/emplate must contains _id/)
   })
 
   it('should fail when creating template without engine', () => {
     return jsreport.documentStore.collection('templates')
-      .insert({name: 'xxx', content: 'foo', recipe: 'html'})
+      .insert({ name: 'xxx', content: 'foo', recipe: 'html' })
       .should.be.rejected()
   })
 
   it('should fail when creating template without recipe', () => {
     return jsreport.documentStore.collection('templates')
-      .insert({name: 'xxx', content: 'foo', engine: 'none'})
+      .insert({ name: 'xxx', content: 'foo', engine: 'none' })
       .should.be.rejected()
   })
 
   it('should fill reportName meta', async () => {
     await jsreport.documentStore.collection('templates')
-      .insert({name: 'xxx', engine: 'none', content: 'foo', recipe: 'html'})
+      .insert({ name: 'xxx', engine: 'none', content: 'foo', recipe: 'html' })
 
-    const res = await jsreport.render({template: {name: 'xxx'}})
+    const res = await jsreport.render({ template: { name: 'xxx' } })
     res.meta.reportName.should.be.eql('xxx')
   })
 
@@ -93,7 +96,7 @@ describe('templating', function () {
         req.context.currentFolderPath.should.be.eql('/folder')
         resolve()
       })
-      jsreport.render({template: {name: 'xxx'}}).catch(reject)
+      jsreport.render({ template: { name: 'xxx' } }).catch(reject)
     })
   })
 
@@ -308,7 +311,7 @@ describe('templating', function () {
   })
 
   it('should prevent simple cycles', async () => {
-    await jsreport.documentStore.collection('templates').insert({content: 'foo', name: 'A', engine: 'none', recipe: 'html'})
+    await jsreport.documentStore.collection('templates').insert({ content: 'foo', name: 'A', engine: 'none', recipe: 'html' })
 
     jsreport.beforeRenderListeners.add('text', async (req, res) => {
       await jsreport.render({ template: { name: 'A' } }, req)
@@ -318,8 +321,8 @@ describe('templating', function () {
   })
 
   it('should not catch cycles when same template rendered multiple times at the same hierarchy level', async () => {
-    await jsreport.documentStore.collection('templates').insert({content: 'foo', name: 'A', engine: 'none', recipe: 'html'})
-    await jsreport.documentStore.collection('templates').insert({content: 'foo', name: 'B', engine: 'none', recipe: 'html'})
+    await jsreport.documentStore.collection('templates').insert({ content: 'foo', name: 'A', engine: 'none', recipe: 'html' })
+    await jsreport.documentStore.collection('templates').insert({ content: 'foo', name: 'B', engine: 'none', recipe: 'html' })
 
     jsreport.beforeRenderListeners.add('text', async (req, res) => {
       if (req.template.name !== 'A') {

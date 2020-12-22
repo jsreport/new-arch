@@ -5,6 +5,19 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Run mocha",
+            "type": "node",
+            "program": "${workspaceFolder}/packages/jsreport-templates/node_modules/mocha/bin/_mocha",
+            "args": [
+                "${workspaceFolder}/packages/jsreport-templates/test/**/*.js",
+                "--timeout=0"
+            ],
+            "request": "launch",
+            "outFiles": [
+                "${workspaceFolder}/packages/jsreport-templates/**/*.js"
+            ]
+        },
+        {
             "type": "node",
             "request": "launch",
             "name": "Launch Program",

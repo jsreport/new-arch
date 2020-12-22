@@ -12,3 +12,9 @@ module.exports = function (options, defaults) {
 
 module.exports.Reporter = MainReporter
 module.exports.Request = Request
+
+module.exports.tests = {
+  documentStore: () => require('./test/store/common.js'),
+  blobStorage: () => require('./test/blobStorage/common.js'),
+  listenersExtension: require('./test/extensions/listeners/jsreport.config')
+}

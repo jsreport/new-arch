@@ -1,25 +1,15 @@
-const { getCallback } = require('./registryUtils')
-
-module.exports = (registry, documentStoreData) => {
+module.exports = (documentStoreData, executeActionInMain) => {
   const store = {
     model: documentStoreData.model,
     collection: (name) => ({
-      find: (q, req) => getCallback(registry, req)({
-        action: 'documentStore.collection.find',
-        requestRootId: req.context.rootId,
-        data: {
-          query: q,
-          collection: name
-        }
-      }),
-      findOne: (q, req) => getCallback(registry, req)({
-        action: 'documentStore.collection.findOne',
-        requestRootId: req.context.rootId,
-        data: {
-          query: q,
-          collection: name
-        }
-      })
+      find: (q, req) => executeActionInMain('documentStore.collection.find', {
+        query: q,
+        collection: name
+      }, req),
+      findOne: (q, req) => executeActionInMain('documentStore.collection.findOne', {
+        query: q,
+        collection: name
+      }, req)
     })
   }
 
