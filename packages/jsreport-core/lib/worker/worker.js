@@ -2,6 +2,7 @@ const util = require('util')
 const { workerData } = require('worker_threads')
 // eslint-disable-next-line
 const domain = require('domain')
+const serializator = require('serializator')
 const uuid = require('uuid').v4
 const WorkerReporter = require('./reporter')
 const convertUint8ArrayProperties = require('../shared/convertUint8ArrayProperties')
@@ -30,11 +31,14 @@ async function reporterInit () {
           // we will receive here the response of callback execution
           const { rid, cid, data } = msgPayload
 
-          convertUint8ArrayProperties(data)
+          // NOTE: we only care to parse the data in the callback case,
+          // for the rest we let the thread handle it with the data structured
+          // clone algorithm
+          const pData = serializator.parse(data)
 
           callbackRequests[rid].responseHandler({
             cid,
-            params: data
+            params: pData
           })
 
           break
@@ -158,11 +162,14 @@ function callback (managerPort, rid, ...args) {
 
   // NOTE: no need to handle a possible error when sending here because it will be cached as
   // part of runModule error handler
+  // NOTE: we only care to serialize the data in the callback case,
+  // for the rest we let the thread handle it with the data structured
+  // clone algorithm
   managerPort.postMessage({
     rid,
     cid,
     action: 'callback',
-    data: args.sort()
+    data: serializator.serialize(args.sort())
   })
 
   return execution.promise

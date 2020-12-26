@@ -31,6 +31,7 @@
     "node.extend.without.arrays": "1.1.6",
     "piscina": "1.6.3",
     "reap2": "1.0.1",
+    "serializator": "1.0.2",
     "stack-trace": "0.0.10",
     "unset-value": "1.0.0",
     "uuid": "3.3.2",
