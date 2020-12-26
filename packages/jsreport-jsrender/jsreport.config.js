@@ -1,5 +1,6 @@
 module.exports = {
-  'name': 'jsrender',
-  'main': 'lib/jsrender.js',
-  'hasPublicPart': false
+  name: 'jsrender',
+  main: 'lib/main.js',
+  worker: 'lib/worker.js',
+  hasPublicPart: false
 }

@@ -1,81 +1,149 @@
-const should = require('should')
-const jsrender = require('../lib/jsrenderEngine')
+require('should')
+const JsReport = require('jsreport-core')
 
 describe('jsrender', () => {
-  it('should render html', function () {
-    const html = jsrender('Hey')(null, null)
-    html.should.be.eql('Hey')
+  let jsreport
+
+  beforeEach(() => {
+    jsreport = JsReport()
+    jsreport.use(require('../')())
+    return jsreport.init()
   })
 
-  it('should be able to use helpers', () => {
-    const html = jsrender('{{>~a()}}')({ a: function () { return 'Hey' } }, null)
-    html.should.be.eql('Hey')
+  afterEach(() => jsreport.close())
+
+  it('should render html', async () => {
+    const res = await jsreport.render({
+      template: {
+        content: 'Hey',
+        engine: 'jsrender',
+        recipe: 'html'
+      }
+    })
+    res.content.toString().should.be.eql('Hey')
   })
 
-  it('should be able to use data', () => {
-    const html = jsrender('{{:a}}')(null, { a: 'Hey' })
-    html.should.be.eql('Hey')
+  it('should be able to use helpers', async () => {
+    const res = await jsreport.render({
+      template: {
+        content: '{{>~a()}}',
+        engine: 'jsrender',
+        recipe: 'html',
+        helpers: `function a() { return 'Hey' }`
+      }
+    })
+    res.content.toString().should.be.eql('Hey')
   })
 
-  it('should throw when missing helper', () => {
-    should(() => {
-      jsrender('{{:~missing()}}')(null, {})
-    }).throw()
+  it('should be able to use data', async () => {
+    const res = await jsreport.render({
+      template: {
+        content: '{{:a}}',
+        engine: 'jsrender',
+        recipe: 'html'
+      },
+      data: {
+        a: 'Hey'
+      }
+    })
+    res.content.toString().should.be.eql('Hey')
   })
 
-  it('should throw when syntax error', () => {
-    should(() => {
-      jsrender('{{:~missing()}}')(null, {})
-    }).throw()
+  it('should throw when missing helper', async () => {
+    return jsreport.render({
+      template: {
+        content: '{{:~missing()}}',
+        engine: 'jsrender',
+        recipe: 'html'
+      }
+    }).should.be.rejected()
   })
 
-  it('should throw when use constr expression', () => {
-    should(() => {
-      jsrender('{{:#tmpl.constructor("var foo=3;")()}}')(null, {})
-    }).throw()
+  it('should throw when syntax error', async () => {
+    return jsreport.render({
+      template: {
+        content: '{{if}}',
+        engine: 'jsrender',
+        recipe: 'html'
+      }
+    }).should.be.rejectedWith(/if/)
   })
 
-  it('should be able to parse and use sub tempates', () => {
+  it('should throw when use constr expression', async () => {
+    return jsreport.render({
+      template: {
+        content: '{{:#tmpl.constructor("var foo=3;")()}}',
+        engine: 'jsrender',
+        recipe: 'html'
+      }
+    }).should.be.rejected()
+  })
+
+  it('should be able to parse and use sub tempates', async () => {
     const childTemplate = '<script id="inner" type="text/x-jsrender">{{:#data}}</script>'
     const template = '{{for items tmpl="inner"}}{{/for}}'
-    const html = jsrender(childTemplate + template)(null, { items: [1, 2, 3] })
-    html.should.be.eql('123')
+    const res = await jsreport.render({
+      template: {
+        content: childTemplate + template,
+        engine: 'jsrender',
+        recipe: 'html'
+      },
+      data: {
+        items: [1, 2, 3]
+      }
+    })
+    res.content.toString().should.be.eql('123')
   })
 
-  it('should be able to parse and use multiple sub tempates', () => {
+  it('should be able to parse and use multiple sub tempates', async () => {
     const childTemplate = '<script id="inner" type="text/x-jsrender">{{:#data}}</script>\n<script id="inner2" type="text/x-jsrender">a{{:#data}}</script>'
     const template = '{{for items tmpl="inner"}}{{/for}}{{for items tmpl="inner2"}}{{/for}}'
-    const html = jsrender(childTemplate + template)(null, { items: [1, 2, 3] })
-    html.should.be.eql('\n123a1a2a3')
+    const res = await jsreport.render({
+      template: {
+        content: childTemplate + template,
+        engine: 'jsrender',
+        recipe: 'html'
+      },
+      data: {
+        items: [1, 2, 3]
+      }
+    })
+    res.content.toString().should.be.eql('\n123a1a2a3')
   })
 
-  it('should be able to use custom tag', () => {
-    const html = jsrender('{{customTag}}{{:a}}{{/customTag}}')({
-      customTag: function () {
-        return this.tagCtx.render(this.tagCtx.view.data)
+  it('should be able to use custom tag', async () => {
+    const res = await jsreport.render({
+      template: {
+        content: '{{customTag}}{{:a}}{{/customTag}}',
+        engine: 'jsrender',
+        recipe: 'html',
+        helpers: `
+          function customTag() {
+            return this.tagCtx.render(this.tagCtx.view.data)
+          }
+        `
+      },
+      data: {
+        a: 'Hey'
       }
-    }, { a: 'Hey' })
-    html.should.be.eql('Hey')
+    })
+    res.content.toString().should.be.eql('Hey')
   })
 
-  it('should be able to use custom tag inside for loop', () => {
-    const html = jsrender('{{for people}}{{customTag}}{{:name}}{{/customTag}}{{/for}}')({
-      customTag: function () {
-        return this.tagCtx.render(this.tagCtx.view.data)
-      }
-    }, { people: [{ name: 'Jan' }] })
-    html.should.be.eql('Jan')
-  })
-
-  it('should clean tags after render', () => {
-    jsrender('{{customTag}}{{:a}}{{/customTag}}')({
-      customTag: function () {
-        return this.tagCtx.render(this.tagCtx.view.data) + 'x'
-      }
-    }, { a: 'Heyx' })
-
-    const html = jsrender('{{customTag}}{{:a}}{{/customTag}}')({}, { a: 'Hey' })
-
-    html.should.not.be.eql('Heyx')
+  it('should be able to use custom tag inside for loop', async () => {
+    const res = await jsreport.render({
+      template: {
+        content: '{{for people}}{{customTag}}{{:name}}{{/customTag}}{{/for}}',
+        engine: 'jsrender',
+        recipe: 'html',
+        helpers: `
+          function customTag() {
+            return this.tagCtx.render(this.tagCtx.view.data)
+          }
+        `
+      },
+      data: { people: [{ name: 'Jan' }] }
+    })
+    res.content.toString().should.be.eql('Jan')
   })
 })
