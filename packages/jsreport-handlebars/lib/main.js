@@ -4,8 +4,8 @@
 
 module.exports = function (reporter, definition) {
   reporter.extensionsManager.engines.push({
-    name: 'handlebars'  
-  })  
+    name: 'handlebars'
+  })
 
   // we need to addFileExtensionResolver after the store provider extension is initialized, but before
   // every other extension like sample template is processed

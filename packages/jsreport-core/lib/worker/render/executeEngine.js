@@ -5,7 +5,6 @@
  * This script runs in the extra process because of multitenancy and security requirements, errors like infinite loop
  * should not affect other reports being rendered at the same time
  */
-
 const util = require('util')
 const LRU = require('lru-cache')
 const extend = require('node.extend.without.arrays')
@@ -258,7 +257,7 @@ function executeEngine (reporter, inputs, onLog, done) {
     allowedModules: inputs.templatingEngines.allowedModules,
     requirePaths,
     requireMap: (moduleName) => {
-      const m = inputs.templatingEngines.modules.find((m) => m.alias === moduleName)
+      const m = inputs.templatingEngines.modules.find((m) => m.alias === moduleName || m.path === moduleName)
 
       if (m) {
         return require(m.path)

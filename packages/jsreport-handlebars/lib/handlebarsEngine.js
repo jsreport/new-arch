@@ -27,7 +27,8 @@ module.exports = (opts = {}) => {
       // ensure that the template does not get bound to some previous handlebars
       // instance of different render
       const templateSpecStr = handlebars.precompile(html)
-      const templateSpec = new Function(`return ${templateSpecStr}`)()
+
+      const templateSpec = new Function(`return ${templateSpecStr}`)() // eslint-disable-line
 
       return templateSpec
     },

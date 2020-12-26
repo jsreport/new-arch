@@ -17,6 +17,11 @@ module.exports = (reporter, definition) => {
     module: hbPath
   })
 
+  reporter.options.templatingEngines.modules.push({
+    alias: 'handlebars',
+    path: hbPath
+  })
+
   const { compile, execute } = createEngine({
     handlebarsModulePath: hbPath
   })
