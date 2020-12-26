@@ -1,7 +1,7 @@
 module.exports = (reporter, definition) => {
   reporter.addRequestContextMetaConfig('sampleData', { sandboxReadOnly: true })
 
-  reporter.beforeRenderListeners.insert({ after: 'templates' }, definition.name, this,  async (request, response) => {
+  reporter.beforeRenderListeners.insert({ after: 'templates' }, definition.name, this, async (request, response) => {
     if (
       request.context.originalInputDataIsEmpty === false ||
       // skip also if parent request data was empty but then later was set by data ref
@@ -42,7 +42,6 @@ module.exports = (reporter, definition) => {
 
     try {
       let di = await findDataItem()
-
       request.context.sampleData = true
 
       if (!di) {
