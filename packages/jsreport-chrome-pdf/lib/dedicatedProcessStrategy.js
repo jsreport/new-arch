@@ -14,6 +14,7 @@ module.exports = ({ reporter, puppeteer, options }) => {
         htmlUrl,
         strategy,
         req,
+        timeout: options.timeout,
         allowLocalFilesAccess,
         imageExecution,
         options: conversionOptions

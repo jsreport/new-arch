@@ -50,11 +50,7 @@ function common (strategy, imageExecution) {
   const recipe = imageExecution ? 'chrome-image' : 'chrome-pdf'
 
   beforeEach(() => {
-    reporter = JsReport({
-      templatingEngines: {
-        strategy: 'in-process'
-      }
-    })
+    reporter = JsReport()
 
     reporter.use(require('jsreport-handlebars')())
 

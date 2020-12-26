@@ -70,8 +70,8 @@ module.exports = function (reporter, definition) {
   }
 
   if (definition.options.launchOptions && Object.keys(definition.options.launchOptions).length > 0) {
-    reporter.logger.debug('Chrome custom launch options are', definition.options.launchOptions)  }
-
+    reporter.logger.debug('Chrome custom launch options are', definition.options.launchOptions)
+  }
 
   reporter.extensionsManager.recipes.push({
     name: 'chrome-pdf'
