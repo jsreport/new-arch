@@ -6,10 +6,11 @@ describe('with reports extension', () => {
   let reporter
 
   beforeEach(() => {
-    reporter = jsreport({ templatingEngines: { strategy: 'in-process' } })
+    reporter = jsreport()
     reporter.use(require('../')())
     reporter.use(require('jsreport-express')())
     reporter.use(require('jsreport-scripts')())
+    reporter.use(jsreport.tests.listenersExtension)
 
     return reporter.init()
   })
@@ -34,7 +35,7 @@ describe('with reports extension', () => {
     blob.should.be.eql('hello')
   })
 
-  it('should store report entity and single report with async: true', () => {
+  it('should store report entity and single report with async: true', async () => {
     return new Promise((resolve, reject) => {
       reporter.afterRenderListeners.add('test', async (req, res) => {
         if (req.template.content !== 'hello') {
@@ -45,7 +46,6 @@ describe('with reports extension', () => {
         try {
           const reports = await reporter.documentStore.collection('reports').find({})
           reports.should.have.length(1)
-
           const blob = await streamToString(await reporter.blobStorage.read(reports[0].blobName))
           blob.should.be.eql('hello')
         } catch (e) {
@@ -305,7 +305,7 @@ describe('with reports extension and clean enabled', () => {
   let reporter
 
   beforeEach(() => {
-    reporter = jsreport({ templatingEngines: { strategy: 'in-process' } })
+    reporter = jsreport()
     reporter.use(require('../')({
       cleanInterval: '100ms',
       cleanTreshold: '1ms'
@@ -318,7 +318,7 @@ describe('with reports extension and clean enabled', () => {
 
   it('should remove old reports', async () => {
     await reporter.render({ template: { content: 'foo', engine: 'none', recipe: 'html' }, options: { reports: { save: true } } })
-    await delay(100)
+    await delay(200)
     const reports = await reporter.documentStore.collection('reports').find({})
     reports.should.have.length(0)
   })
@@ -328,7 +328,7 @@ describe('with reports extension and clean enabled but long treshold', () => {
   let reporter
 
   beforeEach(() => {
-    reporter = jsreport({ templatingEngines: { strategy: 'in-process' } })
+    reporter = jsreport()
     reporter.use(require('../')({
       cleanInterval: '100ms',
       cleanTreshold: '1d'

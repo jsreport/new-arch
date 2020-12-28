@@ -1,7 +1,8 @@
 
 module.exports = {
   'name': 'reports',
-  'main': 'lib/reports.js',
+  'main': 'lib/main.js',
+  'worker': 'lib/worker.js',
   'dependencies': ['templates'],
   'optionsSchema': {
     extensions: {
