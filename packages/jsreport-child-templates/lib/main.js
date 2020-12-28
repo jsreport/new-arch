@@ -5,5 +5,5 @@
  * Syntax is {#child [template name]}
  */
 
-module.exports = function (reporter, definition) { 
+module.exports = function (reporter, definition) {
 }

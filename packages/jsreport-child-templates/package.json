@@ -16,10 +16,10 @@
   "devDependencies": {
     "eslint": "5.5.0",
     "handlebars": "4.7.6",
-    "jsreport-core": "github:jsreport/jsreport-core",
-    "jsreport-handlebars": "2.1.0",
-    "jsreport-jsrender": "2.1.1",
-    "jsreport-templates": "2.3.3",
+    "jsreport-core": "file:../jsreport-core",
+    "jsreport-handlebars": "file:../jsreport-handlebars",
+    "jsreport-jsrender": "file:../jsreport-jsrender",
+    "jsreport-templates": "file:../jsreport-templates",
     "mocha": "5.2.0",
     "should": "13.2.3",
     "standard": "12.0.1"
@@ -30,7 +30,7 @@
   "homepage": "https://github.com/jsreport/jsreport-child-templates",
   "keywords": [
     "jsreport",
-    "sub reports"
+    "sub-reports"
   ],
   "license": "LGPL",
   "name": "jsreport-child-templates",
@@ -43,11 +43,9 @@
     "test:watch": "mocha test --watch"
   },
   "standard": {
-    "globals": [
-      "describe",
-      "it",
-      "beforeEach"
-    ]
+    "env": {
+      "mocha": true
+    }
   },
   "version": "1.4.0"
 }

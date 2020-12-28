@@ -6,7 +6,7 @@ describe('childTemplates', () => {
   let reporter
 
   beforeEach(() => {
-    reporter = jsreport({ templatingEngines: { strategy: 'in-process' } })
+    reporter = jsreport()
     reporter.use(require('../')())
     reporter.use(require('jsreport-templates')())
     reporter.use(require('jsreport-jsrender')())
@@ -14,6 +14,8 @@ describe('childTemplates', () => {
 
     return reporter.init()
   })
+
+  afterEach(() => reporter.close())
 
   it('should replace child template mark with its content', async () => {
     await reporter.documentStore.collection('templates').insert({
