@@ -52,7 +52,7 @@ module.exports = ({
       if (!PersistenceProvider) {
         throw new Error(`File system store persistence provider ${persistence.provider} was not registered`)
       }
-      logger.info(`fs store is persisting using ${persistence.provider}`)
+      logger.info(`fs store is persisting using ${persistence.provider} for ${dataDirectory}`)
       this.fs = PersistenceProvider(Object.assign({ dataDirectory: dataDirectory }, persistence))
 
       this.persistence = Persistence({
