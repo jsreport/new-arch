@@ -84,29 +84,6 @@ describe('render', () => {
     })).be.rejectedWith(/^Request data can not be an array/)
   })
 
-  it('should not change input data type', async () => {
-    let dataIsArray = false
-
-    reporter.beforeRenderListeners.add('test', (req) => {
-      if (Array.isArray(req.data)) {
-        dataIsArray = true
-      }
-
-      req.data = {}
-    })
-
-    await reporter.render({
-      template: {
-        engine: 'none',
-        content: 'foo',
-        recipe: 'html'
-      },
-      data: [{ name: 'item1' }, { name: 'item2' }]
-    })
-
-    dataIsArray.should.be.True()
-  })
-
   it('should validate and coerce template input according to template type schema', async () => {
     let request
 
@@ -268,12 +245,8 @@ describe('render', () => {
   })
 
   it('should provide logs in response meta', async () => {
-    reporter.beforeRenderListeners.add('test', (req, res) => {
-      reporter.logger.debug('foo', req)
-    })
-
     const response = await reporter.render({ template: { engine: 'none', content: 'none', recipe: 'html' } })
-    response.meta.logs.find((l) => l.message === 'foo').should.be.ok()
+    response.meta.logs.find((l) => l.message.includes('html')).should.be.ok()
   })
 
   it('should propagate logs to the parent request', async () => {
