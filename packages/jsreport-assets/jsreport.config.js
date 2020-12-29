@@ -17,5 +17,5 @@ module.exports = {
       }
     }
   },
-  'dependencies': ['scripts', 'templates']
+  dependencies: ['scripts', 'templates']
 }

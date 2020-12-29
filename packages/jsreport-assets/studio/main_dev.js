@@ -53,7 +53,7 @@ Studio.entityTreeDropResolvers.push({
   }) {
     const files = draggedItem.files
 
-    let targetInfo = {
+    const targetInfo = {
       shortid: null
     }
 
@@ -94,7 +94,7 @@ Studio.entityTreeDropResolvers.push({
           }
         }
 
-        let response = await Studio.api.post('/odata/assets', {
+        const response = await Studio.api.post('/odata/assets', {
           data: assetFile
         }, true)
 

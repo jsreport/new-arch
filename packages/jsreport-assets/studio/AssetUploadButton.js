@@ -59,7 +59,7 @@ class AssetUploadButton extends Component {
           name: file.name
         })
 
-        let response = await Studio.api.post('/odata/assets', {
+        const response = await Studio.api.post('/odata/assets', {
           data: asset
         })
 
@@ -133,9 +133,9 @@ class AssetUploadButton extends Component {
     }
 
     this.inputFileRef.current.dispatchEvent(new MouseEvent('click', {
-      'view': window,
-      'bubbles': false,
-      'cancelable': true
+      view: window,
+      bubbles: false,
+      cancelable: true
     }))
   }
 
@@ -145,7 +145,7 @@ class AssetUploadButton extends Component {
         type='file'
         key='file'
         ref={this.inputFileRef}
-        style={{display: 'none'}}
+        style={{ display: 'none' }}
         onChange={(e) => this.upload(e)}
       />
     )

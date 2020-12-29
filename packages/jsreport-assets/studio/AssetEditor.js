@@ -102,8 +102,8 @@ class AssetEditor extends Component {
   getEmbeddingCode (entity) {
     if (entity == null) { return '' }
 
-    let parts = entity.name.split('.')
-    let extension = parts[parts.length - 1]
+    const parts = entity.name.split('.')
+    const extension = parts[parts.length - 1]
 
     if (this.props.embeddingCode != null) {
       return this.props.embeddingCode
@@ -174,8 +174,12 @@ class AssetEditor extends Component {
         Studio.openModal(() => (
           <div>
             We need to upload your office asset to our publicly hosted server to be able to use
-            Office Online Service for previewing here in the studio. You can disable it in the configuration, see <a
-              href='https://jsreport.net/learn/xlsx#preview-in-studio' target='_blank'>the docs</a> for details.
+            Office Online Service for previewing here in the studio. You can disable it in the configuration, see
+            <a
+              href='https://jsreport.net/learn/xlsx#preview-in-studio' target='_blank' rel='noreferrer'
+            >
+              the docs for details
+            </a>.
           </div>
         ))
       }
@@ -217,7 +221,7 @@ class AssetEditor extends Component {
           <h1><i className='fa fa-file-o' /> {entity.name}</h1>
         </div>
         <div>
-          <a className='button confirmation' target='_blank' href={Studio.resolveUrl(`assets/${entity._id}/content?download=true`)} title='Download'>
+          <a className='button confirmation' rel='noreferrer' target='_blank' href={Studio.resolveUrl(`assets/${entity._id}/content?download=true`)} title='Download'>
             <i className='fa fa-download' /> Download
           </a>
           <button className='button confirmation' onClick={() => AssetUploadButton.OpenUpload()}>
@@ -252,15 +256,18 @@ class AssetEditor extends Component {
             <div>
               <i className={`fa ${icon}`} />
               &nbsp;
-              {entity != null ? (
-                <a
-                  href='#'
-                  onClick={(ev) => {
-                    ev.preventDefault()
-                    Studio.openTab({ _id: entity._id })
-                  }}
-                >{visibleName}</a>
-              ) : visibleName}
+              {entity != null
+                ? (
+                  <a
+                    href='#'
+                    onClick={(ev) => {
+                      ev.preventDefault()
+                      Studio.openTab({ _id: entity._id })
+                    }}
+                  >{visibleName}
+                  </a>
+                  )
+                : visibleName}
             </div>
           </h3>
           {embeddingCode !== '' && (
@@ -397,8 +404,8 @@ class AssetEditor extends Component {
       )
     }
 
-    let parts = entity.name.split('.')
-    let extension = parts[parts.length - 1]
+    const parts = entity.name.split('.')
+    const extension = parts[parts.length - 1]
     const lazyPreview = this.getLazyPreviewStatus(entity)
 
     let previewOpen = true
@@ -422,14 +429,14 @@ class AssetEditor extends Component {
         <div style={{ overflow: 'auto' }}>
           <img
             src={Studio.resolveUrl(`assets/${entity._id}/content?v=${new Date().getTime()}`)}
-            style={{display: 'block', margin: '3rem auto'}}
+            style={{ display: 'block', margin: '3rem auto' }}
           />
         </div>
       )
     }
 
     if (this.isFont(entity)) {
-      let newStyle = document.createElement('style')
+      const newStyle = document.createElement('style')
 
       newStyle.appendChild(document.createTextNode(`@font-face {
          font-family: '${parts[0]}';
@@ -440,7 +447,7 @@ class AssetEditor extends Component {
       document.head.appendChild(newStyle)
 
       return (
-        <div style={{overflow: 'auto', fontFamily: parts[0], padding: '2rem'}}><h1> Hello world font {entity.name}</h1>
+        <div style={{ overflow: 'auto', fontFamily: parts[0], padding: '2rem' }}><h1> Hello world font {entity.name}</h1>
           <p>
             Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's
             standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to
@@ -452,8 +459,8 @@ class AssetEditor extends Component {
 
     if (this.isPdf(entity)) {
       return (
-        <div className='block' style={{height: '100%'}}>
-          <object style={{height: '100%'}} data={Studio.resolveUrl(`assets/${entity._id}/content?v=${new Date().getTime()}`)} type='application/pdf'>
+        <div className='block' style={{ height: '100%' }}>
+          <object style={{ height: '100%' }} data={Studio.resolveUrl(`assets/${entity._id}/content?v=${new Date().getTime()}`)} type='application/pdf'>
             <embed src={Studio.resolveUrl(`assets/${entity._id}/content?v=${new Date().getTime()}`)} type='application/pdf' />
           </object>
         </div>
@@ -490,7 +497,7 @@ class AssetEditor extends Component {
         name={entity._id}
         mode={mode}
         value={decodeURIComponent(escape(atob(content)))}
-        onUpdate={(v) => this.props.onUpdate(Object.assign({}, entity, {content: btoa(unescape(encodeURIComponent(v))), forceUpdate: true}))}
+        onUpdate={(v) => this.props.onUpdate(Object.assign({}, entity, { content: btoa(unescape(encodeURIComponent(v))), forceUpdate: true }))}
       />
     )
   }

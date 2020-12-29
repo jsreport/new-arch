@@ -46,7 +46,7 @@ class NewAssetModal extends Component {
         await Studio.workspaces.save()
       }
 
-      let response = await Studio.api.post('/odata/assets', {
+      const response = await Studio.api.post('/odata/assets', {
         data: entity
       })
       response.__entitySet = 'assets'
@@ -64,52 +64,60 @@ class NewAssetModal extends Component {
 
     return (
       <div>
-        {isLink ? (
-          <div className='form-group'>
-            <label>Relative or absolute path to existing file</label>
-            <input
-              type='text'
-              name='link'
-              ref={this.linkRef}
-            />
-          </div>
-        ) : (
-          <div className='form-group'>
-            <label>Name</label>
-            <input
-              type='text'
-              name='name'
-              ref={this.nameRef}
-              placeholder='styles.css'
-              onKeyPress={(e) => this.handleKeyPress(e)}
-            />
-          </div>
-        )}
-        {Studio.extensions.assets.options.allowAssetsLinkedToFiles !== false ? (
-          <div className='form-group'>
-            <label>link to existing file</label>
-            <input
-              type='checkbox' checked={isLink}
-              onChange={() => this.setState({ isLink: !isLink })} />
-          </div>
-        ) : <div />}
+        {isLink
+          ? (
+            <div className='form-group'>
+              <label>Relative or absolute path to existing file</label>
+              <input
+                type='text'
+                name='link'
+                ref={this.linkRef}
+              />
+            </div>
+            )
+          : (
+            <div className='form-group'>
+              <label>Name</label>
+              <input
+                type='text'
+                name='name'
+                ref={this.nameRef}
+                placeholder='styles.css'
+                onKeyPress={(e) => this.handleKeyPress(e)}
+              />
+            </div>
+            )}
+        {Studio.extensions.assets.options.allowAssetsLinkedToFiles !== false
+          ? (
+            <div className='form-group'>
+              <label>link to existing file</label>
+              <input
+                type='checkbox' checked={isLink}
+                onChange={() => this.setState({ isLink: !isLink })}
+              />
+            </div>
+            )
+          : <div />}
         <div className='form-group'>
           <span
-            style={{color: 'red', display: error ? 'block' : 'none'}}>{error}</span>
+            style={{ color: 'red', display: error ? 'block' : 'none' }}
+          >{error}
+          </span>
         </div>
-        <div className='form-group' style={{opacity: 0.8}}>
+        <div className='form-group' style={{ opacity: 0.8 }}>
           <hr />
           <span>You can use assets to embed any kind of static content into report template.<br />
-            This can be for example css style, image, font, html or even javascript shared helpers. <br />See the <a
-              target='_blank' title='Help' href='http://jsreport.net/learn/assets'>documentation</a> for details.
+            This can be for example css style, image, font, html or even javascript shared helpers. <br />See the
+            <a target='_blank' rel='noreferrer' title='Help' href='http://jsreport.net/learn/assets'>documentation</a> for details.
           </span>
         </div>
         <div className='button-bar'>
           <button
             className='button confirmation'
-            onClick={() => { this.props.close(); AssetUploadButton.OpenUploadNew(this.props.options.defaults) }}>Upload
+            onClick={() => { this.props.close(); AssetUploadButton.OpenUploadNew(this.props.options.defaults) }}
+          >Upload
           </button>
-          <button onClick={() => this.createAsset()} className={'button confirmation'}>Ok</button>
+          <button onClick={() => this.createAsset()} className='button confirmation'>Ok</button>
         </div>
       </div>
     )

@@ -67,6 +67,7 @@ async function evaluateAssets (reporter, definition, stringToReplace, req) {
 }
 
 module.exports = (reporter, definition) => {
+  reporter.assets = { options: definition.options }
   reporter.addRequestContextMetaConfig('evaluateAssetsCounter', { sandboxHidden: true })
 
   reporter.beforeRenderListeners.insert({ after: 'scripts' }, definition.name, this, async (req, res) => {
