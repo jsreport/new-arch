@@ -7,14 +7,14 @@
         {
             "name": "Run mocha",
             "type": "node",
-            "program": "${workspaceFolder}/packages/jsreport-templates/node_modules/mocha/bin/_mocha",
+            "program": "${workspaceFolder}/packages/jsreport-data/node_modules/mocha/bin/_mocha",
             "args": [
-                "${workspaceFolder}/packages/jsreport-templates/test/**/*.js",
+                "${workspaceFolder}/packages/jsreport-data/test/**/*.js",
                 "--timeout=0"
             ],
             "request": "launch",
             "outFiles": [
-                "${workspaceFolder}/packages/jsreport-templates/**/*.js"
+                "${workspaceFolder}/packages/jsreport-data/**/*.js"
             ]
         },
         {

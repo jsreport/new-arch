@@ -25,7 +25,7 @@
   },
   "templatingEngines": {
     "strategy": "worker-threads",
-    "numberOfWorkers": 4
+    "numberOfWorkers": 1
   },
   "extensionsList": [
     "studio",

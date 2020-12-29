@@ -16,7 +16,7 @@ module.exports = (reporter, definition) => {
   }
 
   reporter.import = (...args) => {
-    let exportFilePath = args[0]
+    const exportFilePath = args[0]
     let req
     let opts
 
@@ -41,7 +41,7 @@ module.exports = (reporter, definition) => {
   reporter.import.beforeEntityPersistedListeners = beforeEntityPersistedListeners
 
   reporter.importValidation = (...args) => {
-    let exportFilePath = args[0]
+    const exportFilePath = args[0]
     let req
     let opts
 
