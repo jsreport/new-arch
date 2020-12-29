@@ -4,8 +4,6 @@
  * Extension allowing to add custom javascript hooks into the rendering process.
  */
 const Promise = require('bluebird')
-const omit = require('lodash.omit')
-const extend = require('node.extend.without.arrays')
 const executeScript = require('./executeScript')
 
 module.exports = function (reporter, definition) {
@@ -32,15 +30,15 @@ class Scripts {
 
   async handleBeforeRender (request, response) {
     request.context._parsedScripts = []
-    const scripts = await this.#findScripts(request)
-    return Promise.mapSeries(scripts, (script) => this.#runScript(request, response, script, 'beforeRender'))
+    const scripts = await this._findScripts(request)
+    return Promise.mapSeries(scripts, (script) => this._runScript(request, response, script, 'beforeRender'))
   }
 
   handleAfterRender (request, response) {
-    return Promise.mapSeries(request.context._parsedScripts, (script) => this.#runScript(request, response, script, 'afterRender'))
+    return Promise.mapSeries(request.context._parsedScripts, (script) => this._runScript(request, response, script, 'afterRender'))
   }
 
-  async #runScript (request, response, script, method) {
+  async _runScript (request, response, script, method) {
     this.reporter.logger.debug(`Executing script ${(script.name || script.shortid || 'anonymous')} (${method})`, request)
 
     const parsedScript = typeof script !== 'string' ? {
@@ -60,8 +58,8 @@ class Scripts {
       rootDirectory: this.reporter.options.rootDirectory,
       parentModuleDirectory: this.reporter.options.parentModuleDirectory,
       method: method,
-      request: copyRequest(request),
-      response: copyResponse(response)
+      request,
+      response
     }
 
     await this.reporter.beforeScriptListeners.fire(scriptDef, request)
@@ -122,12 +120,15 @@ class Scripts {
       response.content = Buffer.from(body.response.content)
       delete body.response.content
       merge(response, body.response)
+
+      delete body.request.data
+      merge(request, body.request)
     }
 
     return response
   }
 
-  async #findScripts (request) {
+  async _findScripts (request) {
     request.template.scripts = request.template.scripts || []
 
     const items = await Promise.all(request.template.scripts.map(async (script) => {
@@ -161,18 +162,4 @@ class Scripts {
     const globalItems = await this.reporter.documentStore.collection('scripts').find({ isGlobal: true }, request)
     return globalItems.concat(items)
   }
-}
-
-function copyRequest (request) {
-  const data = request.data
-  const newReq = extend(true, {}, omit(request, ['data']))
-  newReq.data = data
-  return newReq
-}
-
-function copyResponse (response) {
-  const content = response.content
-  const newRes = extend(true, {}, omit(response, ['content']))
-  newRes.content = content
-  return newRes
 }

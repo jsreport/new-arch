@@ -1,19 +1,18 @@
 const PdfManipulator = require('./utils/pdfManipulator')
 
-module.exports = (proxy, defineMethod) => {
+module.exports = (proxy, req) => {
   proxy.pdfUtils = {
-    parse: defineMethod(async (context, sourcePdfBuf, includeText) => {
-      const originalReq = context.request
+    parse: async (sourcePdfBuf, includeText) => {
       const manipulator = PdfManipulator(sourcePdfBuf)
 
       const parsedPdf = await manipulator.parse({
         includeText,
-        hiddenPageFields: originalReq.context.shared.pdfUtilsHiddenPageFields
+        hiddenPageFields: req.context.shared.pdfUtilsHiddenPageFields
       })
 
       return parsedPdf
-    }),
-    prepend: defineMethod(async (context, sourcePdfBuf, extraPdfBuf) => {
+    },
+    prepend: async (sourcePdfBuf, extraPdfBuf) => {
       const manipulator = PdfManipulator(sourcePdfBuf)
 
       await manipulator.prepend(extraPdfBuf)
@@ -21,8 +20,8 @@ module.exports = (proxy, defineMethod) => {
       const resultPdfBuf = await manipulator.toBuffer()
 
       return resultPdfBuf
-    }),
-    append: defineMethod(async (context, sourcePdfBuf, extraPdfBuf) => {
+    },
+    append: async (sourcePdfBuf, extraPdfBuf) => {
       const manipulator = PdfManipulator(sourcePdfBuf)
 
       await manipulator.append(extraPdfBuf)
@@ -30,14 +29,13 @@ module.exports = (proxy, defineMethod) => {
       const resultPdfBuf = await manipulator.toBuffer()
 
       return resultPdfBuf
-    }),
-    merge: defineMethod(async (context, sourcePdfBuf, extraPdfBufOrPages, mergeToFront) => {
-      const originalReq = context.request
+    },
+    merge: async (sourcePdfBuf, extraPdfBufOrPages, mergeToFront) => {
       const manipulator = PdfManipulator(sourcePdfBuf)
 
       // merge needs to have information about total of pages in source pdf
       await manipulator.parse({
-        hiddenPageFields: originalReq.context.shared.pdfUtilsHiddenPageFields
+        hiddenPageFields: req.context.shared.pdfUtilsHiddenPageFields
       })
 
       await manipulator.merge(extraPdfBufOrPages, mergeToFront)
@@ -45,8 +43,8 @@ module.exports = (proxy, defineMethod) => {
       const resultPdfBuf = await manipulator.toBuffer()
 
       return resultPdfBuf
-    }),
-    removePages: defineMethod(async (context, sourcePdfBuf, pageNumbers) => {
+    },
+    removePages: async (sourcePdfBuf, pageNumbers) => {
       const manipulator = PdfManipulator(sourcePdfBuf)
 
       await manipulator.parse()
@@ -55,18 +53,17 @@ module.exports = (proxy, defineMethod) => {
       const resultPdfBuf = await manipulator.toBuffer()
 
       return resultPdfBuf
-    }),
-    outlines: defineMethod(async (context, sourcePdfBuf, outlines) => {
-      const originalReq = context.request
+    },
+    outlines: async (sourcePdfBuf, outlines) => {
       const manipulator = PdfManipulator(sourcePdfBuf, { outlines })
 
       await manipulator.postprocess({
-        hiddenPageFields: originalReq.context.shared.pdfUtilsHiddenPageFields
+        hiddenPageFields: req.context.shared.pdfUtilsHiddenPageFields
       })
 
       const resultPdfBuf = await manipulator.toBuffer()
 
       return resultPdfBuf
-    })
+    }
   }
 }

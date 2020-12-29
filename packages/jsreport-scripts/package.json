@@ -1,29 +1,50 @@
 {
-  "author": {
-    "name": "Jan Blaha"
+  "name": "jsreport-scripts",
+  "version": "2.6.0",
+  "description": "jsreport extension capable of running custom javascript functions during the rendering process",
+  "scripts": {
+    "start": "jsreport-studio-start --httpPort 4300",
+    "test": "mocha test --timeout 7000 && standard",
+    "build": "jsreport-studio-build",
+    "prepublish": "in-publish && jsreport-studio-build || not-in-publish"
   },
-  "bugs": {
-    "url": "https://github.com/jsreport/jsreport-scripts/issues"
+  "homepage": "https://github.com/jsreport/jsreport-scripts",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:jsreport/jsreport-scripts.git"
   },
-  "bundleDependencies": false,
+  "keywords": [
+    "jsreport"
+  ],
+  "standard": {
+    "ignore": [
+      "main.js"
+    ],
+    "parser": "babel-eslint",
+    "env": {
+      "node": true,
+      "mocha": true,
+      "browser": true
+    }
+  },
+  "license": "LGPL",
   "dependencies": {
     "bluebird": "3.5.4",
-    "lodash.omit": "4.5.0",
+    "lodash.omit": "^4.5.0",
     "node.extend.without.arrays": "1.1.6"
   },
-  "deprecated": false,
-  "description": "jsreport extension capable of running custom javascript functions during the rendering process",
+  "author": "Jan Blaha",
   "devDependencies": {
     "babel-eslint": "8.2.3",
     "eslint": "4.19.1",
     "eslint-config-standard-jsx": "5.0.0",
     "eslint-plugin-babel": "5.2.0",
     "in-publish": "2.0.1",
-    "jsreport-assets": "1.7.0",
-    "jsreport-core": "2.10.0",
-    "jsreport-jsrender": "2.1.1",
+    "jsreport-assets": "file:../jsreport-assets",
+    "jsreport-core": "file:../jsreport-core",
+    "jsreport-jsrender": "file:../jsreport-jsrender",
     "jsreport-studio-dev": "1.6.0",
-    "jsreport-templates": "2.4.0",
+    "jsreport-templates": "file:../jsreport-templates",
     "mocha": "5.2.0",
     "should": "13.2.3",
     "standard": "11.0.1"
@@ -36,33 +57,5 @@
     "studio",
     "index.js",
     "jsreport.config.js"
-  ],
-  "homepage": "https://github.com/jsreport/jsreport-scripts",
-  "keywords": [
-    "jsreport"
-  ],
-  "license": "LGPL",
-  "name": "jsreport-scripts",
-  "repository": {
-    "type": "git",
-    "url": "git+ssh://git@github.com/jsreport/jsreport-scripts.git"
-  },
-  "scripts": {
-    "build": "jsreport-studio-build",
-    "prepublish": "in-publish && jsreport-studio-build || not-in-publish",
-    "start": "jsreport-studio-start --httpPort 4300",
-    "test": "mocha test --timeout 7000 && standard"
-  },
-  "standard": {
-    "ignore": [
-      "main.js"
-    ],
-    "parser": "babel-eslint",
-    "env": {
-      "node": true,
-      "mocha": true,
-      "browser": true
-    }
-  },
-  "version": "2.6.0"
+  ]
 }

@@ -5,10 +5,11 @@ const createLogger = require('./logger')
 const safeSandbox = require('./render/safeSandbox')
 const createNoneEngine = require('./render/noneEngine')
 const htmlRecipe = require('./render/htmlRecipe')
-const registerProxyMethods = require('./registerProxyMethods')
+const defaultProxyExtend = require('./defaultProxyExtend')
 const { getCallback } = require('./registryUtils')
 const Reporter = require('../shared/reporter')
 const _omit = require('lodash.omit')
+const BlobStorage = require('./blobStorage.js')
 
 class WorkerReporter extends Reporter {
   constructor (workerData, registry) {
@@ -28,14 +29,11 @@ class WorkerReporter extends Reporter {
     this.afterTemplatingEnginesExecutedListeners = this.createListenerCollection()
     this.validateRenderListeners = this.createListenerCollection()
 
-    this.extendProxy = this.extendProxy.bind(this)
-    this.createProxy = this.createProxy.bind(this)
-
     this.logger = createLogger(registry)
 
     this.extensionsManager = ExtensionsManager(this, extensionsDefs)
 
-    this.extendProxy((proxy, defineMethod) => registerProxyMethods(this, proxy, defineMethod))
+    this.extendProxy((proxy, req) => defaultProxyExtend(this)(proxy, req))
   }
 
   async init () {
@@ -48,6 +46,7 @@ class WorkerReporter extends Reporter {
     await this.extensionsManager.init()
 
     this.documentStore = DocumentStore(this._documentStoreData, this.executeActionInMain.bind(this))
+    this.blobStorage = BlobStorage(this.executeActionInMain.bind(this))
 
     this.addRequestContextMetaConfig('rootId', { sandboxReadOnly: true })
     this.addRequestContextMetaConfig('id', { sandboxReadOnly: true })
@@ -104,30 +103,12 @@ class WorkerReporter extends Reporter {
     this._proxyRegistrationFns.push(registrationFn)
   }
 
-  createProxy (contextParam, { beforeMethodExecute, afterMethodExecute } = {}) {
-    const context = Object.assign({}, contextParam)
-    context.require = context.require || require
-
-    const defineMethod = (method) => {
-      return async (...params) => {
-        if (typeof beforeMethodExecute === 'function') {
-          beforeMethodExecute(params)
-        }
-
-        const methodResult = await method(context, ...params)
-
-        if (typeof afterMethodExecute === 'function') {
-          afterMethodExecute(methodResult)
-        }
-
-        return methodResult
-      }
+  createProxy ({ req }) {
+    const proxyInstance = {}
+    for (const fn of this._proxyRegistrationFns) {
+      fn(proxyInstance, req)
     }
-
-    return this._proxyRegistrationFns.reduce((proxyInstance, registrationFn) => {
-      registrationFn(proxyInstance, defineMethod)
-      return proxyInstance
-    }, {})
+    return proxyInstance
   }
 
   render (req, parentReq) {

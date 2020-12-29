@@ -11,8 +11,9 @@ module.exports = (level, msg, meta) => {
       timestamp: meta.timestamp || new Date().getTime()
     })
 
+    // TODO adding cancel looks bad, its before script is adding req.cancel()
     // excluding non relevant properties for the log
-    const newMeta = Object.assign({}, omit(meta, ['template', 'options', 'data', 'context', 'timestamp']))
+    const newMeta = Object.assign({}, omit(meta, ['template', 'options', 'data', 'context', 'timestamp', 'cancel']))
 
     if (newMeta.rootId == null && meta.context.rootId != null) {
       newMeta.rootId = meta.context.rootId

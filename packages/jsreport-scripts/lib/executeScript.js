@@ -1,10 +1,6 @@
-const extend = require('node.extend.without.arrays')
-
 module.exports = async function executeScript (reporter, inputs, req, onLog) {
-  const runInSandbox = reporter.runInSandbox
-  const createProxy = reporter.createProxy
   const requestContextMetaConfig = inputs.requestContextMetaConfig || {}
-  let jsreportProxy
+  let jsreportProxy = reporter.createProxy({ req: inputs.request })
   let resolveScriptExecution
   let rejectScriptExecution
 
@@ -163,7 +159,7 @@ module.exports = async function executeScript (reporter, inputs, req, onLog) {
   const filename = 'evaluate-user-script.js'
 
   try {
-    await runInSandbox(({ context }) => {
+    await reporter.runInSandbox(({ context }) => {
       if (inputs.method === 'beforeRender') {
         context.__runBefore()
       } else {
@@ -174,19 +170,6 @@ module.exports = async function executeScript (reporter, inputs, req, onLog) {
       onEval: async (params) => {
         sandboxContext = params.context
         restore = params.restore
-
-        jsreportProxy = createProxy({
-          request: req
-        }, {
-          afterMethodExecute: () => {
-            // after proxy method execute we keep the sharedContext in sync with the
-            // context of the sandbox, this is needed because the proxy methods can execute
-            // actions that modify the shared context inside the script
-            if (req.context.shared != null) {
-              sandboxContext.__request.context.shared = extend(true, sandboxContext.__request.context.shared, req.context.shared)
-            }
-          }
-        })
 
         const scriptEval = `${inputs.script}\n;if (typeof beforeRender === 'function') { this['beforeRender'] = beforeRender }\nif (typeof afterRender === 'function') { this['afterRender'] = afterRender }`
 
