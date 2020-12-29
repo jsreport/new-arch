@@ -1,5 +1,6 @@
 
 module.exports = (reporter, definition) => {
+  reporter.express = {}
   reporter.addRequestContextMetaConfig('http', { sandboxReadOnly: true })
   reporter.addRequestContextMetaConfig('http.query', { sandboxReadOnly: true })
 
