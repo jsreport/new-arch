@@ -9,7 +9,24 @@ module.exports = (documentStoreData, executeActionInMain) => {
       findOne: (q, req) => executeActionInMain('documentStore.collection.findOne', {
         query: q,
         collection: name
-      }, req)
+      }, req),
+      insert: (doc, req) => executeActionInMain('documentStore.collection.insert', {
+        doc,
+        collection: name
+      }, req),
+      update: async (query, update, options, req) => {
+        if (req == null) {
+          req = options
+          options = {}
+        }
+        const r = await executeActionInMain('documentStore.collection.update', {
+          query,
+          update,
+          options,
+          collection: name
+        }, req)
+        return r
+      }
     })
   }
 
