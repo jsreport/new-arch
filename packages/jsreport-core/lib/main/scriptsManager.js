@@ -22,7 +22,7 @@ class ScriptsManager {
   }
 
   async start () {
-    this._workerManager = new Piscina({
+    this._workerManager = new Piscina({     
       workerData: this._workerData,
       filename: path.join(__dirname, '../worker/worker.js'),
       minThreads: this.options.numberOfWorkers,
@@ -225,7 +225,7 @@ class ScriptsManager {
                 rid: msgPayload.rid,
                 cid: msgPayload.cid,
                 action: 'callback-response',
-                data: [e.message, null]
+                data: serializator.serialize([e.message, null])
               })
             }
           }
