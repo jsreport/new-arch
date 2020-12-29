@@ -24,6 +24,7 @@ const { validateReservedName } = require('./folders/validateReservedName')
 const setupValidateId = require('./store/setupValidateId')
 const setupValidateHumanReadableKey = require('./store/setupValidateHumanReadableKey')
 const documentStoreActions = require('./store/mainActions')
+const blobStorageActions = require('./blobStorage/mainActions')
 const Reporter = require('../shared/reporter')
 const Request = require('../shared/request')
 const generateRequestId = require('../shared/generateRequestId')
@@ -165,6 +166,7 @@ class MainReporter extends Reporter {
       this.documentStore = DocumentStore(Object.assign({}, this.options, { logger: this.logger }), this.entityTypeValidator, this.encryption)
       documentStoreActions(this)
       this.blobStorage = BlobStorage(this.options)
+      blobStorageActions(this)
 
       this.documentStore.registerEntityType('TemplateType', {
         content: { type: 'Edm.String', document: { extension: 'html', engine: true } },
@@ -358,8 +360,6 @@ class MainReporter extends Reporter {
       })
 
       Object.assign(response, responseResult)
-
-      await this.afterRenderListeners.fire(request, response)
 
       response.stream = Readable.from(response.content)
     } catch (err) {
