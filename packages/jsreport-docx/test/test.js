@@ -1530,8 +1530,7 @@ describe('docx', () => {
           src: url,
           imagePath: path.join(__dirname, 'image.png')
         }
-      })
-    //  .should.not.be.rejectedWith(/src parameter to be set/)
+      }).should.not.be.rejectedWith(/src parameter to be set/)
   })
 
   it('image error message when src not valid param', async () => {
