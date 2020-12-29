@@ -2,11 +2,11 @@ const Semaphore = require('semaphore-async-await').default
 
 // this is a modified version of http://blog.stevenlevithan.com/archives/javascript-match-recursive-regexp
 function matchRecursiveRegExp (str, left, right, flags) {
-  let f = flags || ''
-  let g = f.indexOf('g') > -1
-  let x = new RegExp(left + '|' + right, 'g' + f.replace(/g/g, ''))
-  let l = new RegExp(left, f.replace(/g/g, ''))
-  let a = []
+  const f = flags || ''
+  const g = f.indexOf('g') > -1
+  const x = new RegExp(left + '|' + right, 'g' + f.replace(/g/g, ''))
+  const l = new RegExp(left, f.replace(/g/g, ''))
+  const a = []
   let t
   let s
   let m

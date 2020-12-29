@@ -2,7 +2,8 @@ const office = require('jsreport-office')
 
 module.exports = {
   name: 'docx',
-  main: 'lib/docx.js',
+  main: 'lib/main.js',
+  worker: 'lib/worker.js',
   optionsSchema: office.extendSchema('docx', {
     type: 'object',
     properties: {

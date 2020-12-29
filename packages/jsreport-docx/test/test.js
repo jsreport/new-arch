@@ -1,5 +1,4 @@
 const should = require('should')
-const nock = require('nock')
 const jsreport = require('jsreport-core')
 const fs = require('fs')
 const path = require('path')
@@ -61,15 +60,13 @@ describe('docx', () => {
     reporter = jsreport({
       store: {
         provider: 'memory'
-      },
-      templatingEngines: {
-        strategy: 'in-process'
       }
     })
       .use(require('../')())
       .use(require('jsreport-handlebars')())
       .use(require('jsreport-templates')())
       .use(require('jsreport-assets')())
+      .use(jsreport.tests.listenersExtension)
     return reporter.init()
   })
 
@@ -1510,13 +1507,15 @@ describe('docx', () => {
   it('image can render from url', async () => {
     const url = 'https://some-server.com/some-image.png'
 
-    nock('https://some-server.com')
-      .get('/some-image.png')
-      .replyWithFile(200, path.join(__dirname, 'image.png'), {
-        'content-type': 'image/png'
-      })
+    reporter.tests.beforeRenderEval((req, res, { require }) => {
+      require('nock')('https://some-server.com')
+        .get('/some-image.png')
+        .replyWithFile(200, req.data.imagePath, {
+          'content-type': 'image/png'
+        })
+    })
 
-    return reporter
+    await reporter
       .render({
         template: {
           engine: 'handlebars',
@@ -1528,10 +1527,11 @@ describe('docx', () => {
           }
         },
         data: {
-          src: url
+          src: url,
+          imagePath: path.join(__dirname, 'image.png')
         }
       })
-      .should.not.be.rejectedWith(/src parameter to be set/)
+    //  .should.not.be.rejectedWith(/src parameter to be set/)
   })
 
   it('image error message when src not valid param', async () => {
@@ -4418,11 +4418,7 @@ describe('docx with extensions.docx.previewInWordOnline === false', () => {
   let reporter
 
   beforeEach(() => {
-    reporter = jsreport({
-      templatingEngines: {
-        strategy: 'in-process'
-      }
-    })
+    reporter = jsreport()
       .use(require('../')({ preview: { enabled: false } }))
       .use(require('jsreport-handlebars')())
       .use(require('jsreport-templates')())

@@ -5,8 +5,8 @@ const preprocess = require('./preprocess/preprocess.js')
 const postprocess = require('./postprocess/postprocess.js')
 const { contentIsXML } = require('./utils')
 
-module.exports = async function scriptDocxProcessing (inputs, renderCallbackAsync) {
-  const { docxTemplateContent, logger, options, outputPath } = inputs
+module.exports = (reporter) => async (inputs, req) => {
+  const { docxTemplateContent, options, outputPath } = inputs
 
   try {
     const files = await decompress()(docxTemplateContent)
@@ -35,13 +35,18 @@ module.exports = async function scriptDocxProcessing (inputs, renderCallbackAsyn
       return xmlStr.replace(/<docxRemove>/g, '').replace(/<\/docxRemove>/g, '')
     }).join('$$$docxFile$$$')
 
-    logger.debug('Starting child request to render docx dynamic parts')
+    reporter.logger.debug('Starting child request to render docx dynamic parts', req)
 
-    const { content: newContent } = await renderCallbackAsync({
-      content: contentToRender
-    })
+    const { content: newContent } = await reporter.render({
+      template: {
+        content: contentToRender,
+        engine: req.template.engine,
+        recipe: 'html',
+        helpers: req.template.helpers
+      }
+    }, req)
 
-    const contents = newContent.split('$$$docxFile$$$')
+    const contents = newContent.toString().split('$$$docxFile$$$')
 
     for (let i = 0; i < filesToRender.length; i++) {
       filesToRender[i].data = contents[i]
@@ -77,17 +82,15 @@ module.exports = async function scriptDocxProcessing (inputs, renderCallbackAsyn
       files
     })
 
-    logger.debug('docx successfully zipped')
+    reporter.logger.debug('docx successfully zipped')
 
     return {
       docxFilePath: outputPath
     }
   } catch (e) {
-    return {
-      error: {
-        message: e.message,
-        stack: e.stack
-      }
-    }
+    throw reporter.createError('Error while executing docx recipe', {
+      original: e,
+      weak: true
+    })
   }
 }
