@@ -10,10 +10,12 @@ for (const pd of jsreportPackages) {
   fs.rmdirSync(path.join(__dirname, '../', 'packages', pd, 'node_modules'), { recursive: true })
   fs.unlinkSync(path.join(__dirname, '../', 'packages', pd, 'package-lock.json'))
   execSync('npm i', {
-    cwd: path.join(__dirname, '../', 'packages', pd)
+    cwd: path.join(__dirname, '../', 'packages', pd),
+    stdio: 'inherit'
   })
   console.log('npm test in ' + path.join(__dirname, '../', 'packages', pd))
   execSync('npm test', {
-    cwd: path.join(__dirname, '../', 'packages', pd)
+    cwd: path.join(__dirname, '../', 'packages', pd),
+    stdio: 'inherit'
   })
 }
