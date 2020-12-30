@@ -1,0 +1,27 @@
+{
+  "extends": ["standard", "standard-jsx", "plugin:react-hooks/recommended"],
+  "parser": "babel-eslint",
+  "plugins": [
+    "babel"
+  ],
+  "env": {
+    "node": true,
+    "mocha": true
+  },
+  "rules": {
+    "babel/arrow-parens": 2,
+    "arrow-parens": 0
+  },
+  "globals" : {
+    "Studio": 1,
+    "FileReader": 1,
+    "alert": 1,
+    "atob": 1,
+    "Blob": 1,
+    "saveAs": 1,
+    "describe": 1,
+    "it": 1,
+    "beforeEach": 1,
+    "__DEVELOPMENT__": 1
+  }
+}
