@@ -6,6 +6,7 @@ const jsreportPackages = [
   'jsreport-assets',
   'jsreport-authentication',
   'jsreport-authorization',
+  'jsreport-base',
   'jsreport-core',
   'jsreport-data',
   'jsreport-docx',
@@ -17,6 +18,7 @@ const jsreportPackages = [
   'jsreport-jsrender',
   'jsreport-pdf-utils',
   'jsreport-scripts',
+  'jsreport-studio',
   'jsreport-templates'
 ]
 // fs.readdirSync(path.join(__dirname, '../', 'packages'))
