@@ -67,7 +67,6 @@
     "url": "git+ssh://git@github.com/jsreport/jsreport.git"
   },
   "scripts": {
-    "preinstall": "node scripts/install.js",
     "compile": "node compile.js",
     "start": "node server.js",
     "test": "node scripts/test.js"
