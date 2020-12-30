@@ -41,7 +41,7 @@ export default class NewUserModal extends Component {
     entity.password = this.password1Ref.current.value
 
     try {
-      let response = await Studio.api.post('/odata/users', {
+      const response = await Studio.api.post('/odata/users', {
         data: entity
       })
 
@@ -71,28 +71,32 @@ export default class NewUserModal extends Component {
   }
 
   render () {
-    return <div>
-      <div className='form-group'>
-        <label>Username</label>
-        <input type='text' ref={this.usernameRef} onChange={() => this.validateUsername()} onKeyPress={(e) => this.handleKeyPress(e)} />
+    return (
+      <div>
+        <div className='form-group'>
+          <label>Username</label>
+          <input type='text' ref={this.usernameRef} onChange={() => this.validateUsername()} onKeyPress={(e) => this.handleKeyPress(e)} />
+        </div>
+        <div className='form-group'>
+          <label>Password</label>
+          <input type='password' autoComplete='off' ref={this.password1Ref} />
+        </div>
+        <div className='form-group'>
+          <label>Password verification</label>
+          <input type='password' autoComplete='off' ref={this.password2Ref} onChange={() => this.validatePassword()} />
+        </div>
+        <div className='form-group'>
+          <span style={{ color: 'red', display: this.state.passwordError ? 'block' : 'none' }}>password doesn't match</span>
+          <span
+            style={{ color: 'red', display: this.state.userNameError ? 'block' : 'none' }}
+          >username must be filled
+          </span>
+          <span style={{ color: 'red', display: this.state.apiError ? 'block' : 'none' }}>{this.state.apiError}</span>
+        </div>
+        <div className='button-bar'>
+          <button className='button confirmation' onClick={() => this.createUser()}>ok</button>
+        </div>
       </div>
-      <div className='form-group'>
-        <label>Password</label>
-        <input type='password' autoComplete='off' ref={this.password1Ref} />
-      </div>
-      <div className='form-group'>
-        <label>Password verification</label>
-        <input type='password' autoComplete='off' ref={this.password2Ref} onChange={() => this.validatePassword()} />
-      </div>
-      <div className='form-group'>
-        <span style={{color: 'red', display: this.state.passwordError ? 'block' : 'none'}}>password doesn't match</span>
-        <span
-          style={{color: 'red', display: this.state.userNameError ? 'block' : 'none'}}>username must be filled</span>
-        <span style={{color: 'red', display: this.state.apiError ? 'block' : 'none'}}>{this.state.apiError}</span>
-      </div>
-      <div className='button-bar'>
-        <button className='button confirmation' onClick={() => this.createUser()}>ok</button>
-      </div>
-    </div>
+    )
   }
 }

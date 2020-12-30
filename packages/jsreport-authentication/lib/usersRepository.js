@@ -4,10 +4,10 @@ const maxFailedAttempts = 10
 
 module.exports = (reporter, admin) => {
   reporter.documentStore.registerEntityType('UserType', {
-    username: {type: 'Edm.String', publicKey: true},
-    password: {type: 'Edm.String', visible: false},
-    failedLoginAttemptsCount: {type: 'Edm.Int32', visible: false},
-    failedLoginAttemptsStart: {type: 'Edm.DateTimeOffset', visible: false}
+    username: { type: 'Edm.String', publicKey: true },
+    password: { type: 'Edm.String', visible: false },
+    failedLoginAttemptsCount: { type: 'Edm.Int32', visible: false },
+    failedLoginAttemptsStart: { type: 'Edm.DateTimeOffset', visible: false }
   })
 
   reporter.documentStore.registerEntitySet('users', {
@@ -95,7 +95,7 @@ module.exports = (reporter, admin) => {
       if (admin.username === username) {
         user = admin
       } else {
-        user = await reporter.documentStore.collection('users').findOne({username: username})
+        user = await reporter.documentStore.collection('users').findOne({ username: username })
       }
 
       if (user == null) {
@@ -118,7 +118,7 @@ module.exports = (reporter, admin) => {
 
       if (isInLockWindow) {
         if (failedAttemptsCount >= maxFailedAttempts) {
-          let secondsToWait = Math.round((lockWindowInterval - (currentDate - failedLoginAttemptsStart)) / 1000)
+          const secondsToWait = Math.round((lockWindowInterval - (currentDate - failedLoginAttemptsStart)) / 1000)
 
           return {
             valid: false,
@@ -163,7 +163,7 @@ module.exports = (reporter, admin) => {
     },
 
     async find (username) {
-      const users = await reporter.documentStore.collection('users').find({username: username})
+      const users = await reporter.documentStore.collection('users').find({ username: username })
       if (users.length !== 1) {
         return null
       }

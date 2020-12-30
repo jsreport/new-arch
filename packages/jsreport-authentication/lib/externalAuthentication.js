@@ -2,9 +2,7 @@ const axios = require('axios')
 const querystring = require('querystring')
 
 module.exports.shouldDelegateTokenAuth = (definition) => {
-  let options = definition.options
-  let tokenValidation
-  let endpoint
+  const options = definition.options
   let usernameField
   let activeField
   let scope
@@ -21,7 +19,7 @@ module.exports.shouldDelegateTokenAuth = (definition) => {
     return false
   }
 
-  tokenValidation = options.authorizationServer.tokenValidation
+  const tokenValidation = options.authorizationServer.tokenValidation
 
   if (tokenValidation.sendAsJSON === true) {
     sendAsJSON = true
@@ -48,7 +46,7 @@ module.exports.shouldDelegateTokenAuth = (definition) => {
     )
   }
 
-  endpoint = tokenValidation.endpoint
+  const endpoint = tokenValidation.endpoint
 
   if (tokenValidation.timeout != null && typeof tokenValidation.timeout === 'number') {
     timeout = tokenValidation.timeout
@@ -180,19 +178,17 @@ module.exports.hasBearerSchema = (info) => {
 }
 
 module.exports.authenticateToken = ({ authorizationServerAuth, logger, admin, usersRepository }) => (req, token, done) => {
-  let reqOpts
-  let data
   let isBearerAuth
   let credentials
   let jsonRequest = false
 
-  reqOpts = {
+  const reqOpts = {
     method: 'post',
     url: authorizationServerAuth.endpoint,
     timeout: authorizationServerAuth.timeout
   }
 
-  data = {}
+  const data = {}
 
   if (authorizationServerAuth.hint != null) {
     if (Array.isArray(authorizationServerAuth.hint)) {
@@ -211,7 +207,7 @@ module.exports.authenticateToken = ({ authorizationServerAuth, logger, admin, us
   }
 
   data.token = token
-  data['token_type_hint'] = 'access_token'
+  data.token_type_hint = 'access_token'
 
   if (authorizationServerAuth.sendAsJSON) {
     jsonRequest = true

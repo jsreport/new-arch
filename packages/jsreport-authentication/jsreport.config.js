@@ -1,7 +1,8 @@
 module.exports = {
-  'name': 'authentication',
-  'main': 'lib/authentication.js',
-  'optionsSchema': {
+  name: 'authentication',
+  main: 'lib/main.js',
+  worker: 'lib/worker.js',
+  optionsSchema: {
     extensions: {
       authentication: {
         type: 'object',
@@ -74,6 +75,6 @@ module.exports = {
       }
     }
   },
-  'dependencies': [],
-  'skipInExeRender': true
+  dependencies: [],
+  skipInExeRender: true
 }

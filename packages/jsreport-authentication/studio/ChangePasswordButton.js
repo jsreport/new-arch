@@ -8,13 +8,16 @@ class ChangePasswordButton extends Component {
       return <span />
     }
 
-    return <div>
-      <div
-        className='toolbar-button'
-        onClick={(e) => Studio.openModal(ChangePasswordModal, { entity: this.props.tab.entity })}>
-        <i className='fa fa-key' /> Change Password
+    return (
+      <div>
+        <div
+          className='toolbar-button'
+          onClick={(e) => Studio.openModal(ChangePasswordModal, { entity: this.props.tab.entity })}
+        >
+          <i className='fa fa-key' /> Change Password
+        </div>
       </div>
-    </div>
+    )
   }
 }
 

@@ -317,8 +317,6 @@ module.exports = function (reporter, definition) {
   definition.options.admin.name = definition.options.admin.username
   definition.options.admin.isAdmin = true
 
-  reporter.addRequestContextMetaConfig('user', { sandboxHidden: true })
-
   reporter.authentication = new Authentication(reporter, definition.options.admin)
 
   reporter.on('export-public-route', (route) => reporter.authentication.publicRoutes.push(route))

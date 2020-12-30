@@ -12,12 +12,14 @@ class UserEditor extends Component {
   render () {
     const { entity, onUpdate } = this.props
 
-    return <div className='custom-editor'>
-      <h1><i className='fa fa-user' /> {entity.username}</h1>
-      <div>
-        {Studio.authentication.useEditorComponents.map((c, i) => <div key={i}>{c(entity, onUpdate)}</div>)}
+    return (
+      <div className='custom-editor'>
+        <h1><i className='fa fa-user' /> {entity.username}</h1>
+        <div>
+          {Studio.authentication.useEditorComponents.map((c, i) => <div key={i}>{c(entity, onUpdate)}</div>)}
+        </div>
       </div>
-    </div>
+    )
   }
 }
 

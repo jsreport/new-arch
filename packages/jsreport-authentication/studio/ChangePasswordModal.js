@@ -17,7 +17,7 @@ class ChangePasswordModal extends Component {
     const { close } = this.props
 
     try {
-      let data = {
+      const data = {
         newPassword: this.newPassword1Ref.current.value
       }
 
@@ -43,28 +43,28 @@ class ChangePasswordModal extends Component {
   }
 
   render () {
-    return <div>
-      {Studio.authentication.user.isAdmin ? '' : <div className='form-group'>
-        <label>old password</label>
-        <input type='password' autoComplete='off' ref={this.oldPasswordRef} />
+    return (
+      <div>
+        {Studio.authentication.user.isAdmin
+          ? ''
+          : <div className='form-group'><label>old password</label><input type='password' autoComplete='off' ref={this.oldPasswordRef} /></div>}
+        <div className='form-group'>
+          <label>new password</label>
+          <input type='password' autoComplete='off' ref={this.newPassword1Ref} />
+        </div>
+        <div className='form-group'>
+          <label>new password verification</label>
+          <input type='password' autoComplete='off' ref={this.newPassword2Ref} onChange={() => this.validatePassword()} />
+        </div>
+        <div className='form-group'>
+          <span style={{ color: 'red', display: this.state.passwordError ? 'block' : 'none' }}>password doesn't match</span>
+          <span style={{ color: 'red', display: this.state.apiError ? 'block' : 'none' }}>{this.state.apiError}</span>
+        </div>
+        <div className='button-bar'>
+          <button className='button confirmation' onClick={() => this.changePassword()}>ok</button>
+        </div>
       </div>
-      }
-      <div className='form-group'>
-        <label>new password</label>
-        <input type='password' autoComplete='off' ref={this.newPassword1Ref} />
-      </div>
-      <div className='form-group'>
-        <label>new password verification</label>
-        <input type='password' autoComplete='off' ref={this.newPassword2Ref} onChange={() => this.validatePassword()} />
-      </div>
-      <div className='form-group'>
-        <span style={{color: 'red', display: this.state.passwordError ? 'block' : 'none'}}>password doesn't match</span>
-        <span style={{color: 'red', display: this.state.apiError ? 'block' : 'none'}}>{this.state.apiError}</span>
-      </div>
-      <div className='button-bar'>
-        <button className='button confirmation' onClick={() => this.changePassword()}>ok</button>
-      </div>
-    </div>
+    )
   }
 }
 
