@@ -3,37 +3,37 @@ const parsePdf = require('../lib/utils/parsePdf')
 const fs = require('fs')
 const path = require('path')
 const pdfjs = require('jsreport-pdfjs')
-const { extractSignature } = require('node-signpdf/dist/helpers.js')
+const { extractSignature } = require('node-signpdf/dist/helpers')
 const should = require('should')
-
-function initialize (strategy = 'in-process') {
-  const jsreport = JsReport({
-    encryption: {
-      secretKey: '1111111811111118'
-    },
-    templatingEngines: { strategy }
-  })
-
-  jsreport.use(require('jsreport-templates')())
-  jsreport.use(require('jsreport-chrome-pdf')({
-    launchOptions: {
-      args: ['--no-sandbox']
-    }
-  }))
-  jsreport.use(require('jsreport-assets')())
-  jsreport.use(require('jsreport-phantom-pdf')())
-  jsreport.use(require('jsreport-handlebars')())
-  jsreport.use(require('jsreport-jsrender')())
-  jsreport.use(require('jsreport-scripts')())
-  jsreport.use(require('../')())
-  jsreport.use(require('jsreport-child-templates')())
-  return jsreport.init()
-}
 
 describe('pdf utils', () => {
   let jsreport
-  beforeEach(async () => (jsreport = await initialize()))
-  afterEach(() => jsreport && jsreport.close())
+
+  beforeEach(async () => {
+    jsreport = JsReport({
+      encryption: {
+        secretKey: '1111111811111118'
+      }
+    })
+
+    jsreport.use(require('jsreport-templates')())
+    jsreport.use(require('jsreport-chrome-pdf')({
+      launchOptions: {
+        args: ['--no-sandbox']
+      }
+    }))
+    jsreport.use(require('jsreport-assets')())
+    jsreport.use(require('jsreport-handlebars')())
+    jsreport.use(require('jsreport-jsrender')())
+    jsreport.use(require('jsreport-scripts')())
+    jsreport.use(require('../')())
+    jsreport.use(require('jsreport-child-templates')())
+    jsreport.use(JsReport.tests.listenersExtension)
+
+    return jsreport.init()
+  })
+
+  afterEach(() => jsreport.close())
 
   it('merge should embed static text', async () => {
     await jsreport.documentStore.collection('templates').insert({
@@ -80,7 +80,7 @@ describe('pdf utils', () => {
 
     const result = await jsreport.render({
       template: {
-        content: `<h1 style='page-break-before: always'>Hello</h1><h1 style='page-break-before: always'>Hello</h1>`,
+        content: '<h1 style=\'page-break-before: always\'>Hello</h1><h1 style=\'page-break-before: always\'>Hello</h1>',
         engine: 'none',
         name: 'content',
         recipe: 'chrome-pdf',
@@ -107,7 +107,7 @@ describe('pdf utils', () => {
 
     const result = await jsreport.render({
       template: {
-        content: `{{{pdfCreatePagesGroup "SomeText"}}}`,
+        content: '{{{pdfCreatePagesGroup "SomeText"}}}',
         engine: 'handlebars',
         name: 'content',
         recipe: 'chrome-pdf',
@@ -133,7 +133,7 @@ describe('pdf utils', () => {
 
     const result = await jsreport.render({
       template: {
-        content: `{{{pdfCreatePagesGroup "SomeText"}}}{{{pdfCreatePagesGroup "Different"}}}`,
+        content: '{{{pdfCreatePagesGroup "SomeText"}}}{{{pdfCreatePagesGroup "Different"}}}',
         engine: 'handlebars',
         name: 'content',
         recipe: 'chrome-pdf',
@@ -159,7 +159,7 @@ describe('pdf utils', () => {
 
     const result = await jsreport.render({
       template: {
-        content: `a{{{pdfCreatePagesGroup "1"}}}<div style='page-break-before: always' />b`,
+        content: 'a{{{pdfCreatePagesGroup "1"}}}<div style=\'page-break-before: always\' />b',
         engine: 'handlebars',
         name: 'content',
         recipe: 'chrome-pdf',
@@ -186,7 +186,7 @@ describe('pdf utils', () => {
 
     const result = await jsreport.render({
       template: {
-        content: `{{{pdfCreatePagesGroup foo="1"}}}`,
+        content: '{{{pdfCreatePagesGroup foo="1"}}}',
         engine: 'handlebars',
         recipe: 'chrome-pdf',
         pdfOperations: [{ type: 'merge', renderForEveryPage: true, templateShortid: 'header' }]
@@ -211,38 +211,7 @@ describe('pdf utils', () => {
 
     const result = await jsreport.render({
       template: {
-        content: `{{{pdfCreatePagesGroup num}}}`,
-        engine: 'handlebars',
-        name: 'content',
-        recipe: 'chrome-pdf',
-        pdfOperations: [{ type: 'merge', renderForEveryPage: true, templateShortid: 'header' }]
-      },
-      data: {
-        num: 1
-      }
-    })
-
-    const parsedPdf = await parsePdf(result.content, {
-      includeText: true
-    })
-    parsedPdf.pages[0].text.includes('number').should.be.ok()
-  })
-
-  it('should work with helpers in an object', async () => {
-    await jsreport.documentStore.collection('templates').insert({
-      content: '{{test 1}}',
-      shortid: 'header',
-      name: 'header',
-      engine: 'handlebars',
-      recipe: 'chrome-pdf',
-      helpers: {
-        test: v => typeof v
-      }
-    })
-
-    const result = await jsreport.render({
-      template: {
-        content: `{{{pdfCreatePagesGroup num}}}`,
+        content: '{{{pdfCreatePagesGroup num}}}',
         engine: 'handlebars',
         name: 'content',
         recipe: 'chrome-pdf',
@@ -270,7 +239,7 @@ describe('pdf utils', () => {
 
     const result = await jsreport.render({
       template: {
-        content: `{{pdfCreatePagesGroup foo="1"/}}`,
+        content: '{{pdfCreatePagesGroup foo="1"/}}',
         engine: 'jsrender',
         name: 'content',
         recipe: 'chrome-pdf',
@@ -295,7 +264,7 @@ describe('pdf utils', () => {
 
     const result = await jsreport.render({
       template: {
-        content: `{{{pdfAddPageItem "a"}}}{{{pdfAddPageItem "b"}}}`,
+        content: '{{{pdfAddPageItem "a"}}}{{{pdfAddPageItem "b"}}}',
         name: 'content',
         engine: 'handlebars',
         recipe: 'chrome-pdf',
@@ -329,7 +298,7 @@ describe('pdf utils', () => {
 
     const result = await jsreport.render({
       template: {
-        content: `Foo`,
+        content: 'Foo',
         name: 'content',
         engine: 'none',
         recipe: 'chrome-pdf',
@@ -355,7 +324,7 @@ describe('pdf utils', () => {
 
     const result = await jsreport.render({
       template: {
-        content: `Foo`,
+        content: 'Foo',
         name: 'content',
         engine: 'none',
         recipe: 'chrome-pdf',
@@ -377,7 +346,7 @@ describe('pdf utils', () => {
         name: 'content',
         engine: 'none',
         recipe: 'chrome-pdf',
-        pdfOperations: [{ type: 'merge', template: { content: 'header', engine: 'none', 'recipe': 'chrome-pdf' } }],
+        pdfOperations: [{ type: 'merge', template: { content: 'header', engine: 'none', recipe: 'chrome-pdf' } }],
         chrome: {
           marginTop: '3cm'
         }
@@ -406,7 +375,7 @@ describe('pdf utils', () => {
 
     const result = await jsreport.render({
       template: {
-        content: `foo`,
+        content: 'foo',
         engine: 'none',
         name: 'foo',
         recipe: 'chrome-pdf',
@@ -421,10 +390,43 @@ describe('pdf utils', () => {
     parsedPdf.pages[1].text.includes('anotherpage').should.be.ok()
   })
 
+  it('append and merge shouldnt remove the hidden marks from pdf', async () => {
+    await jsreport.documentStore.collection('templates').insert({
+      content: '{{{pdfAddPageItem \'one\'}}} <a href=\'#{{id}}\' data-pdf-outline>link to main</a>',
+      shortid: 'one',
+      name: 'one',
+      engine: 'handlebars',
+      recipe: 'chrome-pdf'
+    })
+
+    await jsreport.documentStore.collection('templates').insert({
+      content: '{{$pdf.pages.[1].items.[0]}}',
+      shortid: 'two',
+      name: 'two',
+      engine: 'handlebars',
+      recipe: 'chrome-pdf'
+    })
+
+    const result = await jsreport.render({
+      template: {
+        content: '<h1 id=\'main\'>main</h1>',
+        engine: 'handlebars',
+        name: 'main',
+        recipe: 'chrome-pdf',
+        pdfOperations: [{ type: 'append', templateShortid: 'one' }, { type: 'append', templateShortid: 'two' }]
+      }
+    })
+
+    const parsedPdf = await parsePdf(result.content, {
+      includeText: true
+    })
+    parsedPdf.pages[2].text.includes('one').should.be.ok()
+  })
+
   it('append with inline template definition', async () => {
     const result = await jsreport.render({
       template: {
-        content: `foo`,
+        content: 'foo',
         engine: 'none',
         name: 'foo',
         recipe: 'chrome-pdf',
@@ -453,7 +455,7 @@ describe('pdf utils', () => {
 
     const result = await jsreport.render({
       template: {
-        content: `foo`,
+        content: 'foo',
         name: 'foo',
         engine: 'none',
         recipe: 'chrome-pdf',
@@ -471,7 +473,7 @@ describe('pdf utils', () => {
   it('prepend with inline template definition', async () => {
     const result = await jsreport.render({
       template: {
-        content: `foo`,
+        content: 'foo',
         name: 'foo',
         engine: 'none',
         recipe: 'chrome-pdf',
@@ -572,6 +574,7 @@ describe('pdf utils', () => {
     })
 
     const logs = result.meta.logs.map(m => m.message)
+
     const startingLogIndex = logs.indexOf('pdf-utils is starting pdf processing')
 
     startingLogIndex.should.be.not.eql(-1)
@@ -624,7 +627,7 @@ describe('pdf utils', () => {
     })
 
     await jsreport.documentStore.collection('templates').insert({
-      content: `{{{pdfCreatePagesGroup "Appended"}}}`,
+      content: '{{{pdfCreatePagesGroup "Appended"}}}',
       shortid: 'append',
       name: 'append',
       engine: 'handlebars',
@@ -633,10 +636,10 @@ describe('pdf utils', () => {
 
     const result = await jsreport.render({
       template: {
-        content: `{{{pdfCreatePagesGroup "Main"}}}`,
+        content: '{{{pdfCreatePagesGroup "Main"}}}',
         engine: 'handlebars',
         recipe: 'chrome-pdf',
-        pdfOperations: [ { type: 'append', templateShortid: 'append' },
+        pdfOperations: [{ type: 'append', templateShortid: 'append' },
           { type: 'merge', renderForEveryPage: true, templateShortid: 'header' }]
       }
     })
@@ -738,7 +741,7 @@ describe('pdf utils', () => {
   it('merge should merge whole documents when mergeWholeDocument', async () => {
     const result = await jsreport.render({
       template: {
-        content: `main1<div style='page-break-before: always;'></div>main2`,
+        content: 'main1<div style=\'page-break-before: always;\'></div>main2',
         name: 'content',
         engine: 'none',
         recipe: 'chrome-pdf',
@@ -765,10 +768,10 @@ describe('pdf utils', () => {
     parsedPdf.pages[1].text.includes('header').should.be.ok()
   })
 
-  it('should be able to merge watermark into pdf with native header produced by phantomjs', async () => {
+  it.skip('should be able to merge watermark into pdf with native header produced by phantomjs', async () => {
     const result = await jsreport.render({
       template: {
-        content: `main`,
+        content: 'main',
         name: 'content',
         engine: 'none',
         recipe: 'phantom-pdf',
@@ -779,7 +782,7 @@ describe('pdf utils', () => {
           type: 'merge',
           mergeWholeDocument: true,
           template: {
-            content: `watermark`,
+            content: 'watermark',
             engine: 'handlebars',
             recipe: 'phantom-pdf'
           }
@@ -850,7 +853,7 @@ describe('pdf utils', () => {
   })
 
   it('should work with merging word generated pdf and dont loose special characters', async () => {
-    jsreport.afterRenderListeners.insert(0, 'test', (req, res) => {
+    jsreport.afterRenderListeners.add('test', (req, res) => {
       if (req.template.content === 'word') {
         res.content = fs.readFileSync(path.join(__dirname, 'word.pdf'))
       }
@@ -858,14 +861,14 @@ describe('pdf utils', () => {
 
     const result = await jsreport.render({
       template: {
-        content: `main`,
+        content: 'main',
         name: 'content',
         engine: 'none',
         recipe: 'chrome-pdf',
         pdfOperations: [{
           type: 'merge',
           template: {
-            content: `word`,
+            content: 'word',
             engine: 'none',
             recipe: 'html'
           }
@@ -883,14 +886,14 @@ describe('pdf utils', () => {
   it('should not break pdf href links when doing append', async () => {
     const result = await jsreport.render({
       template: {
-        content: `<a href='#foo'>foo</a><h1 id='foo'>hello</h1>`,
+        content: '<a href=\'#foo\'>foo</a><h1 id=\'foo\'>hello</h1>',
         name: 'content',
         engine: 'none',
         recipe: 'chrome-pdf',
         pdfOperations: [{
           type: 'append',
           template: {
-            content: `hello`,
+            content: 'hello',
             engine: 'none',
             recipe: 'chrome-pdf'
           }
@@ -917,7 +920,7 @@ describe('pdf utils', () => {
           type: 'merge',
           renderForEveryPage: true,
           template: {
-            content: `{{#with (lookup $pdf.pages $pdf.pageIndex)}}{{items.[0].text}}{{/with}}`,
+            content: '{{#with (lookup $pdf.pages $pdf.pageIndex)}}{{items.[0].text}}{{/with}}',
             engine: 'handlebars',
             recipe: 'chrome-pdf'
           }
@@ -935,7 +938,7 @@ describe('pdf utils', () => {
   it('should be able to add outlines', async () => {
     const result = await jsreport.render({
       template: {
-        content: ` <a href='#foo' data-pdf-outline data-pdf-outline-text='foo'>foo</a><h1 id='foo'>hello</h1>`,
+        content: ' <a href=\'#foo\' data-pdf-outline data-pdf-outline-text=\'foo\'>foo</a><h1 id=\'foo\'>hello</h1>',
         name: 'content',
         engine: 'none',
         recipe: 'chrome-pdf'
@@ -947,14 +950,14 @@ describe('pdf utils', () => {
 
   it('should be able to add outlines through child template', async () => {
     await jsreport.documentStore.collection('templates').insert({
-      content: `<a href="#child" id="child" data-pdf-outline data-pdf-outline-parent="root">Child</a>`,
+      content: '<a href="#child" id="child" data-pdf-outline data-pdf-outline-parent="root">Child</a>',
       name: 'child',
       engine: 'none',
       recipe: 'html'
     })
     const result = await jsreport.render({
       template: {
-        content: `<a href="#root" id="root" data-pdf-outline>Root</a>{#child child}`,
+        content: '<a href="#root" id="root" data-pdf-outline>Root</a>{#child child}',
         name: 'content',
         engine: 'none',
         recipe: 'chrome-pdf'
@@ -975,7 +978,7 @@ describe('pdf utils', () => {
 
     const result = await jsreport.render({
       template: {
-        content: `{{{pdfCreatePagesGroup "SomeText"}}}{{{pdfAddPageItem "v"}}}`,
+        content: '{{{pdfCreatePagesGroup "SomeText"}}}{{{pdfAddPageItem "v"}}}',
         engine: 'handlebars',
         name: 'content',
         recipe: 'chrome-pdf',
@@ -1002,7 +1005,7 @@ describe('pdf utils', () => {
 
     const result = await jsreport.render({
       template: {
-        content: `{{{pdfCreatePagesGroup "SomeText"}}}{{{pdfAddPageItem "v"}}}`,
+        content: '{{{pdfCreatePagesGroup "SomeText"}}}{{{pdfAddPageItem "v"}}}',
         engine: 'handlebars',
         name: 'content',
         recipe: 'chrome-pdf',
@@ -1369,6 +1372,25 @@ describe('pdf utils', () => {
     should(parsedPdf.pages[0].text).not.be.ok()
   })
 
+  it('pdfPassword should encrypt outlines', async () => {
+    const result = await jsreport.render({
+      template: {
+        content: '<a href="#root" id="root" data-pdf-outline data-pdf-outline-title=\'MyTitlečřšš\'>link</a><h1>root</h1>',
+        name: 'content',
+        engine: 'none',
+        recipe: 'chrome-pdf',
+        pdfPassword: {
+          password: 'a'
+        },
+        pdfMeta: {
+          title: 'řčšěřčšř'
+        }
+      }
+    })
+
+    result.content.toString().should.not.containEql('/Title (MyTitle)')
+  })
+
   it('pdfMeta should add information to output pdf', async () => {
     const result = await jsreport.render({
       template: {
@@ -1410,10 +1432,42 @@ describe('pdf utils', () => {
         }
       }
     })
-
+    require('fs').writeFileSync('out.pdf', result.content)
     const { signature, signedData } = extractSignature(result.content)
     signature.should.be.of.type('string')
     signedData.should.be.instanceOf(Buffer)
+
+    const doc = new pdfjs.ExternalDocument(result.content)
+
+    const acroForm = doc.catalog.get('AcroForm').object
+    should(acroForm).not.be.null()
+  })
+
+  it('pdfSign should work together with pdf password', async () => {
+    const result = await jsreport.render({
+      template: {
+        content: 'Hello',
+        engine: 'none',
+        recipe: 'chrome-pdf',
+        pdfSign: {
+          certificateAsset: {
+            content: fs.readFileSync(path.join(__dirname, 'certificate.p12')),
+            password: 'node-signpdf'
+          }
+        },
+        pdfPassword: {
+          password: 'password'
+        }
+      }
+    })
+
+    require('fs').writeFileSync('out.pdf', result.content)
+
+    const parsedPdf = await parsePdf(result.content, {
+      includeText: true,
+      password: 'password'
+    })
+    parsedPdf.pages[0].text.includes('Hello').should.be.ok()
   })
 
   it('pdfSign should be able to sign with reference to stored asset', async () => {
@@ -1503,6 +1557,61 @@ describe('pdf utils', () => {
     signedData.should.be.instanceOf(Buffer)
   })
 
+  it('pdfSign shouldnt break form fields', async () => {
+    const result = await jsreport.render({
+      template: {
+        content: `Hello<span>
+        {{{pdfFormField name='test' value='value' type='text' width='100px' height='20px'}}}
+        </span>`,
+        engine: 'handlebars',
+        recipe: 'chrome-pdf',
+        pdfSign: {
+          certificateAsset: {
+            content: fs.readFileSync(path.join(__dirname, 'certificate.p12')),
+            password: 'node-signpdf'
+          }
+        }
+      }
+    })
+
+    fs.writeFileSync('out.pdf', result.content)
+    const doc = new pdfjs.ExternalDocument(result.content)
+
+    const acroForm = doc.catalog.get('AcroForm').object
+    should(acroForm).not.be.null()
+
+    should(doc.pages.get('Kids')[0].object.properties.get('Annots')[0].object).not.be.null()
+    acroForm.properties.get('Fields').should.have.length(2)
+    const field = acroForm.properties.get('Fields')[1].object
+    field.properties.get('T').toString().should.be.eql('(test)')
+
+    const { signature, signedData } = extractSignature(result.content)
+    signature.should.be.of.type('string')
+    signedData.should.be.instanceOf(Buffer)
+  })
+
+  it('pdfSign shouldnt break anchors', async () => {
+    const result = await jsreport.render({
+      template: {
+        content: '<a href=\'#1\'>link</a><div style=\'page-break-before: always;\'></div><h1 id=\'1\'>navigate here</h1>',
+        engine: 'none',
+        recipe: 'chrome-pdf',
+        pdfSign: {
+          certificateAsset: {
+            content: fs.readFileSync(path.join(__dirname, 'certificate.p12')),
+            password: 'node-signpdf'
+          }
+        }
+      }
+    })
+
+    fs.writeFileSync('out.pdf', result.content)
+    const doc = new pdfjs.ExternalDocument(result.content)
+    should(doc.catalog.get('Dests')).be.ok()
+    should(doc.catalog.get('Dests').object.properties.get('1')).be.ok()
+    doc.catalog.get('Pages').object.properties.get('Kids')[0].object.properties.get('Annots').should.have.length(2)
+  })
+
   it('pdfFormField with text type', async () => {
     const result = await jsreport.render({
       template: {
@@ -1516,7 +1625,7 @@ describe('pdf utils', () => {
       }
     })
 
-    fs.writeFileSync('out.pdf', result.content)
+    require('fs').writeFileSync('out.pdf', result.content)
     const doc = new pdfjs.ExternalDocument(result.content)
 
     const acroForm = doc.catalog.get('AcroForm').object
@@ -1547,7 +1656,7 @@ describe('pdf utils', () => {
       template: {
         recipe: 'chrome-pdf',
         engine: 'handlebars',
-        content: `{{{pdfFormField formatType='number' formatFractionalDigits=2 formatSepComma=true formatNegStyle='ParensRed' formatCurrency='$' formatCurrencyPrepend=true name='test' type='text' width='300px' height='20px'}}}`
+        content: '{{{pdfFormField formatType=\'number\' formatFractionalDigits=2 formatSepComma=true formatNegStyle=\'ParensRed\' formatCurrency=\'$\' formatCurrencyPrepend=true name=\'test\' type=\'text\' width=\'300px\' height=\'20px\'}}}'
       }
     })
 
@@ -1568,7 +1677,7 @@ describe('pdf utils', () => {
       template: {
         recipe: 'chrome-pdf',
         engine: 'handlebars',
-        content: `{{{pdfFormField name='test' type='signature' width='100px' height='50px'}}}`
+        content: '{{{pdfFormField name=\'test\' type=\'signature\' width=\'100px\' height=\'50px\'}}}'
       }
     })
 
@@ -1585,7 +1694,7 @@ describe('pdf utils', () => {
       template: {
         recipe: 'chrome-pdf',
         engine: 'handlebars',
-        content: `{{{pdfFormField name='test' type='combo' value='b' items='a,b,c' width='100px' height='20px'}}}`
+        content: '{{{pdfFormField name=\'test\' type=\'combo\' value=\'b\' items=\'a,b,c\' width=\'100px\' height=\'20px\'}}}'
       }
     })
 
@@ -1664,16 +1773,39 @@ describe('pdf utils', () => {
     })
     parsedPdf.pages[0].text.should.containEql('hello')
   })
-})
 
-if (!process.env.TEST_FULL) {
-  return
-}
+  it('pdfFormField with national characters before', async () => {
+    const result = await jsreport.render({
+      template: {
+        recipe: 'chrome-pdf',
+        engine: 'handlebars',
+        content: '<span>š{{{pdfFormField name=\'name\' type=\'text\' width=\'130px\' height=\'40px\'}}}</span>'
+      }
+    })
 
-describe('pdf utils with http-server templating strategy', () => {
-  let jsreport
-  beforeEach(async () => (jsreport = await initialize('http-server')))
-  afterEach(() => jsreport.close())
+    const doc = new pdfjs.ExternalDocument(result.content)
+
+    const acroForm = doc.catalog.get('AcroForm').object
+    should(acroForm).not.be.null()
+  })
+
+  it('pdfFormField multiple pages', async () => {
+    const result = await jsreport.render({
+      template: {
+        recipe: 'chrome-pdf',
+        engine: 'handlebars',
+        content: `
+        {{{pdfFormField name='a' type='text' width='200px' height='20px'}}}
+        <div style='page-break-before: always;'></div>
+        {{{pdfFormField name='b' type='text' width='200px' height='20px'}}}`
+      }
+    })
+
+    const doc = new pdfjs.ExternalDocument(result.content)
+
+    const acroForm = doc.catalog.get('AcroForm').object
+    acroForm.properties.get('Fields').should.have.length(2)
+  })
 
   it('should not fail when main and appended template has printBackground=true', async () => {
     const req = {

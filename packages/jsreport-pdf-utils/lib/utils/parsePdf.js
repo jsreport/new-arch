@@ -5,7 +5,7 @@ function parseGroup (text, hiddenPageFields) {
 
   // we need to consider spaces in the string because in other OS the parsed text
   // can gives us string with space between the letters
-  let regexp = /g[ ]?r[ ]?o[ ]?u[ ]?p[ ]?@[ ]?@[ ]?@([^@]*)@[ ]?@[ ]?@/gm
+  const regexp = /g[ ]?r[ ]?o[ ]?u[ ]?p[ ]?@[ ]?@[ ]?@([^@]*)@[ ]?@[ ]?@/gm
   let match = regexp.exec(text)
 
   while (match != null) {
@@ -36,7 +36,7 @@ function parseGroup (text, hiddenPageFields) {
 function parseItems (text, hiddenPageFields) {
   // we need to consider spaces in the string because in other OS the parsed text
   // can gives us string with space between the letters
-  let regexp = /i[ ]?t[ ]?e[ ]?m[ ]?@[ ]?@[ ]?@([^@]*)@[ ]?@[ ]?@/g
+  const regexp = /i[ ]?t[ ]?e[ ]?m[ ]?@[ ]?@[ ]?@([^@]*)@[ ]?@[ ]?@/g
   let match = regexp.exec(text)
 
   const items = []
@@ -84,7 +84,7 @@ module.exports = async (contentBuffer, {
   } catch (e) {
     // pdf.js fails on empty pdfs even it is valid
     // seems better to just log warning than crash completely
-    console.warn(`Failed to parse pdf. Items, groups and text isn't filled: ` + e)
+    console.warn('Failed to parse pdf. Items, groups and text isn\'t filled: ' + e)
 
     return {
       pages: [{

@@ -8,9 +8,9 @@ const FormsProcessor = require('./formsProcessor')
 const HIDDEN_TEXT_SIZE = 1.1
 
 function chunkArray (myArray, chunkSize) {
-  var index = 0
-  var arrayLength = myArray.length
-  var tempArray = []
+  let index = 0
+  const arrayLength = myArray.length
+  const tempArray = []
 
   for (index = 0; index < arrayLength; index += chunkSize) {
     const myChunk = myArray.slice(index, index + chunkSize)
@@ -28,8 +28,8 @@ const groupBy = function (xs, key) {
 }
 
 function getAllIndexes (arr, marks) {
-  let indexes = []
-  for (let mark of marks) {
+  const indexes = []
+  for (const mark of marks) {
     let i = -1
     while ((i = arr.indexOf(`${mark}@@@`, i + 1)) !== -1) {
       indexes.push({
@@ -59,12 +59,12 @@ async function processStream (doc, streamObject, { page, pages, pageIndex, cmapC
 
   const lines = zlib.unzipSync(streamObject.content).toString('latin1').split('\n')
 
-  let matrixesStack = []
+  const matrixesStack = []
   let currentMatrix
   let currentPosition
   let currentFontRef
   let text = ''
-  let details = []
+  const details = []
   // let originalMatrix
   for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
     const line = lines[lineIndex]
@@ -152,7 +152,7 @@ async function processStream (doc, streamObject, { page, pages, pageIndex, cmapC
       // .546875 0 Td <0056> Tj
       // and I want just the Tj, don't know what is the previous part
       const trimStart = line.indexOf('<')
-      let trimedLine = line.substring(trimStart)
+      const trimedLine = line.substring(trimStart)
 
       let cmap
       // we just support known structures chrome produces
@@ -196,7 +196,7 @@ async function processStream (doc, streamObject, { page, pages, pageIndex, cmapC
     }
   }
 
-  let indexes = getAllIndexes(text, removeHiddenMarks ? ['group', 'item', 'form'] : ['form'])
+  const indexes = getAllIndexes(text, removeHiddenMarks ? ['group', 'item', 'form'] : ['form'])
 
   if (indexes.length === 0) {
     return
@@ -204,7 +204,7 @@ async function processStream (doc, streamObject, { page, pages, pageIndex, cmapC
 
   const removeLines = []
   for (const index of indexes) {
-    let detailsToProcess = details.slice(index.start, index.end)
+    const detailsToProcess = details.slice(index.start, index.end)
 
     if (detailsToProcess.length > 0) {
       const text = detailsToProcess.map(d => d.ch).join('')
@@ -224,7 +224,7 @@ async function processStream (doc, streamObject, { page, pages, pageIndex, cmapC
     }
 
     // now we remove the text from stream
-    let detailsByLines = groupBy(detailsToProcess, 'lineIndex')
+    const detailsByLines = groupBy(detailsToProcess, 'lineIndex')
 
     for (let lineIndex in detailsByLines) {
       lineIndex = parseInt(lineIndex)

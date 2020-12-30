@@ -27,7 +27,8 @@ class Properties extends Component {
         <div className='form-group'><label>password</label>
           <input
             type='password' value={password}
-            onChange={(v) => changePdfSign({ passwordRaw: v.target.value })} />
+            onChange={(v) => changePdfSign({ passwordRaw: v.target.value })}
+          />
         </div>
       </div>
     )

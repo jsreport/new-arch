@@ -16,7 +16,6 @@ const Settings = require('./settings')
 const SchemaValidator = require('./schemaValidator')
 const { getRootSchemaOptions, extendRootSchemaOptions } = require('./optionsSchema')
 const Folders = require('./folders')
-const encryption = require('./encryption')
 const executeScriptFn = require('./executeScript')
 const ScriptsManager = require('./scriptsManager')
 const { validateDuplicatedName } = require('./folders/validateDuplicatedName')
@@ -160,8 +159,6 @@ class MainReporter extends Reporter {
 
     try {
       await this.extensionsLoad()
-
-      this.encryption = encryption(this)
 
       this.documentStore = DocumentStore(Object.assign({}, this.options, { logger: this.logger }), this.entityTypeValidator, this.encryption)
       documentStoreActions(this)

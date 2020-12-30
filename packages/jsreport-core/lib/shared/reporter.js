@@ -4,6 +4,7 @@ const Request = require('./request')
 const Folders = require('./folders')
 const createOrExtendError = require('./createError')
 const tempFilesHandler = require('./tempFilesHandler')
+const encryption = require('./encryption')
 
 class Reporter extends EventEmitter {
   constructor (options) {
@@ -109,6 +110,7 @@ class Reporter extends EventEmitter {
 
   async init () {
     this.folders = Folders(this)
+    this.encryption = encryption(this)
   }
 }
 

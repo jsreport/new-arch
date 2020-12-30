@@ -6,7 +6,7 @@ module.exports = (contentBuffer, pageNumbers) => {
     pageNumbers = [pageNumbers]
   }
 
-  for (let n of pageNumbers) {
+  for (const n of pageNumbers) {
     if (!Number.isInteger(n)) {
       throw new Error('Page number for remove operation needs to be an integer, got ' + pageNumbers)
     }

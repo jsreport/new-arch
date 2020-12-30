@@ -11,12 +11,12 @@ module.exports = (doc, ext) => {
     try {
       doc._acroFormObj.prop('NeedAppearances', true)
       doc._acroFormObj.prop('DR', new PDF.Dictionary({
-        'Font': new PDF.Dictionary()
+        Font: new PDF.Dictionary()
       }))
 
       const formSpec = JSON.parse(Buffer.from(text, 'base64').toString())
 
-      let annotsObj = new PDF.Object('Annot')
+      const annotsObj = new PDF.Object('Annot')
       doc._registerObject(annotsObj)
       doc._acroFormObj.prop('Fields', new PDF.Array([...doc._acroFormObj.properties.get('Fields'), annotsObj.toReference()]))
 
@@ -191,9 +191,9 @@ function processButtonType (formSpec, annotation) {
 
   if (formSpec.type === 'button' && formSpec.action === 'submit') {
     const aDicitonary = new PDF.Dictionary({
-      'S': 'SubmitForm',
-      'Type': 'Action',
-      'Flags': flags(SUBMIT_FORM_FLAGS, formSpec)
+      S: 'SubmitForm',
+      Type: 'Action',
+      Flags: flags(SUBMIT_FORM_FLAGS, formSpec)
     })
 
     if (formSpec.url != null) {
@@ -205,8 +205,8 @@ function processButtonType (formSpec, annotation) {
 
   if (formSpec.type === 'button' && formSpec.action === 'reset') {
     annotation.prop('A', new PDF.Dictionary({
-      'S': 'ResetForm',
-      'Type': 'Action'
+      S: 'ResetForm',
+      Type: 'Action'
     }))
   }
 }
@@ -256,7 +256,7 @@ function processFormat (formSpec, annotsObj) {
   }
 
   const f = {}
-  for (let key in formSpec) {
+  for (const key in formSpec) {
     if (key.startsWith('format')) {
       let tk = key.substring('format'.length)
       tk = tk.charAt(0).toLowerCase() + tk.substring(1)
@@ -269,11 +269,11 @@ function processFormat (formSpec, annotsObj) {
   let params = ''
 
   if (FORMAT_SPECIAL[f.type] !== undefined) {
-    fnKeystroke = `AFSpecial_Keystroke`
-    fnFormat = `AFSpecial_Format`
+    fnKeystroke = 'AFSpecial_Keystroke'
+    fnFormat = 'AFSpecial_Format'
     params = FORMAT_SPECIAL[f.type]
   } else {
-    let format = f.type.charAt(0).toUpperCase() + f.type.slice(1)
+    const format = f.type.charAt(0).toUpperCase() + f.type.slice(1)
     fnKeystroke = `AF${format}_Keystroke`
     fnFormat = `AF${format}_Format`
 
@@ -295,7 +295,7 @@ function processFormat (formSpec, annotsObj) {
         params = 3
       }
     } else if (f.type === 'number') {
-      let p = Object.assign({}, FORMAT_DEFAULT.number, f)
+      const p = Object.assign({}, FORMAT_DEFAULT.number, f)
       params = [
         p.fractionalDigits,
         p.sepComma ? '0' : '1',
@@ -305,7 +305,7 @@ function processFormat (formSpec, annotsObj) {
         p.currencyPrepend
       ].join(',')
     } else if (f.type === 'percent') {
-      let p = Object.assign({}, FORMAT_DEFAULT.percent, f)
+      const p = Object.assign({}, FORMAT_DEFAULT.percent, f)
       params = String([p.fractionalDigits, p.sepComma ? '0' : '1'].join(','))
     }
   }

@@ -124,7 +124,8 @@ class PdfUtilsEditor extends Component {
         <td>
           <select
             value={operation.type}
-            onChange={(v) => this.updateOperation(entity, index, { type: v.target.value })}>>
+            onChange={(v) => this.updateOperation(entity, index, { type: v.target.value })}
+          >
             <option value='merge'>merge</option>
             <option value='append'>append</option>
             <option value='prepend'>prepend</option>
@@ -156,24 +157,26 @@ class PdfUtilsEditor extends Component {
   }
 
   renderOperations (entity) {
-    return (<table className={styles.operationTable}>
-      <thead>
-        <tr>
-          <th>Template</th>
-          <th>Operation</th>
-          <th>Merge to front</th>
-          <th>Render for every page</th>
-          <th>Merge whole document</th>
-          <th>Enabled</th>
-          <th />
-          <th />
-          <th />
-        </tr>
-      </thead>
-      <tbody>
-        {(entity.pdfOperations || []).map((o, i) => this.renderOperation(entity, o, i))}
-      </tbody>
-    </table>)
+    return (
+      <table className={styles.operationTable}>
+        <thead>
+          <tr>
+            <th>Template</th>
+            <th>Operation</th>
+            <th>Merge to front</th>
+            <th>Render for every page</th>
+            <th>Merge whole document</th>
+            <th>Enabled</th>
+            <th />
+            <th />
+            <th />
+          </tr>
+        </thead>
+        <tbody>
+          {(entity.pdfOperations || []).map((o, i) => this.renderOperation(entity, o, i))}
+        </tbody>
+      </table>
+    )
   }
 
   render () {
@@ -315,9 +318,9 @@ class PdfUtilsEditor extends Component {
                     title='Whether printing the file is allowed, and in which resolution the printing can be done'
                     onChange={(v) => this.updatePassword(entity, { printing: v.target.value === '-1' ? null : v.target.value })}
                   >
-                    <option key={'-1'} value={'-1'}>Not allowed</option>
-                    <option key={'lowResolution'} value={'lowResolution'} title='Allows the printing in degraded resolution'>Low Resolution</option>
-                    <option key={'highResolution'} value={'highResolution'} title='Allows the printing in the best resolution'>High Resolution</option>
+                    <option key='-1' value='-1'>Not allowed</option>
+                    <option key='lowResolution' value='lowResolution' title='Allows the printing in degraded resolution'>Low Resolution</option>
+                    <option key='highResolution' value='highResolution' title='Allows the printing in the best resolution'>High Resolution</option>
                   </select>
                 </div>
                 <div key='modify-permission-field' className='form-group'>

@@ -21,7 +21,7 @@ export default class Properties extends Component {
       title = `${title} ${entity.pdfOperations.map(o => getTemplate(o.templateShortid).name).join(', ')}`
     }
 
-    let extra = []
+    const extra = []
 
     if (entity.pdfMeta != null) {
       extra.push('meta')
@@ -121,10 +121,12 @@ export default class Properties extends Component {
   }
 
   render () {
-    return (<div className='properties-section'>
-      <div className='form-group'>
-        <button onClick={() => this.openEditor()}>Configure</button>
+    return (
+      <div className='properties-section'>
+        <div className='form-group'>
+          <button onClick={() => this.openEditor()}>Configure</button>
+        </div>
       </div>
-    </div>)
+    )
   }
 }
