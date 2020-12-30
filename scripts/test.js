@@ -3,6 +3,7 @@ const path = require('path')
 const execSync = require('child_process').execSync
 
 const jsreportPackages = [
+  'jsreport-assets',
   'jsreport-authentication',
   'jsreport-authorization',
   'jsreport-core',
