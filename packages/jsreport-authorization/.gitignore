@@ -32,9 +32,8 @@ prod.config.json
 jsreport.config.json
 
 .idea
-
 data
-
+!test/data
 # studio/main.js
 # studio/main.js.map
 datatmp
