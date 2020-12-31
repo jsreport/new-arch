@@ -379,7 +379,7 @@ describe('provider', () => {
           e.action.should.be.eql('reload')
           resolve()
         })
-        fs.mkdirSync(path.join(tmpData, 'myCustomFolder'))
+        setTimeout(() => fs.mkdirSync(path.join(tmpData, 'myCustomFolder')), 500)
       })
     })
 
