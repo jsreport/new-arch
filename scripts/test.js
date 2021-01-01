@@ -3,22 +3,22 @@ const path = require('path')
 const execSync = require('child_process').execSync
 
 const jsreportPackages = [
-  /* 'jsreport-assets',
+  'jsreport-assets',
   'jsreport-authentication',
   'jsreport-authorization',
-  'jsreport-base', */
+  'jsreport-base',
   'jsreport-core',
-  /* 'jsreport-data',
+  'jsreport-data',
   'jsreport-docx',
   'jsreport-express',
-  'jsreport-fs-store', */
+  'jsreport-fs-store',
   'jsreport-handlebars',
-  /* 'jsreport-child-templates', */
+  'jsreport-child-templates',
   'jsreport-chrome-pdf',
-  /* 'jsreport-jsrender',
+  'jsreport-jsrender',
   'jsreport-pdf-utils',
   'jsreport-scripts',
-  'jsreport-studio', */
+  'jsreport-studio',
   'jsreport-templates'
 ]
 // fs.readdirSync(path.join(__dirname, '../', 'packages'))
@@ -43,9 +43,7 @@ for (const pd of jsreportPackages) {
 
 for (const pd of jsreportPackages) {
   console.log('npm test in ' + path.join(__dirname, '../', 'packages', pd))
-  if (pd !== 'jsreport-chrome-pdf') {
-    continue
-  }
+
   execSync('npm test', {
     cwd: path.join(__dirname, '../', 'packages', pd),
     stdio: 'inherit'
