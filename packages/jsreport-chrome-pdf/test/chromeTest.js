@@ -440,7 +440,7 @@ function commonTimeout (strategy, imageExecution) {
       launchOptions: {
         args: ['--no-sandbox']
       },
-      timeout: 50
+      timeout: 0
     }))
 
     return reporter.init()

@@ -28,21 +28,24 @@ for (const pd of jsreportPackages) {
   if (fs.existsSync(path.join(__dirname, '../', 'packages', pd, 'package-lock.json'))) {
     fs.unlinkSync(path.join(__dirname, '../', 'packages', pd, 'package-lock.json'))
   }
+
+  const install = () => execSync('npm i', {
+    cwd: path.join(__dirname, '../', 'packages', pd),
+    stdio: 'inherit'
+  })
+
   try {
-    execSync('npm i', {
-      cwd: path.join(__dirname, '../', 'packages', pd),
-      stdio: 'inherit'
-    })
+    install()
   } catch (e) {
-    execSync('npm i', {
-      cwd: path.join(__dirname, '../', 'packages', pd),
-      stdio: 'inherit'
-    })
+    install()
   }
 }
 
 for (const pd of jsreportPackages) {
   console.log('npm test in ' + path.join(__dirname, '../', 'packages', pd))
+  if (pd !== 'jsreport-chrome-pdf') {
+    continue
+  }
   execSync('npm test', {
     cwd: path.join(__dirname, '../', 'packages', pd),
     stdio: 'inherit'
