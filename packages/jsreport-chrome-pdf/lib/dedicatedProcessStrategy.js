@@ -26,6 +26,8 @@ module.exports = ({ reporter, puppeteer, options }) => {
       }
     } finally {
       if (browser) {
+        let pages = await browser.pages()
+        await Promise.all(pages.map(page => page.close()))
         await browser.close()
       }
     }

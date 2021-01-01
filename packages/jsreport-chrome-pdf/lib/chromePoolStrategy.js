@@ -154,7 +154,12 @@ async function recycleBrowser (puppeteer, browserInfo, launchOptions) {
   })
 
   if (browserInfo.instance) {
-    await browserInfo.instance.close()
+    try {
+      let pages = await browserInfo.instance.pages()
+      await Promise.all(pages.map(page => page.close()))
+    } finally {
+      await browserInfo.instance.close()
+    }
   }
 
   // clean the property before trying to get new instance, this let us

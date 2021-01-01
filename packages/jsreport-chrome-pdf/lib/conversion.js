@@ -175,7 +175,7 @@ module.exports = async ({ reporter, getBrowser, htmlUrl, strategy, timeout, req,
         throw reporter.createError(`chrome.mediaType must be equal to 'screen' or 'print'`, { weak: true })
       }
 
-      await page.emulateMedia(optionsToUse.mediaType)
+      await page.emulateMediaType(optionsToUse.mediaType)
     }
 
     if (executionInfo.error) {
