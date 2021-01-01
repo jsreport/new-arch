@@ -3,7 +3,7 @@ const path = require('path')
 const execSync = require('child_process').execSync
 
 const jsreportPackages = [
-  /* 'jsreport-assets',
+  'jsreport-assets',
   'jsreport-authentication',
   'jsreport-authorization',
   'jsreport-base',
@@ -17,9 +17,9 @@ const jsreportPackages = [
   'jsreport-chrome-pdf',
   'jsreport-jsrender',
   'jsreport-pdf-utils',
-  'jsreport-scripts', */
-  'jsreport-studio'
-  /* 'jsreport-templates' */
+  'jsreport-scripts',
+  'jsreport-studio',
+  'jsreport-templates'
 ]
 // fs.readdirSync(path.join(__dirname, '../', 'packages'))
 
