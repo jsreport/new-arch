@@ -3,7 +3,8 @@ const { extendSchema } = require('jsreport-office')
 
 module.exports = {
   name: 'html-to-xlsx',
-  main: 'lib/htmlToXlsx.js',
+  main: 'lib/main.js',
+  worker: 'lib/worker.js',
   optionsSchema: extendSchema('html-to-xlsx', {
     extensions: {
       'html-to-xlsx': {

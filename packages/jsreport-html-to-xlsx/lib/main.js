@@ -6,11 +6,8 @@
  */
 
 const path = require('path')
-const fs = require('fs')
-const vm = require('vm')
 const extend = require('node.extend.without.arrays')
 const { htmlEngines } = require('./autoDetectHtmlEngines')()
-const recipe = require('./recipe')
 
 module.exports = function (reporter, definition) {
   definition.options = extend(true, { preview: {} }, reporter.options.xlsx, reporter.options.office, definition.options)
@@ -59,36 +56,12 @@ module.exports = function (reporter, definition) {
   }
 
   reporter.extensionsManager.recipes.push({
-    name: 'html-to-xlsx',
-    execute: recipe(reporter, definition)
+    name: 'html-to-xlsx'
   })
 
   reporter.options.templatingEngines.modules.push({
     alias: 'tmpHandler.js',
     path: path.join(__dirname, './tmpHandler.js')
-  })
-
-  reporter.beforeRenderListeners.insert({ after: 'data' }, 'htmlToXlsx', async (req) => {
-    if (req.template.recipe !== 'html-to-xlsx') {
-      return
-    }
-
-    req.data = req.data || {}
-    req.data.$tempAutoCleanupDirectory = reporter.options.tempAutoCleanupDirectory
-    req.data.$writeToFiles = ['cheerio', 'chrome'].includes((req.template.htmlToXlsx || {}).htmlEngine)
-
-    const helpersScript = await fs.readFileAsync(path.join(__dirname, '../static/helpers.js'), 'utf8')
-
-    if (req.template.helpers && typeof req.template.helpers === 'object') {
-      // this is the case when the jsreport is used with in-process strategy
-      // and additinal helpers are passed as object
-      // in this case we need to merge in xlsx helpers
-      req.template.helpers.require = require
-      req.template.helpers.tmpHandler = require(path.join(__dirname, './tmpHandler.js'))
-      return vm.runInNewContext(helpersScript, req.template.helpers)
-    }
-
-    req.template.helpers = helpersScript + '\n' + (req.template.helpers || '')
   })
 
   reporter.initializeListeners.add(definition.name, () => {

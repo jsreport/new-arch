@@ -1,7 +1,7 @@
-const path = require('path')
 const fs = require('fs')
 const { response } = require('jsreport-office')
 const htmlToXlsx = require('html-to-xlsx')
+const htmlToXlsxProcess = require('./htmlToXlsxProcess')
 
 module.exports = (reporter, definition) => async (req, res) => {
   const htmlEngines = definition.options.htmlEngines
@@ -128,7 +128,7 @@ module.exports = (reporter, definition) => async (req, res) => {
     }
   }
 
-  const result = await reporter.executeScript(
+  const result = await htmlToXlsxProcess(
     {
       tmpDir: definition.options.tmpDir,
       htmlEngine: htmlToXlsxOptions.htmlEngine,
@@ -138,10 +138,6 @@ module.exports = (reporter, definition) => async (req, res) => {
       phantomOptions,
       cheerioOptions,
       conversionOptions
-    },
-    {
-      execModulePath: path.join(__dirname, 'scriptHtmlToXlsxProcessing.js'),
-      timeoutErrorMessage: 'Timeout during execution of html-to-xlsx recipe'
     },
     req
   )

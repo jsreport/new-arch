@@ -1,6 +1,5 @@
-const util = require('util')
 const path = require('path')
-const fs = require('fs')
+const fs = require('fs').promises
 const { htmlEngines } = require('./autoDetectHtmlEngines')()
 const chromePageEval = require('chrome-page-eval')
 const phantomPageEval = require('phantom-page-eval')
@@ -8,14 +7,11 @@ const htmlToXlsx = require('html-to-xlsx')
 const opentype = require('opentype.js')
 
 const defaultFontPath = path.join(__dirname, '../static/Calibri 400.ttf')
-const readFileAsync = util.promisify(fs.readFile)
-const writeFileAsync = util.promisify(fs.writeFile)
-
-const addRowsToBrowserFn = fs.readFileSync(path.join(__dirname, '../static/addRowsToBrowser.js')).toString()
+const addRowsToBrowserFn = require('fs').readFileSync(path.join(__dirname, '../static/addRowsToBrowser.js')).toString()
 
 const conversions = {}
 
-module.exports = async function scriptHtmlToXlsxProcessing (inputs, callback, done) {
+module.exports = async function scriptHtmlToXlsxProcessing (inputs) {
   const { tmpDir, htmlEngine, html, xlsxTemplateContent, chromeOptions, phantomOptions, cheerioOptions, conversionOptions } = inputs
   const logs = []
 
@@ -53,14 +49,7 @@ module.exports = async function scriptHtmlToXlsxProcessing (inputs, callback, do
 
     if (conversion == null) {
       const engineError = new Error(`htmlEngine "${htmlEngine}" not found`)
-
-      return done(null, {
-        logs,
-        error: {
-          message: engineError.message,
-          stack: engineError.stack
-        }
-      })
+      throw engineError
     }
 
     const stream = await conversion(
@@ -73,18 +62,13 @@ module.exports = async function scriptHtmlToXlsxProcessing (inputs, callback, do
 
     stream.destroy()
 
-    done(null, {
+    return {
       logs,
       htmlToXlsxFilePath: xlsxPath
-    })
+    }
   } catch (e) {
-    done(null, {
-      logs,
-      error: {
-        message: e.message,
-        stack: e.stack
-      }
-    })
+    e.logs = logs
+    throw e
   }
 }
 
@@ -92,7 +76,7 @@ function browserBasedEval (tmpDir, extractImplementation) {
   return async function pageEval ({ html, uuid, ...restOptions }) {
     const htmlPath = path.join(tmpDir, `${uuid}-html-to-xlsx.html`)
 
-    await writeFileAsync(htmlPath, html)
+    await fs.writeFile(htmlPath, html)
 
     const extractInfo = await extractImplementation({
       html: htmlPath,
@@ -146,7 +130,7 @@ function browserBasedEval (tmpDir, extractImplementation) {
 async function extractRowsFromPlaceholder (placeholder, onRow, { tmpDir, instance, extractImplementation, extractOptions }) {
   for (const file of placeholder.files) {
     const filePath = path.join(tmpDir, file)
-    const rowsStr = (await readFileAsync(filePath)).toString()
+    const rowsStr = (await fs.readFile(filePath)).toString()
 
     const extractInfo = await extractImplementation({
       instance,
