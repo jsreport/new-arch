@@ -13,6 +13,7 @@ const jsreportPackages = [
   'jsreport-express',
   'jsreport-fs-store',
   'jsreport-handlebars',
+  'jsreport-html-to-xlsx',
   'jsreport-child-templates',
   'jsreport-chrome-pdf',
   'jsreport-jsrender',
