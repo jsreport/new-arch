@@ -1,46 +1,14 @@
 {
-  "author": {
-    "name": "Jan Blaha"
-  },
-  "bugs": {
-    "url": "https://github.com/jsreport/jsreport-text/issues"
-  },
-  "bundleDependencies": false,
-  "dependencies": {},
-  "deprecated": false,
+  "name": "jsreport-text",
+  "version": "2.0.0",
   "description": "jsreport recipe for rendering plain text from html",
-  "devDependencies": {
-    "babel-eslint": "8.2.3",
-    "eslint": "4.19.1",
-    "eslint-config-standard-jsx": "5.0.0",
-    "eslint-plugin-babel": "5.1.0",
-    "in-publish": "2.0.0",
-    "jsreport-studio-dev": "1.1.2",
-    "standard": "11.0.1"
-  },
-  "engines": {
-    "node": ">=8.9"
-  },
-  "files": [
-    "lib",
-    "studio",
-    "index.js",
-    "jsreport.config.js"
-  ],
-  "homepage": "https://github.com/jsreport/jsreport-text",
   "keywords": [
     "jsreport"
   ],
-  "license": "LGPL",
-  "name": "jsreport-text",
-  "repository": {
-    "type": "git",
-    "url": "git+ssh://git@github.com/jsreport/jsreport-text.git"
-  },
   "scripts": {
+    "test": "mocha test&&standard",
     "build": "jsreport-studio-build",
-    "prepublish": "in-publish && jsreport-studio-build || not-in-publish",
-    "test": "standard"
+    "prepublish": "in-publish && jsreport-studio-build || not-in-publish"
   },
   "standard": {
     "ignore": [
@@ -53,5 +21,33 @@
       "browser": true
     }
   },
-  "version": "2.0.0"
+  "homepage": "https://github.com/jsreport/jsreport-text",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:jsreport/jsreport-text.git"
+  },
+  "license": "LGPL",
+  "dependencies": {},
+  "author": "Jan Blaha",
+  "devDependencies": {
+    "babel-eslint": "8.2.3",
+    "eslint": "4.19.1",
+    "eslint-config-standard-jsx": "5.0.0",
+    "eslint-plugin-babel": "5.1.0",
+    "in-publish": "2.0.0",
+    "jsreport-core": "file:../jsreport-core",
+    "jsreport-studio-dev": "1.5.0",
+    "mocha": "8.2.1",
+    "should": "13.2.3",
+    "standard": "11.0.1"
+  },
+  "files": [
+    "lib",
+    "studio",
+    "index.js",
+    "jsreport.config.js"
+  ],
+  "engines": {
+    "node": ">=8.9"
+  }
 }
