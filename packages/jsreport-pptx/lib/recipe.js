@@ -1,6 +1,6 @@
-const path = require('path')
 const fs = require('fs')
 const { response } = require('jsreport-office')
+const pptxProcessing = require('./pptxProcessing')
 
 module.exports = (reporter, definition) => async (req, res) => {
   if (!req.template.pptx || (!req.template.pptx.templateAsset && !req.template.pptx.templateAssetShortid)) {
@@ -35,28 +35,14 @@ module.exports = (reporter, definition) => async (req, res) => {
 
   const { pathToFile: outputPath } = await reporter.writeTempFile((uuid) => `${uuid}.pptx`, '')
 
-  const result = await reporter.executeScript(
+  const result = await pptxProcessing(
     {
       pptxTemplateContent: templateAsset.content,
       outputPath
     },
-    {
-      execModulePath: path.join(__dirname, 'scriptPptxProcessing.js'),
-      timeoutErrorMessage: 'Timeout during execution of pptx recipe',
-      callbackModulePath: path.join(__dirname, 'scriptCallbackRender.js')
-    },
+    reporter,
     req
   )
-
-  if (result.error) {
-    const error = new Error(result.error.message)
-    error.stack = result.error.stack
-
-    throw reporter.createError('Error while executing pptx recipe', {
-      original: error,
-      weak: true
-    })
-  }
 
   reporter.logger.info('pptx generation was finished', req)
 

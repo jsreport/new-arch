@@ -19,6 +19,7 @@ const jsreportPackages = [
   'jsreport-chrome-pdf',
   'jsreport-jsrender',
   'jsreport-pdf-utils',
+  'jsreport-pptx',
   'jsreport-scripts',
   'jsreport-studio',
   'jsreport-scheduling',

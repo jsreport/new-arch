@@ -2,7 +2,8 @@ const office = require('jsreport-office')
 
 module.exports = {
   'name': 'pptx',
-  'main': 'lib/pptx.js',
+  'main': 'lib/main.js',
+  'worker': 'lib/worker.js',
   'optionsSchema': office.extendSchema('pptx', {
     type: 'object',
     properties: {
