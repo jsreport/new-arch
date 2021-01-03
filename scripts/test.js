@@ -11,6 +11,7 @@ const jsreportPackages = [
   'jsreport-data',
   'jsreport-docx',
   'jsreport-express',
+  'jsreport-freeze',
   'jsreport-fs-store',
   'jsreport-handlebars',
   'jsreport-html-to-xlsx',
