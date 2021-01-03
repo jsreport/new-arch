@@ -7,7 +7,7 @@ describe('templating', function () {
   beforeEach(() => {
     jsreport = new JsReport()
     jsreport.use(require('../')())
-    jsreport.use(JsReport.tests.listenersExtension)
+    jsreport.use(JsReport.tests.listeners())
 
     return jsreport.init()
   })
@@ -92,7 +92,7 @@ describe('templating', function () {
       })
 
     return new Promise((resolve, reject) => {
-      jsreport.beforeRenderListeners.add('test', (req, res) => {
+      jsreport.tests.beforeRenderListeners.add('test', (req, res) => {
         req.context.currentFolderPath.should.be.eql('/folder')
         resolve()
       })
@@ -313,7 +313,7 @@ describe('templating', function () {
   it('should prevent simple cycles', async () => {
     await jsreport.documentStore.collection('templates').insert({ content: 'foo', name: 'A', engine: 'none', recipe: 'html' })
 
-    jsreport.beforeRenderListeners.add('text', async (req, res) => {
+    jsreport.tests.beforeRenderListeners.add('text', async (req, res) => {
       await jsreport.render({ template: { name: 'A' } }, req)
     })
 
@@ -324,7 +324,7 @@ describe('templating', function () {
     await jsreport.documentStore.collection('templates').insert({ content: 'foo', name: 'A', engine: 'none', recipe: 'html' })
     await jsreport.documentStore.collection('templates').insert({ content: 'foo', name: 'B', engine: 'none', recipe: 'html' })
 
-    jsreport.beforeRenderListeners.add('text', async (req, res) => {
+    jsreport.tests.beforeRenderListeners.add('text', async (req, res) => {
       if (req.template.name !== 'A') {
         return
       }

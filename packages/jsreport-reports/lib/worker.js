@@ -1,72 +1,14 @@
-const extend = require('node.extend.without.arrays')
 const _omit = require('lodash.omit')
 
 module.exports = (reporter, definition) => {
-  reporter.beforeRenderListeners.insert(0, definition.name, async (request, response) => {
-    if (request.options.reports == null || (request.options.reports.async !== true && request.options.reports.save !== true)) {
+  reporter.beforeRenderListeners.insert(0, definition.name, (req, res) => {
+    if (req.options.reports == null || req.options.reports.save !== true) {
       return
     }
 
     // we don't want the report options to be applied in the nested requests, just in the end
-    response.meta.reportsOptions = request.options.reports
-    delete request.options.reports
-
-    if (response.meta.reportsOptions.async) {
-      const r = await reporter.documentStore.collection('reports').insert({
-        name: response.meta.reportName,
-        state: 'planned'
-      }, request)
-
-      if (request.context.http) {
-        response.meta.headers.Location = `${request.context.http.baseUrl}/reports/${r._id}/status`
-      }
-
-      const asyncRequest = extend(true, {}, _omit(request, 'data'))
-
-      // start a fresh context so we don't inherit logs, etc
-      asyncRequest.context = extend(true, {}, _omit(asyncRequest.context, 'logs'))
-      asyncRequest.options.reports = extend(true, {}, response.meta.reportsOptions)
-      asyncRequest.options.reports.save = true
-
-      if (!request.context.originalInputDataIsEmpty) {
-        asyncRequest.data = request.data
-      }
-
-      asyncRequest.options.reports.async = false
-      asyncRequest.options.reports._id = r._id
-
-      request.options = {}
-
-      // this request is now just returning status page, we don't want store blobs there
-      delete response.meta.reportsOptions
-
-      request.template = {
-        content: "Async rendering in progress. Use Location response header to check the current status. Check it <a href='" + response.meta.headers.Location + "'>here</a>",
-        engine: 'none',
-        recipe: 'html'
-      }
-
-      reporter.logger.info('Rendering is queued for async report generation', request)
-
-      process.nextTick(() => {
-        reporter.logger.info(`Async report is starting to render ${asyncRequest.options.reports._id}`)
-
-        reporter.render(asyncRequest).then(() => {
-          reporter.logger.info(`Async report render finished ${asyncRequest.options.reports._id}`)
-        }).catch((e) => {
-          reporter.logger.error(`Async report render failed ${asyncRequest.options.reports._id}: ${e.stack}`)
-
-          reporter.documentStore.collection('reports').update({
-            _id: asyncRequest.options.reports._id
-          }, {
-            $set: {
-              state: 'error',
-              error: e.stack
-            }
-          }, request)
-        })
-      })
-    }
+    res.meta.reportsOptions = req.options.reports
+    delete req.options.reports
   })
 
   reporter.initializeListeners.add(definition.name, () => {

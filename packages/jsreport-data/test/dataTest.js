@@ -15,7 +15,7 @@ describe('data', () => {
     reporter.use(templates())
     reporter.use(handlebars())
     reporter.use(data())
-    reporter.use(jsreport.tests.listenersExtension)
+    reporter.use(jsreport.tests.listeners())
 
     return reporter.init()
   })
@@ -173,7 +173,7 @@ describe('data', () => {
     await reporter.documentStore.collection('data').insert(dataItem)
     await reporter.documentStore.collection('data').insert(dataItem2)
 
-    reporter.beforeRenderListeners.add('test', async (req, res) => {
+    reporter.tests.beforeRenderListeners.add('test', async (req, res) => {
       if (req.template.content === 'main') {
         const res = await reporter.render({
           template: { content: 'nested{{a}}-{{b}}', data: { name: 'test2' }, engine: 'handlebars', recipe: 'html' }
@@ -194,7 +194,7 @@ describe('data', () => {
 
     await reporter.documentStore.collection('data').insert(dataItem)
 
-    reporter.beforeRenderListeners.add('test', async (req, res) => {
+    reporter.tests.beforeRenderListeners.add('test', async (req, res) => {
       if (req.template.content === 'main') {
         const res = await reporter.render({
           template: { content: 'nested{{a}}-{{b}}', data: { b: 'bb' }, engine: 'handlebars', recipe: 'html' }

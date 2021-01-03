@@ -28,7 +28,7 @@ describe('pdf utils', () => {
     jsreport.use(require('jsreport-scripts')())
     jsreport.use(require('../')())
     jsreport.use(require('jsreport-child-templates')())
-    jsreport.use(JsReport.tests.listenersExtension)
+    jsreport.use(JsReport.tests.listeners())
 
     return jsreport.init()
   })
@@ -392,7 +392,7 @@ describe('pdf utils', () => {
 
   it('append and merge shouldnt remove the hidden marks from pdf', async () => {
     await jsreport.documentStore.collection('templates').insert({
-      content: '{{{pdfAddPageItem \'one\'}}} <a href=\'#{{id}}\' data-pdf-outline>link to main</a>',
+      content: '{{{pdfAddPageItem \'one\'}}} <a href=\'#main\' data-pdf-outline>link to main</a>',
       shortid: 'one',
       name: 'one',
       engine: 'handlebars',
@@ -652,7 +652,7 @@ describe('pdf utils', () => {
   })
 
   it('should be able to prepend none jsreport produced pdf', async () => {
-    jsreport.afterRenderListeners.insert(0, 'test', (req, res) => {
+    jsreport.tests.afterRenderListeners.insert(0, 'test', (req, res) => {
       if (req.template.content === 'replace') {
         res.content = fs.readFileSync(path.join(__dirname, 'pdf-sample.pdf'))
       }
@@ -681,7 +681,7 @@ describe('pdf utils', () => {
   })
 
   it('should be able to merge none jsreport produced pdf', async () => {
-    jsreport.afterRenderListeners.insert(0, 'test', (req, res) => {
+    jsreport.tests.afterRenderListeners.insert(0, 'test', (req, res) => {
       if (req.template.content === 'replace') {
         res.content = fs.readFileSync(path.join(__dirname, 'pdf-sample.pdf'))
       }
@@ -710,7 +710,7 @@ describe('pdf utils', () => {
   })
 
   it('should be able to merge none jsreport produced pdf with multiple xobjs', async () => {
-    jsreport.afterRenderListeners.insert(0, 'test', (req, res) => {
+    jsreport.tests.afterRenderListeners.insert(0, 'test', (req, res) => {
       if (req.template.content === 'replace') {
         res.content = fs.readFileSync(path.join(__dirname, 'multiple-embedded-xobj.pdf'))
       }
@@ -853,7 +853,7 @@ describe('pdf utils', () => {
   })
 
   it('should work with merging word generated pdf and dont loose special characters', async () => {
-    jsreport.afterRenderListeners.add('test', (req, res) => {
+    jsreport.tests.afterRenderListeners.add('test', (req, res) => {
       if (req.template.content === 'word') {
         res.content = fs.readFileSync(path.join(__dirname, 'word.pdf'))
       }

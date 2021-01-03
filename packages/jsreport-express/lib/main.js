@@ -262,6 +262,10 @@ module.exports = function (reporter, definition) {
   })
 
   reporter.initializeListeners.add(definition.name, this, async () => {
+    reporter.beforeRenderListeners.insert(0, 'express', (req, res) => {
+      res.meta.headers = {}
+    })
+
     function logStart () {
       if (reporter.options.httpsPort) {
         reporter.logger.info('jsreport server successfully started on https port: ' + reporter.options.httpsPort)

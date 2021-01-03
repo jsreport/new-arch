@@ -10,7 +10,7 @@ describe('with reports extension', () => {
     reporter.use(require('../')())
     reporter.use(require('jsreport-express')())
     reporter.use(require('jsreport-scripts')())
-    reporter.use(jsreport.tests.listenersExtension)
+    reporter.use(jsreport.tests.listeners())
 
     return reporter.init()
   })
@@ -118,9 +118,17 @@ describe('with reports extension', () => {
       context: { http: { baseUrl: 'http://localhost' } }
     }
 
+    const waitForAsyncFinishPromise = new Promise((resolve) => {
+      reporter.afterRenderListeners.add('test', () => {
+        resolve()
+      })
+    })
+
     const response = await reporter.render(request)
     response.content.toString().should.containEql('Async rendering in progress')
     response.meta.headers['Location'].should.be.ok()
+
+    return waitForAsyncFinishPromise
   })
 
   it('should return 200 status code on /status if report is not finished', async () => {
@@ -156,16 +164,17 @@ describe('with reports extension', () => {
 
   it('should pass inline data into the child rendering request when async specified', () => {
     const request = {
-      options: {recipe: 'html', reports: {async: true}},
+      options: {reports: {async: true}},
       data: {foo: 'hello'},
       template: {
         name: 'name',
-        recipe: 'html'
+        recipe: 'html',
+        engine: 'none'
       }
     }
 
     return new Promise((resolve, reject) => {
-      reporter.beforeRenderListeners.add('test', (req) => {
+      reporter.tests.beforeRenderListeners.add('test', (req) => {
         if (req.options.reports && req.options.reports.async) {
           return
         }
@@ -173,7 +182,9 @@ describe('with reports extension', () => {
         if (req.data.foo !== 'hello') {
           return reject(new Error('not propagated'))
         }
+      })
 
+      reporter.afterRenderListeners.add('test', () => {
         resolve()
       })
 
@@ -181,25 +192,22 @@ describe('with reports extension', () => {
     })
   })
 
-  it('should not pass any data when undefined is on the input when async specified', () => {
+  it('should not pass any data when undefined is on the input when async specified', async () => {
     const request = {
-      options: {recipe: 'html', reports: {async: true}},
+      options: { recipe: 'html', reports: { async: true } },
       template: {
         name: 'name',
-        recipe: 'html'
+        recipe: 'html',
+        engine: 'none'
       }
     }
 
     return new Promise((resolve, reject) => {
-      reporter.beforeRenderListeners.add('test', (req) => {
-        if (req.options.reports && req.options.reports.async) {
-          return
-        }
+      reporter.tests.beforeRenderListeners.add('test', (req) => {
+        Object.keys(req.data).length.should.be.eql(0)
+      })
 
-        if (Object.keys(req.data).length) {
-          return reject(new Error('Data should not be passed'))
-        }
-
+      reporter.afterRenderListeners.add('test', (req) => {
         resolve()
       })
 
@@ -208,7 +216,7 @@ describe('with reports extension', () => {
   })
 
   it('nested requests without save:true should not produce reports', async () => {
-    await reporter.beforeRenderListeners.add('test', async (req, res) => {
+    await reporter.tests.beforeRenderListeners.add('test', async (req, res) => {
       if (req.template.content === 'main') {
         await reporter.render({
           template: {

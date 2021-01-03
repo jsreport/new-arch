@@ -18,7 +18,7 @@ describe('listeners extension', () => {
 
   it('should expose beforeRenderListeners to the main and provide request', async () => {
     let _req
-    reporter.beforeRenderListeners.add('test', (req, res) => {
+    reporter.tests.beforeRenderListeners.add('test', (req, res) => {
       _req = req
     })
 

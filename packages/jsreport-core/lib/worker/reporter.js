@@ -25,7 +25,6 @@ class WorkerReporter extends Reporter {
 
     this.requestModulesCache = new Map()
 
-    this.beforeRenderListeners = this.createListenerCollection()
     this.afterTemplatingEnginesExecutedListeners = this.createListenerCollection()
     this.validateRenderListeners = this.createListenerCollection()
 

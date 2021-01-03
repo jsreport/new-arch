@@ -25,6 +25,7 @@ class Reporter extends EventEmitter {
     this.initializeListeners = this.createListenerCollection()
     this.afterRenderListeners = this.createListenerCollection()
     this.renderErrorListeners = this.createListenerCollection()
+    this.beforeRenderListeners = this.createListenerCollection()
     this.closeListeners = this.createListenerCollection()
   }
 

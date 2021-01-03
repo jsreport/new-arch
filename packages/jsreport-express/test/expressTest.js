@@ -11,7 +11,7 @@ describe('express', () => {
       .use(require('jsreport-jsrender')())
       .use(require('jsreport-templates')())
       .use(require('jsreport-scripts')())
-      .use(JsReport.tests.listenersExtension)
+      .use(JsReport.tests.listeners())
       .use(require('./testExtension')({
         publicProp: 'I am public',
         publicDeepProp: {
@@ -158,7 +158,7 @@ describe('express', () => {
   })
 
   it('should make it possible to add response.meta.headers', () => {
-    jsreport.beforeRenderListeners.add('test', (req, res) => {
+    jsreport.tests.beforeRenderListeners.add('test', (req, res) => {
       res.meta.headers['Test'] = 'header'
     })
 
@@ -222,7 +222,7 @@ describe('express with custom middleware', () => {
   beforeEach(() => {
     jsreport = JsReport()
       .use(require('../')())
-      .use(JsReport.tests.listenersExtension)
+      .use(JsReport.tests.listeners())
 
     jsreport.on('before-express-configure', (app) => app.use((req, res, next) => {
       req.context = { foo: 'hello' }

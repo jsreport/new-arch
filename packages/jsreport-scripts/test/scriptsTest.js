@@ -10,7 +10,7 @@ describe('scripts', () => {
       .use(require('jsreport-assets')())
       .use(require('jsreport-jsrender')())
       .use(require('../')({ allowedModules: ['bluebird', 'helperA'], timeout: 4000 }))
-      .use(JsReport.tests.listenersExtension)
+      .use(JsReport.tests.listeners())
     return reporter.init()
   })
 
@@ -458,7 +458,7 @@ describe('scripts', () => {
       let contextUserPropChangedInsideScript
       let contextAnotherPropChangedInsideScript
 
-      reporter.afterRenderListeners.add('testing', (req, res) => {
+      reporter.tests.afterRenderListeners.add('testing', (req, res) => {
         if (req.context.isChildRequest) {
           contextChangedInsideProxyRender = req.context.user.name !== 'Boris'
         } else {

@@ -6,6 +6,8 @@
 
 const url = require('url')
 const parseDuration = require('parse-duration')
+const extend = require('node.extend.without.arrays')
+const _omit = require('lodash.omit')
 
 class Reports {
   constructor (reporter, definition) {
@@ -63,6 +65,8 @@ class Reports {
       this.cleanInterval.unref()
       this.reporter.closeListeners.add('reports', () => clearInterval(this.cleanInterval))
     }
+
+    this.reporter.beforeRenderListeners.insert(0, 'reports', this._handleBeforeRender.bind(this))
   }
 
   configureExpress (app) {
@@ -236,6 +240,66 @@ class Reports {
         }
       }, { readPermissions: req.context.user._id.toString() }]
     }
+  }
+
+  async _handleBeforeRender (request, response) {
+    if (request.options.reports == null || request.options.reports.async !== true) {
+      return
+    }
+
+    const r = await this.reporter.documentStore.collection('reports').insert({
+      name: response.meta.reportName,
+      state: 'planned'
+    }, request)
+
+    if (request.context.http) {
+      response.meta.headers.Location = `${request.context.http.baseUrl}/reports/${r._id}/status`
+    }
+
+    const asyncRequest = extend(true, {}, _omit(request, 'data'))
+
+    // start a fresh context so we don't inherit logs, etc
+    asyncRequest.context = extend(true, {}, _omit(asyncRequest.context, 'logs'))
+    asyncRequest.options.reports = extend(true, {}, response.meta.reportsOptions)
+    asyncRequest.options.reports.save = true
+
+    if (!request.context.originalInputDataIsEmpty) {
+      asyncRequest.data = request.data
+    }
+
+    asyncRequest.options.reports.async = false
+    asyncRequest.options.reports._id = r._id
+
+    request.options = {}
+
+    // this request is now just returning status page, we don't want store blobs there
+    delete response.meta.reportsOptions
+
+    request.context.isFinished = true
+    response.content = Buffer.from("Async rendering in progress. Use Location response header to check the current status. Check it <a href='" + response.meta.headers.Location + "'>here</a>")
+    response.meta.contentType = 'text/html'
+    response.meta.fileExtension = 'html'
+
+    this.reporter.logger.info('Rendering is queued for async report generation', request)
+
+    process.nextTick(() => {
+      this.reporter.logger.info(`Async report is starting to render ${asyncRequest.options.reports._id}`)
+
+      this.reporter.render(asyncRequest).then(() => {
+        this.reporter.logger.info(`Async report render finished ${asyncRequest.options.reports._id}`)
+      }).catch((e) => {
+        this.reporter.logger.error(`Async report render failed ${asyncRequest.options.reports._id}: ${e.stack}`)
+
+        this.reporter.documentStore.collection('reports').update({
+          _id: asyncRequest.options.reports._id
+        }, {
+          $set: {
+            state: 'error',
+            error: e.stack
+          }
+        }, request)
+      })
+    })
   }
 }
 

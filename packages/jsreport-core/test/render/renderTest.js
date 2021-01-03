@@ -20,7 +20,7 @@ describe('render', () => {
       }
     })
 
-    reporter.use(core.tests.listenersExtension)
+    reporter.use(core.tests.listeners())
     await reporter.init()
   })
 
@@ -34,7 +34,7 @@ describe('render', () => {
     let context
     let data
 
-    reporter.beforeRenderListeners.add('test', (req) => {
+    reporter.tests.beforeRenderListeners.add('test', (req) => {
       context = req.context
       data = req.data
     })
@@ -55,7 +55,7 @@ describe('render', () => {
     let context
     let data
 
-    reporter.beforeRenderListeners.add('test', (req) => {
+    reporter.tests.beforeRenderListeners.add('test', (req) => {
       context = req.context
       data = req.data
     })
@@ -87,7 +87,7 @@ describe('render', () => {
   it('should validate and coerce template input according to template type schema', async () => {
     let request
 
-    reporter.beforeRenderListeners.add('test', (req) => {
+    reporter.tests.beforeRenderListeners.add('test', (req) => {
       request = req
     })
 
@@ -190,10 +190,10 @@ describe('render', () => {
   it('should call listeners in render', async () => {
     const listenersCall = []
 
-    reporter.beforeRenderListeners.add('test', this, () => listenersCall.push('before'))
-    reporter.validateRenderListeners.add('test', this, () => listenersCall.push('validateRender'))
-    reporter.afterTemplatingEnginesExecutedListeners.add('test', this, () => listenersCall.push('afterTemplatingEnginesExecuted'))
-    reporter.afterRenderListeners.add('test', this, () => listenersCall.push('after'))
+    reporter.tests.beforeRenderListeners.add('test', this, () => listenersCall.push('before'))
+    reporter.tests.validateRenderListeners.add('test', this, () => listenersCall.push('validateRender'))
+    reporter.tests.afterTemplatingEnginesExecutedListeners.add('test', this, () => listenersCall.push('afterTemplatingEnginesExecuted'))
+    reporter.tests.afterRenderListeners.add('test', this, () => listenersCall.push('after'))
 
     await reporter.render({ template: { content: 'Hey', engine: 'none', recipe: 'html' } })
     listenersCall[0].should.be.eql('before')
@@ -276,7 +276,7 @@ describe('render', () => {
       }
     })
 
-    reporter.afterRenderListeners.add('test', () => {
+    reporter.tests.afterRenderListeners.add('test', () => {
       throw new Error('child error')
     })
 
@@ -295,7 +295,7 @@ describe('render', () => {
 
   // TODO check this
   it.skip('should propagate context.shared to the parent request', async () => {
-    reporter.beforeRenderListeners.add('test', (req) => {
+    reporter.tests.beforeRenderListeners.add('test', (req) => {
       req.context.shared.value += 'before'
       if (req.template.content === 'main') {
         return reporter.render({
@@ -330,7 +330,7 @@ describe('render', () => {
 
   it('should add isChildRequest to the nested render', async () => {
     let context
-    reporter.beforeRenderListeners.add('test', this, (req) => (context = req.context))
+    reporter.tests.beforeRenderListeners.add('test', this, (req) => (context = req.context))
 
     const parentReq = createRequest({
       template: {},
@@ -352,7 +352,7 @@ describe('render', () => {
     let data
     let childOriginalInputDataIsEmpty
 
-    reporter.beforeRenderListeners.add('test', this, (req) => {
+    reporter.tests.beforeRenderListeners.add('test', this, (req) => {
       data = req.data
       childOriginalInputDataIsEmpty = req.context.originalInputDataIsEmpty
     })
@@ -381,7 +381,7 @@ describe('render', () => {
     let options
     let childOriginalInputDataIsEmpty
 
-    reporter.beforeRenderListeners.add('test', this, (req) => {
+    reporter.tests.beforeRenderListeners.add('test', this, (req) => {
       childOriginalInputDataIsEmpty = req.context.originalInputDataIsEmpty
       data = req.data
       options = req.options
@@ -416,7 +416,7 @@ describe('render', () => {
     let options
     let childOriginalInputDataIsEmpty
 
-    reporter.beforeRenderListeners.add('test', this, (req) => {
+    reporter.tests.beforeRenderListeners.add('test', this, (req) => {
       childOriginalInputDataIsEmpty = req.context.originalInputDataIsEmpty
       data = req.data
       options = req.options
@@ -474,7 +474,7 @@ function timeoutTests (asReqOption = false) {
 
     reporter = core(opts)
 
-    reporter.use(core.tests.listenersExtension)
+    reporter.use(core.tests.listeners())
     return reporter.init()
   })
 
@@ -485,7 +485,7 @@ function timeoutTests (asReqOption = false) {
   })
 
   it('should timeout', async () => {
-    reporter.beforeRenderListeners.add('test', async () => {
+    reporter.tests.beforeRenderListeners.add('test', async () => {
       await new Promise((resolve) => setTimeout(resolve, reportTimeout + 10))
     })
 
@@ -515,7 +515,7 @@ function timeoutTests (asReqOption = false) {
   })
 
   it('should timeout with child requests', async () => {
-    reporter.beforeRenderListeners.add('test', async (req) => {
+    reporter.tests.beforeRenderListeners.add('test', async (req) => {
       if (req.context.isChildRequest) {
         await new Promise((resolve) => setTimeout(resolve, reportTimeout + 10))
       } else {

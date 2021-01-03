@@ -2,29 +2,29 @@ const ListenerCollection = require('listener-collection')
 
 module.exports = (reporter, definition) => {
   reporter.tests = reporter.tests || {}
-  reporter.beforeRenderListeners = new ListenerCollection()
-  reporter.afterRenderListeners = new ListenerCollection()
-  reporter.validateRenderListeners = new ListenerCollection()
-  reporter.afterTemplatingEnginesExecutedListeners = new ListenerCollection()
+  reporter.tests.beforeRenderListeners = new ListenerCollection()
+  reporter.tests.afterRenderListeners = new ListenerCollection()
+  reporter.tests.validateRenderListeners = new ListenerCollection()
+  reporter.tests.afterTemplatingEnginesExecutedListeners = new ListenerCollection()
 
   reporter.registerMainAction('test-beforeRender-listeners', async (data, req) => {
     data.req = reporter.Request(data.req)
-    await reporter.beforeRenderListeners.fire(data.req, data.res)
+    await reporter.tests.beforeRenderListeners.fire(data.req, data.res)
     return { req: data.req, res: data.res }
   })
   reporter.registerMainAction('test-afterRender-listeners', async (data, req) => {
     data.req = reporter.Request(data.req)
-    await reporter.afterRenderListeners.fire(data.req, data.res)
+    await reporter.tests.afterRenderListeners.fire(data.req, data.res)
     return { req: data.req, res: data.res }
   })
   reporter.registerMainAction('test-validateRender-listeners', async (data, req) => {
     data.req = reporter.Request(data.req)
-    await reporter.validateRenderListeners.fire(data.req, data.res)
+    await reporter.tests.validateRenderListeners.fire(data.req, data.res)
     return { req: data.req, res: data.res }
   })
   reporter.registerMainAction('test-afterTemplatingEnginesExecuted-listeners', async (data, req) => {
     data.req = reporter.Request(data.req)
-    await reporter.afterTemplatingEnginesExecutedListeners.fire(data.req, data.res)
+    await reporter.tests.afterTemplatingEnginesExecutedListeners.fire(data.req, data.res)
     return { req: data.req, res: data.res }
   })
 

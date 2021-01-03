@@ -333,6 +333,13 @@ class MainReporter extends Reporter {
 
     let responseResult
 
+    await this.beforeRenderListeners.fire(request, response)
+
+    if (request.context.isFinished) {
+      response.stream = Readable.from(response.content)
+      return response
+    }
+
     try {
       responseResult = await this._scriptManager.execute({
         req: request,
@@ -357,6 +364,7 @@ class MainReporter extends Reporter {
       })
 
       Object.assign(response, responseResult)
+      await this.afterRenderListeners.fire(request, response)
 
       response.stream = Readable.from(response.content)
     } catch (err) {

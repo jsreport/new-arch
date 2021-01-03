@@ -15,7 +15,7 @@ describe('assets', function () {
       .use(require('jsreport-jsrender')())
       .use(require('jsreport-scripts')())
       .use(require('../')())
-      .use(Reporter.tests.listenersExtension)
+      .use(Reporter.tests.listeners())
 
     return reporter.init()
   })
@@ -1083,7 +1083,7 @@ describe('assets with express', function () {
     })
       .use(require('jsreport-express')())
       .use(require('../')())
-      .use(Reporter.tests.listenersExtension)
+      .use(Reporter.tests.listeners())
 
     return reporter.init()
   })

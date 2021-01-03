@@ -66,7 +66,7 @@ describe('docx', () => {
       .use(require('jsreport-handlebars')())
       .use(require('jsreport-templates')())
       .use(require('jsreport-assets')())
-      .use(jsreport.tests.listenersExtension)
+      .use(jsreport.tests.listeners())
     return reporter.init()
   })
 
