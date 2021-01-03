@@ -1,7 +1,8 @@
 
 module.exports = {
   'name': 'base',
-  'main': 'lib/base.js',
+  'main': 'lib/main.js',
+  'worker': 'lib/worker.js',
   'optionsSchema': {
     extensions: {
       base: {

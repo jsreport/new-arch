@@ -11,6 +11,8 @@ describe('base', () => {
     return reporter.init()
   })
 
+  afterEach(() => reporter.close())
+
   it('should replace base if in request.options.base', async () => {
     const response = await reporter.render({
       template: {
@@ -81,6 +83,8 @@ describe('base with global settings', () => {
 
     return reporter.init()
   })
+
+  afterEach(() => reporter.close())
 
   it('should replace base from the global options', async () => {
     const res = await reporter.render({
