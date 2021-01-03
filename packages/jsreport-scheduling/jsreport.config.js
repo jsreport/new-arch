@@ -1,6 +1,6 @@
 module.exports = {
   'name': 'scheduling',
-  'main': 'lib/scheduling.js',
+  'main': 'lib/main.js',
   'optionsSchema': {
     extensions: {
       scheduling: {

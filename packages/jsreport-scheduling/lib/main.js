@@ -16,20 +16,20 @@ class Scheduling {
     this.beforeProcessJobListeners = reporter.createListenerCollection()
 
     this.ScheduleType = this.reporter.documentStore.registerEntityType('ScheduleType', {
-      cron: {type: 'Edm.String'},
-      name: {type: 'Edm.String', publicKey: true},
-      templateShortid: {type: 'Edm.String', referenceTo: 'templates'},
-      nextRun: {type: 'Edm.DateTimeOffset', schema: { type: 'null' }},
-      enabled: {type: 'Edm.Boolean'},
-      state: {type: 'Edm.String'}
+      cron: { type: 'Edm.String' },
+      name: { type: 'Edm.String', publicKey: true },
+      templateShortid: { type: 'Edm.String', referenceTo: 'templates' },
+      nextRun: { type: 'Edm.DateTimeOffset', schema: { type: 'null' } },
+      enabled: { type: 'Edm.Boolean' },
+      state: { type: 'Edm.String' }
     })
 
     this.TaskType = this.reporter.documentStore.registerEntityType('TaskType', {
-      scheduleShortid: {type: 'Edm.String', referenceTo: 'schedules'},
-      finishDate: {type: 'Edm.DateTimeOffset'},
-      state: {type: 'Edm.String'},
-      error: {type: 'Edm.String'},
-      ping: {type: 'Edm.DateTimeOffset'}
+      scheduleShortid: { type: 'Edm.String', referenceTo: 'schedules' },
+      finishDate: { type: 'Edm.DateTimeOffset' },
+      state: { type: 'Edm.String' },
+      error: { type: 'Edm.String' },
+      ping: { type: 'Edm.DateTimeOffset' }
     })
 
     this.reporter.documentStore.registerEntitySet('schedules', {
@@ -340,8 +340,8 @@ class Scheduling {
       },
       context: { user: { isAdmin: true } },
       options: {
-        scheduling: {taskId: task._id.toString(), schedule: schedule},
-        reports: {save: true, mergeProperties: { taskId: task._id.toString() }}
+        scheduling: { taskId: task._id.toString(), schedule: schedule },
+        reports: { save: true, mergeProperties: { taskId: task._id.toString() } }
       }
     })
   }
