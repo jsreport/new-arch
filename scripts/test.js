@@ -22,7 +22,8 @@ const jsreportPackages = [
   'jsreport-studio',
   'jsreport-scheduling',
   'jsreport-templates',
-  'jsreport-text'
+  'jsreport-text',
+  'jsreport-xlsx'
 ]
 // fs.readdirSync(path.join(__dirname, '../', 'packages'))
 

@@ -1,15 +1,7 @@
-const recipe = require('./recipe.js')
 const serialize = require('./serialize.js')
-const parse = serialize.parse
-const fs = require('fs')
 const path = require('path')
-const Promise = require('bluebird')
-const vm = require('vm')
 const extend = require('node.extend.without.arrays')
 const { response } = require('jsreport-office')
-
-const FS = Promise.promisifyAll(fs)
-let defaultXlsxTemplate
 
 module.exports = (reporter, definition) => {
   if (reporter.options.xlsx) {
@@ -35,8 +27,7 @@ module.exports = (reporter, definition) => {
   }
 
   reporter.extensionsManager.recipes.push({
-    name: 'xlsx',
-    execute: (req, res) => recipe(reporter, definition, req, res)
+    name: 'xlsx'
   })
 
   reporter.options.templatingEngines.modules.push({
@@ -101,77 +92,6 @@ module.exports = (reporter, definition) => {
         return serialize(update.$set.contentRaw).then((serialized) => (update.$set.content = serialized))
       }
     })
-  })
-
-  reporter.beforeRenderListeners.insert({ after: 'data' }, 'xlsxTemplates', async (req) => {
-    if (req.template.recipe !== 'xlsx') {
-      return
-    }
-
-    const findTemplate = async () => {
-      if (
-        (!req.template.xlsxTemplate || (!req.template.xlsxTemplate.shortid && !req.template.xlsxTemplate.content)) &&
-        (!req.template.xlsx || (!req.template.xlsx.templateAssetShortid && !req.template.xlsx.templateAsset))
-      ) {
-        if (defaultXlsxTemplate) {
-          return Promise.resolve(defaultXlsxTemplate)
-        }
-
-        return FS.readFileAsync(path.join(__dirname, '../static/defaultXlsxTemplate.json')).then((content) => JSON.parse(content))
-      }
-
-      if (req.template.xlsx && req.template.xlsx.templateAsset && req.template.xlsx.templateAsset.content) {
-        return parse(Buffer.from(req.template.xlsx.templateAsset.content, req.template.xlsx.templateAsset.encoding || 'utf8'))
-      } else if (req.template.xlsxTemplate && req.template.xlsxTemplate.content) {
-        return parse(req.template.xlsxTemplate.content)
-      }
-
-      let docs
-      let xlsxTemplateShortid
-
-      if (req.template.xlsx && req.template.xlsx.templateAssetShortid) {
-        xlsxTemplateShortid = req.template.xlsx.templateAssetShortid
-        docs = await reporter.documentStore.collection('assets').find({ shortid: xlsxTemplateShortid }, req)
-      } else {
-        xlsxTemplateShortid = req.template.xlsxTemplate.shortid
-        docs = await reporter.documentStore.collection('xlsxTemplates').find({ shortid: xlsxTemplateShortid }, req)
-      }
-
-      if (!docs.length) {
-        throw reporter.createError(`Unable to find xlsx template with shortid ${xlsxTemplateShortid}`, {
-          statusCode: 404
-        })
-      }
-
-      if (req.template.xlsx && req.template.xlsx.templateAssetShortid) {
-        return parse(docs[0].content)
-      } else {
-        return JSON.parse(docs[0].content)
-      }
-    }
-
-    const template = await findTemplate()
-
-    req.data = req.data || {}
-    req.data.$xlsxTemplate = template
-    req.data.$xlsxModuleDirname = path.join(__dirname, '../')
-    req.data.$tempAutoCleanupDirectory = reporter.options.tempAutoCleanupDirectory
-    req.data.$addBufferSize = definition.options.addBufferSize || 50000000
-    req.data.$escapeAmp = definition.options.escapeAmp
-    req.data.$numberOfParsedAddIterations = definition.options.numberOfParsedAddIterations == null ? 50 : definition.options.numberOfParsedAddIterations
-
-    const helpersScript = await FS.readFileAsync(path.join(__dirname, '../static/helpers.js'), 'utf8')
-
-    if (req.template.helpers && typeof req.template.helpers === 'object') {
-      // this is the case when the jsreport is used with in-process strategy
-      // and additinal helpers are passed as object
-      // in this case we need to merge in xlsx helpers
-      req.template.helpers.require = require
-      req.template.helpers.fsproxy = require(path.join(__dirname, 'fsproxy.js'))
-      return vm.runInNewContext(helpersScript, req.template.helpers)
-    }
-
-    req.template.helpers = helpersScript + '\n' + (req.template.helpers || '')
   })
 
   reporter.on('express-configure', (app) => {

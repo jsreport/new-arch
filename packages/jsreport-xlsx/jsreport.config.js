@@ -14,7 +14,8 @@ const schema = {
 
 module.exports = {
   name: 'xlsx',
-  main: 'lib/index.js',
+  main: 'lib/main.js',
+  worker: 'lib/worker.js',
   optionsSchema: office.extendSchema('xlsx', {
     xlsx: { ...schema },
     extensions: {
