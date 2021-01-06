@@ -10,6 +10,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin')
 
 const webpack = jsreportStudioDev.deps.webpack
 
+const projectSrcAbsolutePath = path.join(__dirname, '../src')
 const projectRootPath = path.resolve(__dirname, '../')
 const assetsPath = path.resolve(projectRootPath, './static/dist')
 
@@ -69,7 +70,9 @@ module.exports = {
       },
       {
         test: /\.css$/,
-        exclude: [/extensions\.css$/],
+        exclude: [/.*theme.*\.css/, /extensions\.css$/, (input) => {
+          return input.startsWith(projectSrcAbsolutePath)
+        }],
         use: ['style-loader', 'css-loader']
       },
       {
@@ -102,7 +105,7 @@ module.exports = {
         ]
       },
       {
-        include: [/.*theme.*\.scss/],
+        include: [/.*theme.*\.css/],
         use: [
           {
             loader: MiniCssExtractPlugin.loader
@@ -123,8 +126,11 @@ module.exports = {
         ]
       },
       {
-        test: /\.scss$/,
-        exclude: [/.*theme.*/],
+        test: /\.css$/,
+        include: (input) => {
+          return input.startsWith(projectSrcAbsolutePath)
+        },
+        exclude: [/.*theme.*/, /extensions\.css$/],
         use: [
           {
             loader: MiniCssExtractPlugin.loader
@@ -211,7 +217,8 @@ module.exports = {
     modules: [
       'src',
       'node_modules',
-      path.join(__dirname, '../node_modules')
+      path.join(__dirname, '../node_modules'),
+      path.join(__dirname, '../node_modules/jsreport-studio-dev/node_modules')
     ]
   },
   resolveLoader: {

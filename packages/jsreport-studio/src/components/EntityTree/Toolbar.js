@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import EntityTreeButton from './EntityTreeButton'
 import { entityTreeToolbarComponents } from '../../lib/configuration.js'
-import styles from './EntityTree.scss'
+import styles from './EntityTree.css'
 
 const Toolbar = (props) => {
   const { setFilter, onNewEntity } = props

@@ -28,7 +28,7 @@
     "in-publish": "2.0.1",
     "jsreport-core": "file:../jsreport-core",
     "jsreport-express": "file:../jsreport-express",
-    "jsreport-studio-dev": "1.6.0",
+    "jsreport-studio-dev": "file:../jsreport-studio-dev",
     "jsreport-templates": "file:../jsreport-templates",
     "lodash.clonedeep": "4.5.0",
     "mocha": "5.2.0",

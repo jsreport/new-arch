@@ -3,7 +3,7 @@ import ReactList from 'react-list'
 import colorLuminance from './colorLuminance'
 import getColorLuminance from './getColorLuminance'
 import ShowColor from './ShowColor'
-import style from './TagEntityTreeFilterByTags.scss'
+import style from './TagEntityTreeFilterByTags.css'
 
 class TagEntityTreeFilterByTags extends Component {
   constructor (props) {

@@ -2,7 +2,7 @@ import React, { Component } from 'react'
 import ReactList from 'react-list'
 import Studio from 'jsreport-studio'
 import _debounce from 'lodash/debounce'
-import style from './ScheduleEditor.scss'
+import style from './ScheduleEditor.css'
 
 let _activeReport
 

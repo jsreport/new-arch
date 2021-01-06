@@ -2,7 +2,7 @@ import Studio from 'jsreport-studio'
 import React, { Component } from 'react'
 import HistoryEditor from './HistoryEditor'
 import LocalChangesEditor from './LocalChangesEditor'
-import style from './VersionControl.scss'
+import style from './VersionControl.css'
 
 Studio.initializeListeners.push(async () => {
   if (Studio.authentication && !Studio.authentication.user.isAdmin) {

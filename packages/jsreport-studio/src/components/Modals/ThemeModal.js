@@ -2,7 +2,7 @@ import PropTypes from 'prop-types'
 import React, { Component } from 'react'
 import { getCurrentTheme, getDefaultTheme, setCurrentTheme, setCurrentThemeToDefault } from '../../helpers/theme'
 import { extensions, triggerThemeChange } from '../../lib/configuration'
-import style from './ThemeModal.scss'
+import style from './ThemeModal.css'
 
 class ThemeModal extends Component {
   static propTypes = {

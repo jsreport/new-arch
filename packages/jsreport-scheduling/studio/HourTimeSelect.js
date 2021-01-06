@@ -1,6 +1,6 @@
 
 import React, { Component } from 'react'
-import style from './HourTimeSelect.scss'
+import style from './HourTimeSelect.css'
 
 class HourTimeSelectItem extends Component {
   constructor (props) {

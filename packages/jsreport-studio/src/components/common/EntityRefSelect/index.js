@@ -4,7 +4,7 @@ import { modalHandler } from '../../../lib/configuration.js'
 import { selectors as entitiesSelectors } from '../../../redux/entities'
 import { actions } from '../../../redux/editor'
 import EntityTreeSelectionModal from '../../Modals/EntityTreeSelectionModal.js'
-import styles from './EntityRefSelect.scss'
+import styles from './EntityRefSelect.css'
 
 const SelectInput = ({ textToShow, entity, handleOpenTree, openTab, disabled }) => (
   <div

@@ -3,7 +3,7 @@ import React, { Component } from 'react'
 import EntityFuzzyFinderModal from '../Modals/EntityFuzzyFinderModal.js'
 import { modalHandler, toolbarComponents, toolbarVisibilityResolver, extensions } from '../../lib/configuration.js'
 import resolveUrl from '../../helpers/resolveUrl'
-import style from './Toolbar.scss'
+import style from './Toolbar.css'
 import logo from './js-logo.png'
 
 const isMac = () => window.navigator.platform.toUpperCase().indexOf('MAC') >= 0

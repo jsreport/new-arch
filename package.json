@@ -19,6 +19,7 @@
   ],
   "dependencies": {
     "handlebars": "4.7.6",
+    "jsreport-studio-dev": "file:packages/jsreport-studio-dev",
     "mkdirp": "0.5.5",
     "node.extend.without.arrays": "1.1.6",
     "puppeteer": "2.0.0",

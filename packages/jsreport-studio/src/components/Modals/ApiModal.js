@@ -2,7 +2,7 @@ import PropTypes from 'prop-types'
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import { selectors } from '../../redux/editor'
-import style from './ApiModal.scss'
+import style from './ApiModal.css'
 
 class ApiModal extends Component {
   static propTypes = {

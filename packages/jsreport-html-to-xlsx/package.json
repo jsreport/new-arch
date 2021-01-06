@@ -26,7 +26,7 @@
     "in-publish": "2.0.1",
     "jsreport-core": "file:../jsreport-core",
     "jsreport-handlebars": "file:../jsreport-handlebars",
-    "jsreport-studio-dev": "1.6.0",
+    "jsreport-studio-dev": "file:../jsreport-studio-dev",
     "jsreport-templates": "file:../jsreport-templates",
     "mocha": "5.2.0",
     "puppeteer": "2.1.1",

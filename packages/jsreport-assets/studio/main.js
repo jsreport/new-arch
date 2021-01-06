@@ -310,9 +310,9 @@ var AssetUploadButton = function (_Component) {
       }
 
       this.inputFileRef.current.dispatchEvent(new MouseEvent('click', {
-        'view': window,
-        'bubbles': false,
-        'cancelable': true
+        view: window,
+        bubbles: false,
+        cancelable: true
       }));
     }
   }, {
@@ -964,14 +964,15 @@ var AssetEditor = function (_Component) {
             return _react2.default.createElement(
               'div',
               null,
-              'We need to upload your office asset to our publicly hosted server to be able to use Office Online Service for previewing here in the studio. You can disable it in the configuration, see ',
+              'We need to upload your office asset to our publicly hosted server to be able to use Office Online Service for previewing here in the studio. You can disable it in the configuration, see',
               _react2.default.createElement(
                 'a',
                 {
-                  href: 'https://jsreport.net/learn/xlsx#preview-in-studio', target: '_blank' },
-                'the docs'
+                  href: 'https://jsreport.net/learn/xlsx#preview-in-studio', target: '_blank', rel: 'noreferrer'
+                },
+                'the docs for details'
               ),
-              ' for details.'
+              '.'
             );
           });
         }
@@ -1031,7 +1032,7 @@ var AssetEditor = function (_Component) {
           null,
           _react2.default.createElement(
             'a',
-            { className: 'button confirmation', target: '_blank', href: _jsreportStudio2.default.resolveUrl('assets/' + entity._id + '/content?download=true'), title: 'Download' },
+            { className: 'button confirmation', rel: 'noreferrer', target: '_blank', href: _jsreportStudio2.default.resolveUrl('assets/' + entity._id + '/content?download=true'), title: 'Download' },
             _react2.default.createElement('i', { className: 'fa fa-download' }),
             ' Download'
           ),
@@ -1926,7 +1927,8 @@ var NewAssetModal = function (_Component) {
             type: 'checkbox', checked: isLink,
             onChange: function onChange() {
               return _this3.setState({ isLink: !isLink });
-            } })
+            }
+          })
         ) : _react2.default.createElement('div', null),
         _react2.default.createElement(
           'div',
@@ -1934,7 +1936,8 @@ var NewAssetModal = function (_Component) {
           _react2.default.createElement(
             'span',
             {
-              style: { color: 'red', display: error ? 'block' : 'none' } },
+              style: { color: 'red', display: error ? 'block' : 'none' }
+            },
             error
           )
         ),
@@ -1949,11 +1952,10 @@ var NewAssetModal = function (_Component) {
             _react2.default.createElement('br', null),
             'This can be for example css style, image, font, html or even javascript shared helpers. ',
             _react2.default.createElement('br', null),
-            'See the ',
+            'See the',
             _react2.default.createElement(
               'a',
-              {
-                target: '_blank', title: 'Help', href: 'http://jsreport.net/learn/assets' },
+              { target: '_blank', rel: 'noreferrer', title: 'Help', href: 'http://jsreport.net/learn/assets' },
               'documentation'
             ),
             ' for details.'
@@ -1968,7 +1970,8 @@ var NewAssetModal = function (_Component) {
               className: 'button confirmation',
               onClick: function onClick() {
                 _this3.props.close();_AssetUploadButton2.default.OpenUploadNew(_this3.props.options.defaults);
-              } },
+              }
+            },
             'Upload'
           ),
           _react2.default.createElement(

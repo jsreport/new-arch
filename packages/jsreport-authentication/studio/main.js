@@ -358,8 +358,7 @@ _jsreportStudio2.default.initializeListeners.unshift(_asyncToGenerator( /*#__PUR
               React.createElement(
                 'span',
                 null,
-                React.createElement('i', {
-                  className: 'fa fa-user' }),
+                React.createElement('i', { className: 'fa fa-user' }),
                 ' ',
                 _jsreportStudio2.default.authentication.user.username
               )
@@ -516,7 +515,8 @@ var LogoutSettingsButton = function (_Component) {
           {
             onClick: function onClick() {
               return _this2.logoutRef.current.click();
-            }, style: { cursor: 'pointer' } },
+            }, style: { cursor: 'pointer' }
+          },
           _react2.default.createElement(
             'form',
             { method: 'POST', action: _jsreportStudio2.default.resolveUrl('/logout') },
@@ -559,14 +559,13 @@ exports.default = function (props) {
   return _jsreportStudio2.default.authentication.user.isAdmin ? React.createElement('span', null) : React.createElement(
     'div',
     null,
+    ' ',
     React.createElement(
       'a',
-      {
-        id: 'changePassword',
-        onClick: function onClick() {
+      { id: 'changePassword', onClick: function onClick() {
           return _jsreportStudio2.default.openModal(_ChangePasswordModal2.default, { entity: _jsreportStudio2.default.authentication.user });
-        },
-        style: { cursor: 'pointer' } },
+        }, style: { cursor: 'pointer' } },
+      ' ',
       React.createElement('i', { className: 'fa fa-key' }),
       ' Change password'
     )
@@ -633,7 +632,8 @@ var ChangePasswordButton = function (_Component) {
             className: 'toolbar-button',
             onClick: function onClick(e) {
               return _jsreportStudio2.default.openModal(_ChangePasswordModal2.default, { entity: _this2.props.tab.entity });
-            } },
+            }
+          },
           _react2.default.createElement('i', { className: 'fa fa-key' }),
           ' Change Password'
         )
@@ -853,7 +853,8 @@ var NewUserModal = function (_Component) {
           _react2.default.createElement(
             'span',
             {
-              style: { color: 'red', display: this.state.userNameError ? 'block' : 'none' } },
+              style: { color: 'red', display: this.state.userNameError ? 'block' : 'none' }
+            },
             'username must be filled'
           ),
           _react2.default.createElement(

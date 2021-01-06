@@ -16,7 +16,7 @@
     "eslint": "4.17.0",
     "eslint-config-standard-jsx": "4.0.2",
     "eslint-plugin-babel": "4.1.2",
-    "jsreport-studio-dev": "1.5.0",
+    "jsreport-studio-dev": "file:../jsreport-studio-dev",
     "standard": "10.0.3"
   },
   "engines": {

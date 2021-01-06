@@ -103,4 +103,5 @@ typings/
 .tern-port
 data
 logs
+.DS_Store
 node_modules

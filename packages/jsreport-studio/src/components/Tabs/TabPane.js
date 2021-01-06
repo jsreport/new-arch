@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import TabContent from './TabContent'
-import style from './Tabs.scss'
+import style from './Tabs.css'
 
 class TabPane extends Component {
   render () {

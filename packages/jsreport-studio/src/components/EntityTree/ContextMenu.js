@@ -5,7 +5,7 @@ import EntityTreeContext from './EntityTreeContext'
 import getVisibleEntitySetsInTree from '../../helpers/getVisibleEntitySetsInTree'
 import { checkIsGroupNode, checkIsGroupEntityNode, getAllEntitiesInHierarchy } from './utils'
 import { entitySets, entityTreeContextMenuItemsResolvers } from '../../lib/configuration.js'
-import styles from './EntityTree.scss'
+import styles from './EntityTree.css'
 
 const ContextMenu = React.forwardRef(({
   entity,

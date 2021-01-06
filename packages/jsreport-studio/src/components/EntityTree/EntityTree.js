@@ -8,7 +8,7 @@ import TreeList from './TreeList'
 import HighlightedArea from './HighlightedArea'
 import { RootContextMenu } from './ContextMenu'
 import { actions as editorActions } from '../../redux/editor'
-import styles from './EntityTree.scss'
+import styles from './EntityTree.css'
 
 const paddingByLevelInTree = 0.8
 

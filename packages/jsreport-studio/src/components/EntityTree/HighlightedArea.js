@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types'
 import React, { Component } from 'react'
-import style from './HighlightedArea.scss'
+import style from './HighlightedArea.css'
 
 class HighlightedArea extends Component {
   getRelativePositionInsideContainer (containerDimensions, areaPosition, topOrLeft) {

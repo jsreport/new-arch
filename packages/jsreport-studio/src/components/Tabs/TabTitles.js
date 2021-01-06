@@ -5,7 +5,7 @@ import TabTitle from './TabTitle'
 import { getNodeTitleDOMId } from '../EntityTree/utils'
 import { selectors as entitiesSelectors } from '../../redux/entities'
 import { entitySets, collapseEntityHandler } from '../../lib/configuration'
-import style from './Tabs.scss'
+import style from './Tabs.css'
 
 const getEntityName = (e) => entitySets[e.__entitySet].nameAttribute ? e[entitySets[e.__entitySet].nameAttribute] : e.name
 

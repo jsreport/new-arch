@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import Studio from 'jsreport-studio'
-import Style from './ShareModal.scss'
+import Style from './ShareModal.css'
 
 class ShareModal extends Component {
   constructor (props) {

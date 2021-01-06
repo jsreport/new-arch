@@ -162,15 +162,8 @@ module.exports = (reporter, definition) => {
       }).join('\n'))
 
       fs.writeFileSync(path.join(__dirname, '../src/extensions_dev.css'), reporter.extensionsManager.extensions.map((e) => {
-        const shouldUseMainEntry = extsConfiguredInDevMode.length > 0 && !extsConfiguredInDevMode.includes(e.name)
-
         try {
-          if (!shouldUseMainEntry) {
-            return ''
-          }
-
           const extensionPath = path.join(e.directory, '/studio/main.css')
-
           fs.statSync(extensionPath)
 
           return `@import '${path.relative(path.join(__dirname, '../src'), extensionPath).replace(/\\/g, '/')}';`

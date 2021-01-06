@@ -7,6 +7,7 @@ const jsreportStudioDev = require('jsreport-studio-dev')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin')
+const projectSrcAbsolutePath = path.join(__dirname, '../src')
 const assetsPath = path.resolve(__dirname, '../static/dist')
 const babelrc = fs.readFileSync(path.join(__dirname, '../.babelrc'))
 let babelrcObject = {}
@@ -167,7 +168,9 @@ module.exports = (extensions, extensionsInNormalMode) => {
         },
         {
           test: /\.css$/,
-          exclude: [/extensions_dev\.css$/],
+          exclude: [/.*theme.*\.css/, /extensions_dev\.css$/, (input) => {
+            return input.startsWith(projectSrcAbsolutePath)
+          }],
           use: ['style-loader', 'css-loader']
         },
         {
@@ -199,7 +202,7 @@ module.exports = (extensions, extensionsInNormalMode) => {
           ]
         },
         {
-          include: [/.*theme.*\.scss/],
+          include: [/.*theme.*\.css/],
           use: [
             {
               loader: MiniCssExtractPlugin.loader,
@@ -223,8 +226,11 @@ module.exports = (extensions, extensionsInNormalMode) => {
           ]
         },
         {
-          test: /\.scss$/,
-          exclude: [/.*theme.*/],
+          test: /\.css$/,
+          include: (input) => {
+            return input.startsWith(projectSrcAbsolutePath)
+          },
+          exclude: [/.*theme.*/, /extensions_dev\.css$/],
           use: [
             {
               loader: MiniCssExtractPlugin.loader,
@@ -349,7 +355,8 @@ module.exports = (extensions, extensionsInNormalMode) => {
       modules: [
         'src',
         'node_modules',
-        path.join(__dirname, '../node_modules')
+        path.join(__dirname, '../node_modules'),
+        path.join(__dirname, '../node_modules/jsreport-studio-dev/node_modules')
       ]
     },
     resolveLoader: {

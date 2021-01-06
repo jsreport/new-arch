@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import Popover from '../../components/common/Popover'
 import EntityTreeButton from './EntityTreeButton'
-import styles from './EntityTreeInputSearch.scss'
+import styles from './EntityTreeInputSearch.css'
 
 const InputSearch = ({ value, onChange, onKeyDown }) => {
   const inputFilterRef = useRef(null)

@@ -89,7 +89,7 @@ module.exports = (customExtName) => {
           }]
         },
         {
-          test: /\.scss$/,
+          test: /\.css$/,
           use: [
             {
               loader: MiniCssExtractPlugin.loader

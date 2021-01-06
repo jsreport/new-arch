@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
 import Studio from 'jsreport-studio'
 import ChangesTable from './ChangesTable.js'
-import style from './VersionControl.scss'
+import style from './VersionControl.css'
 
 export default class LocalChangesEditor extends Component {
   constructor (props) {
