@@ -397,7 +397,7 @@ export function run (target) {
 
     await previewConfigurationHandler({ ...previewConfig, src: null })
 
-    preview(request, target || 'previewFrame')
+    preview(request, target)
   }
 }
 

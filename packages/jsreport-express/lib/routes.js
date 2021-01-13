@@ -1,13 +1,11 @@
-const { pipeline } = require('stream')
+const { TextEncoder, TextDecoder } = require('util')
+const { Readable, pipeline } = require('stream')
+const omit = require('lodash.omit')
 const serveStatic = require('serve-static')
 const handleError = require('./handleError')
+const FormData = require('./formDataStream')
 const odata = require('./odata')
-const omit = require('lodash.omit')
 const oneMonth = 31 * 86400000
-
-function isInvalidASCII (str) {
-  return [...str].some(char => char.charCodeAt(0) > 127)
-}
 
 module.exports = (app, reporter, exposedOptions) => {
   reporter.emit('export-public-route', '/api/ping')
@@ -27,7 +25,7 @@ module.exports = (app, reporter, exposedOptions) => {
 
   reporter.extensionsManager.extensions.forEach((e) => app.use('/extension/' + e.name, serveStatic(e.directory, { maxAge: oneMonth })))
 
-  reporter.express.render = (renderRequest, req, res, next) => {
+  function httpRender (renderRequest, req, res, stream, next) {
     let renderTimeout = (reporter.options.express || {}).renderTimeout
 
     if (renderTimeout == null) {
@@ -35,43 +33,94 @@ module.exports = (app, reporter, exposedOptions) => {
     }
 
     res.setTimeout(renderTimeout)
+    res.setHeader('X-XSS-Protection', 0)
 
     renderRequest = Object.assign({}, renderRequest, {
       options: renderRequest.options || {},
       context: Object.assign({}, renderRequest.context, req.context)
     })
 
+    let form
+
+    if (stream) {
+      const formatLog = (text) => {
+        return `${JSON.stringify({ level: 'debug', message: text })}`
+      }
+
+      form = new FormData()
+      res.setHeader('Content-Type', `multipart/mixed; boundary=${form.getBoundary()}`)
+
+      pipeline(form, res, (err) => {
+        if (err) {
+          res.destroy()
+        }
+      })
+
+      form.append('log1', formatLog('render log'), { contentType: 'application/json' })
+    }
+
     reporter.render(renderRequest).then((renderResponse) => {
-      res.setHeader('X-XSS-Protection', 0)
-      res.setHeader('Content-Type', renderResponse.meta.contentType)
+      const headers = {}
+
+      headers['Content-Type'] = renderResponse.meta.contentType
 
       let reportName = renderResponse.meta.reportName
       reportName = isInvalidASCII(reportName) ? 'report' : reportName
-      res.setHeader('Content-Disposition', (`inline;filename=${reportName}.${renderResponse.meta.fileExtension}`))
+
+      headers['Content-Disposition'] = `inline;filename=${reportName}.${renderResponse.meta.fileExtension}`
 
       if (renderRequest.options['Content-Disposition']) {
-        res.setHeader('Content-Disposition', renderRequest.options['Content-Disposition'])
+        headers['Content-Disposition'] = renderRequest.options['Content-Disposition']
       }
 
       if (renderRequest.options.download) {
-        res.setHeader('Content-Disposition', res.getHeader('Content-Disposition').replace('inline;', 'attachment;'))
+        headers['Content-Disposition'] = res.getHeader('Content-Disposition').replace('inline;', 'attachment;')
       }
 
-      if (renderResponse.meta.headers) {
-        for (const key in renderResponse.meta.headers) {
-          res.setHeader(key, renderResponse.meta.headers[key])
+      if (stream) {
+        form.append('report', renderResponse.stream, {
+          filename: `${reportName}.${renderResponse.meta.fileExtension}`,
+          contentLength: renderResponse.content.length,
+          header: headers
+        })
+
+        form.end()
+      } else {
+        for (const [key, value] of Object.entries(headers)) {
+          res.setHeader(key, value)
         }
+
+        if (renderResponse.meta.headers) {
+          for (const key in renderResponse.meta.headers) {
+            res.setHeader(key, renderResponse.meta.headers[key])
+          }
+        }
+
+        pipeline(renderResponse.stream, res, (pipeErr) => {
+          if (pipeErr) {
+            return next(pipeErr)
+          }
+
+          next()
+        })
       }
-
-      pipeline(renderResponse.stream, res, (pipeErr) => {
-        if (pipeErr) {
-          return next(pipeErr)
-        }
-
-        next()
-      })
-    }).catch(next)
+    }).catch((renderErr) => {
+      if (!stream) {
+        next(renderErr)
+      } else {
+        // TODO: send error to client in field "error"
+      }
+    })
   }
+
+  reporter.express.streamRender = (renderRequest, req, res, next) => {
+    return httpRender(renderRequest, req, res, true, next)
+  }
+
+  reporter.express.render = (renderRequest, req, res, next) => {
+    return httpRender(renderRequest, req, res, false, next)
+  }
+
   /**
    * Main entry point for invoking report rendering
    */
@@ -80,7 +129,15 @@ module.exports = (app, reporter, exposedOptions) => {
       return next("Could not parse report template, aren't you missing content type?")
     }
 
-    reporter.express.render({
+    let doRender
+
+    if (req.query.logsStreaming === 'true') {
+      doRender = reporter.express.streamRender
+    } else {
+      doRender = reporter.express.render
+    }
+
+    doRender({
       template: req.body.template,
       data: req.body.data,
       options: req.body.options
@@ -124,4 +181,8 @@ module.exports = (app, reporter, exposedOptions) => {
     }
     res.send('pong')
   })
+}
+
+function isInvalidASCII (str) {
+  return [...str].some(char => char.charCodeAt(0) > 127)
 }

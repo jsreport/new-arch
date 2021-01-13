@@ -61,6 +61,7 @@ class App extends Component {
     this.previewRef = React.createRef()
 
     this.openModal = this.openModal.bind(this)
+    this.createPreviewTarget = this.createPreviewTarget.bind(this)
     this.undockPreview = this.undockPreview.bind(this)
     this.handlePreviewCollapsing = this.handlePreviewCollapsing.bind(this)
     this.handlePreviewDocking = this.handlePreviewDocking.bind(this)
@@ -96,7 +97,7 @@ class App extends Component {
 
     registerPreviewHandler((src) => {
       if (!src) {
-        this.handleRun(undefined, this.props.undockMode)
+        this.handleRun(this.createPreviewTarget(this.props.undockMode ? `window-${this.getPreviewWindowOptions().id}` : undefined))
       }
     })
 
@@ -116,7 +117,13 @@ class App extends Component {
       // using the native close functionality of the browser tab,
       // if we don't try to open the window again we will have inconsistent references and
       // we can not close all preview tabs when un-collapsing the main pane preview again
-      if (undockMode && this.previewPaneRef.current && target && target.indexOf(request.template.shortid) !== -1) {
+      if (
+        (undockMode || target.type.indexOf('window-') === 0) &&
+        this.previewPaneRef.current &&
+        target &&
+        target.type &&
+        target.type.indexOf(request.template.shortid) !== -1
+      ) {
         let previewWinOpts = this.getPreviewWindowOptions()
         this.previewPaneRef.current.openWindow(previewWinOpts)
       }
@@ -141,8 +148,72 @@ class App extends Component {
     this.props.updateHistory()
   }
 
-  async handleRun (target, undockMode) {
+  createPreviewTarget (type) {
+    const normalizedType = type == null ? 'preview' : type
+    const windowPrefix = 'window-'
+    let processFile
+    let focus
+
+    if (normalizedType === 'preview') {
+      processFile = (fileInfo) => {
+        if (fileInfo.name === 'report') {
+          const file = new window.File([fileInfo.rawData], fileInfo.filename, {
+            type: fileInfo.contentType
+          })
+
+          const newURLBlob = URL.createObjectURL(file)
+
+          // TODO: here we should instead use some Preview method or
+          // make a standard way to update the content of the Preview component
+          document.getElementById('preview').src = newURLBlob
+        } else {
+          console.log('name:', fileInfo.name, 'content:', new TextDecoder().decode(fileInfo.rawData))
+        }
+      }
+
+      focus = () => {}
+    } else if (normalizedType.indexOf(windowPrefix) === 0) {
+      processFile = (fileInfo) => {
+        if (fileInfo.name === 'report') {
+          const file = new window.File([fileInfo.rawData.buffer], fileInfo.filename, {
+            type: fileInfo.contentType
+          })
+
+          const newURLBlob = URL.createObjectURL(file)
+
+          const previews = this.previewPaneRef.current.windows
+          const windowId = normalizedType.slice(windowPrefix.length)
+          const windowRef = previews[windowId]
+
+          windowRef.location.href = newURLBlob
+        } else {
+          console.log('name:', fileInfo.name, 'content:', new TextDecoder().decode(fileInfo.rawData))
+        }
+      }
+
+      focus = () => {
+        const previews = this.previewPaneRef.current.windows
+        const windowId = normalizedType.slice(windowPrefix.length)
+        const windowRef = previews[windowId]
+
+        windowRef.focus()
+      }
+    }
+
+    if (processFile == null) {
+      throw new Error(`Preview target type "${normalizedType}" is not supported`)
+    }
+
+    return {
+      type: normalizedType,
+      processFile,
+      focus
+    }
+  }
+
+  async handleRun (target) {
     this.props.start()
+
     cookies.set('render-complete', false)
 
     const interval = setInterval(() => {
@@ -151,12 +222,6 @@ class App extends Component {
         this.props.stop()
       }
     }, 1000)
-
-    if (undockMode) {
-      const previewWindowOpts = this.getPreviewWindowOptions()
-      this.props.run(previewWindowOpts.name)
-      return
-    }
 
     this.props.run(target)
   }
@@ -301,10 +366,8 @@ class App extends Component {
 
   handlePreviewUndocked (id, previewWindow) {
     const previews = this.previewPaneRef.current.windows
-
     previews[id] = previewWindow
-
-    this.handleRun(undefined, this.props.undockMode)
+    this.handleRun(this.createPreviewTarget(`window-${id}`))
   }
 
   handlePreviewCancel () {
@@ -422,7 +485,9 @@ class App extends Component {
                 isPending={isPending}
                 activeTab={activeTabWithEntity}
                 onUpdate={update}
-                onRun={(target, ignoreUndockMode) => this.handleRun(target, ignoreUndockMode ? false : undockMode)}
+                onRun={(runType) => {
+                  this.handleRun(this.createPreviewTarget(runType === 'download' ? 'download' : (undockMode || runType === 'window') ? `window-${this.getPreviewWindowOptions().id}` : undefined))
+                }}
                 undockPreview={this.undockPreview}
                 openStartup={() => this.openStartup()}
               />
