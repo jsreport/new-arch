@@ -14,7 +14,7 @@ const distPath = path.join(__dirname, '../static/dist')
 module.exports = (reporter, definition) => {
   const mainCssFilename = findMainCssFilename()
   const extensionsJsChunkName = findExtensionsJsChunkName()
-  const themeManager = ThemeManager(reporter.logger.warn)
+  const themeManager = ThemeManager(reporter.options.mode !== 'jsreport-development', reporter.logger.warn)
 
   reporter.studio = {
     normalizeLogs: requestLog.normalizeLogs,

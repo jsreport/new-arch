@@ -2,7 +2,7 @@ const Promise = require('bluebird')
 const fs = Promise.promisifyAll(require('fs'))
 const { Lock } = require('semaphore-async-await')
 
-module.exports = function (customLogWarnFn) {
+module.exports = function (cacheEnabled, customLogWarnFn) {
   const THEMES = {}
 
   const EDITOR_THEMES = {
@@ -59,8 +59,8 @@ module.exports = function (customLogWarnFn) {
     registerTheme: (def) => doRegisterTheme(THEMES, EDITOR_THEMES, def, logWarn),
     registerThemeVariables: (varsDefPath) => doRegisterThemeVariables(THEME_VARIABLES, varsDefPath),
     getCurrentThemeVars: (themeName, customVariables) => doGetCurrentThemeVars(THEMES, THEME_VARIABLES, themeName, customVariables),
-    compileTheme: (themeName, readCssContent, customVariables) => doCompileTheme(THEMES, THEME_VARIABLES, compiledThemeCss, themeCompilationLock, themeName, readCssContent, customVariables),
-    compileCustomCss: (themeName, readCustomCssContent, customVariables) => doCompileCustomCss(THEMES, THEME_VARIABLES, customCssResult, getCustomCssLock, themeName, readCustomCssContent, customVariables)
+    compileTheme: (themeName, readCssContent, customVariables) => doCompileTheme(THEMES, THEME_VARIABLES, cacheEnabled ? compiledThemeCss : {}, themeCompilationLock, themeName, readCssContent, customVariables),
+    compileCustomCss: (themeName, readCustomCssContent, customVariables) => doCompileCustomCss(THEMES, THEME_VARIABLES, cacheEnabled ? customCssResult : {}, getCustomCssLock, themeName, readCustomCssContent, customVariables)
   }
 }
 
