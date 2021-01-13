@@ -4,11 +4,11 @@ const { Readable } = require('stream')
 const mime = require('mime-types')
 const MultiStream = require('./multistream')
 
-class FormData extends MultiStream {
-  static LINE_BREAK = '\r\n'
-  static DEFAULT_CONTENT_TYPE = 'application/octet-stream'
+const LINE_BREAK = '\r\n'
+const DEFAULT_CONTENT_TYPE = 'application/octet-stream'
 
-  constructor(options = {}) {
+class FormData extends MultiStream {
+  constructor (options = {}) {
     let factoryCallback
 
     const factory = (cb) => {
@@ -27,7 +27,7 @@ class FormData extends MultiStream {
     this._consumed = false
     this._multiStreamFactoryCallback = factoryCallback
 
-    this.once('error', (err) => {
+    this.once('error', () => {
       clearImmediate(self._timerRef)
     })
 
@@ -37,7 +37,7 @@ class FormData extends MultiStream {
 
     const self = this
 
-    this._timerRef = setImmediate(function checkIfEnded() {
+    this._timerRef = setImmediate(function checkIfEnded () {
       if (self._consumed) {
         return
       }
@@ -66,13 +66,13 @@ class FormData extends MultiStream {
     }
 
     // allow filename as single option
-    if (typeof options == 'string') {
+    if (typeof options === 'string') {
       options = { filename: options }
     }
 
     // all that streamy business can't handle numbers
     if (
-      typeof value == 'number' ||
+      typeof value === 'number' ||
       typeof value === 'boolean' ||
       typeof value === 'undefined' ||
       value === null
@@ -124,7 +124,7 @@ class FormData extends MultiStream {
     // custom header specified (as string)?
     // it becomes responsible for boundary
     // (e.g. to handle extra CRLFs on .NET servers)
-    if (typeof options.header == 'string') {
+    if (typeof options.header === 'string') {
       return options.header
     }
 
@@ -133,7 +133,7 @@ class FormData extends MultiStream {
 
     let contents = ''
 
-    const headers  = {
+    const headers = {
       // add custom disposition as third element or keep it two elements if not
       'Content-Disposition': ['form-data', 'name="' + field + '"'].concat(contentDisposition || []),
       // if no content type. allow it to be empty array
@@ -145,7 +145,7 @@ class FormData extends MultiStream {
     }
 
     // allow custom headers.
-    if (typeof options.header == 'object') {
+    if (typeof options.header === 'object') {
       populate(headers, options.header)
     }
 
@@ -239,6 +239,9 @@ class FormData extends MultiStream {
   }
 }
 
+FormData.LINE_BREAK = LINE_BREAK
+FormData.DEFAULT_CONTENT_TYPE = DEFAULT_CONTENT_TYPE
+
 module.exports = FormData
 
 function populate (dst, src) {
@@ -310,7 +313,7 @@ function getContentType (value, options) {
   }
 
   // fallback to the default content type if `value` is not simple value
-  if (!contentType && typeof value == 'object') {
+  if (!contentType && typeof value === 'object') {
     contentType = FormData.DEFAULT_CONTENT_TYPE
   }
 
