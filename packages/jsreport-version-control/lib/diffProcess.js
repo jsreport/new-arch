@@ -3,7 +3,7 @@ const { createPatch, applyPatches } = require('./patches')
 const sortVersions = require('./sortVersions')
 const { parse } = require('./customUtils')
 
-module.exports = async function scriptDiffProcessing (inputs, callback) {
+module.exports = async function scriptDiffProcessing (inputs) {
   const { commitToDiff, versions, documentModel, diffLimit } = inputs
 
   try {
@@ -61,7 +61,9 @@ module.exports = async function scriptDiffProcessing (inputs, callback) {
 
       if (c.operation === 'update') {
         const previousEntity = previousState.find((s) => s.entityId === c.entityId)
-        const afterEntity = commitState.find((s) => s.entityId === c.entityId)
+        // if we don't find it by entity id, we check it also by path because the _id was
+        // probably changed
+        const afterEntity = commitState.find((s) => (s.entityId === c.entityId || (s.path === c.path && s.entitySet === c.entitySet)))
 
         state = afterEntity.entity
 

@@ -16,8 +16,7 @@ const Settings = require('./settings')
 const SchemaValidator = require('./schemaValidator')
 const { getRootSchemaOptions, extendRootSchemaOptions } = require('./optionsSchema')
 const Folders = require('./folders')
-const executeScriptFn = require('./executeScript')
-const ScriptsManager = require('./scriptsManager')
+const WorkersManager = require('advanced-workers')
 const { validateDuplicatedName } = require('./folders/validateDuplicatedName')
 const { validateReservedName } = require('./folders/validateReservedName')
 const setupValidateId = require('./store/setupValidateId')
@@ -37,7 +36,6 @@ class MainReporter extends Reporter {
     this._fnAfterConfigLoaded = () => {}
     this._reaperTimerRef = null
     this._extraPathsToCleanupCollection = new Set()
-    this._requestsMap = new Map()
 
     this._initialized = false
     this._initializing = false
@@ -158,6 +156,7 @@ class MainReporter extends Reporter {
     }
 
     try {
+      this._registerLogMainAction()
       await this.extensionsLoad()
 
       this.documentStore = DocumentStore(Object.assign({}, this.options, { logger: this.logger }), this.entityTypeValidator, this.encryption)
@@ -203,7 +202,8 @@ class MainReporter extends Reporter {
 
       const extensionsForWorkers = this.extensionsManager.extensions.filter(e => e.worker)
 
-      this._scriptManager = this.options.templatingEngines.scriptManager || new ScriptsManager(this.options.templatingEngines, {
+      this._workersManager = new WorkersManager({
+        ...this.options.templatingEngines,
         options: { ...this.options },
         // we do map and copy to unproxy the value
         extensionsDefs: extensionsForWorkers.map(e => Object.assign({}, e)),
@@ -215,7 +215,10 @@ class MainReporter extends Reporter {
           },
           collections: Object.keys(this.documentStore.collections)
         }
-      })
+      }, {
+        numberOfWorkers: 1,
+        workerModule: path.join(__dirname, '../worker', 'workerHandler.js')
+      }, this.logger)
 
       const workersStart = new Date().getTime()
 
@@ -223,7 +226,7 @@ class MainReporter extends Reporter {
 
       this.logger.debug(`Extensions in workers: ${extensionsForWorkers.map((e) => e.name).join(', ')}`)
 
-      await this._scriptManager.ensureStarted()
+      await this._workersManager.init()
 
       this.logger.info(`${this.options.templatingEngines.numberOfWorkers} worker threads initialized in ${new Date().getTime() - workersStart}ms`)
 
@@ -281,13 +284,6 @@ class MainReporter extends Reporter {
   }
 
   /**
-   * Execute a script in the workers
-   */
-  async executeScript (inputs, options, req) {
-    return executeScriptFn(this, this._scriptManager, inputs, options, req)
-  }
-
-  /**
    * Main method for invoking rendering
    * render({ template: { content: 'foo', engine: 'none', recipe: 'html' }, data: { foo: 'hello' } })
    *
@@ -297,11 +293,11 @@ class MainReporter extends Reporter {
    * @public
    */
   async render (req, parentReq) {
-    const request = Request(req, parentReq)
-
     if (!this._initialized) {
       throw new Error('Not initialized, you need to call jsreport.init().then before rendering')
     }
+
+    const request = Request(req, parentReq)
 
     // TODO: we will probably validate in the thread
     if (this.entityTypeValidator.getSchema('TemplateType') != null) {
@@ -317,8 +313,6 @@ class MainReporter extends Reporter {
     request.context.rootId = generateRequestId()
     request.context.id = request.context.rootId
 
-    this._requestsMap.set(request.context.rootId, request)
-
     let reportTimeout = this.options.reportTimeout
 
     if (
@@ -330,7 +324,6 @@ class MainReporter extends Reporter {
     }
 
     const response = { meta: {} }
-
     let responseResult
 
     await this.beforeRenderListeners.fire(request, response)
@@ -341,38 +334,17 @@ class MainReporter extends Reporter {
     }
 
     try {
-      responseResult = await this._scriptManager.execute({
-        req: request,
-        // TODO: decide how we are going to work with parent request, if we decide to merge
-        // just here in main and pass single request, or if we pass both objects.
-        // CURRENTLY WE JUST IGNORE THE parentReq param
-        parentReq
-      }, {
+      responseResult = await this.executeWorkerAction('render', {}, {
         timeout: reportTimeout,
-        timeoutErrorMessage: 'Report timeout during render',
-        execModulePath: path.join(__dirname, '../worker/render/startRenderScript.js'),
-        useReporter: true,
-        onLog: (log) => {
-          this.logger[log.level](log.message, { ...request, ...log.meta, timestamp: log.timestamp })
-        },
-        callback: async (data) => {
-          const request = this._requestsMap.get(data.requestRootId)
-          extend(true, request, data.req)
-          const result = await this._invokeMainAction(data, request)
-          return result
-        }
-      })
+        timeoutErrorMessage: 'Report timeout during render'
+      }, request)
 
       Object.assign(response, responseResult)
       await this.afterRenderListeners.fire(request, response)
-
       response.stream = Readable.from(response.content)
     } catch (err) {
       await this.renderErrorListeners.fire(request, response, err)
-
       throw err
-    } finally {
-      this._requestsMap.delete(request.context.rootId)
     }
 
     return response
@@ -389,8 +361,8 @@ class MainReporter extends Reporter {
       clearInterval(this._reaperTimerRef)
     }
 
-    if (this._scriptManager) {
-      await this._scriptManager.kill()
+    if (this._workersManager) {
+      await this._workersManager.close()
     }
 
     await this.closeListeners.fire()
@@ -408,8 +380,33 @@ class MainReporter extends Reporter {
     this._mainActions.set(actionName, fn)
   }
 
-  _invokeMainAction (data, request) {
-    return this._mainActions.get(data.action)(data.data, request)
+  _invokeMainAction (data) {
+    return this._mainActions.get(data.actionName)(data.data, data.req)
+  }
+
+  _registerLogMainAction () {
+    this.registerMainAction('log', (log, req) => {
+      this.logger[log.level](log.message, { ...req, ...log.meta, timestamp: log.timestamp })
+    })
+  }
+
+  async executeWorkerAction (actionName, data, options = {}, req) {
+    req.context.rootId = req.context.rootId || generateRequestId()
+
+    return this._workersManager.executeWorker({
+      actionName,
+      data,
+      req
+    }, {
+      // TODO add worker timeout
+      timeout: options.timeout || 60000,
+      timeoutErrorMessage: options.timeoutErrorMessage || ('Timeout during worker action ' + actionName),
+      executeMain: async (data) => {
+        extend(true, req, data.req)
+        const result = await this._invokeMainAction(data, req)
+        return result
+      }
+    })
   }
 
   /**

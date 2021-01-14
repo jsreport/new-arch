@@ -6,11 +6,7 @@ describe('version control http API', () => {
   const adminUser = { username: 'admin', password: 'test' }
   let jsreport
 
-  afterEach(async () => {
-    if (jsreport) {
-      await jsreport.express.server.close()
-    }
-  })
+  afterEach(() => jsreport.close())
 
   describe('without authentication', () => {
     beforeEach(async () => {

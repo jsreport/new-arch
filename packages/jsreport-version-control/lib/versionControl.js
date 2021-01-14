@@ -3,9 +3,9 @@
  * changes between commits. The changes are stored as string diffs of serialized individual entities
  */
 
-const path = require('path')
 const bytes = require('bytes')
 const mimeTypes = require('mime-types')
+const omit = require('lodash.omit')
 const DocumentModel = require('./documentModel')
 const sortVersions = require('./sortVersions')
 
@@ -76,10 +76,80 @@ module.exports = (reporter, options) => {
     await reporter.documentStore.beginTransaction(req)
 
     try {
+      const entitySetsWithoutFolders = omit(documentModel.entitySets, ['folders'])
+      const updateBecauseIdChange = []
+
+      // remove entities that are not in the new state
+      for (const es in entitySetsWithoutFolders) {
+        if (documentModel.entitySets[es].splitIntoDirectories) {
+          let existingEntities = await reporter.documentStore.collection(es).find({}, req)
+
+          existingEntities = await Promise.all(existingEntities.map(async (entity) => {
+            const entityPath = await reporter.folders.resolveEntityPath(entity, es, req)
+            entity.__entityPath = entityPath
+            return entity
+          }))
+
+          for (const entity of existingEntities.filter((e) => !state.find((s) => s.entityId === e._id))) {
+            // if not found we try to search by entity path, if we found it, it means that the id changed
+            // and we just need to update the entity later
+            const existsByPath = state.find((s) => s.entitySet === es && s.path === entity.__entityPath)
+
+            if (existsByPath) {
+              updateBecauseIdChange.push({
+                entitySet: es,
+                entityId: existsByPath.entityId,
+                storeEntityId: entity._id
+              })
+              continue
+            }
+
+            await reporter.documentStore.collection(es).remove({ _id: entity._id }, req)
+          }
+        }
+      }
+
+      // remove folders that are not in the new state
+      let existingFolders = await reporter.documentStore.collection('folders').find({}, req)
+
+      existingFolders = await Promise.all(existingFolders.map(async (folder) => {
+        const entityPath = await reporter.folders.resolveEntityPath(folder, 'folders', req)
+        folder.__entityPath = entityPath
+        return folder
+      }))
+
+      for (const folder of existingFolders.filter((f) => !state.find((s) => s.entityId === f._id))) {
+        // if not found we try to search by entity path, if we found it, it means that the id changed
+        // and we just need to update the entity later
+        const existsByPath = state.find((s) => s.entitySet === 'folders' && s.path === folder.__entityPath)
+
+        if (existsByPath) {
+          updateBecauseIdChange.push({
+            entitySet: 'folders',
+            entityId: existsByPath.entityId,
+            storeEntityId: folder._id
+          })
+          continue
+        }
+
+        await reporter.documentStore.collection('folders').remove({ _id: folder._id }, req)
+      }
+
       // folders needs go first because of validations in fs store
       // we can't move entity to a folder that doesn't yet exist
       for (const e of state.filter(e => e.entitySet === 'folders')) {
-        const updateCount = await reporter.documentStore.collection('folders').update({ _id: e.entityId }, { $set: e.entity }, req)
+        const shouldUpdateWithStoreId = updateBecauseIdChange.find((s) => s.entityId === e.entityId && s.entitySet === e.entitySet)
+
+        const updateReq = reporter.Request(req)
+
+        // we don't want the update to produce a change to modification date
+        updateReq.context.skipModificationDateUpdate = true
+
+        const updateCount = await reporter.documentStore.collection('folders').update({
+          _id: shouldUpdateWithStoreId ? shouldUpdateWithStoreId.storeEntityId : e.entityId
+        }, {
+          $set: e.entity
+        }, updateReq)
 
         if (updateCount === 0) {
           await reporter.documentStore.collection('folders').insert(e.entity, req)
@@ -87,20 +157,21 @@ module.exports = (reporter, options) => {
       }
 
       for (const e of state.filter(e => e.entitySet !== 'folders')) {
-        const updateCount = await reporter.documentStore.collection(e.entitySet).update({ _id: e.entityId }, { $set: e.entity }, req)
+        const shouldUpdateWithStoreId = updateBecauseIdChange.find((s) => s.entityId === e.entityId && s.entitySet === e.entitySet)
+
+        const updateReq = reporter.Request(req)
+
+        // we don't want the update to produce a change to modification date
+        updateReq.context.skipModificationDateUpdate = true
+
+        const updateCount = await reporter.documentStore.collection(e.entitySet).update({
+          _id: shouldUpdateWithStoreId ? shouldUpdateWithStoreId.storeEntityId : e.entityId
+        }, {
+          $set: e.entity
+        }, updateReq)
 
         if (updateCount === 0) {
           await reporter.documentStore.collection(e.entitySet).insert(e.entity, req)
-        }
-      }
-
-      // remove entities that are not in the new state
-      for (const es in documentModel.entitySets) {
-        if (documentModel.entitySets[es].splitIntoDirectories) {
-          const entities = await reporter.documentStore.collection(es).find({}, req)
-          for (const entity of entities.filter((e) => !state.find((s) => s.entityId === e._id))) {
-            await reporter.documentStore.collection(es).remove({ _id: entity._id }, req)
-          }
         }
       }
 
@@ -154,30 +225,17 @@ module.exports = (reporter, options) => {
       // but for diff we need changes with full context, so we need to perform the full diff
       reporter.logger.debug('Version control diff for ' + commitToDiff.message)
 
-      const result = await reporter.executeScript(
+      const result = await reporter.executeWorkerAction('version-control-diff',
         {
           commitToDiff,
           versions: versionsToPatch,
           documentModel,
           diffLimit
-        },
-        {
-          execModulePath: path.join(__dirname, 'scriptDiffProcessing.js'),
-          timeoutErrorMessage: 'Timeout during execution of version control diff',
-          callbackModulePath: null
+        }, {
+          timeoutErrorMessage: 'Timeout during execution of version control diff'
         },
         req
       )
-
-      if (result.error) {
-        const error = new Error(result.error.message)
-        error.stack = result.error.stack
-
-        throw reporter.createError('Error while executing version control diff', {
-          original: error,
-          weak: true
-        })
-      }
 
       const diff = result.diff
 
@@ -232,7 +290,7 @@ module.exports = (reporter, options) => {
 
       const versions = await reporter.documentStore.collection('versions').find({}, req)
 
-      const result = await reporter.executeScript(
+      const result = await reporter.executeWorkerAction('version-control-commit',
         {
           commitMessage: message,
           versions,
@@ -241,22 +299,10 @@ module.exports = (reporter, options) => {
           diffLimit
         },
         {
-          execModulePath: path.join(__dirname, 'scriptCommitProcessing.js'),
-          timeoutErrorMessage: 'Timeout during execution of version control commit',
-          callbackModulePath: null
+          timeoutErrorMessage: 'Timeout during execution of version control commit'
         },
         req
       )
-
-      if (result.error) {
-        const error = new Error(result.error.message)
-        error.stack = result.error.stack
-
-        throw reporter.createError('Error while executing version control commit', {
-          original: error,
-          weak: true
-        })
-      }
 
       const newCommit = result.commit
 
@@ -298,28 +344,16 @@ module.exports = (reporter, options) => {
 
       const versions = await reporter.documentStore.collection('versions').find({}, req)
 
-      const result = await reporter.executeScript(
+      const result = await reporter.executeWorkerAction('version-control-apply-pathes',
         {
           versions,
           documentModel
         },
         {
-          execModulePath: path.join(__dirname, 'scriptApplyPatchesProcessing.js'),
-          timeoutErrorMessage: 'Timeout during execution of version control revert',
-          callbackModulePath: null
+          timeoutErrorMessage: 'Timeout during execution of version control revert'
         },
         req
       )
-
-      if (result.error) {
-        const error = new Error(result.error.message)
-        error.stack = result.error.stack
-
-        throw reporter.createError('Error while executing version control revert', {
-          original: error,
-          weak: true
-        })
-      }
 
       const state = result.state
 
@@ -343,28 +377,16 @@ module.exports = (reporter, options) => {
 
       const versionsToPatch = await reporter.documentStore.collection('versions').find({ creationDate: { $lte: versionToCheckout.creationDate } }, req)
 
-      const result = await reporter.executeScript(
+      const result = await reporter.executeWorkerAction('version-control-apply-pathes',
         {
           versions: versionsToPatch,
           documentModel
         },
         {
-          execModulePath: path.join(__dirname, 'scriptApplyPatchesProcessing.js'),
-          timeoutErrorMessage: 'Timeout during execution of version control checkout',
-          callbackModulePath: null
+          timeoutErrorMessage: 'Timeout during execution of version control checkout'
         },
         req
       )
-
-      if (result.error) {
-        const error = new Error(result.error.message)
-        error.stack = result.error.stack
-
-        throw reporter.createError('Error while executing version control checkout', {
-          original: error,
-          weak: true
-        })
-      }
 
       const state = result.state
 

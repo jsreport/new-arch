@@ -6,29 +6,29 @@ const safeSandbox = require('./render/safeSandbox')
 const createNoneEngine = require('./render/noneEngine')
 const htmlRecipe = require('./render/htmlRecipe')
 const defaultProxyExtend = require('./defaultProxyExtend')
-const { getCallback } = require('./registryUtils')
 const Reporter = require('../shared/reporter')
-const _omit = require('lodash.omit')
 const BlobStorage = require('./blobStorage.js')
 
 class WorkerReporter extends Reporter {
-  constructor (workerData, registry) {
+  constructor (workerData, executeMain) {
     const { options, documentStore, extensionsDefs } = workerData
 
     super(options)
 
-    this._registry = registry
+    this._executeMain = executeMain
     this._initialized = false
     this._documentStoreData = documentStore
     this._requestContextMetaConfigCollection = new Map()
     this._proxyRegistrationFns = []
 
     this.requestModulesCache = new Map()
+    this._workerActions = new Map()
+    this._registerRenderAction()
 
     this.afterTemplatingEnginesExecutedListeners = this.createListenerCollection()
     this.validateRenderListeners = this.createListenerCollection()
 
-    this.logger = createLogger(registry)
+    this.logger = createLogger(this.executeMainAction.bind(this))
 
     this.extensionsManager = ExtensionsManager(this, extensionsDefs)
 
@@ -44,8 +44,8 @@ class WorkerReporter extends Reporter {
 
     await this.extensionsManager.init()
 
-    this.documentStore = DocumentStore(this._documentStoreData, this.executeActionInMain.bind(this))
-    this.blobStorage = BlobStorage(this.executeActionInMain.bind(this))
+    this.documentStore = DocumentStore(this._documentStoreData, this.executeMainAction.bind(this))
+    this.blobStorage = BlobStorage(this.executeMainAction.bind(this))
 
     this.addRequestContextMetaConfig('rootId', { sandboxReadOnly: true })
     this.addRequestContextMetaConfig('id', { sandboxReadOnly: true })
@@ -116,13 +116,8 @@ class WorkerReporter extends Reporter {
     return render(this, req, parentReq)
   }
 
-  executeActionInMain (actionName, data, req) {
-    return getCallback(this._registry, req)({
-      action: actionName,
-      requestRootId: req.context.rootId,
-      req: _omit(req, 'data'),
-      data
-    })
+  executeMainAction (actionName, data, req) {
+    return this._executeMain(actionName, data, req)
   }
 
   async runInSandbox (fn, options = {}) {
@@ -204,6 +199,34 @@ class WorkerReporter extends Reporter {
     const result = await promise
 
     return result
+  }
+
+  registerWorkerAction (actionName, fn) {
+    this._workerActions.set(actionName, fn)
+  }
+
+  async executeWorkerAction (actionName, data, req) {
+    const action = this._workerActions.get(actionName)
+    if (!action) {
+      throw new Error(`Worker action ${actionName} not registered`)
+    }
+    return action(data, req)
+  }
+
+  _registerRenderAction () {
+    this.registerWorkerAction('render', async (data, req) => {
+      const res = await this.render(req)
+
+      const sharedBuf = new SharedArrayBuffer(res.content.byteLength)
+      const buf = Buffer.from(sharedBuf)
+
+      res.content.copy(buf)
+
+      return {
+        meta: res.meta,
+        content: buf
+      }
+    })
   }
 }
 

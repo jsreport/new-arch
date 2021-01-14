@@ -41,6 +41,11 @@ function applyPatches (versions, documentModel) {
 
       const entityState = state.find((e) => e.entityId === c.entityId)
       applyPatch(entityState.entity, parse(c.serializedPatch), c.entitySet, documentModel)
+
+      // _id was changed, reflect it to the state
+      if (entityState.entityId !== entityState.entity._id) {
+        entityState.entityId = entityState.entity._id
+      }
     })
   })
   return state

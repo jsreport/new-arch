@@ -1,17 +1,18 @@
-const { getValues } = require('./registryUtils')
+const util = require('util')
+const getLogMeta = require('../shared/getLogMeta')
 
-module.exports = function createLogger (registry) {
+module.exports = function createLogger (executeMainAction) {
   return {
-    debug: (...args) => logFn('debug', registry, ...args),
-    info: (...args) => logFn('info', registry, ...args),
-    warn: (...args) => logFn('warn', registry, ...args),
-    error: (...args) => logFn('error', registry, ...args)
+    debug: (...args) => logFn('debug', executeMainAction, ...args),
+    info: (...args) => logFn('info', executeMainAction, ...args),
+    warn: (...args) => logFn('warn', executeMainAction, ...args),
+    error: (...args) => logFn('error', executeMainAction, ...args)
   }
 }
 
-function logFn (level, registry, ...args) {
+function logFn (level, executeMainAction, ...args) {
   const lastArg = args.slice(-1)[0]
-  let request
+  let req
 
   if (
     lastArg != null &&
@@ -19,19 +20,28 @@ function logFn (level, registry, ...args) {
     lastArg.context != null &&
     lastArg.context.rootId != null
   ) {
-    request = lastArg
+    req = lastArg
   }
 
-  if (request == null) {
+  if (req == null) {
     return
   }
 
-  const requestValues = getValues(registry, request)
-  const threadLogger = requestValues.logger
+  const msgArgs = args.slice(0, -1)
 
-  if (threadLogger == null) {
-    return
+  const log = {
+    timestamp: new Date().getTime(),
+    level: level,
+    message: util.format.apply(util, msgArgs)
   }
 
-  threadLogger[level](...args)
+  const meta = getLogMeta(level, log.message, lastArg)
+
+  if (meta != null) {
+    log.meta = meta
+  }
+
+  return executeMainAction('log', {
+    ...log
+  }, req)
 }

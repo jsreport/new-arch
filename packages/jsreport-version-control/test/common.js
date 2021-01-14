@@ -81,6 +81,48 @@ module.exports = (jsreport, reload = () => {}) => {
     await jsreport().versionControl.revert(req)
   })
 
+  it('revert should not change modificationDate of entities', async () => {
+    const req = jsreport().Request({})
+
+    const asset = await jsreport().documentStore.collection('assets').insert({
+      name: 'foo.html',
+      content: Buffer.from('1')
+    }, req)
+
+    await jsreport().versionControl.commit('1', undefined, req)
+
+    await jsreport().documentStore.collection('assets').update({
+      name: 'foo.html'
+    }, { $set: { content: Buffer.from('2') } }, req)
+
+    await jsreport().versionControl.revert(req)
+
+    const assetInStore = (await jsreport().documentStore.collection('assets').find({}, req))[0]
+
+    assetInStore.modificationDate.getTime().should.be.eql(asset.modificationDate.getTime())
+  })
+
+  it('revert to _id change should update the entity _id properly', async () => {
+    const req = jsreport().Request({})
+
+    const asset = await jsreport().documentStore.collection('assets').insert({
+      name: 'foo.html',
+      content: Buffer.from('1')
+    }, req)
+
+    await jsreport().versionControl.commit('1', undefined, req)
+
+    await jsreport().documentStore.collection('assets').update({
+      name: 'foo.html'
+    }, { $set: { _id: 'custom' } }, req)
+
+    await jsreport().versionControl.revert(req)
+
+    const assetInStore = (await jsreport().documentStore.collection('assets').find({}, req))[0]
+
+    assetInStore._id.should.be.eql(asset._id)
+  })
+
   it('should deal with windows line endings', async () => {
     const req = jsreport().Request({})
 
@@ -292,6 +334,27 @@ module.exports = (jsreport, reload = () => {}) => {
     await jsreport().documentStore.collection('templates').insert({ name: 'foo', recipe: '1', engine: 'none', chrome: { headerTemplate: 'a' } }, req)
     await jsreport().versionControl.commit('1', undefined, req)
     await jsreport().documentStore.collection('templates').update({ name: 'foo' }, { $set: { chrome: { headerTemplate: 'b' } } }, req)
+    await jsreport().versionControl.commit('2', undefined, req)
+    const diff = await jsreport().versionControl.localChanges(req)
+    diff.should.have.length(0)
+  })
+
+  it('localChanges should return update diff when update to _id', async () => {
+    const req = jsreport().Request({})
+    await jsreport().documentStore.collection('templates').insert({ name: 'foo', recipe: '1', engine: 'none', chrome: { headerTemplate: 'a' } }, req)
+    await jsreport().versionControl.commit('1', undefined, req)
+    await jsreport().documentStore.collection('templates').update({ name: 'foo' }, { $set: { _id: 'custom' } }, req)
+    const diff = await jsreport().versionControl.localChanges(req)
+    diff.should.have.length(1)
+    diff[0].name.should.be.eql('foo')
+    diff[0].operation.should.be.eql('update')
+  })
+
+  it('localChanges should not return diff when the last commit contains entity update by _id', async () => {
+    const req = jsreport().Request({})
+    await jsreport().documentStore.collection('templates').insert({ name: 'foo', recipe: '1', engine: 'none', chrome: { marginTop: '5px' } }, req)
+    await jsreport().versionControl.commit('1', undefined, req)
+    await jsreport().documentStore.collection('templates').update({ name: 'foo' }, { $set: { _id: 'custom' } }, req)
     await jsreport().versionControl.commit('2', undefined, req)
     const diff = await jsreport().versionControl.localChanges(req)
     diff.should.have.length(0)

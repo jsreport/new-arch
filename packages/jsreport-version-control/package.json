@@ -1,74 +1,18 @@
 {
-  "author": {
-    "name": "Jan Blaha"
-  },
-  "bugs": {
-    "url": "https://github.com/jsreport/jsreport-version-control/issues"
-  },
-  "bundleDependencies": false,
-  "dependencies": {
-    "bluebird": "3.5.4",
-    "bytes": "3.0.0",
-    "diff": "3.5.0",
-    "diff-match-patch": "1.0.5",
-    "diff2html": "2.5.0",
-    "isbinaryfile": "3.0.3",
-    "mime-types": "2.1.27",
-    "node.extend.without.arrays": "1.1.6"
-  },
-  "deprecated": false,
+  "name": "jsreport-version-control",
+  "version": "1.6.0",
   "description": "jsreport extension adding support for versioning templates and other entities",
-  "devDependencies": {
-    "babel-eslint": "10.0.1",
-    "eslint": "5.11.0",
-    "eslint-config-standard-jsx": "6.0.2",
-    "eslint-plugin-babel": "5.3.1",
-    "eslint-plugin-standard": "4.0.1",
-    "in-publish": "2.0.1",
-    "jsreport-assets": "1.7.0",
-    "jsreport-authentication": "2.6.1",
-    "jsreport-chrome-pdf": "1.10.0",
-    "jsreport-core": "2.10.1",
-    "jsreport-data": "2.4.0",
-    "jsreport-express": "2.8.1",
-    "jsreport-studio-dev": "1.6.0",
-    "jsreport-templates": "2.4.0",
-    "mocha": "5.2.0",
-    "puppeteer": "2.0.0",
-    "rimraf": "2.6.3",
-    "should": "13.2.3",
-    "standard": "12.0.1",
-    "supertest": "3.4.2"
+  "main": "index.js",
+  "scripts": {
+    "test": "set DEBUG=jsreport && mocha test --timeout 5000 && standard",
+    "start": "jsreport-studio-start --httpPort 5488",
+    "build": "jsreport-studio-build",
+    "prepublish": "in-publish && jsreport-studio-build || not-in-publish"
   },
-  "engines": {
-    "node": ">=8.9.0"
-  },
-  "files": [
-    "lib",
-    "studio",
-    "test",
-    "static",
-    "index.js",
-    "jsreport.config.js"
-  ],
-  "homepage": "https://github.com/jsreport/jsreport-version-control",
   "keywords": [
     "jsreport",
     "pdf"
   ],
-  "license": "MIT",
-  "main": "index.js",
-  "name": "jsreport-version-control",
-  "repository": {
-    "type": "git",
-    "url": "git+ssh://git@github.com/jsreport/jsreport-version-control.git"
-  },
-  "scripts": {
-    "build": "jsreport-studio-build",
-    "prepublish": "in-publish && jsreport-studio-build || not-in-publish",
-    "start": "jsreport-studio-start --httpPort 5488",
-    "test": "set DEBUG=jsreport && mocha test && standard"
-  },
   "standard": {
     "ignore": [
       "main.js"
@@ -80,5 +24,55 @@
       "browser": true
     }
   },
-  "version": "1.6.0"
+  "engines": {
+    "node": ">=14.x.x"
+  },
+  "homepage": "https://github.com/jsreport/jsreport-version-control",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:jsreport/jsreport-version-control.git"
+  },
+  "license": "MIT",
+  "author": "Jan Blaha",
+  "devDependencies": {
+    "babel-eslint": "10.0.1",
+    "eslint": "5.11.0",
+    "eslint-config-standard-jsx": "6.0.2",
+    "eslint-plugin-babel": "5.3.1",
+    "eslint-plugin-standard": "4.0.1",
+    "in-publish": "2.0.1",
+    "jsreport-assets": "file:../jsreport-assets",
+    "jsreport-authentication": "file:../jsreport-authentication",
+    "jsreport-chrome-pdf": "file:../jsreport-chrome-pdf",
+    "jsreport-core": "file:../jsreport-core",
+    "jsreport-data": "file:../jsreport-data",
+    "jsreport-express": "file:../jsreport-express",
+    "jsreport-studio-dev": "1.6.0",
+    "jsreport-templates": "file:../jsreport-templates",
+    "mocha": "5.2.0",
+    "puppeteer": "2.0.0",
+    "rimraf": "2.6.3",
+    "should": "13.2.3",
+    "standard": "12.0.1",
+    "supertest": "3.4.2"
+  },
+  "dependencies": {
+    "bluebird": "3.5.4",
+    "bytes": "3.0.0",
+    "diff": "3.5.0",
+    "diff-match-patch": "1.0.5",
+    "diff2html": "2.5.0",
+    "isbinaryfile": "3.0.3",
+    "lodash.omit": "4.5.0",
+    "mime-types": "2.1.27",
+    "node.extend.without.arrays": "1.1.6"
+  },
+  "files": [
+    "lib",
+    "studio",
+    "test",
+    "static",
+    "index.js",
+    "jsreport.config.js"
+  ]
 }

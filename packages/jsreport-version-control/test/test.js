@@ -3,16 +3,11 @@ const JsReport = require('jsreport-core')
 const common = require('./common')
 const should = require('should')
 
-describe('version control', () => {
+describe.only('version control', () => {
   let jsreport
 
   beforeEach(async () => {
-    jsreport = JsReport({
-      templatingEngines: {
-        strategy: 'in-process',
-        timeout: 9999999
-      }
-    })
+    jsreport = JsReport()
     jsreport.use(require('jsreport-templates')())
     jsreport.use(require('jsreport-data')())
     jsreport.use(require('jsreport-chrome-pdf')())
@@ -24,6 +19,8 @@ describe('version control', () => {
     const old = jsreport.versionControl.commit.bind(jsreport.versionControl)
     jsreport.versionControl.commit = (...args) => Promise.delay(3).then(() => old(...args))
   })
+
+  afterEach(() => jsreport.close())
 
   common(() => jsreport)
 

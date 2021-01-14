@@ -1,0 +1,30 @@
+{
+  "name": "advanced-workers",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "test": "set DEBUG=advanced-workers&&mocha test&&standard"
+  },
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "mocha": "8.2.1",
+    "should": "13.2.3",
+    "standard": "16.0.3"
+  },
+  "dependencies": {
+    "debug": "4.3.1",
+    "piscina": "2.1.0",
+    "serializator": "^1.0.2",
+    "uuid": "8.3.2"
+  },
+  "standard": {
+    "env": {
+      "mocha": true
+    }
+  }
+}

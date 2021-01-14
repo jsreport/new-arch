@@ -6,31 +6,31 @@ const process = require('process')
 module.exports = (reporter, definition) => {
   reporter.initializeListeners.add('test-listeners', () => {
     reporter.beforeRenderListeners.add('listeners', async (req, res) => {
-      const result = await reporter.executeActionInMain('test-beforeRender-listeners', { req, res }, req)
+      const result = await reporter.executeMainAction('test-beforeRender-listeners', { req, res }, req)
       extend(true, req, result.req)
       extend(true, res, result.res)
     })
 
     reporter.afterRenderListeners.add('listeners', async (req, res) => {
-      const result = await reporter.executeActionInMain('test-afterRender-listeners', { req, res }, req)
+      const result = await reporter.executeMainAction('test-afterRender-listeners', { req, res }, req)
       extend(true, req, result.req)
       extend(true, res, result.res)
     })
 
     reporter.validateRenderListeners.add('listeners', async (req, res) => {
-      const result = await reporter.executeActionInMain('test-validateRender-listeners', { req, res }, req)
+      const result = await reporter.executeMainAction('test-validateRender-listeners', { req, res }, req)
       extend(true, req, result.req)
       extend(true, res, result.res)
     })
 
     reporter.afterTemplatingEnginesExecutedListeners.add('listeners', async (req, res) => {
-      const result = await reporter.executeActionInMain('test-afterTemplatingEnginesExecuted-listeners', { req, res }, req)
+      const result = await reporter.executeMainAction('test-afterTemplatingEnginesExecuted-listeners', { req, res }, req)
       extend(true, req, result.req)
       extend(true, res, result.res)
     })
 
     reporter.beforeRenderListeners.insert(0, 'eval-listeners', async (req, res) => {
-      const code = await reporter.executeActionInMain('test-beforeRenderEval', {}, req)
+      const code = await reporter.executeMainAction('test-beforeRenderEval', {}, req)
 
       if (code) {
         const script = new vm.Script(`

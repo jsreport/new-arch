@@ -8,6 +8,7 @@
   },
   "bundleDependencies": false,
   "dependencies": {
+    "advanced-workers": "file:../advanced-workers",
     "@babel/code-frame": "7.10.4",
     "@babel/parser": "7.12.7",
     "@babel/traverse": "7.12.9",

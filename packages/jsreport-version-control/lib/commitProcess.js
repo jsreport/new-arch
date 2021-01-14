@@ -1,8 +1,9 @@
 const Promise = require('bluebird')
+const omit = require('lodash.omit')
 const { applyPatches, createPatch } = require('./patches')
 const { serialize, deepEqual } = require('./customUtils')
 
-module.exports = async function scriptCommitProcessing (inputs, callbackAsync) {
+module.exports = async function scriptCommitProcessing (inputs) {
   const { commitMessage, versions, currentEntities, documentModel, diffLimit } = inputs
 
   try {
@@ -14,6 +15,28 @@ module.exports = async function scriptCommitProcessing (inputs, callbackAsync) {
       let entityPublicKey
 
       if (!entity) {
+        // if not found we try to search by entity path, if we found it, it means that the id changed
+        // and we just show the diff as update
+        const entityByPath = currentEntities[s.entitySet].find((e) => e.__entityPath === s.path)
+
+        if (entityByPath) {
+          return res.concat({
+            operation: 'update',
+            path: entityByPath.__entityPath,
+            entitySet: s.entitySet,
+            entityId: s.entityId,
+            serializedPatch: serialize(createPatch({
+              name: s.path,
+              oldEntity: s.entity,
+              // prevent the __entityPath showing on diff
+              newEntity: omit(entityByPath, ['__entityPath']),
+              entitySet: s.entitySet,
+              documentModel,
+              diffLimit
+            }))
+          })
+        }
+
         entityPublicKey = documentModel.entitySets[s.entitySet].entityTypePublicKey
 
         // entity is not in the new state, it was removed
@@ -41,7 +64,8 @@ module.exports = async function scriptCommitProcessing (inputs, callbackAsync) {
         serializedPatch: serialize(createPatch({
           name: s.path,
           oldEntity: s.entity,
-          newEntity: entity,
+          // prevent the __entityPath showing on diff
+          newEntity: omit(entity, ['__entityPath']),
           entitySet: s.entitySet,
           documentModel,
           diffLimit
@@ -52,13 +76,17 @@ module.exports = async function scriptCommitProcessing (inputs, callbackAsync) {
     // the entities that exist in store and are not in the last state gets insert change operation
     await Promise.each(Object.keys(currentEntities), (es) => {
       return Promise.each(currentEntities[es], async (e) => {
-        if (!lastState.find((s) => s.entityId === e._id && s.entitySet === es)) {
+        const foundById = lastState.find((s) => s.entityId === e._id && s.entitySet === es)
+        const foundByPath = lastState.find((s) => s.path === e.__entityPath && s.entitySet === es)
+
+        if (!foundById && !foundByPath) {
           newCommit.changes.push({
             operation: 'insert',
             path: e.__entityPath,
             entitySet: es,
             entityId: e._id,
-            serializedDoc: serialize(e)
+            // prevent the __entityPath showing on diff
+            serializedDoc: serialize(omit(e, ['__entityPath']))
           })
         }
       })
