@@ -104,7 +104,9 @@ function parseMultipartHttp (parsingProgress, textDecoder, buffer, boundary, pre
 
     rest = chunk.slice(parsingProgress.meta.contentLength)
 
-    if (arrayBufferEqual(rest, finalBoundaryDelimeterBuf)) {
+    if (
+      arrayBufferEqual(rest.buffer, finalBoundaryDelimeterBuf.buffer)
+    ) {
       rest = undefined
     }
 
