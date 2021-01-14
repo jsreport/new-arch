@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import Studio from 'jsreport-studio'
-import styles from './style.scss'
+import styles from './PdfUtilsEditor.css'
 
 const EntityRefSelect = Studio.EntityRefSelect
 

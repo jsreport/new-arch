@@ -3,7 +3,7 @@ import EntityTreeButton from './EntityTreeButton'
 import NewFolderModal from '../Modals/NewFolderModal'
 import getVisibleEntitySetsInTree from '../../helpers/getVisibleEntitySetsInTree'
 import { entitySets, modalHandler } from '../../lib/configuration'
-import style from './EntityTree.scss'
+import style from './EntityTree.css'
 
 class EntityTreeNewButton extends Component {
   constructor (props) {

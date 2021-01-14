@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import styles from './MultiSelect.scss'
+import styles from './MultiSelect.css'
 
 class MultiSelect extends Component {
   constructor (props) {

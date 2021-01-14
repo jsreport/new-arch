@@ -5,7 +5,7 @@ import superagent from 'superagent'
 import Promise from 'bluebird'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
 import binaryExtensions from 'binary-extensions'
-import style from './AssetEditor.scss'
+import style from './AssetEditor.css'
 
 binaryExtensions.push('p12')
 

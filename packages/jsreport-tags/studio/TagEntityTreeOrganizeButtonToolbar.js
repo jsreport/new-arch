@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
 import * as organizeState from './organizeState'
 import emitter from './emitter'
-import styles from './TagEntityTreeButtonToolbar.scss'
+import styles from './TagEntityTreeButtonToolbar.css'
 
 class TagEntityTreeOrganizeButtonToolbar extends Component {
   constructor (props) {

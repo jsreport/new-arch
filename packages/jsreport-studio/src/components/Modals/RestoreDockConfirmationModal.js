@@ -16,7 +16,7 @@ class RestoreDockConfirmationModal extends Component {
   }
 
   componentDidMount () {
-    setTimeout(() => this.cancelRef.focus(), 0)
+    setTimeout(() => this.cancelRef.current && this.cancelRef.current.focus(), 0)
   }
 
   dock () {

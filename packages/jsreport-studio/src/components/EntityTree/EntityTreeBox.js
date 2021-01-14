@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import style from './EntityTreeBox.scss'
+import style from './EntityTreeBox.css'
 
 class EntityTreeBox extends Component {
   render () {

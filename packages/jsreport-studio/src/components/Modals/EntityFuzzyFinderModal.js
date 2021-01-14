@@ -6,7 +6,7 @@ import { selectors as entitiesSelector } from '../../redux/entities'
 import { actions as editorActions } from '../../redux/editor'
 import { resolveEntityTreeIconStyle } from '../EntityTree/utils'
 import { entitySets } from '../../lib/configuration'
-import styles from './EntityFuzzyFinderModal.scss'
+import styles from './EntityFuzzyFinderModal.css'
 
 const { InputFilter, FilterResults } = fuzzyFilterFactory()
 

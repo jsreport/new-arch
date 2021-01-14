@@ -22,7 +22,7 @@
     "jsreport-core": "file:../jsreport-core",
     "jsreport-express": "file:../jsreport-express",
     "jsreport-scripts": "file:../jsreport-scripts",
-    "jsreport-studio-dev": "1.6.0",
+    "jsreport-studio-dev": "file:../jsreport-studio-dev",
     "mocha": "5.2.0",
     "should": "13.2.3",
     "standard": "11.0.1",

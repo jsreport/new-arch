@@ -3,7 +3,7 @@ import Studio, { Popover } from 'jsreport-studio'
 import * as organizeState from './organizeState'
 import emitter from './emitter'
 import TagEntityTreeFilterByTags from './TagEntityTreeFilterByTags'
-import styles from './TagEntityTreeButtonToolbar.scss'
+import styles from './TagEntityTreeButtonToolbar.css'
 
 class TagEntityTreeFilterButtonToolbar extends Component {
   constructor (props) {

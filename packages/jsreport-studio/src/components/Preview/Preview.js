@@ -8,7 +8,7 @@ import {
   previewFrameChangeHandler,
   previewConfigurationHandler
 } from '../../lib/configuration.js'
-import styles from './Preview.scss'
+import styles from './Preview.css'
 
 class Preview extends Component {
   static instances = {}

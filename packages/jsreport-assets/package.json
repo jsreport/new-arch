@@ -55,7 +55,7 @@
     "jsreport-express": "file:../jsreport-express",
     "jsreport-jsrender": "file:../jsreport-jsrender",
     "jsreport-scripts": "file:../jsreport-scripts",
-    "jsreport-studio-dev": "1.6.0",
+    "jsreport-studio-dev": "file:../jsreport-studio-dev",
     "jsreport-templates": "file:../jsreport-templates",
     "mocha": "8.2.1",
     "should": "13.2.3",

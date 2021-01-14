@@ -1,6 +1,6 @@
 import ReactList from 'react-list'
-import style from './ReportEditor.scss'
-import React, { Component} from 'react'
+import style from './ReportEditor.css'
+import React, { Component } from 'react'
 import Studio from 'jsreport-studio'
 
 let _instance

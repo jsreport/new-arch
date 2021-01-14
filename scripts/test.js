@@ -22,6 +22,7 @@ const jsreportPackages = [
   'jsreport-pptx',
   'jsreport-reports',
   'jsreport-scripts',
+  'jsreport-studio-dev',
   'jsreport-studio',
   'jsreport-scheduling',
   'jsreport-templates',
@@ -50,10 +51,22 @@ for (const pd of jsreportPackages) {
 }
 
 for (const pd of jsreportPackages) {
+  if (pd === 'jsreport-studio-dev') {
+    continue
+  }
+
   console.log('npm test in ' + path.join(__dirname, '../', 'packages', pd))
 
-  execSync('npm test', {
+  const opts = {
     cwd: path.join(__dirname, '../', 'packages', pd),
     stdio: 'inherit'
-  })
+  }
+
+  if (pd === 'jsreport-studio') {
+    opts.env = Object.assign({}, process.env, {
+      NODE_PATH: path.join(__dirname, '../', 'packages/jsreport-studio-dev/node_modules')
+    })
+  }
+
+  execSync('npm test', opts)
 }

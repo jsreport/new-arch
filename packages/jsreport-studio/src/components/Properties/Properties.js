@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types'
 import React, { Component } from 'react'
-import style from './Properties.scss'
+import style from './Properties.css'
 import { entitySets, propertiesComponents } from '../../lib/configuration.js'
 
 class Properties extends Component {

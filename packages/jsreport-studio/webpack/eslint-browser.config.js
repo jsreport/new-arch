@@ -68,7 +68,8 @@ module.exports = {
     extensions: ['.json', '.js'],
     modules: [
       'node_modules',
-      path.join(__dirname, '../node_modules')
+      path.join(__dirname, '../node_modules'),
+      path.join(__dirname, '../node_modules/jsreport-studio-dev/node_modules')
     ]
   },
   resolveLoader: {

@@ -6,7 +6,7 @@ import NodeSelect from './NodeSelect'
 import { NodeContextMenu } from './ContextMenu'
 import { renderEntityTreeItemComponents, resolveEntityTreeIconStyle, getEntityTypeNameAttr } from './utils'
 import { entitySets } from '../../lib/configuration'
-import styles from './EntityTree.scss'
+import styles from './EntityTree.css'
 
 const EntityNode = ({ id, titleId, node, depth, isDragging, connectDragging }) => {
   const {

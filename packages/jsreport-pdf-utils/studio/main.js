@@ -226,7 +226,8 @@ var Properties = function (_Component) {
             type: 'password', value: password,
             onChange: function onChange(v) {
               return changePdfSign({ passwordRaw: v.target.value });
-            } })
+            }
+          })
         )
       );
     }
@@ -502,9 +503,9 @@ var _jsreportStudio = __webpack_require__(1);
 
 var _jsreportStudio2 = _interopRequireDefault(_jsreportStudio);
 
-var _style = __webpack_require__(8);
+var _PdfUtilsEditor = __webpack_require__(8);
 
-var _style2 = _interopRequireDefault(_style);
+var _PdfUtilsEditor2 = _interopRequireDefault(_PdfUtilsEditor);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -678,8 +679,8 @@ var PdfUtilsEditor = function (_Component) {
               value: operation.type,
               onChange: function onChange(v) {
                 return _this2.updateOperation(entity, index, { type: v.target.value });
-              } },
-            '>',
+              }
+            },
             _react2.default.createElement(
               'option',
               { value: 'merge' },
@@ -767,7 +768,7 @@ var PdfUtilsEditor = function (_Component) {
 
       return _react2.default.createElement(
         'table',
-        { className: _style2.default.operationTable },
+        { className: _PdfUtilsEditor2.default.operationTable },
         _react2.default.createElement(
           'thead',
           null,
@@ -842,14 +843,14 @@ var PdfUtilsEditor = function (_Component) {
         ),
         _react2.default.createElement(
           'div',
-          { className: _style2.default.tabContainer },
+          { className: _PdfUtilsEditor2.default.tabContainer },
           _react2.default.createElement(
             'ul',
-            { className: _style2.default.tabTitles },
+            { className: _PdfUtilsEditor2.default.tabTitles },
             _react2.default.createElement(
               'li',
               {
-                className: _style2.default.tabTitle + ' ' + (activeTab === 'operations' ? _style2.default.active : ''),
+                className: _PdfUtilsEditor2.default.tabTitle + ' ' + (activeTab === 'operations' ? _PdfUtilsEditor2.default.active : ''),
                 onClick: function onClick() {
                   return _this4.setState({ activeTab: 'operations' });
                 }
@@ -859,7 +860,7 @@ var PdfUtilsEditor = function (_Component) {
             _react2.default.createElement(
               'li',
               {
-                className: _style2.default.tabTitle + ' ' + (activeTab === 'meta' ? _style2.default.active : ''),
+                className: _PdfUtilsEditor2.default.tabTitle + ' ' + (activeTab === 'meta' ? _PdfUtilsEditor2.default.active : ''),
                 onClick: function onClick() {
                   return _this4.setState({ activeTab: 'meta' });
                 }
@@ -869,7 +870,7 @@ var PdfUtilsEditor = function (_Component) {
             _react2.default.createElement(
               'li',
               {
-                className: _style2.default.tabTitle + ' ' + (activeTab === 'password' ? _style2.default.active : ''),
+                className: _PdfUtilsEditor2.default.tabTitle + ' ' + (activeTab === 'password' ? _PdfUtilsEditor2.default.active : ''),
                 onClick: function onClick() {
                   return _this4.setState({ activeTab: 'password' });
                 }
@@ -879,7 +880,7 @@ var PdfUtilsEditor = function (_Component) {
             _react2.default.createElement(
               'li',
               {
-                className: _style2.default.tabTitle + ' ' + (activeTab === 'sign' ? _style2.default.active : ''),
+                className: _PdfUtilsEditor2.default.tabTitle + ' ' + (activeTab === 'sign' ? _PdfUtilsEditor2.default.active : ''),
                 onClick: function onClick() {
                   return _this4.setState({ activeTab: 'sign' });
                 }
@@ -889,7 +890,7 @@ var PdfUtilsEditor = function (_Component) {
           ),
           _react2.default.createElement(
             'div',
-            { className: _style2.default.tabPanel + ' ' + (activeTab === 'operations' ? _style2.default.active : '') },
+            { className: _PdfUtilsEditor2.default.tabPanel + ' ' + (activeTab === 'operations' ? _PdfUtilsEditor2.default.active : '') },
             _react2.default.createElement(
               'p',
               { style: { marginTop: '1rem' } },
@@ -920,7 +921,7 @@ var PdfUtilsEditor = function (_Component) {
           ),
           _react2.default.createElement(
             'div',
-            { className: _style2.default.tabPanel + ' ' + (activeTab === 'meta' ? _style2.default.active : '') },
+            { className: _PdfUtilsEditor2.default.tabPanel + ' ' + (activeTab === 'meta' ? _PdfUtilsEditor2.default.active : '') },
             _react2.default.createElement(
               'p',
               { style: { marginTop: '1rem' } },
@@ -1005,7 +1006,7 @@ var PdfUtilsEditor = function (_Component) {
           ),
           _react2.default.createElement(
             'div',
-            { className: _style2.default.tabPanel + ' ' + (activeTab === 'password' ? _style2.default.active : '') },
+            { className: _PdfUtilsEditor2.default.tabPanel + ' ' + (activeTab === 'password' ? _PdfUtilsEditor2.default.active : '') },
             _react2.default.createElement(
               'p',
               { style: { marginTop: '1rem' } },
@@ -1228,7 +1229,7 @@ var PdfUtilsEditor = function (_Component) {
           ),
           _react2.default.createElement(
             'div',
-            { className: _style2.default.tabPanel + ' ' + (activeTab === 'sign' ? _style2.default.active : '') },
+            { className: _PdfUtilsEditor2.default.tabPanel + ' ' + (activeTab === 'sign' ? _PdfUtilsEditor2.default.active : '') },
             _react2.default.createElement(
               'p',
               { style: { marginTop: '1rem' } },
@@ -1285,7 +1286,7 @@ exports.default = PdfUtilsEditor;
 /***/ (function(module, exports, __webpack_require__) {
 
 // extracted by mini-css-extract-plugin
-module.exports = {"operationTable":"x-pdf-utils-style-operationTable","tabContainer":"x-pdf-utils-style-tabContainer","tabTitles":"x-pdf-utils-style-tabTitles","tabTitle":"x-pdf-utils-style-tabTitle","active":"x-pdf-utils-style-active","tabPanel":"x-pdf-utils-style-tabPanel"};
+module.exports = {"operationTable":"x-pdf-utils-PdfUtilsEditor-operationTable","tabContainer":"x-pdf-utils-PdfUtilsEditor-tabContainer","tabTitles":"x-pdf-utils-PdfUtilsEditor-tabTitles","tabTitle":"x-pdf-utils-PdfUtilsEditor-tabTitle","active":"x-pdf-utils-PdfUtilsEditor-active","tabPanel":"x-pdf-utils-PdfUtilsEditor-tabPanel"};
 
 /***/ })
 /******/ ]);

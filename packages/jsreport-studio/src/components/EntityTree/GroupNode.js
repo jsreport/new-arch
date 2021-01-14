@@ -5,7 +5,7 @@ import NodeSelect from './NodeSelect'
 import { NodeContextMenu } from './ContextMenu'
 import { renderEntityTreeItemComponents, resolveEntityTreeIconStyle, checkIsGroupEntityNode } from './utils'
 import { entitySets } from '../../lib/configuration'
-import styles from './EntityTree.scss'
+import styles from './EntityTree.css'
 
 const GroupNode = ({ id, titleId, node, depth, draggable, isDragging, connectDragging, renderTree }) => {
   const {

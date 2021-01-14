@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import styles from './FileInput.scss'
+import styles from './FileInput.css'
 
 class FileInput extends Component {
   constructor (props) {

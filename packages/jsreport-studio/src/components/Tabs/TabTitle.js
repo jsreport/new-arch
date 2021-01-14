@@ -1,6 +1,6 @@
 import React, {Component} from 'react'
 import { tabTitleComponents, entitySets } from '../../lib/configuration.js'
-import style from './Tabs.scss'
+import style from './Tabs.css'
 
 class TabTitle extends Component {
   constructor (props) {

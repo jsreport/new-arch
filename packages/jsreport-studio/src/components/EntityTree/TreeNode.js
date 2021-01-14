@@ -9,7 +9,7 @@ import GroupNode from './GroupNode'
 import EntityNode from './EntityNode'
 import ENTITY_NODE_DRAG_TYPE from './nodeDragType'
 import { checkIsGroupNode, checkIsGroupEntityNode, getNodeDOMId, getNodeTitleDOMId } from './utils'
-import styles from './EntityTree.scss'
+import styles from './EntityTree.css'
 
 const TreeNode = ({ node, depth, draggable, renderTree }) => {
   const { selectable, isNodeCollapsed, onNodeDragOver, onNodeCollapse } = useContext(EntityTreeContext)

@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types'
 import React from 'react'
-import style from './Popover.scss'
+import style from './Popover.css'
 
 const Popover = (props) => {
   const {

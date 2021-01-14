@@ -18,7 +18,7 @@
     "eslint-plugin-babel": "5.1.0",
     "in-publish": "2.0.1",
     "jsreport-core": "file:../jsreport-core",
-    "jsreport-studio-dev": "1.6.0",
+    "jsreport-studio-dev": "file:../jsreport-studio-dev",
     "mocha": "8.2.1",
     "should": "13.2.3",
     "standard": "16.0.3"

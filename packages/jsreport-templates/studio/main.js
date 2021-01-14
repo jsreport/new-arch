@@ -108,7 +108,7 @@ var linkModal = function linkModal(props) {
     ),
     React.createElement(
       'a',
-      { href: _jsreportStudio2.default.rootUrl + '/templates/' + props.options.entity.shortid, target: '_blank' },
+      { href: _jsreportStudio2.default.rootUrl + '/templates/' + props.options.entity.shortid, target: '_blank', rel: 'noreferrer' },
       _jsreportStudio2.default.rootUrl + '/templates/' + props.options.entity.shortid
     )
   );
@@ -119,7 +119,7 @@ _jsreportStudio2.default.addToolbarComponent(function (props) {
     return React.createElement('span', null);
   }
 
-  if (_jsreportStudio2.default.extensions['templates'].options['studio-link-button-visibility'] === false) {
+  if (_jsreportStudio2.default.extensions.templates.options['studio-link-button-visibility'] === false) {
     return React.createElement('span', null);
   }
 

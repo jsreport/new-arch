@@ -1,31 +1,12 @@
-@import '../node_modules/jsreport-import-export/studio/main.css';
+
+
+@import '../../jsreport-import-export/studio/main.css';
 
 
 
 
 
+@import '../../jsreport-pdf-utils/studio/main.css';
 
-
-@import '../node_modules/jsreport-tags/studio/main.css';
-
-
-
-
-
-@import '../node_modules/jsreport-version-control/studio/main.css';
-
-
-
-@import '../node_modules/jsreport-pdf-utils/studio/main.css';
-
-
-@import '../node_modules/jsreport-reports/studio/main.css';
-
-
-@import '../node_modules/jsreport-scheduling/studio/main.css';
-
-
-@import '../node_modules/jsreport-assets/studio/main.css';
-
-
+@import '../../jsreport-assets/studio/main.css';
 
