@@ -3,7 +3,6 @@
  *
  * Extension allowing to add custom javascript hooks into the rendering process.
  */
-const Promise = require('bluebird')
 const executeScript = require('./executeScript')
 
 module.exports = function (reporter, definition) {
@@ -31,11 +30,16 @@ class Scripts {
   async handleBeforeRender (request, response) {
     request.context._parsedScripts = []
     const scripts = await this._findScripts(request)
-    return Promise.mapSeries(scripts, (script) => this._runScript(request, response, script, 'beforeRender'))
+
+    for (const script of scripts) {
+      await this._runScript(request, response, script, 'beforeRender')
+    }
   }
 
-  handleAfterRender (request, response) {
-    return Promise.mapSeries(request.context._parsedScripts, (script) => this._runScript(request, response, script, 'afterRender'))
+  async handleAfterRender (request, response) {
+    for (const script of request.context._parsedScripts) {
+      await this._runScript(request, response, script, 'afterRender')
+    }
   }
 
   async _runScript (request, response, script, method) {
