@@ -29,7 +29,7 @@
     "mocha": "5.0.1",
     "should": "13.2.1",
     "standard": "11.0.0",
-    "jsreport-core": "file:../jsreport-core"
+    "jsreport-core": "2.10.1"
   },
   "author": "Jan Blaha",
   "engines": {

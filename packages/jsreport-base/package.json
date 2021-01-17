@@ -11,7 +11,7 @@
   "description": "jsreport extension automatically adding html base tag",
   "devDependencies": {
     "eslint": "4.19.1",
-    "jsreport-core": "file:../jsreport-core",
+    "jsreport-core": "2.10.1",
     "mocha": "5.1.1",
     "should": "13.2.1",
     "standard": "11.0.1"

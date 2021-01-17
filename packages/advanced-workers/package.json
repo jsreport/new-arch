@@ -19,7 +19,7 @@
   "dependencies": {
     "debug": "4.3.1",
     "piscina": "2.1.0",
-    "serializator": "^1.0.2",
+    "serializator": "1.0.2",
     "uuid": "8.3.2"
   },
   "standard": {
