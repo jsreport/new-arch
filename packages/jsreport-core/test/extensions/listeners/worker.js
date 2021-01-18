@@ -29,22 +29,39 @@ module.exports = (reporter, definition) => {
       extend(true, res, result.res)
     })
 
-    reporter.beforeRenderListeners.insert(0, 'eval-listeners', async (req, res) => {
-      const code = await reporter.executeMainAction('test-beforeRenderEval', {}, req)
-
-      if (code) {
-        const script = new vm.Script(`
+    const evalInWorker = (code, req, res) => {
+      const script = new vm.Script(`
           ;(function () {
             return ${code}
           })()
-       `)
+      `)
 
-        script.runInThisContext({
-          displayErrors: true
-        })(req, res, {
-          require: (m) => require(path.join(process.cwd(), 'node_modules', m)),
-          reporter
-        })
+      return script.runInThisContext({
+        displayErrors: true
+      })(req, res, {
+        require: (m) => {
+          try {
+            return require(path.join(process.cwd(), 'node_modules', m))
+          } catch (e) {
+            // hack, make it working in monorepo as well as normal extension
+            return require(path.join(process.cwd(), '../../node_modules', m))
+          }
+        },
+        reporter
+      })
+    }
+
+    reporter.afterRenderListeners.add('eval-listeners', async (req, res) => {
+      const code = await reporter.executeMainAction('test-afterRenderEval', {}, req)
+      if (code) {
+        return evalInWorker(code, req, res)
+      }
+    })
+
+    reporter.beforeRenderListeners.insert(0, 'eval-listeners', async (req, res) => {
+      const code = await reporter.executeMainAction('test-beforeRenderEval', {}, req)
+      if (code) {
+        return evalInWorker(code, req, res)
       }
     })
   })

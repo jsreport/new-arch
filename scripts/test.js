@@ -1,5 +1,3 @@
-const fs = require('fs')
-const path = require('path')
 const execSync = require('child_process').execSync
 
 const jsreportPackages = [
@@ -22,7 +20,6 @@ const jsreportPackages = [
   'jsreport-pptx',
   'jsreport-reports',
   'jsreport-scripts',
-  'jsreport-studio-dev',
   'jsreport-studio',
   'jsreport-scheduling',
   'jsreport-templates',
@@ -30,43 +27,9 @@ const jsreportPackages = [
   'jsreport-version-control',
   'jsreport-xlsx'
 ]
-// fs.readdirSync(path.join(__dirname, '../', 'packages'))
 
 for (const pd of jsreportPackages) {
-  fs.rmdirSync(path.join(__dirname, '../', 'packages', pd, 'node_modules'), { recursive: true })
-  if (fs.existsSync(path.join(__dirname, '../', 'packages', pd, 'package-lock.json'))) {
-    fs.unlinkSync(path.join(__dirname, '../', 'packages', pd, 'package-lock.json'))
-  }
-
-  const install = () => execSync('npm i', {
-    cwd: path.join(__dirname, '../', 'packages', pd),
+  execSync(`yarn workspace ${pd} test`, {
     stdio: 'inherit'
   })
-
-  try {
-    install()
-  } catch (e) {
-    install()
-  }
-}
-
-for (const pd of jsreportPackages) {
-  if (pd === 'jsreport-studio-dev') {
-    continue
-  }
-
-  console.log('npm test in ' + path.join(__dirname, '../', 'packages', pd))
-
-  const opts = {
-    cwd: path.join(__dirname, '../', 'packages', pd),
-    stdio: 'inherit'
-  }
-
-  if (pd === 'jsreport-studio') {
-    opts.env = Object.assign({}, process.env, {
-      NODE_PATH: path.join(__dirname, '../', 'packages/jsreport-studio-dev/node_modules')
-    })
-  }
-
-  execSync('npm test', opts)
 }

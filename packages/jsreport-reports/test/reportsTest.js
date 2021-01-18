@@ -1,6 +1,6 @@
 const supertest = require('supertest')
 const jsreport = require('jsreport-core')
-require('should')
+const should = require('should')
 
 describe('with reports extension', () => {
   let reporter
@@ -216,17 +216,9 @@ describe('with reports extension', () => {
   })
 
   it('nested requests without save:true should not produce reports', async () => {
-    await reporter.tests.beforeRenderListeners.add('test', async (req, res) => {
-      if (req.template.content === 'main') {
-        await reporter.render({
-          template: {
-            engine: 'none',
-            content: 'nested',
-            name: 'name',
-            recipe: 'html'
-          }
-        }, req)
-      }
+    let optionsInNested
+    reporter.tests.afterRenderListeners.add('test', (req, res) => {
+      optionsInNested = req.options.reports
     })
 
     await reporter.render({
@@ -243,11 +235,7 @@ describe('with reports extension', () => {
       }
     })
 
-    const reports = await reporter.documentStore.collection('reports').find({})
-    reports.should.have.length(1)
-
-    const blob = await streamToString(await reporter.blobStorage.read(reports[0].blobName))
-    blob.should.be.eql('main')
+    should(optionsInNested).be.undefined()
   })
 
   it('nested requests with save true should also produce reports', async () => {

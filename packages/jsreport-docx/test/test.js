@@ -1515,7 +1515,7 @@ describe('docx', () => {
         })
     })
 
-    await reporter
+    return reporter
       .render({
         template: {
           engine: 'handlebars',

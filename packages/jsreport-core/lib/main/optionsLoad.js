@@ -77,7 +77,7 @@ async function optionsLoad ({
   options.store = options.store || { provider: 'memory' }
 
   options.templatingEngines = options.templatingEngines || {}
-  options.templatingEngines.numberOfWorkers = options.templatingEngines.numberOfWorkers || 4
+  options.templatingEngines.numberOfWorkers = options.templatingEngines.numberOfWorkers || 2
 
   if (options.allowLocalFilesAccess === true) {
     options.templatingEngines.allowedModules = '*'

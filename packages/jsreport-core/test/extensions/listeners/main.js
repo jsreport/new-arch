@@ -38,4 +38,15 @@ module.exports = (reporter, definition) => {
     }
     return beforeRenderEval.toString()
   })
+
+  let afterRenderEval
+  reporter.tests.afterRenderEval = (fn) => {
+    afterRenderEval = fn
+  }
+  reporter.registerMainAction('test-afterRenderEval', async (data, req) => {
+    if (afterRenderEval == null) {
+      return
+    }
+    return afterRenderEval.toString()
+  })
 }
