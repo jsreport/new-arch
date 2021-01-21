@@ -1,8 +1,8 @@
 import React, {Component} from 'react'
-import FileInput from './FileInput'
 import Studio from 'jsreport-studio'
 
 const EntityRefSelect = Studio.EntityRefSelect
+const FileInput = Studio.FileInput
 
 class ImportFinishedModal extends Component {
   componentDidMount () {

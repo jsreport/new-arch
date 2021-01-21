@@ -77,6 +77,13 @@ reactTransform[1].transforms.push({
 })
 
 module.exports = (extensions, extensionsInNormalMode) => {
+  const extensionsInDevMode = extensions.filter((e) => {
+    return (
+      extensionsInNormalMode.find((eN) => eN.directory === e.directory) == null &&
+      fs.existsSync(path.join(e.directory, 'studio/main_dev.js'))
+    )
+  })
+
   return {
     mode: 'development',
     devtool: 'eval-source-map',
@@ -169,7 +176,7 @@ module.exports = (extensions, extensionsInNormalMode) => {
         {
           test: /\.css$/,
           exclude: [/.*theme.*\.css/, /extensions_dev\.css$/, (input) => {
-            return input.startsWith(projectSrcAbsolutePath)
+            return input.startsWith(projectSrcAbsolutePath) || extensionsInDevMode.find((e) => input.startsWith(`${e.directory}/`)) != null
           }],
           use: ['style-loader', 'css-loader']
         },
@@ -228,7 +235,7 @@ module.exports = (extensions, extensionsInNormalMode) => {
         {
           test: /\.css$/,
           include: (input) => {
-            return input.startsWith(projectSrcAbsolutePath)
+            return input.startsWith(projectSrcAbsolutePath) || extensionsInDevMode.find((e) => input.startsWith(`${e.directory}/`)) != null
           },
           exclude: [/.*theme.*/, /extensions_dev\.css$/],
           use: [
@@ -246,14 +253,6 @@ module.exports = (extensions, extensionsInNormalMode) => {
                 sourceMap: true,
                 getLocalIdent: (context, localIdentName, localName, options) => {
                   const modulePath = context.resource
-
-                  const extensionsInDevMode = extensions.filter((e) => {
-                    return (
-                      extensionsInNormalMode.find((eN) => eN.directory === e.directory) == null &&
-                      fs.existsSync(path.join(e.directory, 'studio/main_dev.js'))
-                    )
-                  })
-
                   let devExtension
 
                   for (let key in extensionsInDevMode) {

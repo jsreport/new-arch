@@ -1098,6 +1098,10 @@ var FileInput = function (_Component) {
         placeholderText = 'select file...';
       }
 
+      debugger;
+
+      console.log(_FileInput2.default);
+
       return _react2.default.createElement(
         'div',
         {
