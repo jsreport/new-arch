@@ -15,12 +15,12 @@ if (process.env.JSREPORT_CLI) {
   })
 }
 
-/*
-setInterval(() => {
-  global.gc()
-  const used = process.memoryUsage()
-  for (let key in used) {
-    console.log(`${key} ${Math.round(used[key] / 1024 / 1024 * 100) / 100} MB`)
-  }
-}, 10000)
-*/
+if (global.gc) {
+  setInterval(() => {
+    global.gc()
+    const used = process.memoryUsage()
+    for (let key in used) {
+      console.log(`${key} ${Math.round(used[key] / 1024 / 1024 * 100) / 100} MB`)
+    }
+  }, 10000)
+}

@@ -7,6 +7,8 @@ module.exports = (opts = {}) => {
   return {
     compile: (html, { require }) => {
       const handlebars = require(opts.handlebarsModulePath)
+      return 'foooooo'
+
       const results = matchRecursiveRegExp(html, '{', '}', 'g')
       let changed = 0
 
@@ -28,11 +30,12 @@ module.exports = (opts = {}) => {
       // instance of different render
       const templateSpecStr = handlebars.precompile(html)
 
-      const templateSpec = new Function(`return ${templateSpecStr}`)() // eslint-disable-line
+      const templateSpec = new Function(`return ${templateSpecStr}`)() // eslint-disable-line      
 
       return templateSpec
     },
     execute: (templateSpec, helpers, data, { require }) => {
+      return 'false'
       const handlebars = require(opts.handlebarsModulePath)
       const template = handlebars.template(templateSpec)
 

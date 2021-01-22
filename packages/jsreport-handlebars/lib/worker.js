@@ -6,7 +6,7 @@ module.exports = (reporter, definition) => {
   const hbRawPath = definition.options.handlebarsModulePath != null ? definition.options.handlebarsModulePath : require.resolve('handlebars')
   const hbPath = path.join(path.dirname(hbRawPath), '../')
 
-  reporter.options.templatingEngines.nativeModules.push({
+  /* reporter.options.templatingEngines.nativeModules.push({
     globalVariableName: 'handlebars',
     module: hbPath
   })
@@ -20,7 +20,7 @@ module.exports = (reporter, definition) => {
   reporter.options.templatingEngines.modules.push({
     alias: 'handlebars',
     path: hbPath
-  })
+  }) */
 
   const { compile, execute } = createEngine({
     handlebarsModulePath: hbPath
