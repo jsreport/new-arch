@@ -9,6 +9,7 @@ import Startup from './containers/Startup/Startup.js'
 import AboutModal from './components/Modals/AboutModal'
 import ThemeModal from './components/Modals/ThemeModal'
 import ApiModal from './components/Modals/ApiModal'
+import NewTemplateModal from './components/Modals/NewTemplateModal'
 import NewFolderModal from './components/Modals/NewFolderModal'
 import ConcurrentUpdateErrorModal from './components/Modals/ConcurrentUpdateErrorModal'
 import { openTab } from './redux/editor/actions'
@@ -41,7 +42,8 @@ export default () => {
     visibleName: 'template',
     nameAttribute: 'name',
     referenceAttributes: ['name', 'recipe', 'shortid'],
-    entityTreePosition: 1000
+    entityTreePosition: 1000,
+    onNew: (options) => configuration.modalHandler.open(NewTemplateModal, options)
   }
 
   configuration.entitySets.folders = {

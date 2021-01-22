@@ -11,7 +11,7 @@ class FileInput extends Component {
   }
 
   handleOpen () {
-    this.inputFileRef.current.dispatchEvent(new MouseEvent('click', {
+    this.inputFileRef.current.dispatchEvent(new window.MouseEvent('click', {
       'view': window,
       'bubbles': false,
       'cancelable': true
@@ -76,7 +76,6 @@ class FileInput extends Component {
   }
 
   // Polyfills DOM4 MouseEvent
-
   var MouseEvent = function (eventType, params) {
     params = params || { bubbles: false, cancelable: false }
     var mouseEvent = document.createEvent('MouseEvent')
@@ -85,7 +84,7 @@ class FileInput extends Component {
     return mouseEvent
   }
 
-  MouseEvent.prototype = Event.prototype
+  MouseEvent.prototype = window.Event.prototype
 
   window.MouseEvent = MouseEvent
 })(window)

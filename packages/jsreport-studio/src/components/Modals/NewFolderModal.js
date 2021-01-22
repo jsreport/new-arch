@@ -129,7 +129,7 @@ class NewFolderModal extends Component {
         <span style={{ color: 'red', display: error ? 'block' : 'none' }}>{error}</span>
       </div>
       <div className='button-bar'>
-        <button className='button confirmation' disabled={processing} onClick={() => this.submit()}>ok</button>
+        <button className='button confirmation' disabled={processing} onClick={() => this.submit()}>Ok</button>
       </div>
     </div>
   }

@@ -108,8 +108,13 @@ export function openNewTab ({ entitySet, entity, name }) {
       })
 
       if (entitySet === 'templates') {
-        newEntity.recipe = recipes.includes('chrome-pdf') ? 'chrome-pdf' : 'html'
-        newEntity.engine = engines.includes('handlebars') ? 'handlebars' : engines[0]
+        if (newEntity.recipe == null) {
+          newEntity.recipe = recipes.includes('chrome-pdf') ? 'chrome-pdf' : 'html'
+        }
+
+        if (newEntity.engine == null) {
+          newEntity.engine = engines.includes('handlebars') ? 'handlebars' : engines[0]
+        }
       }
     }
 
@@ -124,6 +129,8 @@ export function openNewTab ({ entitySet, entity, name }) {
         type: 'entity'
       }
     })
+
+    return newEntity
   }
 }
 

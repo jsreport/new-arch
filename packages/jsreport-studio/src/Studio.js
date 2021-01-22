@@ -11,6 +11,7 @@ import api, { methods } from './helpers/api.js'
 import { getCurrentTheme, setCurrentTheme } from './helpers/theme.js'
 import SplitPane from './components/common/SplitPane/SplitPane.js'
 import Popover from './components/common/Popover/index.js'
+import FileInput from './components/common/FileInput/FileInput.js'
 import MultiSelect from './components/common/MultiSelect/index.js'
 import EntityRefSelect from './components/common/EntityRefSelect/index.js'
 import TextEditor from './components/Editor/TextEditor.js'
@@ -697,6 +698,14 @@ class Studio {
    */
   get MultiSelect () {
     return MultiSelect
+  }
+
+  /**
+   * Component used for file upload
+   * @returns {MultiSelect}
+   */
+  get FileInput () {
+    return FileInput
   }
 
   /**
