@@ -42,8 +42,7 @@ class WorkersManager {
       filename: path.join(__dirname, './worker.js'),
       minThreads: this.options.numberOfWorkers,
       maxThreads: this.options.numberOfWorkers,
-      idleTimeout: Infinity,
-      useAtomics: false
+      idleTimeout: Infinity
     })
 
     // NOTE: it is important to handle this error event to have thread restart working properly
@@ -239,8 +238,6 @@ class WorkersManager {
       }
     }, [managerPort], executionController.abortEmitter)
 
-    workerPort.close()
-    managerPort.close()
     return result
   }
 }

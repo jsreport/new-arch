@@ -48,8 +48,6 @@ async function init () {
     } finally {
       callbacksMap.delete(rid)
       managerPort.close()
-      // TODO, just for now, we will need to find way how to wait for all logs to finish
-      delete callbackRequests[rid]
     }
   }
 }
@@ -92,15 +90,16 @@ function callback (managerPort, rid, callbackUserData) {
       const execution = callbackRequests[rid].executions[systemData.cid]
 
       delete callbackRequests[rid].executions[systemData.cid]
-      if (Object.keys(callbackRequests[rid].executions).length === 0) {
-        delete callbackRequests[rid]
-      }
 
       if (systemData.error) {
         execution.reject(systemData.error)
       } else {
         convertUint8ArrayProperties(userData)
         execution.resolve(userData)
+      }
+
+      if (Object.keys(callbackRequests[rid].executions).length === 0) {
+        delete callbackRequests[rid]
       }
     }
   }

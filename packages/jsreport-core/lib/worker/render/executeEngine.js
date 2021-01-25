@@ -9,8 +9,8 @@ const util = require('util')
 const LRU = require('lru-cache')
 const extend = require('node.extend.without.arrays')
 const { nanoid } = require('nanoid')
-// const parser = require('@babel/parser')
-// const traverse = require('@babel/traverse').default
+const parser = require('@babel/parser')
+const traverse = require('@babel/traverse').default
 const asyncReplace = util.promisify(require('async-replace'))
 const resolveReferences = require('./resolveReferences.js')
 let compiledCache
@@ -45,13 +45,13 @@ function executeEngine (reporter, inputs, onLog, done) {
   const compileEngine = inputs.engine.compile
   const executeEngine = inputs.engine.execute
 
-  const isFromCache = true
+  let isFromCache = true
 
   // wrapping with caching
   const engine = (template, helpers, data, opts) => {
     const key = template + ':' + inputs.engine.name
 
-    /* if (!compiledCache.get(key)) {
+    if (!compiledCache.get(key)) {
       isFromCache = false
       consoleFromSandbox.log('Compiled template not found in the cache, compiling')
       compiledCache.set(key, compileEngine(template, opts))
@@ -59,9 +59,9 @@ function executeEngine (reporter, inputs, onLog, done) {
       consoleFromSandbox.log('Taking compiled template from engine cache')
     }
 
-    const compiledTemplate = compiledCache.get(key) */
+    const compiledTemplate = compiledCache.get(key)
 
-    return executeEngine(compileEngine(template, opts), helpers, data, opts)
+    return executeEngine(compiledTemplate, helpers, data, opts)
   }
 
   const requirePaths = [
@@ -211,7 +211,7 @@ function executeEngine (reporter, inputs, onLog, done) {
         if (typeof templateHelpers === 'string' || templateHelpers instanceof String) {
           const initialItemsInSandbox = Object.keys(context)
 
-          const topLevelFns = [] // cgetTopLevelFunctions(templateHelpers)
+          const topLevelFns = getTopLevelFunctions(templateHelpers)
 
           // export the top level functions to the global scope
           const templateHelpersEval = `${templateHelpers}\n;${topLevelFns.map((fnName) => {
@@ -252,7 +252,7 @@ function executeEngine (reporter, inputs, onLog, done) {
     formatError: (error, moduleName) => {
       error.message += ` To be able to require custom modules you need to add to configuration { "allowLocalFilesAccess": true } or enable just specific module using { templatingEngines: { allowedModules": ["${moduleName}"] }`
     },
-    sandboxModulesCache,
+    modulesCache: sandboxModulesCache,
     globalModules: inputs.templatingEngines.nativeModules || [],
     allowedModules: inputs.templatingEngines.allowedModules,
     requirePaths,

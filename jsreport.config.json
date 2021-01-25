@@ -2,10 +2,10 @@
   "httpPort": 5488,
   "allowLocalFilesAccess": true,
   "store": {
-    "provider": "memory"
+    "provider": "fs"
   },
   "blobStorage": {
-    "provider": "memory"
+    "provider": "fs"
   },
   "reportTimeout": 60000,
   "extensions": {
@@ -23,18 +23,35 @@
       "syncModifications": false
     }
   },
-  "logger": {
-    "silent": true
-  },
   "templatingEngines": {
     "strategy": "worker-threads",
-    "numberOfWorkers": 1,
-    "templateCache": {
-      "enabled": true
-    }
+    "numberOfWorkers": 1
   },
   "extensionsList": [
+    "authentication",
+    "authorization",
+    "assets",
+    "base",
+    "data",
+    "docx",
     "express",
-    "handlebars"
+    "freeze",
+    "fs-store",
+    "handlebars",
+    "html-to-xlsx",
+    "import-export",
+    "child-templates",
+    "chrome-pdf",
+    "jsrender",
+    "pdf-utils",
+    "reports",
+    "pptx",
+    "scripts",
+    "studio",
+    "studio-theme-dark",
+    "scheduling",
+    "templates",
+    "text",
+    "xlsx"
   ]
 }

@@ -35,11 +35,11 @@ function logFn (level, executeMainAction, ...args) {
     message: util.format.apply(util, msgArgs)
   }
 
-  /* const meta = getLogMeta(level, log.message, lastArg)
+  const meta = getLogMeta(level, log.message, lastArg)
 
   if (meta != null) {
     log.meta = meta
-  } */
+  }
 
   return executeMainAction('log', {
     ...log
