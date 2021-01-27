@@ -38,7 +38,8 @@
     "uuid": "3.3.2",
     "vm2": "3.9.2",
     "winston": "2.4.5",
-    "winston-transport": "3.0.1"
+    "winston-transport": "3.0.1",
+    "v8-compile-cache": "*"
   },
   "deprecated": false,
   "description": "javascript based business reporting",

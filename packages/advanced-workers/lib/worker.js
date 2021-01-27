@@ -48,6 +48,8 @@ async function init () {
     } finally {
       callbacksMap.delete(rid)
       managerPort.close()
+      // TODO, just for now, we will need to find way how to wait for all logs to finish
+      delete callbackRequests[rid]
     }
   }
 }

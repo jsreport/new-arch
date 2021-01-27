@@ -197,7 +197,7 @@ module.exports = (_sandbox, options = {}) => {
 function doRequire (moduleName, requirePaths = [], modulesCache) {
   const searchedPaths = []
 
-  function safeRequire (require, modulePath) {
+  function safeRequire (require, modulePath) {    
     // save the current module cache, we will use this to restore the cache to the
     // original values after the require finish
     const originalModuleCache = Object.assign(Object.create(null), require.cache)
@@ -214,6 +214,7 @@ function doRequire (moduleName, requirePaths = [], modulesCache) {
 
     try {
       const moduleExport = require.main ? require.main.require(modulePath) : require(modulePath)
+      require.main.children.splice(require.main.children.indexOf(m => m.id === require.resolve(modulePath)), 1)
 
       // save the current module cache generated after the require into the internal cache,
       // and clean the current module cache again

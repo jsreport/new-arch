@@ -166,5 +166,7 @@ module.exports = async function (reporter, req, parentReq) {
     e.logged = true
 
     throw e
+  } finally {
+    reporter.requestModulesCache.delete(request.context.id)
   }
 }
