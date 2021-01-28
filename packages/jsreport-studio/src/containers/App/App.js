@@ -24,7 +24,9 @@ import RenameModal from '../../components/Modals/RenameModal.js'
 import RestoreDockConfirmationModal from '../../components/Modals/RestoreDockConfirmationModal.js'
 import * as progress from '../../redux/progress'
 import getCloneName from '../../../shared/getCloneName'
+import fileSaver from 'filesaver.js-npm'
 import cookies from 'js-cookie'
+import getPreviewWindowName from '../../helpers/getPreviewWindowName'
 import {
   extensions,
   triggerSplitResize,
@@ -154,7 +156,9 @@ class App extends Component {
     let processFile
     let focus
 
-    if (normalizedType === 'preview') {
+    if (normalizedType === 'preview' || normalizedType.indexOf(windowPrefix) === 0) {
+      const isWindowType = normalizedType.indexOf(windowPrefix) === 0
+
       processFile = (fileInfo) => {
         if (fileInfo.name === 'report') {
           const file = new window.File([fileInfo.rawData], fileInfo.filename, {
@@ -163,41 +167,41 @@ class App extends Component {
 
           const newURLBlob = URL.createObjectURL(file)
 
-          // TODO: here we should instead use some Preview method or
-          // make a standard way to update the content of the Preview component
-          document.getElementById('preview').src = newURLBlob
-        } else {
-          console.log('name:', fileInfo.name, 'content:', new TextDecoder().decode(fileInfo.rawData))
-        }
-      }
-
-      focus = () => {}
-    } else if (normalizedType.indexOf(windowPrefix) === 0) {
-      processFile = (fileInfo) => {
-        if (fileInfo.name === 'report') {
-          const file = new window.File([fileInfo.rawData.buffer], fileInfo.filename, {
-            type: fileInfo.contentType
-          })
-
-          const newURLBlob = URL.createObjectURL(file)
-
-          const previews = this.previewPaneRef.current.windows
-          const windowId = normalizedType.slice(windowPrefix.length)
-          const windowRef = previews[windowId]
-
-          windowRef.location.href = newURLBlob
+          if (isWindowType) {
+            const previews = this.previewPaneRef.current.windows
+            const windowId = normalizedType.slice(windowPrefix.length)
+            const windowRef = previews[windowId]
+            windowRef.location.href = newURLBlob
+          } else {
+            // TODO: here we should instead use some Preview method or
+            // make a standard way to update the content of the Preview component
+            document.getElementById('preview').src = newURLBlob
+          }
         } else {
           console.log('name:', fileInfo.name, 'content:', new TextDecoder().decode(fileInfo.rawData))
         }
       }
 
       focus = () => {
-        const previews = this.previewPaneRef.current.windows
-        const windowId = normalizedType.slice(windowPrefix.length)
-        const windowRef = previews[windowId]
-
-        windowRef.focus()
+        if (isWindowType) {
+          const previews = this.previewPaneRef.current.windows
+          const windowId = normalizedType.slice(windowPrefix.length)
+          const windowRef = previews[windowId]
+          windowRef.focus()
+        }
       }
+    } else if (normalizedType === 'download') {
+      processFile = (fileInfo) => {
+        if (fileInfo.name === 'report') {
+          fileSaver.saveAs(new Blob([fileInfo.rawData], {
+            type: fileInfo.contentType
+          }), fileInfo.filename)
+        } else {
+          console.log('name:', fileInfo.name, 'content:', new TextDecoder().decode(fileInfo.rawData))
+        }
+      }
+
+      focus = () => {}
     }
 
     if (processFile == null) {
@@ -239,7 +243,7 @@ class App extends Component {
 
     return {
       id: lastActiveTemplate.shortid,
-      name: 'previewFrame-' + lastActiveTemplate.shortid,
+      name: getPreviewWindowName(lastActiveTemplate.shortid),
       tab: true
     }
   }

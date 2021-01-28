@@ -73,7 +73,7 @@ module.exports = (app, reporter, exposedOptions) => {
       }
 
       if (renderRequest.options.download) {
-        headers['Content-Disposition'] = res.getHeader('Content-Disposition').replace('inline;', 'attachment;')
+        headers['Content-Disposition'] = headers['Content-Disposition'].replace('inline;', 'attachment;')
       }
 
       if (stream) {

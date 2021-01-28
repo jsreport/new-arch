@@ -473,6 +473,7 @@ module.exports = (reporter, definition) => {
   reporter.initializeListeners.insert({ before: 'express' }, 'studio', async () => {
     if (reporter.express) {
       reporter.express.exposeOptionsToApi(definition.name, {
+        asyncRender: process.env.ASYNC_RENDER === 'true',
         customLogo: customLogoPathOrBuffer != null,
         theme: definition.options.theme.name,
         editorTheme: definition.options.theme.editorThemeName,
