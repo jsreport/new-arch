@@ -87,7 +87,7 @@
   },
   "version": "2.11.0",
   "private": true,
-  "workspaces": [
-    "packages/*"
-  ]
+  "workspaces": {
+    "packages": ["packages/*"]
+  }
 }

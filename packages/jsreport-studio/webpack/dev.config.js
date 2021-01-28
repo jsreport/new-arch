@@ -77,9 +77,11 @@ reactTransform[1].transforms.push({
 })
 
 module.exports = (extensions, extensionsInNormalMode) => {
+  const { hasMatchWithExtension, getMatchedExtension } = getBuildHelpers(extensions)
+
   const extensionsInDevMode = extensions.filter((e) => {
     return (
-      extensionsInNormalMode.find((eN) => eN.directory === e.directory) == null &&
+      !hasMatchWithExtension(e.directory, extensionsInNormalMode) &&
       fs.existsSync(path.join(e.directory, 'studio/main_dev.js'))
     )
   })
@@ -136,22 +138,18 @@ module.exports = (extensions, extensionsInNormalMode) => {
               return true
             }
 
-            for (let key in extensions) {
-              const shouldExcludeExplicitly = (
-                modulePath.indexOf(extensions[key].directory) !== -1
-              ) && (
-                extensionsInNormalMode.find((e) => {
-                  return e.directory === extensions[key].directory
-                }) != null
-              )
+            const matchedExtension = getMatchedExtension(modulePath, extensions)
+            const shouldExcludeExplicitly = matchedExtension == null ? true : hasMatchWithExtension(matchedExtension, extensionsInNormalMode)
 
-              if (shouldExcludeExplicitly) {
-                return true
-              }
+            if (shouldExcludeExplicitly) {
+              return true
+            }
 
-              if (modulePath.indexOf(extensions[key].directory) !== -1 && modulePath.replace(extensions[key].directory, '').indexOf('node_modules') === -1) {
-                return false
-              }
+            if (
+              hasMatchWithExtension(modulePath, extensions) &&
+              modulePath.replace(getMatchedExtension(modulePath, extensions), '').indexOf('node_modules') === -1
+            ) {
+              return false
             }
 
             return true
@@ -176,7 +174,7 @@ module.exports = (extensions, extensionsInNormalMode) => {
         {
           test: /\.css$/,
           exclude: [/.*theme.*\.css/, /extensions_dev\.css$/, (input) => {
-            return input.startsWith(projectSrcAbsolutePath) || extensionsInDevMode.find((e) => input.startsWith(`${e.directory}/`)) != null
+            return input.startsWith(projectSrcAbsolutePath) || hasMatchWithExtension(input, extensionsInDevMode)
           }],
           use: ['style-loader', 'css-loader']
         },
@@ -235,7 +233,7 @@ module.exports = (extensions, extensionsInNormalMode) => {
         {
           test: /\.css$/,
           include: (input) => {
-            return input.startsWith(projectSrcAbsolutePath) || extensionsInDevMode.find((e) => input.startsWith(`${e.directory}/`)) != null
+            return input.startsWith(projectSrcAbsolutePath) || hasMatchWithExtension(input, extensionsInDevMode)
           },
           exclude: [/.*theme.*/, /extensions_dev\.css$/],
           use: [
@@ -262,8 +260,14 @@ module.exports = (extensions, extensionsInNormalMode) => {
                       break
                     }
 
-                    const extensionDirectoryNormalized = currentExtension.directory.slice(-1) !== path.sep ? currentExtension.directory : `${currentExtension.directory.slice(0, -1)}`
-                    const valid = modulePath.includes(`${extensionDirectoryNormalized}${path.sep}studio${path.sep}`)
+                    const extensionDirectory = getMatchedExtension(modulePath, [currentExtension])
+
+                    if (extensionDirectory == null) {
+                      continue
+                    }
+
+                    const extensionStudioDirectoryNormalized = path.join(extensionDirectory, `${path.sep}studio${path.sep}`)
+                    const valid = modulePath.includes(extensionStudioDirectoryNormalized)
 
                     if (valid) {
                       devExtension = currentExtension.name
@@ -361,7 +365,8 @@ module.exports = (extensions, extensionsInNormalMode) => {
     resolveLoader: {
       modules: [
         path.join(__dirname, '../node_modules'),
-        path.join(__dirname, '../node_modules/jsreport-studio-dev/node_modules')
+        path.join(__dirname, '../node_modules/jsreport-studio-dev/node_modules'),
+        'node_modules'
       ]
     },
     plugins: [
@@ -388,6 +393,52 @@ module.exports = (extensions, extensionsInNormalMode) => {
         template: path.join(__dirname, '../static/index.html')
       })
     ]
+  }
+}
+
+function getBuildHelpers (extensions) {
+  const symlinkExtensionsMap = new Map()
+
+  for (const extension of extensions) {
+    const realPath = fs.realpathSync(extension.directory)
+
+    if (extension.directory !== realPath) {
+      symlinkExtensionsMap.set(extension.name, realPath)
+    }
+  }
+
+  const findMatch = (directory, targetExtensions) => {
+    if (directory == null || targetExtensions == null) {
+      return
+    }
+
+    let extensionMatch
+
+    for (const tExtension of targetExtensions) {
+      if (
+        (
+          symlinkExtensionsMap.has(tExtension.name) &&
+          (directory === symlinkExtensionsMap.get(tExtension.name) ||
+          directory.startsWith(path.join(symlinkExtensionsMap.get(tExtension.name), path.sep)))
+        ) || (
+          directory === tExtension.directory ||
+          directory.startsWith(path.join(tExtension.directory, path.sep))
+        )
+      ) {
+        extensionMatch = symlinkExtensionsMap.has(tExtension.name) ? symlinkExtensionsMap.get(tExtension.name) : tExtension.directory
+      }
+
+      if (extensionMatch != null) {
+        break
+      }
+    }
+
+    return extensionMatch
+  }
+
+  return {
+    hasMatchWithExtension: (directory, targetExtensions) => findMatch(directory, targetExtensions) != null,
+    getMatchedExtension: (directory, targetExtensions) => findMatch(directory, targetExtensions)
   }
 }
 
