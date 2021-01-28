@@ -75,7 +75,8 @@ module.exports = {
   resolveLoader: {
     modules: [
       path.join(__dirname, '../node_modules'),
-      path.join(__dirname, '../node_modules/jsreport-studio-dev/node_modules')
+      path.join(__dirname, '../node_modules/jsreport-studio-dev/node_modules'),
+      'node_modules'
     ]
   }
 }
