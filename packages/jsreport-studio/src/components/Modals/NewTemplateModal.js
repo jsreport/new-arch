@@ -194,7 +194,7 @@ class NewTemplateModal extends Component {
     return (
       <div>
         <div>
-          <label>New {entitySet.visibleName}{templateName !== '' ? ` (${templateName})` : ''}</label>
+          <label>New {entitySet.visibleName}{templateName != null && templateName !== '' ? ` (${templateName})` : ''}</label>
         </div>
         <div className='form-group' style={{ marginLeft: '0px', marginRight: '0px' }}>
           <span style={{ color: 'red', display: error ? 'block' : 'none' }}>{error}</span>
