@@ -4,9 +4,16 @@
 const pattern = /%}%/g
 
 module.exports = (opts = {}) => {
+  const handlebars = require(opts.handlebarsModulePath)
+
   return {
-    compile: (html, { require }) => {
-      const handlebars = require(opts.handlebarsModulePath)
+    create: (moduleName) => {
+      if (moduleName === 'handlebars') {
+
+      }
+    },
+    compile: (html, { require, context }) => {
+      const handlebarsInstance = handlebars.create()
       const results = matchRecursiveRegExp(html, '{', '}', 'g')
       let changed = 0
 
@@ -26,20 +33,32 @@ module.exports = (opts = {}) => {
       // handlebars, we care about this because template can be cached and we need to
       // ensure that the template does not get bound to some previous handlebars
       // instance of different render
-      const templateSpecStr = handlebars.precompile(html)
+      const templateSpecStr = handlebarsInstance.precompile(html)
 
       const templateSpec = new Function(`return ${templateSpecStr}`)() // eslint-disable-line
 
       return templateSpec
     },
+    onGetContext: () => {
+      const handlebarsInstance = handlebars.create()
+      return {
+        handlebars: handlebarsInstance,
+        Handlebars: handlebarsInstance
+      }
+    },
+    onRequire: (moduleName, { context }) => {
+      if (moduleName === 'handlebars') {
+        return context.handlebars
+      }
+    },
     execute: (templateSpec, helpers, data, { require }) => {
-      const handlebars = require(opts.handlebarsModulePath)
-      const template = handlebars.template(templateSpec)
+      const handlebarsInstance = require('handlebars')
+      const template = handlebarsInstance.template(templateSpec)
 
       try {
         for (const h in helpers) {
           if (helpers.hasOwnProperty(h)) {
-            handlebars.registerHelper(h, helpers[h])
+            handlebarsInstance.registerHelper(h, helpers[h])
           }
         }
 
@@ -52,7 +71,7 @@ module.exports = (opts = {}) => {
         // unregister the helpers to hide them from other executions
         for (const ah in helpers) {
           if (helpers.hasOwnProperty(ah)) {
-            handlebars.unregisterHelper(ah, helpers[ah])
+            handlebarsInstance.unregisterHelper(ah, helpers[ah])
           }
         }
       }

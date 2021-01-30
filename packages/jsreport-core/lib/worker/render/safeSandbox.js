@@ -57,9 +57,9 @@ module.exports = (_sandbox, options = {}) => {
   addConsoleMethod('warn', 'warn')
   addConsoleMethod('error', 'error')
 
-  const _require = function (moduleName) {
+  const _require = function (moduleName, { context }) {
     if (requireMap) {
-      const mapResult = requireMap(moduleName)
+      const mapResult = requireMap(moduleName, { context })
 
       if (mapResult != null) {
         return mapResult
@@ -110,7 +110,7 @@ module.exports = (_sandbox, options = {}) => {
 
   Object.assign(sandbox, {
     console: _console,
-    require: _require
+    require: (m) => _require(m, { context: _sandbox })
   })
 
   const vm = new VM()
@@ -197,7 +197,7 @@ module.exports = (_sandbox, options = {}) => {
 function doRequire (moduleName, requirePaths = [], modulesCache) {
   const searchedPaths = []
 
-  function safeRequire (require, modulePath) {    
+  function safeRequire (require, modulePath) {
     // save the current module cache, we will use this to restore the cache to the
     // original values after the require finish
     const originalModuleCache = Object.assign(Object.create(null), require.cache)

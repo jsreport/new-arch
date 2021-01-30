@@ -199,7 +199,8 @@ function executeEngine (reporter, inputs, onLog, done) {
         __appDirectory: inputs.appDirectory,
         __rootDirectory: inputs.rootDirectory,
         __parentModuleDirectory: inputs.parentModuleDirectory,
-        respond: respondWrap
+        respond: respondWrap,
+        ...(inputs.engine.onGetContext ? inputs.engine.onGetContext() : {})
       }
     },
     onEval: async ({ context, run }) => {
@@ -256,11 +257,15 @@ function executeEngine (reporter, inputs, onLog, done) {
     globalModules: inputs.templatingEngines.nativeModules || [],
     allowedModules: inputs.templatingEngines.allowedModules,
     requirePaths,
-    requireMap: (moduleName) => {
+    requireMap: (moduleName, { context }) => {
       const m = inputs.templatingEngines.modules.find((m) => m.alias === moduleName || m.path === moduleName)
 
       if (m) {
         return require(m.path)
+      }
+
+      if (inputs.engine.onRequire) {
+        return inputs.engine.onRequire(moduleName, { context })
       }
     }
   }).catch((err) => respondWrap(err))

@@ -1,4 +1,3 @@
-
 const path = require('path')
 const createEngine = require('./handlebarsEngine')
 
@@ -6,29 +5,20 @@ module.exports = (reporter, definition) => {
   const hbRawPath = definition.options.handlebarsModulePath != null ? definition.options.handlebarsModulePath : require.resolve('handlebars')
   const hbPath = path.join(path.dirname(hbRawPath), '../')
 
-  reporter.options.templatingEngines.nativeModules.push({
-    globalVariableName: 'handlebars',
-    module: hbPath
-  })
+  if (reporter.options.templatingEngines.allowedModules !== '*') {
+    reporter.options.templatingEngines.allowedModules.push(hbPath)
+    reporter.options.templatingEngines.allowedModules.push('handlebars')
+  }
 
-  // alias Handlebars=handlebars
-  reporter.options.templatingEngines.nativeModules.push({
-    globalVariableName: 'Handlebars',
-    module: hbPath
-  })
-
-  reporter.options.templatingEngines.modules.push({
-    alias: 'handlebars',
-    path: hbPath
-  })
-
-  const { compile, execute } = createEngine({
+  const { compile, execute, onGetContext, onRequire } = createEngine({
     handlebarsModulePath: hbPath
   })
 
   reporter.extensionsManager.engines.push({
     name: 'handlebars',
     compile,
-    execute
+    execute,
+    onGetContext,
+    onRequire
   })
 }

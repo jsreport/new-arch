@@ -2,10 +2,14 @@ const fsStandard = require('fs')
 const v8 = require('v8')
 const path = require('path')
 
+if (!fsStandard.existsSync('tools/snapshots')) {
+  fsStandard.mkdirSync('tools/snapshots')
+}
+
 const jsreport = require('../')({
   rootDirectory: path.join(__dirname, '../'),
   logger: {
-    'silent': true
+    silent: true
   }
 })
 let snapshots = 1
@@ -26,11 +30,12 @@ for (let i = 0; i < 10000; i++) {
   console.log('rendering...')
 
   console.time('reports took')
-  for (let i = 1; i < 20000000000; i++) {
-    let start = new Date().getTime()
+
+  for (let i = 1; i < 10; i++) {
+    const start = new Date().getTime()
     await jsreport.render({
       template: {
-        content: '{{#each people}}{{name}}{{/each}}',
+        content: 'hello', // {{#each people}}{{name}}{{/each}}',
         recipe: 'html',
         engine: 'handlebars'
         /* pdfOperations: [{
@@ -42,8 +47,8 @@ for (let i = 0; i < 10000; i++) {
     })
     elapsedTime += new Date().getTime() - start
 
-    if (i % 500 === 0) {
-      console.log(`${i} avg report time: ${Math.round(elapsedTime / 500)}mns`)
+    if (i % 100 === 0) {
+      console.log(`${i} avg report time: ${Math.round(elapsedTime / 100)}mns`)
       elapsedTime = 0
     }
 
@@ -55,6 +60,7 @@ for (let i = 0; i < 10000; i++) {
       console.log(`memory used: ${memoryUsed} MB`)
 
       const workserSnapshotStream = await jsreport._workersManager._workerManager.threads[0].getHeapSnapshot()
+      console.log('writing snapshot memory...')
       workserSnapshotStream.pipe(fsStandard.createWriteStream(`tools/snapshots/snapshot-worker-${snapshots}.heapsnapshot`))
 
       v8.getHeapSnapshot().pipe(fsStandard.createWriteStream(`tools/snapshots/snapshot-${snapshots++}.heapsnapshot`))

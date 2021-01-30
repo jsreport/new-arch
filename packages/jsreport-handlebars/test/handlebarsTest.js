@@ -112,4 +112,28 @@ describe('handlebars', () => {
     })
     res.content.toString().should.be.eql('a')
   })
+
+  it('should be able to call helper from helper', async () => {
+    const res = await jsreport.render({
+      template: {
+        content: '{{helperA}}',
+        engine: 'handlebars',
+        recipe: 'html',
+        helpers: "function helperB() { return 'b' }; function helperA() { return Handlebars.helpers.helperB() }"
+      }
+    })
+    res.content.toString().should.be.eql('b')
+  })
+
+  it('should be able to require same instance of handlebars', async () => {
+    const res = await jsreport.render({
+      template: {
+        content: '{{helperA}}',
+        engine: 'handlebars',
+        recipe: 'html',
+        helpers: "function helperB() { return 'b' }; function helperA() { return require('handlebars').helpers.helperB() }"
+      }
+    })
+    res.content.toString().should.be.eql('b')
+  })
 })
