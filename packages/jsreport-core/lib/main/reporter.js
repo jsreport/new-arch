@@ -393,7 +393,7 @@ class MainReporter extends Reporter {
   async executeWorkerAction (actionName, data, options = {}, req) {
     req.context.rootId = req.context.rootId || generateRequestId()
 
-    return this._workersManager.executeWorker({
+    const result = await this._workersManager.executeWorker({
       actionName,
       data,
       req
@@ -407,6 +407,8 @@ class MainReporter extends Reporter {
         return result
       }
     })
+    this._workersManager.convertUint8ArrayToBuffer(result)
+    return result
   }
 
   /**

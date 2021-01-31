@@ -49,9 +49,9 @@ function executeEngine (reporter, inputs, onLog, done) {
 
   // wrapping with caching
   const engine = (template, helpers, data, opts) => {
-    const key = template + ':' + inputs.engine.name
+    const key = `template:${template}:${inputs.engine.name}`
 
-    if (!compiledCache.get(key)) {
+    if (!compiledCache.has(key)) {
       isFromCache = false
       consoleFromSandbox.log('Compiled template not found in the cache, compiling')
       compiledCache.set(key, compileEngine(template, opts))
@@ -212,7 +212,7 @@ function executeEngine (reporter, inputs, onLog, done) {
         if (typeof templateHelpers === 'string' || templateHelpers instanceof String) {
           const initialItemsInSandbox = Object.keys(context)
 
-          const topLevelFns = getTopLevelFunctions(templateHelpers)
+          const topLevelFns = getTopLevelFunctions(templateHelpers, compiledCache)
 
           // export the top level functions to the global scope
           const templateHelpersEval = `${templateHelpers}\n;${topLevelFns.map((fnName) => {
@@ -271,7 +271,13 @@ function executeEngine (reporter, inputs, onLog, done) {
   }).catch((err) => respondWrap(err))
 }
 
-function getTopLevelFunctions (code) {
+function getTopLevelFunctions (code, cache) {
+  const key = `helpers:${code}`
+
+  if (cache.has(key)) {
+    return cache.get(key)
+  }
+
   const ast = parser.parse(code, {
     sourceType: 'script',
     allowReturnOutsideFunction: false,
@@ -298,6 +304,7 @@ function getTopLevelFunctions (code) {
     }
   })
 
+  cache.set(key, names)
   return names
 }
 

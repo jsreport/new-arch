@@ -3,14 +3,15 @@ const { workerData } = require('worker_threads')
 const domain = require('domain')
 const serializator = require('serializator')
 const uuid = require('uuid').v4
-const convertUint8ArrayProperties = require('./convertUint8ArrayProperties.js')
+const convertUint8ArrayToBuffer = require('./convertUint8ArrayToBuffer.js')
 
 const callbackRequests = {}
 const callbacksMap = new Map()
 
 async function init () {
   const workerActionHandler = await require(workerData.systemWorkerData.workerModule)(workerData.userWorkerData, {
-    executeMain: (userData, rid) => callbacksMap.get(rid)(userData)
+    executeMain: (userData, rid) => callbacksMap.get(rid)(userData),
+    convertUint8ArrayToBuffer
   })
 
   return async function workerThreadExecute ({ userData, systemData }) {
@@ -25,7 +26,6 @@ async function init () {
       }
     })
 
-    convertUint8ArrayProperties(userData)
     callbacksMap.set(rid, callback.bind(undefined, managerPort, rid))
 
     try {
@@ -96,7 +96,6 @@ function callback (managerPort, rid, callbackUserData) {
       if (systemData.error) {
         execution.reject(systemData.error)
       } else {
-        convertUint8ArrayProperties(userData)
         execution.resolve(userData)
       }
 

@@ -3,7 +3,7 @@ const EventEmitter = require('events')
 const { MessageChannel } = require('worker_threads')
 const serializator = require('serializator')
 const Piscina = require('piscina')
-const convertUint8ArrayProperties = require('./convertUint8ArrayProperties.js')
+const convertUint8ArrayToBuffer = require('./convertUint8ArrayToBuffer.js')
 const debug = require('debug')('advanced-workers')
 const uuid = require('uuid').v4
 
@@ -165,7 +165,6 @@ class WorkersManager {
 
         execution.reject(errFromResult)
       } else {
-        convertUint8ArrayProperties(userResult)
         execution.resolve(userResult)
       }
     }).catch((err) => {
@@ -243,6 +242,10 @@ class WorkersManager {
     managerPort.close()
 
     return result
+  }
+
+  convertUint8ArrayToBuffer (obj) {
+    convertUint8ArrayToBuffer(obj)
   }
 }
 

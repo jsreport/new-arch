@@ -1,5 +1,5 @@
 
-module.exports = function convertUint8ArrayProperties (obj) {
+module.exports = function convertUint8ArrayToBuffer (obj) {
   const shouldContinue = isObject(obj) || Array.isArray(obj)
 
   if (!shouldContinue) {
@@ -10,9 +10,9 @@ module.exports = function convertUint8ArrayProperties (obj) {
     if (isStrictUint8Array(value)) {
       obj[key] = typeArrayToBuffer(value)
     } else if (isObject(value)) {
-      convertUint8ArrayProperties(value)
+      convertUint8ArrayToBuffer(value)
     } else if (Array.isArray(value)) {
-      convertUint8ArrayProperties(value)
+      convertUint8ArrayToBuffer(value)
     }
   }
 }
