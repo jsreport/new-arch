@@ -66,10 +66,11 @@ module.exports = {
   },
   resolve: {
     extensions: ['.json', '.js'],
+    mainFields: ['browser', 'main'],
     modules: [
-      'node_modules',
       path.join(__dirname, '../node_modules'),
-      path.join(__dirname, '../node_modules/jsreport-studio-dev/node_modules')
+      path.join(__dirname, '../node_modules/jsreport-studio-dev/node_modules'),
+      'node_modules'
     ]
   },
   resolveLoader: {

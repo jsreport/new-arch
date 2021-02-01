@@ -390,7 +390,8 @@ module.exports = (extensions, extensionsInNormalMode) => {
       new HtmlWebpackPlugin({
         hash: true,
         inject: false,
-        template: path.join(__dirname, '../static/index.html')
+        template: path.join(__dirname, '../static/index.html'),
+        chunksSortMode: 'none'
       })
     ]
   }

@@ -251,7 +251,8 @@ module.exports = {
     new HtmlWebpackPlugin({
       hash: false,
       inject: false,
-      template: path.join(__dirname, '../static/index.html')
+      template: path.join(__dirname, '../static/index.html'),
+      chunksSortMode: 'none'
     }),
     new webpack.ProgressPlugin()
   ]
