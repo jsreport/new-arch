@@ -7,11 +7,6 @@ module.exports = (opts = {}) => {
   const handlebars = require(opts.handlebarsModulePath)
 
   return {
-    create: (moduleName) => {
-      if (moduleName === 'handlebars') {
-
-      }
-    },
     compile: (html, { require, context }) => {
       const handlebarsInstance = handlebars.create()
       const results = matchRecursiveRegExp(html, '{', '}', 'g')
