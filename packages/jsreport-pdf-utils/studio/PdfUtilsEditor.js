@@ -1,5 +1,8 @@
 import React, { Component } from 'react'
 import Studio from 'jsreport-studio'
+import AddHeaderFooterModal from './AddHeaderFooterModal'
+import AddTOCModal from './AddTOCModal'
+import AddCoverModal from './AddCoverModal'
 import styles from './PdfUtilsEditor.css'
 
 const EntityRefSelect = Studio.EntityRefSelect
@@ -11,6 +14,21 @@ class PdfUtilsEditor extends Component {
     this.state = {
       activeTab: 'operations'
     }
+  }
+
+  addHeaderFooter () {
+    const { entity } = this.props
+    Studio.openModal(AddHeaderFooterModal, { entity })
+  }
+
+  addTOC () {
+    const { entity } = this.props
+    Studio.openModal(AddTOCModal, { entity })
+  }
+
+  addCover () {
+    const { entity } = this.props
+    Studio.openModal(AddCoverModal, { entity })
   }
 
   addOperation (entity) {
@@ -192,6 +210,15 @@ class PdfUtilsEditor extends Component {
         <h1>
           <i className='fa fa-file-pdf-o' /> pdf utils configuration
         </h1>
+        <div>
+          <h2 style={{ marginTop: '0.2rem' }}>quick actions</h2>
+          <div style={{ marginTop: '1rem', marginBottom: '0.8rem' }}>
+            <button className='button confirmation' style={{ marginLeft: 0 }} onClick={() => this.addHeaderFooter()}>Add header/footer</button>
+            <button className='button confirmation' onClick={() => this.addTOC()}>Add Table of Contents</button>
+            <button className='button confirmation' onClick={() => this.addCover()}>Add cover page</button>
+          </div>
+        </div>
+        <div className={styles.separator} />
         <div className={styles.tabContainer}>
           <ul className={styles.tabTitles}>
             <li
@@ -263,7 +290,7 @@ class PdfUtilsEditor extends Component {
             </div>
           </div>
           <div className={`${styles.tabPanel} ${activeTab === 'password' ? styles.active : ''}`}>
-            <p style={{ marginTop: '1rem' }}>
+            <div style={{ marginTop: '1rem' }}>
               Add encryption and access privileges to the final PDF.
 
               You can specify either user password, owner password or both passwords. Behavior differs according to passwords you provides:
@@ -279,7 +306,7 @@ class PdfUtilsEditor extends Component {
                   When both passwords are provided, users with user password are able to decrypt the file but only have limited access to the file according to permission settings. Users with owner password have full access to the document.
                 </li>
               </ul>
-            </p>
+            </div>
             <div style={{ marginTop: '1rem', paddingBottom: '0.5rem' }}>
               <div>
                 <h2>Encryption</h2>
