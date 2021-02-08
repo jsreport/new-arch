@@ -34,7 +34,7 @@ module.exports = (opts = {}) => {
 
       return templateSpec
     },
-    onGetContext: () => {
+    createContext: () => {
       const handlebarsInstance = handlebars.create()
       return {
         handlebars: handlebarsInstance,

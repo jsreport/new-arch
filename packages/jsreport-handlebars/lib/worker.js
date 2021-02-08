@@ -10,7 +10,7 @@ module.exports = (reporter, definition) => {
     reporter.options.templatingEngines.allowedModules.push('handlebars')
   }
 
-  const { compile, execute, onGetContext, onRequire } = createEngine({
+  const { compile, execute, createContext, onRequire } = createEngine({
     handlebarsModulePath: hbPath
   })
 
@@ -18,7 +18,7 @@ module.exports = (reporter, definition) => {
     name: 'handlebars',
     compile,
     execute,
-    onGetContext,
+    createContext,
     onRequire
   })
 }

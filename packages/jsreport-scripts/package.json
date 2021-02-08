@@ -29,7 +29,7 @@
   },
   "license": "LGPL",
   "dependencies": {
-    "lodash.omit": "^4.5.0",
+    "lodash.omit": "4.5.0",
     "node.extend.without.arrays": "1.1.6"
   },
   "author": "Jan Blaha",

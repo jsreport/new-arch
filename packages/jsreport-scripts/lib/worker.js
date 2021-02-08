@@ -6,8 +6,7 @@
 const executeScript = require('./executeScript')
 
 module.exports = function (reporter, definition) {
-  reporter.addRequestContextMetaConfig('_parsedScripts', { sandboxHidden: true })
-  reporter.addRequestContextMetaConfig('shouldRunAfterRender', { sandboxHidden: true })
+  reporter.addRequestContextMetaConfig('scriptsCache', { sandboxHidden: true })
 
   reporter.scripts = new Scripts(reporter, definition)
 }
@@ -27,73 +26,42 @@ class Scripts {
     reporter.afterRenderListeners.add(definition.name, reporter, this.handleAfterRender.bind(this))
   }
 
-  async handleBeforeRender (request, response) {
-    request.context._parsedScripts = []
-    const scripts = await this._findScripts(request)
+  async handleBeforeRender (req, res) {
+    req.context.scriptsCache = await this._findScripts(req)
 
-    for (const script of scripts) {
-      await this._runScript(request, response, script, 'beforeRender')
+    for (const script of req.context.scriptsCache) {
+      await this._runScript(req, res, script, 'beforeRender')
     }
   }
 
-  async handleAfterRender (request, response) {
-    for (const script of request.context._parsedScripts) {
-      await this._runScript(request, response, script, 'afterRender')
+  async handleAfterRender (req, res) {
+    for (const script of req.context.scriptsCache) {
+      if (script.shouldRunAfteRender) {
+        await this._runScript(req, res, script, 'afterRender')
+      }
     }
   }
 
-  async _runScript (request, response, script, method) {
-    this.reporter.logger.debug(`Executing script ${(script.name || script.shortid || 'anonymous')} (${method})`, request)
+  async _runScript (req, res, script, method) {
+    this.reporter.logger.debug(`Executing script ${(script.name || script.shortid || 'anonymous')} (${method})`, req)
 
-    const parsedScript = typeof script !== 'string' ? {
-      name: script.name,
-      shortid: script.shortid,
-      content: script.content
-    } : script
+    await this.reporter.beforeScriptListeners.fire({ script: script.content }, req)
 
-    const scriptContent = typeof script === 'string' ? script : script.content
+    const scriptExecResult = await executeScript(this.reporter, script, method, req, res)
 
-    const scriptDef = {
-      script: scriptContent,
-      requestContextMetaConfig: this.reporter.getRequestContextMetaConfig(),
-      allowedModules: this.definition.options.allowedModules,
-      safeSandboxPath: this.reporter.options.templatingEngines.safeSandboxPath,
-      appDirectory: this.reporter.options.appDirectory,
-      rootDirectory: this.reporter.options.rootDirectory,
-      parentModuleDirectory: this.reporter.options.parentModuleDirectory,
-      method: method,
-      request,
-      response
+    if (scriptExecResult.shouldRunAfterRender) {
+      script.shouldRunAfteRender = true
     }
 
-    await this.reporter.beforeScriptListeners.fire(scriptDef, request)
-
-    const body = await executeScript(this.reporter, scriptDef, request, (log) => {
-      this.reporter.logger[log.level](log.message, { ...request, timestamp: log.timestamp })
-    })
-
-    if (body.request && body.request.context.shouldRunAfterRender && method === 'beforeRender') {
-      request.context._parsedScripts.push(parsedScript)
-    }
-
-    if (body.error) {
-      const error = this.reporter.createError(body.error.message, {
-        weak: true
-      })
-
-      error.stack = body.error.stack
-      throw error
-    }
-
-    if (body.cancelRequest) {
-      const error = this.reporter.createError(`Rendering request canceled from the script${
-        body.additionalInfo != null ? `: ${body.additionalInfo}` : ''
+    if (scriptExecResult.requestCancel) {
+      const error = this.reporter.createError(`Rendering req canceled from the script${
+        scriptExecResult.additionalInfo != null ? `: ${scriptExecResult.additionalInfo}` : ''
       }`, {
         weak: true
       })
 
-      if (body.statusCode) {
-        error.statusCode = body.statusCode
+      if (scriptExecResult.statusCode) {
+        error.statusCode = scriptExecResult.statusCode
       }
 
       error.canceled = true
@@ -115,27 +83,27 @@ class Scripts {
     }
 
     if (method === 'beforeRender') {
-      request.data = body.request.data
-      delete body.request.data
-      merge(request, body.request)
+      req.data = scriptExecResult.req.data
+      delete scriptExecResult.req.data
+      merge(req, scriptExecResult.req)
     }
 
     if (method === 'afterRender') {
-      response.content = Buffer.from(body.response.content)
-      delete body.response.content
-      merge(response, body.response)
+      res.content = Buffer.from(scriptExecResult.res.content)
+      delete scriptExecResult.res.content
+      merge(res, scriptExecResult.res)
 
-      delete body.request.data
-      merge(request, body.request)
+      delete scriptExecResult.req.data
+      merge(req, scriptExecResult.req)
     }
 
-    return response
+    return res
   }
 
-  async _findScripts (request) {
-    request.template.scripts = request.template.scripts || []
+  async _findScripts (req) {
+    req.template.scripts = req.template.scripts || []
 
-    const items = await Promise.all(request.template.scripts.map(async (script) => {
+    const items = await Promise.all(req.template.scripts.map(async (script) => {
       if (script.content) {
         return script
       }
@@ -149,7 +117,7 @@ class Scripts {
         query.name = script.name
       }
 
-      const items = await this.reporter.documentStore.collection('scripts').find(query, request)
+      const items = await this.reporter.documentStore.collection('scripts').find(query, req)
       if (items.length < 1) {
         const error = this.reporter.createError(`Script not found or user not authorized to read it (${
           (script.shortid || script.name)
@@ -163,7 +131,7 @@ class Scripts {
       return items[0]
     }))
 
-    const globalItems = await this.reporter.documentStore.collection('scripts').find({ isGlobal: true }, request)
+    const globalItems = await this.reporter.documentStore.collection('scripts').find({ isGlobal: true }, req)
     return globalItems.concat(items)
   }
 }

@@ -1,8 +1,7 @@
-const { nanoid } = require('nanoid')
 const ExtensionsManager = require('./extensionsManager')
 const DocumentStore = require('./documentStore')
 const createLogger = require('./logger')
-const safeSandbox = require('./render/safeSandbox')
+const runInSandbox = require('./sandbox/runInSandbox')
 const createNoneEngine = require('./render/noneEngine')
 const htmlRecipe = require('./render/htmlRecipe')
 const defaultProxyExtend = require('./defaultProxyExtend')
@@ -55,6 +54,8 @@ class WorkerReporter extends Reporter {
     this.addRequestContextMetaConfig('isChildRequest', { sandboxReadOnly: true })
     this.addRequestContextMetaConfig('originalInputDataIsEmpty', { sandboxReadOnly: true })
     this.addRequestContextMetaConfig('skipModificationDateUpdate', { sandboxHidden: true })
+
+    this._runInSandbox = runInSandbox(this)
 
     const { compile: compileNone, execute: executeNone } = createNoneEngine()
 
@@ -120,85 +121,20 @@ class WorkerReporter extends Reporter {
     return this._executeMain(actionName, data, req)
   }
 
-  async runInSandbox (fn, options = {}) {
-    const { getContext, onEval } = options
-    let initialContext
-
-    if (getContext != null) {
-      initialContext = await getContext()
-    } else {
-      initialContext = {}
-    }
-
-    const runId = `#${nanoid()}#`
-    const runIdRestore = `${runId}__restore`
-
-    initialContext[runId] = fn
-
-    const {
-      sandbox: sandboxContext,
-      restore,
-      run
-    } = safeSandbox(
-      initialContext,
-      {
-        errorPrefix: options.errorPrefix,
-        onLog: options.onLog,
-        formatError: options.formatError,
-        propertiesConfig: options.propertiesConfig,
-        globalModules: options.globalModules || [],
-        allowedModules: options.allowedModules || [],
-        requirePaths: options.requirePaths || [],
-        requireMap: options.requireMap,
-        modulesCache: options.sandboxModulesCache
-      }
-    )
-
-    sandboxContext[runIdRestore] = restore
-
-    if (onEval) {
-      const evalFn = (code, opts = {}) => {
-        const defaultEvalFilename = opts.filename ? opts.filename : `eval-sandbox${runId}.js`
-
-        const executionCode = `
-          ;(async () => {
-            ${code}
-          })();
-        `
-
-        return run(executionCode, {
-          filename: defaultEvalFilename,
-          mainFilename: defaultEvalFilename,
-          mainSource: executionCode,
-          ...opts
-        })
-      }
-
-      await onEval({ context: sandboxContext, run: evalFn, restore })
-    }
-
-    const executionCode = `
-      ;(async () => {
-        const fn = this['${runId}']
-        const restore = this['${runIdRestore}']
-        delete this['${runId}']
-        delete this['${runIdRestore}']
-        return fn({ context: this, restore })
-      })();
-    `
-
-    const defaultMainFilename = options.fileInfo && options.fileInfo.filename ? options.fileInfo.filename : `main-eval-sandbox${runId}.js`
-
-    const promise = run(executionCode, {
-      filename: defaultMainFilename,
-      mainFilename: defaultMainFilename,
-      mainSource: executionCode,
-      ...options.fileInfo
-    })
-
-    const result = await promise
-
-    return result
+  async runInSandbox ({
+    context,
+    userCode,
+    executionFn,
+    onRequire,
+    propertiesConfig
+  }, req) {
+    return this._runInSandbox({
+      context,
+      userCode,
+      executionFn,
+      onRequire,
+      propertiesConfig
+    }, req)
   }
 
   registerWorkerAction (actionName, fn) {

@@ -75,7 +75,7 @@ module.exports = function (reporter, definition) {
       return vm.runInNewContext(helpersScript, req.template.helpers)
     }
 
-    req.template.helpers = helpersScript + '\n' + (req.template.helpers || '')
+    req.template.helpers = (req.template.helpers || '') + '\n' + helpersScript
   })
 
   reporter.afterTemplatingEnginesExecutedListeners.add(definition.name, this, (request, response) => {

@@ -2,7 +2,7 @@ const should = require('should')
 const extend = require('node.extend.without.arrays')
 const core = require('../../index')
 
-describe('engine', () => {
+describe.only('engine', () => {
   let reporter
 
   beforeEach(async () => {
@@ -45,7 +45,7 @@ describe('engine', () => {
     const res = await reporter.render({
       template: {
         content: 'content',
-        helpers: 'async function a() { return "foo"; }',
+        helpers: 'function a() { return new Promise((resolve) => resolve("foo")); }',
         engine: 'helpers',
         recipe: 'html'
       }
@@ -63,6 +63,23 @@ describe('engine', () => {
         recipe: 'html'
       }
     })).be.rejectedWith(/async error/)
+  })
+
+  it('should await if the scope awaits promise', async () => {
+    const res = await reporter.render({
+      template: {
+        content: 'content',
+        helpers: `
+        const val = await new Promise((resolve) => resolve('foo')) 
+        function a() { 
+            return val; 
+        }`,
+        engine: 'helpers',
+        recipe: 'html'
+      }
+    })
+
+    should(res.content.toString()).be.eql('foo')
   })
 
   it('should send custom require to engine', async () => {
@@ -417,7 +434,7 @@ describe('engine', () => {
         engine: 'helpers',
         recipe: 'html'
       }
-    })).be.rejectedWith(/Template execution threw with non-Error/)
+    })).be.rejectedWith(/threw with non-Error/)
   })
 
   it('should disallow throwing values that are not errors (runtime)', async () => {
@@ -428,7 +445,7 @@ describe('engine', () => {
         engine: 'helpers',
         recipe: 'html'
       }
-    })).be.rejectedWith(/Template execution threw with non-Error/)
+    })).be.rejectedWith(/threw with non-Error/)
   })
 
   it('second hit should go from cache', async () => {
@@ -503,6 +520,22 @@ describe('engine', () => {
 
     should(res.content.toString()).be.eql('b')
     should(template.helpers).be.type('string')
+  })
+
+  it('should throw error with proper line numbers', async () => {
+    const template = {
+      content: 'content',
+      helpers: `function a() { 
+        //another line
+        throw new Error('error'); 
+      }`,
+      engine: 'helpers',
+      recipe: 'html'
+    }
+
+    return reporter.render({
+      template
+    }).should.be.rejectedWith(/line 3/)
   })
 })
 

@@ -14,7 +14,6 @@ const { codeFrameColumns } = require('@babel/code-frame')
 
 module.exports = (_sandbox, options = {}) => {
   const {
-    errorPrefix,
     onLog,
     formatError,
     propertiesConfig = {},
@@ -162,9 +161,8 @@ module.exports = (_sandbox, options = {}) => {
     unproxyValue: (value) => {
       return getOriginalFromProxy(proxiesInVM, customProxies, value)
     },
-    run: (code, { filename, mainFilename, mainSource } = {}) => {
+    run: async (code, { filename, mainFilename, mainSource } = {}) => {
       const script = new VMScript(code, filename)
-      const prefix = errorPrefix != null ? errorPrefix : 'Error ocurred in sandbox.'
 
       // NOTE: if we need to upgrade vm2 we will need to check the source of this function
       // in vm2 repo and see if we need to change this,
@@ -180,10 +178,10 @@ module.exports = (_sandbox, options = {}) => {
       }
 
       try {
-        return vm.run(script)
+        const result = await vm.run(script)
+        return result
       } catch (e) {
         decorateErrorMessage(e, {
-          prefix,
           mainFilename,
           mainSource
         })
@@ -270,7 +268,7 @@ function doRequire (moduleName, requirePaths = [], modulesCache) {
   return result
 }
 
-function decorateErrorMessage (e, { prefix, mainFilename, mainSource } = {}) {
+function decorateErrorMessage (e, { mainFilename, mainSource } = {}) {
   if (mainFilename != null && mainSource != null) {
     const trace = stackTrace.parse(e)
     let suffix = ''
@@ -289,13 +287,7 @@ function decorateErrorMessage (e, { prefix, mainFilename, mainSource } = {}) {
         current.getFileName() === mainFilename &&
         i === 0 && current.getLineNumber() != null
       ) {
-        suffix = `Error on line ${current.getLineNumber()}`
-
-        if (current.getColumnNumber() != null) {
-          suffix += `:${current.getColumnNumber()}`
-        }
-
-        suffix += '.'
+        suffix = `(line ${current.getLineNumber()}:${current.getColumnNumber()})`
       }
 
       if (
@@ -317,11 +309,11 @@ function decorateErrorMessage (e, { prefix, mainFilename, mainSource } = {}) {
     }
 
     if (suffix !== '') {
-      e.message = `${e.message}. ${suffix}`
+      e.message = `${e.message} ${suffix}`
     }
   }
 
-  e.message = `${prefix} ${e.message}`
+  e.message = `${e.message}`
 }
 
 function getOriginalFromProxy (proxiesInVM, customProxies, value) {

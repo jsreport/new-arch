@@ -3,7 +3,8 @@ module.exports = () => {
   return {
     compile: (html) => html,
     execute: (html, helpers) => {
-      return helpers.a()
+      // the empty string there is because of async helpers test
+      return '' + helpers.a()
     }
   }
 }

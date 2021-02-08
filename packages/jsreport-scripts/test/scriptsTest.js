@@ -5,11 +5,15 @@ describe('scripts', () => {
   let reporter
 
   beforeEach(() => {
-    reporter = JsReport()
+    reporter = JsReport({
+      templatingEngines: {
+        allowedModules: ['bluebird', 'helperA']
+      }
+    })
       .use(require('jsreport-templates')())
       .use(require('jsreport-assets')())
       .use(require('jsreport-jsrender')())
-      .use(require('../')({ allowedModules: ['bluebird', 'helperA'], timeout: 4000 }))
+      .use(require('../')({ timeout: 4000 }))
       .use(JsReport.tests.listeners())
     return reporter.init()
   })
@@ -816,10 +820,8 @@ describe('scripts', () => {
     it('should be unblock modules with allowedModules = *', async () => {
       await reporter.close()
       reporter = JsReport({
-        extensions: {
-          scripts: {
-            allowedModules: '*'
-          }
+        templatingEngines: {
+          allowedModules: '*'
         }
       }).use(require('jsreport-templates')()).use(require('jsreport-jsrender')()).use(require('../')())
 
@@ -934,7 +936,7 @@ describe('scripts', () => {
         await reporter.render(request)
         throw new Error('It should have failed')
       } catch (e) {
-        e.message.should.containEql('Script threw with non-Error')
+        e.message.should.containEql('User code threw with non-Error')
       }
     })
 
@@ -964,12 +966,11 @@ describe('scripts', () => {
         await reporter.render(request)
         throw new Error('It should have failed')
       } catch (e) {
-        e.message.should.containEql('Script threw with non-Error')
+        e.message.should.containEql('User code threw with non-Error')
       }
     })
 
-    // TODO, it dont want to find bluebird when running in monorep
-    it.skip('should not break when using different Promise implementation inside script', async () => {
+    it('should not break when using different Promise implementation inside script', async () => {
       await reporter.documentStore.collection('templates').insert({
         name: 'foo',
         content: 'foo',

@@ -204,7 +204,7 @@ module.exports = (reporter, definition) => {
       req.template.helpers.pdfCreatePagesGroup = pdfCreatePagesGroup
       req.template.helpers.pdfAddPageItem = pdfAddPageItem
     } else {
-      req.template.helpers = pdfFormField + '\n' + pdfCreatePagesGroup + '\n' + pdfAddPageItem + '\n' + (req.template.helpers || '')
+      req.template.helpers = (req.template.helpers || '') + '\n;' + pdfFormField + '\n' + pdfCreatePagesGroup + '\n' + pdfAddPageItem
     }
   })
 

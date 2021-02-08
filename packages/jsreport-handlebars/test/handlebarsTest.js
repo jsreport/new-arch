@@ -136,4 +136,19 @@ describe('handlebars', () => {
     })
     res.content.toString().should.be.eql('b')
   })
+
+  it('should have proper context in -this- in helper', async () => {
+    const res = await jsreport.render({
+      template: {
+        content: '{{myHelper}}',
+        engine: 'handlebars',
+        recipe: 'html',
+        helpers: 'function myHelper() { return this.propA }'
+      },
+      data: {
+        propA: 'foo'
+      }
+    })
+    res.content.toString().should.be.eql('foo')
+  })
 })

@@ -8,6 +8,7 @@ const extend = require('node.extend.without.arrays')
 const executeEngine = require('./executeEngine')
 const Request = require('../../shared/request')
 const generateRequestId = require('../../shared/generateRequestId')
+const resolveReferences = require('./resolveReferences.js')
 let reportCounter = 0
 
 async function beforeRender (reporter, request, response) {
@@ -48,18 +49,9 @@ async function invokeRender (reporter, request, response) {
 
   reporter.logger.debug(`Rendering engine ${engine.name}`, request)
 
-  const engineRes = await executeEngine(reporter, {
-    template: request.template,
-    data: request.data,
-    engine,
-    safeSandboxModulesCache: reporter.requestModulesCache.get(request.context.id),
-    appDirectory: reporter.options.appDirectory,
-    rootDirectory: reporter.options.rootDirectory,
-    parentModuleDirectory: reporter.options.parentModuleDirectory,
-    templatingEngines: reporter.options.templatingEngines
-  }, (log) => {
-    reporter.logger[log.level](log.message, { ...request, timestamp: log.timestamp })
-  })
+  const engineRes = await executeEngine(reporter)({
+    engine
+  }, request)
 
   response.content = Buffer.from(engineRes.content != null ? engineRes.content : '')
 
@@ -98,6 +90,7 @@ module.exports = async function (reporter, req, parentReq) {
   const response = { meta: {} }
 
   try {
+    request.data = resolveReferences(request.data) || {}
     if (request.options.reportName) {
       response.meta.reportName = String(request.options.reportName)
     } else {

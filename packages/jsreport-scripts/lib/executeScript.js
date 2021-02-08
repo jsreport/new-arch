@@ -1,23 +1,22 @@
-module.exports = async function executeScript (reporter, inputs, req, onLog) {
-  const requestContextMetaConfig = inputs.requestContextMetaConfig || {}
-  let jsreportProxy = reporter.createProxy({ req: inputs.request })
-  let resolveScriptExecution
-  let rejectScriptExecution
+const extend = require('node.extend.without.arrays')
+const _omit = require('lodash.omit')
+const promisify = require('util').promisify
 
-  const scriptExecutionPromise = new Promise((resolve, reject) => {
-    resolveScriptExecution = resolve
-    rejectScriptExecution = reject
-  })
+module.exports = async function executeScript (reporter, script, method, req, res) {
+  const requestContextMetaConfig = reporter.getRequestContextMetaConfig() || {}
+  let jsreportProxy = reporter.createProxy({ req })
 
-  const doneWrap = (err, customResult) => {
-    if (err) {
-      return rejectScriptExecution(err)
-    }
-
-    resolveScriptExecution(customResult)
+  const initialContext = {
+    __request: {
+      ..._omit(extend(true, req), 'data'),
+      data: {
+        ...req.data
+      }
+    },
+    __response: res
   }
 
-  inputs.request.cancel = (messageOrOptions = {}) => {
+  initialContext.__request.cancel = (messageOrOptions = {}) => {
     let data = {}
 
     if (typeof messageOrOptions === 'string') {
@@ -28,54 +27,39 @@ module.exports = async function executeScript (reporter, inputs, req, onLog) {
       data.statusCode = statusCode
     }
 
-    data.cancelRequest = true
+    data.requestCancel = true
 
-    doneWrap(null, data)
+    const cancellationError = new Error('Cancel scripts')
+    cancellationError.isRequestCancel = true
+    cancellationError.data = data
+    throw cancellationError
   }
 
-  if (inputs.response.content) {
-    inputs.response.content = Buffer.from(inputs.response.content, 'binary')
-  }
-
-  const requirePaths = [
-    inputs.rootDirectory,
-    inputs.appDirectory,
-    inputs.parentModuleDirectory
-  ]
-
-  let sandboxContext
-  let restore
-
-  const getScriptResult = function (rawErr) {
-    let err
-
-    if (rawErr != null) {
-      const isErrorObj = (
-        typeof rawErr === 'object' &&
-        typeof rawErr.hasOwnProperty === 'function' &&
-        rawErr.hasOwnProperty('message')
-      )
-
-      const isValidError = (
-        isErrorObj ||
-        typeof rawErr === 'string'
-      )
-
-      if (!isValidError) {
-        if (Object.prototype.toString.call(rawErr) === '[object Object]') {
-          err = new Error(`Script threw with non-Error: ${JSON.stringify(rawErr)}`)
+  const executionFn = async ({ topLevelFunctions, restore, context }) => {
+    try {
+      if (method === 'beforeRender' && topLevelFunctions.beforeRender) {
+        if (topLevelFunctions.beforeRender.length === 3) {
+          await promisify(topLevelFunctions.beforeRender)(context.__request, context.__response)
         } else {
-          err = new Error(`Script threw with non-Error: ${rawErr}`)
-        }
-      } else {
-        if (typeof rawErr === 'string') {
-          err = new Error(rawErr)
-        } else {
-          err = rawErr
+          await topLevelFunctions.beforeRender(context.__request, context.__response)
         }
       }
+
+      if (method === 'afterRender' && topLevelFunctions.afterRender) {
+        if (topLevelFunctions.afterRender.length === 3) {
+          await promisify(topLevelFunctions.afterRender)(context.__request, context.__response)
+        } else {
+          await topLevelFunctions.afterRender(context.__request, context.__response)
+        }
+      }
+    } catch (e) {
+      if (e.isRequestCancel) {
+        return e.data
+      }
+      throw e
     }
 
+    let err = null
     // this will only restore original values of properties of __requext.context
     // and unwrap proxies and descriptors into new sandbox object
     const restoredSandbox = restore()
@@ -86,25 +70,22 @@ module.exports = async function executeScript (reporter, inputs, req, onLog) {
     ) {
       err = new Error('Script invalid assignment: req.data must be an object, make sure you are not changing its value in the script to a non object value')
     }
-
     return {
+      shouldRunAfterRender: topLevelFunctions.afterRender != null,
       // we only propagate well known properties from the req executed in scripts
       // we also create new object that avoids passing a proxy object to rest of the
       // execution flow when script is running in in-process strategy
-      request: {
+      req: {
         template: restoredSandbox.__request.template,
         data: err == null ? restoredSandbox.__request.data : undefined,
         options: restoredSandbox.__request.options,
         context: {
-          ...restoredSandbox.__request.context,
-          // take the value original evaluated, not the one from script because
-          // it could had been modified
-          shouldRunAfterRender: inputs.request.context.shouldRunAfterRender
+          ...restoredSandbox.__request.context
         }
       },
       // creating new object avoids passing a proxy object to rest of the
       // execution flow when script is running in in-process strategy
-      response: { ...restoredSandbox.__response },
+      res: { ...restoredSandbox.__response },
       error: err ? {
         message: err.message,
         stack: err.stack
@@ -112,104 +93,26 @@ module.exports = async function executeScript (reporter, inputs, req, onLog) {
     }
   }
 
-  const initialSandbox = {
-    __request: {
-      ...inputs.request,
-      context: { ...inputs.request.context }
-    },
-    __response: inputs.response,
-    setTimeout: setTimeout,
-    __appDirectory: inputs.appDirectory,
-    __rootDirectory: inputs.rootDirectory,
-    __parentModuleDirectory: inputs.parentModuleDirectory,
-    __runBefore: () => {
-      const shouldRunAfterRender = typeof sandboxContext.afterRender === 'function'
-
-      inputs.request.context.shouldRunAfterRender = shouldRunAfterRender
-
-      if (typeof sandboxContext.beforeRender === 'function') {
-        if (sandboxContext.beforeRender.length === 3) {
-          sandboxContext.beforeRender(sandboxContext.__request, sandboxContext.__response, (err) => doneWrap(err))
-        } else {
-          Promise.resolve(
-            sandboxContext.beforeRender(sandboxContext.__request, sandboxContext.__response)
-          ).then(() => doneWrap(), doneWrap)
-        }
-      } else {
-        doneWrap()
-      }
-    },
-    __runAfter: () => {
-      if (typeof sandboxContext.afterRender === 'function') {
-        if (sandboxContext.afterRender.length === 3) {
-          sandboxContext.afterRender(sandboxContext.__request, sandboxContext.__response, (err) => doneWrap(err))
-        } else {
-          Promise.resolve(
-            sandboxContext.afterRender(sandboxContext.__request, sandboxContext.__response)
-          ).then(() => doneWrap(), doneWrap)
-        }
-      } else {
-        doneWrap()
-      }
-    }
-  }
-
-  initialSandbox.__runBefore = initialSandbox.__runBefore.bind(initialSandbox)
-
-  const filename = 'evaluate-user-script.js'
-
   try {
-    await reporter.runInSandbox(({ context }) => {
-      if (inputs.method === 'beforeRender') {
-        context.__runBefore()
-      } else {
-        context.__runAfter()
-      }
-    }, {
-      getContext: () => initialSandbox,
-      onEval: async (params) => {
-        sandboxContext = params.context
-        restore = params.restore
-
-        const scriptEval = `${inputs.script}\n;if (typeof beforeRender === 'function') { this['beforeRender'] = beforeRender }\nif (typeof afterRender === 'function') { this['afterRender'] = afterRender }`
-
-        await params.run(scriptEval, {
-          filename
-        })
-      },
-      fileInfo: {
-        filename
-      },
-      errorPrefix: 'Error while executing user script.',
-      onLog,
-      formatError: (error, moduleName) => {
-        error.message += ` To be able to require custom modules you need to add to configuration { "allowLocalFilesAccess": true } or enable just specific module using { "extensions": { "scripts": { "allowedModules": ["${moduleName}"] } }`
-      },
-      propertiesConfig: Object.keys(requestContextMetaConfig).reduce((acu, prop) => {
-        // configure properties inside the context of sandbox
-        acu[`__request.context.${prop}`] = requestContextMetaConfig[prop]
-        return acu
-      }, {}),
-      allowedModules: inputs.allowedModules,
-      requirePaths,
-      requireMap: (moduleName) => {
+    return await reporter.runInSandbox({
+      context: initialContext,
+      userCode: script.content,
+      executionFn,
+      onRequire: (moduleName) => {
         if (moduleName === 'jsreport-proxy') {
           return jsreportProxy
         }
-      }
-    })
-
-    const customResult = await scriptExecutionPromise
-
-    // if we get some result from the script execution we return that,
-    // so far this is used to cancel request only
-    if (customResult != null) {
-      return customResult
-    }
-
-    return getScriptResult()
+      },
+      propertiesConfig: Object.keys(requestContextMetaConfig).reduce((acu, prop) => {
+      // configure properties inside the context of sandbox
+        acu[`__request.context.${prop}`] = requestContextMetaConfig[prop]
+        return acu
+      }, {})
+    }, req)
   } catch (e) {
-    return getScriptResult(e)
+    const scriptPath = script._id ? await reporter.folders.resolveEntityPath(script, 'scripts', req) : 'anonymous'
+    e.message = `Error when evaluating custom script ${scriptPath}\n` + e.message
+    throw e
   }
 }
 
