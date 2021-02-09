@@ -1,7 +1,7 @@
-/* eslint no-unused-vars: 1 */
+/* eslint no-unused-vars: 0 */
 /* eslint no-new-func: 0 */
 /* *global __rootDirectory */
-;(function (global) {
+const __xlsx = (function () {
   var fsproxy = this.fsproxy || require('fsproxy.js')
 
   function print () {
@@ -179,7 +179,6 @@
     var collection = safeGet(obj, xmlPath)
 
     var xml = escape(this.tagCtx.render(this.ctx.data).trim(), this.ctx.root)
-
     if (collection.length < this.ctx.root.$numberOfParsedAddIterations) {
       collection.push(xml2jsonUnwrap(xml))
       return ''
@@ -414,11 +413,39 @@
     }
   }
 
-  global.xlsxReplace = jsrenderHandlebarsCompatibility(replace)
-  global.xlsxMerge = jsrenderHandlebarsCompatibility(merge)
-  global.xlsxAdd = jsrenderHandlebarsCompatibility(add)
-  global.xlsxRemove = jsrenderHandlebarsCompatibility(remove)
-  global.xlsxAddImage = jsrenderHandlebarsCompatibility(addImage)
-  global.xlsxAddSheet = jsrenderHandlebarsCompatibility(addSheet)
-  global.xlsxPrint = jsrenderHandlebarsCompatibility(print)
-})(this)
+  return {
+    xlsxReplace: jsrenderHandlebarsCompatibility(replace),
+    xlsxMerge: jsrenderHandlebarsCompatibility(merge),
+    xlsxAdd: jsrenderHandlebarsCompatibility(add),
+    xlsxRemove: jsrenderHandlebarsCompatibility(remove),
+    xlsxAddImage: jsrenderHandlebarsCompatibility(addImage),
+    xlsxAddSheet: jsrenderHandlebarsCompatibility(addSheet),
+    xlsxPrint: jsrenderHandlebarsCompatibility(print)
+  }
+})()
+
+function xlsxReplace (...args) {
+  return __xlsx.xlsxReplace.call(this, ...args)
+}
+
+function xlsxMerge (...args) {
+  return __xlsx.xlsxMerge.call(this, ...args)
+}
+
+function xlsxAdd (...args) {
+  return __xlsx.xlsxAdd.call(this, ...args)
+}
+function xlsxRemove (...args) {
+  return __xlsx.xlsxRemove.call(this, ...args)
+}
+function xlsxAddImage (...args) {
+  return __xlsx.xlsxAddImage.call(this, ...args)
+}
+
+function xlsxAddSheet (...args) {
+  return __xlsx.xlsxAddSheet.call(this, ...args)
+}
+
+function xlsxPrint (...args) {
+  return __xlsx.xlsxPrint.call(this, ...args)
+}
