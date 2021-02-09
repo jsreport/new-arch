@@ -2,7 +2,7 @@ const should = require('should')
 const extend = require('node.extend.without.arrays')
 const core = require('../../index')
 
-describe.only('engine', () => {
+describe('engine', () => {
   let reporter
 
   beforeEach(async () => {
