@@ -167,7 +167,7 @@ describe('with reports extension', () => {
       options: {reports: {async: true}},
       data: {foo: 'hello'},
       template: {
-        name: 'name',
+        content: 'foo',
         recipe: 'html',
         engine: 'none'
       }
@@ -196,7 +196,7 @@ describe('with reports extension', () => {
     const request = {
       options: { recipe: 'html', reports: { async: true } },
       template: {
-        name: 'name',
+        content: 'foo',
         recipe: 'html',
         engine: 'none'
       }
