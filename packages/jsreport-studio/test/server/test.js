@@ -10,11 +10,7 @@ describe('studio', () => {
   let reporter
 
   async function prepareReporter (studioOptions = {}, customExt) {
-    let instance = jsreport({
-      templatingEngines: {
-        strategy: 'in-process'
-      }
-    }).use(require('jsreport-express')()).use(studio(studioOptions))
+    let instance = jsreport().use(require('jsreport-express')()).use(studio(studioOptions))
 
     if (customExt) {
       instance = instance.use(customExt)

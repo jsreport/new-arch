@@ -124,7 +124,7 @@ describe('engine', () => {
 
   it('should unblock all modules with *', async () => {
     const reporter2 = createReporter({
-      templatingEngines: {
+      sandbox: {
         allowedModules: '*'
       }
     })
@@ -147,7 +147,7 @@ describe('engine', () => {
 
   it('should be able to extend allowed modules', async () => {
     const reporter2 = createReporter({
-      templatingEngines: {
+      sandbox: {
         allowedModules: ['fs']
       }
     })
@@ -246,7 +246,7 @@ describe('engine', () => {
     const reporter2 = createReporter({
       rootDirectory: __dirname,
       appDirectory: __dirname,
-      templatingEngines: {
+      sandbox: {
         allowedModules: ['helperB']
       }
     })
@@ -271,7 +271,7 @@ describe('engine', () => {
     const reporter2 = createReporter({
       rootDirectory: __dirname,
       appDirectory: 'foo',
-      templatingEngines: {
+      sandbox: {
         allowedModules: ['helperB']
       }
     })
@@ -296,7 +296,7 @@ describe('engine', () => {
     const reporter2 = createReporter({
       rootDirectory: 'foo',
       appDirectory: __dirname,
-      templatingEngines: {
+      sandbox: {
         allowedModules: ['helperB']
       }
     })
@@ -322,7 +322,7 @@ describe('engine', () => {
       rootDirectory: 'foo',
       appDirectory: 'foo',
       parentModuleDirectory: __dirname,
-      templatingEngines: {
+      sandbox: {
         allowedModules: ['helperB']
       }
     })

@@ -6,7 +6,7 @@ describe('scripts', () => {
 
   beforeEach(() => {
     reporter = JsReport({
-      templatingEngines: {
+      sandbox: {
         allowedModules: ['bluebird', 'helperA']
       }
     })
@@ -820,7 +820,7 @@ describe('scripts', () => {
     it('should be unblock modules with allowedModules = *', async () => {
       await reporter.close()
       reporter = JsReport({
-        templatingEngines: {
+        sandbox: {
           allowedModules: '*'
         }
       }).use(require('jsreport-templates')()).use(require('jsreport-jsrender')()).use(require('../')())

@@ -72,7 +72,7 @@ class MainReporter extends Reporter {
   }
 
   async extensionsLoad (opts) {
-    const [userSuppliedOptions, appliedConfigFile] = await optionsLoad({
+    const appliedConfigFile = await optionsLoad({
       defaults: this.defaults,
       options: this.options,
       validator: this.optionsValidator,
@@ -112,12 +112,6 @@ class MainReporter extends Reporter {
 
     if (!rootOptionsValidation.valid) {
       throw new Error(`options contain values that does not match the defined full root schema. ${rootOptionsValidation.fullErrorMessage}`)
-    }
-
-    if (userSuppliedOptions.templatingEngines && userSuppliedOptions.templatingEngines.timeout != null && this.options.reportTimeout != null) {
-      this.logger.warn('"templatingEngines.timeout" configuration is ignored when "reportTimeout" is set')
-    } else if (userSuppliedOptions.templatingEngines && userSuppliedOptions.templatingEngines.timeout != null) {
-      this.logger.warn('"templatingEngines.timeout" configuration is deprecated and will be removed in the future, please use "reportTimeout" instead')
     }
 
     return this
@@ -203,7 +197,7 @@ class MainReporter extends Reporter {
       const extensionsForWorkers = this.extensionsManager.extensions.filter(e => e.worker)
 
       this._workersManager = new WorkersManager({
-        ...this.options.templatingEngines,
+        ...this.options.sandbox,
         options: { ...this.options },
         // we do map and copy to unproxy the value
         extensionsDefs: extensionsForWorkers.map(e => Object.assign({}, e)),
@@ -228,7 +222,7 @@ class MainReporter extends Reporter {
 
       await this._workersManager.init()
 
-      this.logger.info(`${this.options.templatingEngines.numberOfWorkers} worker threads initialized in ${new Date().getTime() - workersStart}ms`)
+      this.logger.info(`${this.options.workers.numberOfWorkers} worker threads initialized in ${new Date().getTime() - workersStart}ms`)
 
       // adding the validation of humanReadableKey after extensions has been loaded
       setupValidateId(this)

@@ -41,7 +41,6 @@ async function optionsLoad ({
     loadConfigResult = await loadConfig(defaults, options, false)
   }
 
-  const loadedOptions = loadConfigResult[0]
   const appliedConfigFile = loadConfigResult[1]
 
   options.loadConfig = shouldLoadExternalConfig
@@ -76,19 +75,16 @@ async function optionsLoad ({
   options.tempCoreDirectory = path.join(options.tempDirectory, 'core')
   options.store = options.store || { provider: 'memory' }
 
-  options.templatingEngines = options.templatingEngines || {}
-  options.templatingEngines.numberOfWorkers = options.templatingEngines.numberOfWorkers || 2
-
+  options.sandbox = options.sandbox || {}
   if (options.allowLocalFilesAccess === true) {
-    options.templatingEngines.allowedModules = '*'
+    options.sandbox.allowedModules = '*'
   }
+  options.sandbox.nativeModules = options.sandbox.nativeModules || []
+  options.sandbox.modules = options.sandbox.modules || []
+  options.sandbox.allowedModules = options.sandbox.allowedModules || []
 
-  options.templatingEngines.tempDirectory = options.tempDirectory
-  options.templatingEngines.tempCoreDirectory = options.tempCoreDirectory
-  options.templatingEngines.tempAutoCleanupDirectory = options.tempAutoCleanupDirectory
-  options.templatingEngines.nativeModules = options.templatingEngines.nativeModules || []
-  options.templatingEngines.modules = options.templatingEngines.modules || []
-  options.templatingEngines.allowedModules = options.templatingEngines.allowedModules || []
+  options.workers = options.workers || {}
+  options.workers.numberOfWorkers = options.workers.numberOfWorkers || 2
 
   if (!fs.existsSync(options.tempDirectory)) {
     fs.mkdirSync(options.tempDirectory, { recursive: true })
@@ -102,7 +98,7 @@ async function optionsLoad ({
     fs.mkdirSync(options.tempCoreDirectory, { recursive: true })
   }
 
-  return [loadedOptions, appliedConfigFile]
+  return appliedConfigFile
 }
 
 /**

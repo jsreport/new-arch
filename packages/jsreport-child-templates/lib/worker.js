@@ -6,14 +6,11 @@
  */
 
 const path = require('path')
-const fs = require('fs')
+const fs = require('fs').promises
 const extend = require('node.extend.without.arrays')
 const Promise = require('bluebird')
 const asyncReplace = Promise.promisify(require('async-replace-with-limit'))
 const staticHelpers = require('../static/helpers')
-const vm = require('vm')
-
-const readFileAsync = Promise.promisify(fs.readFile)
 
 function applyParameters (p1, templateName, req) {
   if (p1.indexOf(' @') !== -1) {
@@ -65,16 +62,11 @@ module.exports = function (reporter, definition) {
     return evaluateChildTemplates(reporter, request, response, { evaluateInTemplateContent: true })
   })
 
+  let helpersScript
   reporter.beforeRenderListeners.insert({ after: definition.name }, `${definition.name}-helpers`, async (req) => {
-    const helpersScript = await readFileAsync(path.join(__dirname, '../static/helpers.js'), 'utf8')
-
-    if (req.template.helpers && typeof req.template.helpers === 'object') {
-      // this is the case when the jsreport is used with in-process strategy
-      // and additinal helpers are passed as object
-      // in this case we need to merge in child template helpers
-      return vm.runInNewContext(helpersScript, req.template.helpers)
+    if (!helpersScript) {
+      helpersScript = await fs.readFile(path.join(__dirname, '../static/helpers.js'), 'utf8')
     }
-
     req.template.helpers = (req.template.helpers || '') + '\n' + helpersScript
   })
 

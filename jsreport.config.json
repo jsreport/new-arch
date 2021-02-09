@@ -23,10 +23,6 @@
       "syncModifications": false
     }
   },
-  "templatingEngines": {
-    "strategy": "worker-threads",
-    "numberOfWorkers": 1
-  },
   "extensionsList": [
     "authentication",
     "authorization",

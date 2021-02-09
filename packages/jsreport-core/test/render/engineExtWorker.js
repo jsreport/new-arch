@@ -34,12 +34,12 @@ module.exports = (reporter, definition) => {
     execute: d2Execute
   })
 
-  reporter.options.templatingEngines.nativeModules.push({
+  reporter.options.sandbox.nativeModules.push({
     globalVariableName: 'uuid',
     module: require.resolve('uuid')
   })
 
-  reporter.options.templatingEngines.modules.push({
+  reporter.options.sandbox.modules.push({
     alias: 'module',
     path: path.join(__dirname, 'moduleA.js')
   })

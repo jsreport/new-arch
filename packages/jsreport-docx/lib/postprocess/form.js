@@ -9,6 +9,7 @@ function processCheckbox (sdtEl) {
   }
 
   const aliasEls = sdtEl.getElementsByTagName('w:alias')
+
   if (aliasEls.length === 0) {
     return
   }

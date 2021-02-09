@@ -3,6 +3,7 @@ const fs = require('fs').promises
 const recipe = require('./recipe')
 
 module.exports = (reporter, definition) => {
+  let helpersScript
   reporter.extensionsManager.recipes.push({
     name: 'pptx',
     execute: recipe(reporter, definition)
@@ -18,7 +19,9 @@ module.exports = (reporter, definition) => {
 
   reporter.beforeRenderListeners.insert({ after: 'templates' }, 'pptx', async (req) => {
     if (req.template.recipe === 'pptx') {
-      const helpersScript = await fs.readFile(path.join(__dirname, '../static/helpers.js'), 'utf8')
+      if (!helpersScript) {
+        helpersScript = await fs.readFile(path.join(__dirname, '../static/helpers.js'), 'utf8')
+      }
       req.template.helpers = helpersScript + '\n' + (req.template.helpers || '')
     }
   })

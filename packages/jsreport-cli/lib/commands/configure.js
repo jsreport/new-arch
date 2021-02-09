@@ -224,17 +224,6 @@ exports.handler = async (argv) => {
         default: true
       },
       {
-        type: 'confirm',
-        name: 'fastStrategies',
-        message: 'Should jsreport reuse processes to speed up the rendering?',
-        default: true,
-        when: () => {
-          // only enable this question if configure
-          // is running from node.js based installation
-          return appInfo == null
-        }
-      },
-      {
         type: 'input',
         name: 'reportTimeout',
         message: (answers) => {
@@ -373,13 +362,6 @@ exports.handler = async (argv) => {
   }
 
   config.reportTimeout = answers.reportTimeout
-
-  if (answers.fastStrategies) {
-    config.templatingEngines = config.templatingEngines || {}
-    config.templatingEngines.strategy = 'http-server'
-    extensionsConf.scripts = extensionsConf.scripts || {}
-    extensionsConf.scripts.strategy = 'http-server'
-  }
 
   config.extensions = extensionsConf
 

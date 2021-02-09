@@ -407,9 +407,6 @@ describe('excel recipe with disabled add parsing', () => {
   beforeEach(() => {
     reporter = jsreport({
       rootDirectory: path.join(__dirname, '../'),
-      templatingEngines: {
-        strategy: 'in-process'
-      },
       office: { },
       extensions: {
         xlsx: {
@@ -502,8 +499,7 @@ describe('excel recipe with in process helpers', () => {
 
   beforeEach(() => {
     reporter = jsreport({
-      rootDirectory: path.join(__dirname, '../'),
-      templatingEngines: { strategy: 'in-process' }
+      rootDirectory: path.join(__dirname, '../')
     })
 
     return reporter.init()

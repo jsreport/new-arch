@@ -93,38 +93,19 @@ The render returns promise with the single response value
 
 The convention is that jsreport repository extension  starts with `jsreport-xxx`, but the extension real name and also the recipes or engines it registers excludes the `jsreport-` prefix. This means if you install extension `jsreport-handlebars` the engine's name you specify in the render should be `handlebars`.
 
-### Native helpers
-By default you need to send helpers to the template in the string. This is because jsreport runs the template rendering by default in the external process to avoid freezing the application when there is an endless loop or other critical error in the helper. If you want to use your local functions for the helpers you need to switch templating engine rendering strategy to `in-process`.
-
-```js
-const jsreport = require('jsreport-core')({
-	templatingEngines: { strategy: 'in-process' }
-})
-
-jsreport.init().then(() => {
- 	return jsreport.render({
-		template: {
-			content: '<h1>Hello {{foo}}</h1>',
-			helpers: { foo: () => { return 'world' } },
-			engine: 'handlebars',
-			recipe: 'chrome-pdf'
-		}
-	})
-})
-```
 
 ### Require in the helpers
-jsreport by default runs helpers in the sandbox where is the `require` function blocked. To unblock particular modules or local scripts you need to configure `templatingEngines.allowedModules` option.
+jsreport by default runs helpers in the sandbox where is the `require` function blocked. To unblock particular modules or local scripts you need to configure `sandbox.allowedModules` option.
 
 ```js
 const jsreport = require('jsreport-core')({
-	templatingEngines: { allowedModules: ['moment'] }
+	sandbox: { allowedModules: ['moment'] }
 })
 
 // or unblock everything
 
 const jsreport = require('jsreport-core')({
-	templatingEngines: { allowedModules: '*' }
+	sandbox: { allowedModules: '*' }
 })
 ```
 
@@ -132,7 +113,7 @@ Additionally jsreport provides global variables which can be used to build the l
 
 ```js
 const jsreport = require('jsreport-core')({
-	templatingEngines: { allowedModules: '*' }
+	sandbox: { allowedModules: '*' }
 })
 
 jsreport.init().then(() => {
@@ -196,10 +177,8 @@ require('jsreport-core')({
 	},
 	// options for templating engines and other scripts execution
 	// see the https://github.com/pofider/node-script-manager for more information
-	templatingEngines: {
-		numberOfWorkers: 2,
-		strategy: "http-server | dedicated-process | in-process",
-		templateCache: {
+	sandbox: {		
+		cache: {
 			max: 100, //LRU cache with max 100 entries, see npm lru-cache for other options
 			enabled: true //disable cache
 		}

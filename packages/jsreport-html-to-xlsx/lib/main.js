@@ -59,7 +59,7 @@ module.exports = function (reporter, definition) {
     name: 'html-to-xlsx'
   })
 
-  reporter.options.templatingEngines.modules.push({
+  reporter.options.sandbox.modules.push({
     alias: 'tmpHandler.js',
     path: path.join(__dirname, './tmpHandler.js')
   })

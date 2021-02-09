@@ -4,7 +4,7 @@ const createEngine = require('./jsrenderEngine')
 module.exports = (reporter, definition) => {
   const { compile, execute } = createEngine()
 
-  reporter.options.templatingEngines.modules.push({
+  reporter.options.sandbox.modules.push({
     alias: 'jsrender',
     path: require.resolve('jsrender')
   })

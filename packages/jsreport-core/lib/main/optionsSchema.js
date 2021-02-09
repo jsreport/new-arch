@@ -68,26 +68,9 @@ module.exports.getRootSchemaOptions = () => ({
         }
       }
     },
-    templatingEngines: {
+    sandbox: {
       type: 'object',
       properties: {
-        strategy: { type: 'string', enum: ['worker-threads'] },
-        numberOfWorkers: { type: 'number' },
-        forkOptions: {
-          type: 'object',
-          description: 'childProcess\'s fork options to pass to internal processes used by jsreport',
-          properties: {
-            execArgv: {
-              anyOf: [{
-                type: 'string',
-                '$jsreport-constantOrArray': []
-              }, {
-                type: 'array',
-                items: { type: 'string' }
-              }]
-            }
-          }
-        },
         allowedModules: {
           anyOf: [{
             type: 'string',
@@ -97,14 +80,19 @@ module.exports.getRootSchemaOptions = () => ({
             items: { type: 'string' }
           }]
         },
-        timeout: { type: 'number' },
-        templateCache: {
+        cache: {
           type: 'object',
           properties: {
             max: { type: 'number' },
             enabled: { type: 'boolean' }
           }
         }
+      }
+    },
+    workers: {
+      type: 'object',
+      properties: {
+        numberOfWorkers: { type: 'number', default: 2 }
       }
     },
     store: {

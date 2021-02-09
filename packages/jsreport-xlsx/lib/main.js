@@ -30,23 +30,23 @@ module.exports = (reporter, definition) => {
     name: 'xlsx'
   })
 
-  reporter.options.templatingEngines.modules.push({
+  reporter.options.sandbox.modules.push({
     alias: 'fsproxy.js',
     path: path.join(__dirname, '../lib/fsproxy.js')
   })
 
-  reporter.options.templatingEngines.modules.push({
+  reporter.options.sandbox.modules.push({
     alias: 'lodash',
     path: require.resolve('lodash')
   })
 
-  reporter.options.templatingEngines.modules.push({
+  reporter.options.sandbox.modules.push({
     alias: 'xml2js-preserve-spaces',
     path: require.resolve('xml2js-preserve-spaces')
   })
 
-  if (reporter.options.templatingEngines.allowedModules !== '*') {
-    reporter.options.templatingEngines.allowedModules.push('path')
+  if (reporter.options.sandbox.allowedModules !== '*') {
+    reporter.options.sandbox.allowedModules.push('path')
   }
 
   reporter.documentStore.registerEntityType('XlsxTemplateType', {

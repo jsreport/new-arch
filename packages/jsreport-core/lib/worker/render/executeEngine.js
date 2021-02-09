@@ -9,13 +9,13 @@ const LRU = require('lru-cache')
 const { nanoid } = require('nanoid')
 
 module.exports = (reporter) => {
-  const compiledCache = LRU(reporter.options.templatingEngines.templateCache || { max: 100 })
+  const cache = LRU(reporter.options.sandbox.cache || { max: 100 })
 
   return async ({ engine }, req) => {
     const asyncResultMap = new Map()
 
-    if (reporter.options.templatingEngines.templateCache && reporter.options.templatingEngines.templateCache.enabled === false) {
-      compiledCache.reset()
+    if (reporter.options.sandbox.cache && reporter.options.sandbox.cache.enabled === false) {
+      cache.reset()
     }
 
     req.data.__appDirectory = reporter.options.appDirectory
@@ -25,14 +25,14 @@ module.exports = (reporter) => {
     const executionFn = async ({ require, console, topLevelFunctions }) => {
       const key = `template:${req.template.content}:${engine.name}`
 
-      if (!compiledCache.has(key)) {
+      if (!cache.has(key)) {
         console.log('Compiled template not found in the cache, compiling')
-        compiledCache.set(key, engine.compile(req.template.content, { require }))
+        cache.set(key, engine.compile(req.template.content, { require }))
       } else {
         console.log('Taking compiled template from engine cache')
       }
 
-      const compiledTemplate = compiledCache.get(key)
+      const compiledTemplate = cache.get(key)
 
       for (const h of Object.keys(topLevelFunctions)) {
         topLevelFunctions[h] = wrapHelperForAsyncSupport(topLevelFunctions[h], asyncResultMap)

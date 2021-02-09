@@ -23,11 +23,11 @@ module.exports = (reporter) => {
         reporter.logger[log.level](log.message, { ...req, timestamp: log.timestamp })
       },
       formatError: (error, moduleName) => {
-        error.message += ` To be able to require custom modules you need to add to configuration { "allowLocalFilesAccess": true } or enable just specific module using { templatingEngines: { allowedModules": ["${moduleName}"] }`
+        error.message += ` To be able to require custom modules you need to add to configuration { "allowLocalFilesAccess": true } or enable just specific module using { sandbox: { allowedModules": ["${moduleName}"] }`
       },
       modulesCache: reporter.requestModulesCache.get(req.context.id),
-      globalModules: reporter.options.templatingEngines.nativeModules || [],
-      allowedModules: reporter.options.templatingEngines.allowedModules,
+      globalModules: reporter.options.sandbox.nativeModules || [],
+      allowedModules: reporter.options.sandbox.allowedModules,
       propertiesConfig,
       requirePaths: [
         reporter.options.rootDirectory,
@@ -35,7 +35,7 @@ module.exports = (reporter) => {
         reporter.options.parentModuleDirectory
       ],
       requireMap: (moduleName) => {
-        const m = reporter.options.templatingEngines.modules.find((m) => m.alias === moduleName || m.path === moduleName)
+        const m = reporter.options.sandbox.modules.find((m) => m.alias === moduleName || m.path === moduleName)
 
         if (m) {
           return require(m.path)
