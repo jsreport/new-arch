@@ -13,7 +13,6 @@ module.exports = function (reporter, definition) {
   definition.options.allowedModules = definition.options.allowedModules || []
   reporter.options.scripts = definition.options
 
-
   reporter.documentStore.registerEntityType('ScriptType', {
     content: {type: 'Edm.String', document: {extension: 'js'}},
     name: {type: 'Edm.String', publicKey: true},
