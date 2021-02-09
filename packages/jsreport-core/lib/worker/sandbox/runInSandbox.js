@@ -1,5 +1,3 @@
-const parser = require('@babel/parser')
-const traverse = require('@babel/traverse').default
 const LRU = require('lru-cache')
 const safeSandbox = require('./safeSandbox')
 
@@ -112,6 +110,10 @@ function getTopLevelFunctions (code, cache) {
   if (cache.has(key)) {
     return cache.get(key)
   }
+
+  // lazy load to speed up boot
+  const parser = require('@babel/parser')
+  const traverse = require('@babel/traverse').default
 
   const names = []
   try {

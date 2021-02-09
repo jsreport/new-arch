@@ -8,86 +8,85 @@
 const LRU = require('lru-cache')
 const { nanoid } = require('nanoid')
 
-let compiledCache
-module.exports = (reporter) => async ({ engine }, req) => {
-  if (!compiledCache) {
-    compiledCache = LRU(reporter.options.templatingEngines.templateCache || { max: 100 })
-  }
+module.exports = (reporter) => {
+  const compiledCache = LRU(reporter.options.templatingEngines.templateCache || { max: 100 })
 
-  const asyncResultMap = new Map()
+  return async ({ engine }, req) => {
+    const asyncResultMap = new Map()
 
-  if (reporter.options.templatingEngines.templateCache && reporter.options.templatingEngines.templateCache.enabled === false) {
-    compiledCache.reset()
-  }
-
-  req.data.__appDirectory = reporter.options.appDirectory
-  req.data.__rootDirectory = reporter.options.rootDirectory
-  req.data.__parentModuleDirectory = reporter.options.parentModuleDirectory
-
-  const executionFn = async ({ require, console, topLevelFunctions }) => {
-    const key = `template:${req.template.content}:${engine.name}`
-
-    if (!compiledCache.has(key)) {
-      console.log('Compiled template not found in the cache, compiling')
-      compiledCache.set(key, engine.compile(req.template.content, { require }))
-    } else {
-      console.log('Taking compiled template from engine cache')
+    if (reporter.options.templatingEngines.templateCache && reporter.options.templatingEngines.templateCache.enabled === false) {
+      compiledCache.reset()
     }
 
-    const compiledTemplate = compiledCache.get(key)
+    req.data.__appDirectory = reporter.options.appDirectory
+    req.data.__rootDirectory = reporter.options.rootDirectory
+    req.data.__parentModuleDirectory = reporter.options.parentModuleDirectory
 
-    for (const h of Object.keys(topLevelFunctions)) {
-      topLevelFunctions[h] = wrapHelperForAsyncSupport(topLevelFunctions[h], asyncResultMap)
-    }
+    const executionFn = async ({ require, console, topLevelFunctions }) => {
+      const key = `template:${req.template.content}:${engine.name}`
 
-    const content = await engine.execute(compiledTemplate, topLevelFunctions, req.data, { require })
-
-    await Promise.all([...asyncResultMap.keys()].map(async (k) => {
-      asyncResultMap.set(k, `${await asyncResultMap.get(k)}`)
-    }))
-
-    const finalContent = content.replace(/{#asyncHelperResult ([^{}]+)}/g, (str, p1) => {
-      const asyncResultId = p1
-      return `${asyncResultMap.get(asyncResultId)}`
-    })
-
-    return {
-      content: finalContent
-    }
-  }
-
-  try {
-    return await reporter.runInSandbox({
-      context: {
-        ...(engine.createContext ? engine.createContext() : {})
-      },
-      userCode: req.template.helpers,
-      executionFn,
-      onRequire: (moduleName, { context }) => {
-        if (engine.onRequire) {
-          return engine.onRequire(moduleName, { context })
-        }
+      if (!compiledCache.has(key)) {
+        console.log('Compiled template not found in the cache, compiling')
+        compiledCache.set(key, engine.compile(req.template.content, { require }))
+      } else {
+        console.log('Taking compiled template from engine cache')
       }
-    }, req)
-  } catch (e) {
-    const templatePath = req.template._id ? await reporter.folders.resolveEntityPath(req.template, 'templates', req) : 'anonymous'
-    e.message = `Error when evaluating engine ${engine.name} for template ${templatePath}\n` + e.message
-    throw e
-  }
-}
 
-function wrapHelperForAsyncSupport (fn, asyncResultMap) {
-  return function (...args) {
-    // important to call the helper with the current this to preserve the same behaviour
-    const fnResult = fn.call(this, ...args)
+      const compiledTemplate = compiledCache.get(key)
 
-    if (fnResult == null || typeof fnResult.then !== 'function') {
-      return fnResult
+      for (const h of Object.keys(topLevelFunctions)) {
+        topLevelFunctions[h] = wrapHelperForAsyncSupport(topLevelFunctions[h], asyncResultMap)
+      }
+
+      const content = await engine.execute(compiledTemplate, topLevelFunctions, req.data, { require })
+
+      await Promise.all([...asyncResultMap.keys()].map(async (k) => {
+        asyncResultMap.set(k, `${await asyncResultMap.get(k)}`)
+      }))
+
+      const finalContent = content.replace(/{#asyncHelperResult ([^{}]+)}/g, (str, p1) => {
+        const asyncResultId = p1
+        return `${asyncResultMap.get(asyncResultId)}`
+      })
+
+      return {
+        content: finalContent
+      }
     }
 
-    const asyncResultId = nanoid(7)
-    asyncResultMap.set(asyncResultId, fnResult)
+    try {
+      return await reporter.runInSandbox({
+        context: {
+          ...(engine.createContext ? engine.createContext() : {})
+        },
+        userCode: req.template.helpers,
+        executionFn,
+        onRequire: (moduleName, { context }) => {
+          if (engine.onRequire) {
+            return engine.onRequire(moduleName, { context })
+          }
+        }
+      }, req)
+    } catch (e) {
+      const templatePath = req.template._id ? await reporter.folders.resolveEntityPath(req.template, 'templates', req) : 'anonymous'
+      e.message = `Error when evaluating engine ${engine.name} for template ${templatePath}\n` + e.message
+      throw e
+    }
+  }
 
-    return `{#asyncHelperResult ${asyncResultId}}`
+  function wrapHelperForAsyncSupport (fn, asyncResultMap) {
+    return function (...args) {
+    // important to call the helper with the current this to preserve the same behaviour
+      const fnResult = fn.call(this, ...args)
+
+      if (fnResult == null || typeof fnResult.then !== 'function') {
+        return fnResult
+      }
+
+      const asyncResultId = nanoid(7)
+      asyncResultMap.set(asyncResultId, fnResult)
+
+      return `{#asyncHelperResult ${asyncResultId}}`
+    }
   }
 }

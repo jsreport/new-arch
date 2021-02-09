@@ -45,7 +45,7 @@ class Scripts {
   async _runScript (req, res, script, method) {
     this.reporter.logger.debug(`Executing script ${(script.name || script.shortid || 'anonymous')} (${method})`, req)
 
-    await this.reporter.beforeScriptListeners.fire({ script: script.content }, req)
+    await this.reporter.beforeScriptListeners.fire({ script }, req)
 
     const scriptExecResult = await executeScript(this.reporter, script, method, req, res)
 

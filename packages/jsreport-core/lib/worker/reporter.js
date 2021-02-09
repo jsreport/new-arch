@@ -7,6 +7,7 @@ const htmlRecipe = require('./render/htmlRecipe')
 const defaultProxyExtend = require('./defaultProxyExtend')
 const Reporter = require('../shared/reporter')
 const BlobStorage = require('./blobStorage.js')
+const Render = require('./render/render')
 
 class WorkerReporter extends Reporter {
   constructor (workerData, executeMain) {
@@ -41,6 +42,7 @@ class WorkerReporter extends Reporter {
 
     super.init()
 
+    this._render = Render(this)
     await this.extensionsManager.init()
 
     this.documentStore = DocumentStore(this._documentStoreData, this.executeMainAction.bind(this))
@@ -112,9 +114,7 @@ class WorkerReporter extends Reporter {
   }
 
   render (req, parentReq) {
-    // TODO lazy load optimization, what it will do with the compile
-    const render = require('./render/render')
-    return render(this, req, parentReq)
+    return this._render(req, parentReq)
   }
 
   executeMainAction (actionName, data, req) {

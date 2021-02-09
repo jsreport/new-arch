@@ -99,9 +99,9 @@ module.exports = (reporter, definition) => {
 
   reporter.initializeListeners.add('assets', () => {
     if (reporter.beforeScriptListeners) {
-      reporter.beforeScriptListeners.add('assets', function (scriptDef, req) {
-        return evaluateAssets(reporter, definition, scriptDef.script, req).then(function (result) {
-          scriptDef.script = result
+      reporter.beforeScriptListeners.add('assets', function ({ script }, req) {
+        return evaluateAssets(reporter, definition, script.content, req).then(function (result) {
+          script.content = result
         })
       })
     }

@@ -856,8 +856,8 @@ describe('scripts', () => {
 
     it('should fire beforeScriptListeners', async () => {
       reporter.tests.beforeRenderEval((req, res, { reporter }) => {
-        reporter.beforeScriptListeners.add('test', (def, req) => {
-          req.template.content = def.script
+        reporter.beforeScriptListeners.add('test', ({ script }, req) => {
+          req.template.content = script.content
         })
       })
 
