@@ -1,14 +1,16 @@
 import PropTypes from 'prop-types'
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
-import fuzzyFilterFactory from 'react-fuzzy-filter'
+// TODO: uncomment this when we want to test the fuzzy finder (it is disabled because yarn problems with windows)
+// import fuzzyFilterFactory from 'react-fuzzy-filter'
 import { selectors as entitiesSelector } from '../../redux/entities'
 import { actions as editorActions } from '../../redux/editor'
 import { resolveEntityTreeIconStyle } from '../EntityTree/utils'
 import { entitySets } from '../../lib/configuration'
 import styles from './EntityFuzzyFinderModal.css'
 
-const { InputFilter, FilterResults } = fuzzyFilterFactory()
+// TODO: uncomment this when we want to test the fuzzy finder (it is disabled because yarn problems with windows)
+// const { InputFilter, FilterResults } = fuzzyFilterFactory()
 
 const fuseConfig = {
   shouldSort: true,
@@ -302,6 +304,10 @@ class EntityFuzzyFinderModal extends Component {
   render () {
     const { entities } = this.props
 
+    return 'CONTENT IS DISABLED FOR NOW'
+
+    // TODO: uncomment this when we want to test the fuzzy finder (it is disabled because yarn problems with windows)
+    /*
     return (
       <div className={styles.container}>
         <div onKeyDown={this.handleKeyDown}>
@@ -323,6 +329,7 @@ class EntityFuzzyFinderModal extends Component {
         </div>
       </div>
     )
+    */
   }
 }
 
