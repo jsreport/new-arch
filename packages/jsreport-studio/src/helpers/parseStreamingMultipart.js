@@ -96,7 +96,7 @@ function parseMultipartHttp (parsingProgress, textDecoder, buffer, boundary, pre
       parsingProgress.meta.contentType = parsedHeaders['content-type']
       parsingProgress.meta.contentLength = contentLength
       parsingProgress.meta.headers = parsedHeaders
-      parsingProgress.meta.pending = new Uint8Array(0)
+      parsingProgress.pending = new Uint8Array(0)
     }
   } else if (parsingProgress.state === 'header') {
     const finalBoundaryDelimeterBuf = new TextEncoder().encode(getFinalDelimiter(boundary))
@@ -124,7 +124,7 @@ function parseMultipartHttp (parsingProgress, textDecoder, buffer, boundary, pre
 
     parsingProgress.state = 'initial'
     parsingProgress.meta = {}
-    parsingProgress.meta.pending = new Uint8Array(0)
+    parsingProgress.pending = new Uint8Array(0)
   }
 
   if (rest) {
