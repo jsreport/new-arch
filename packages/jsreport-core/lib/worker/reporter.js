@@ -20,7 +20,6 @@ class WorkerReporter extends Reporter {
     this._documentStoreData = documentStore
     this._requestContextMetaConfigCollection = new Map()
     this._proxyRegistrationFns = []
-
     this.requestModulesCache = new Map()
     this._workerActions = new Map()
     this._registerRenderAction()

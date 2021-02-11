@@ -27,6 +27,7 @@ const Reporter = require('../shared/reporter')
 const Request = require('../shared/request')
 const generateRequestId = require('../shared/generateRequestId')
 const extend = require('node.extend.without.arrays')
+const Profiler = require('./profiler')
 
 class MainReporter extends Reporter {
   constructor (options, defaults) {
@@ -40,6 +41,8 @@ class MainReporter extends Reporter {
     this._initialized = false
     this._initializing = false
     this._mainActions = new Map()
+    // todo handle delete
+    this._profilersMap = new Map()
 
     this.settings = new Settings()
     this.extensionsManager = ExtensionsManager(this)
@@ -304,7 +307,7 @@ class MainReporter extends Reporter {
       }
     }
 
-    request.context.rootId = generateRequestId()
+    request.context.rootId = request.context.rootId || generateRequestId()
     request.context.id = request.context.rootId
 
     let reportTimeout = this.options.reportTimeout
@@ -344,6 +347,14 @@ class MainReporter extends Reporter {
     return response
   }
 
+  attachProfiler (req) {
+    req.context = req.context || {}
+    req.context.rootId = generateRequestId()
+    const profiler = new Profiler(req)
+    this._profilersMap.set(req.context.rootId, profiler)
+    return profiler
+  }
+
   /**
    *
    * @public
@@ -381,6 +392,14 @@ class MainReporter extends Reporter {
   _registerLogMainAction () {
     this.registerMainAction('log', (log, req) => {
       this.logger[log.level](log.message, { ...req, ...log.meta, timestamp: log.timestamp })
+      if (this._profilersMap.has(req.context.rootId)) {
+        this._profilersMap.get(req.context.rootId).emit('message', {
+          type: 'log',
+          message: log.message,
+          level: log.level,
+          timestamp: log.timestamp
+        })
+      }
     })
   }
 

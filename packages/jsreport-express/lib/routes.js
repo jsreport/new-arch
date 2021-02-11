@@ -40,22 +40,21 @@ module.exports = (app, reporter, exposedOptions) => {
     })
 
     let form
-
+    let profiler
     if (stream) {
-      const formatLog = (text) => {
-        return `${JSON.stringify({ level: 'debug', message: text })}`
-      }
-
       form = new FormData()
       res.setHeader('Content-Type', `multipart/mixed; boundary=${form.getBoundary()}`)
+
+      profiler = reporter.attachProfiler(renderRequest)
+      profiler.on('message', (m) => {
+        form.append(m.type, JSON.stringify(m), { contentType: 'application/json' })
+      })
 
       pipeline(form, res, (err) => {
         if (err) {
           res.destroy()
         }
       })
-
-      form.append('log1', formatLog('render log'), { contentType: 'application/json' })
     }
 
     reporter.render(renderRequest).then((renderResponse) => {
