@@ -99,35 +99,39 @@ function parseMultipartHttp (parsingProgress, textDecoder, buffer, boundary, pre
       parsingProgress.pending = new Uint8Array(0)
     }
   } else if (parsingProgress.state === 'header') {
-    const finalBoundaryDelimeterBuf = new TextEncoder().encode(getFinalDelimiter(boundary))
-    const body = chunk.slice(0, parsingProgress.meta.contentLength)
+    if (chunk.length < parsingProgress.meta.contentLength) {
+      parsingProgress.pending = chunk
+    } else {
+      const finalBoundaryDelimeterBuf = new TextEncoder().encode(getFinalDelimiter(boundary))
+      const body = chunk.slice(0, parsingProgress.meta.contentLength)
 
-    rest = chunk.slice(parsingProgress.meta.contentLength)
+      rest = chunk.slice(parsingProgress.meta.contentLength)
 
-    if (
-      arrayBufferEqual(rest.buffer, finalBoundaryDelimeterBuf.buffer)
-    ) {
-      rest = undefined
+      if (
+        arrayBufferEqual(rest.buffer, finalBoundaryDelimeterBuf.buffer)
+      ) {
+        rest = undefined
+      }
+
+      const part = {
+        name: parsingProgress.meta.name,
+        filename: parsingProgress.meta.filename,
+        contentDispositionType: parsingProgress.meta.contentDispositionType,
+        contentType: parsingProgress.meta.contentType,
+        contentLength: parsingProgress.meta.contentLength,
+        headers: parsingProgress.meta.headers,
+        rawData: body
+      }
+
+      newParts.push(part)
+
+      parsingProgress.state = 'initial'
+      parsingProgress.meta = {}
+      parsingProgress.pending = new Uint8Array(0)
     }
-
-    const part = {
-      name: parsingProgress.meta.name,
-      filename: parsingProgress.meta.filename,
-      contentDispositionType: parsingProgress.meta.contentDispositionType,
-      contentType: parsingProgress.meta.contentType,
-      contentLength: parsingProgress.meta.contentLength,
-      headers: parsingProgress.meta.headers,
-      rawData: body
-    }
-
-    newParts.push(part)
-
-    parsingProgress.state = 'initial'
-    parsingProgress.meta = {}
-    parsingProgress.pending = new Uint8Array(0)
   }
 
-  if (rest) {
+  if (rest && rest.length > 0) {
     return parseMultipartHttp(parsingProgress, textDecoder, rest, boundary, newParts)
   }
 

@@ -161,7 +161,7 @@ class App extends Component {
 
       processFile = (fileInfo) => {
         if (fileInfo.name === 'report') {
-          const file = new window.File([fileInfo.rawData], fileInfo.filename, {
+          const file = new window.File([fileInfo.rawData.buffer], fileInfo.filename, {
             type: fileInfo.contentType
           })
 
