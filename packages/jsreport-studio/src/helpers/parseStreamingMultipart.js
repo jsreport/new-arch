@@ -54,8 +54,6 @@ async function parseStreamingMultipart (response, onFile) {
 
 export default parseStreamingMultipart
 
-// TODO: still pending to handle the cases in which the parsing is not complete because the chunk
-// contains just part of the data
 function parseMultipartHttp (parsingProgress, textDecoder, buffer, boundary, previousParts = []) {
   const chunk = concatUInt8Array(parsingProgress.pending, buffer)
   const newParts = [...previousParts]
