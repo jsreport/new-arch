@@ -30,7 +30,7 @@ const Content = (props) => {
           entitySet: 'templates',
           folderShortid: mainTemplate.folder != null ? mainTemplate.folder.shortid : null
         }
-      })
+      }, true)
     } catch (e) {
       setProcessing(false)
       setError(`New header/footer template validation error: ${e.message}`)
@@ -47,9 +47,10 @@ const Content = (props) => {
           content: getDefaultHeaderFooterContent(),
           engine: 'handlebars',
           recipe: mainTemplate.recipe,
-          helpers: getDefaultHeaderFooterHelpers()
+          helpers: getDefaultHeaderFooterHelpers(),
+          folder: mainTemplate.folder != null ? { shortid: mainTemplate.folder.shortid } : null
         }
-      })
+      }, true)
 
       response.__entitySet = 'templates'
 

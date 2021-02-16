@@ -1,4 +1,9 @@
 
+.x-pdf-utils-PdfUtilsEditor-separator {
+  border: 1px solid $tab-titles-borderColor;
+  margin-bottom: 1rem;
+}
+
 .x-pdf-utils-PdfUtilsEditor-operationTable {
   border-collapse: collapse;
   border:none;

@@ -29,7 +29,7 @@ const Content = (props) => {
           entitySet: 'templates',
           folderShortid: mainTemplate.folder != null ? mainTemplate.folder.shortid : null
         }
-      })
+      }, true)
     } catch (e) {
       setProcessing(false)
       setError(`New table of contents template validation error: ${e.message}`)
@@ -47,9 +47,10 @@ const Content = (props) => {
           engine: 'handlebars',
           recipe: mainTemplate.recipe,
           helpers: getDefaultTOCHelpers(),
-          chrome: mainTemplate.recipe === 'chrome-pdf' ? { marginTop: (mainTemplate.chrome || {}).marginTop || undefined, marginLeft: (mainTemplate.chrome || {}).marginLeft, marginRight: (mainTemplate.chrome || {}).marginRight, marginBottom: (mainTemplate.chrome || {}).marginBottom || undefined } : mainTemplate.chrome
+          chrome: mainTemplate.recipe === 'chrome-pdf' ? { marginTop: (mainTemplate.chrome || {}).marginTop || undefined, marginLeft: (mainTemplate.chrome || {}).marginLeft, marginRight: (mainTemplate.chrome || {}).marginRight, marginBottom: (mainTemplate.chrome || {}).marginBottom || undefined } : mainTemplate.chrome,
+          folder: mainTemplate.folder != null ? { shortid: mainTemplate.folder.shortid } : null
         }
-      })
+      }, true)
 
       response.__entitySet = 'templates'
 
