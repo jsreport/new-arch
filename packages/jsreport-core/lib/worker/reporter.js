@@ -8,6 +8,7 @@ const defaultProxyExtend = require('./defaultProxyExtend')
 const Reporter = require('../shared/reporter')
 const BlobStorage = require('./blobStorage.js')
 const Render = require('./render/render')
+const Profiler = require('./render/profiler.js')
 
 class WorkerReporter extends Reporter {
   constructor (workerData, executeMain) {
@@ -40,6 +41,8 @@ class WorkerReporter extends Reporter {
     }
 
     super.init()
+
+    Profiler(this)
 
     this._render = Render(this)
     await this.extensionsManager.init()

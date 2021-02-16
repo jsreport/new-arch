@@ -51,11 +51,22 @@ module.exports = (reporter) => {
 
     reporter.logger.debug(`Rendering engine ${engine.name}`, request)
 
+    const engineProfileId = reporter.profiler.emit({
+      type: 'operationStart',
+      subtype: 'engine',
+      name: request.template.engine
+    }, request, response)
+
     const engineRes = await executeEngine({
       engine
     }, request)
 
     response.content = Buffer.from(engineRes.content != null ? engineRes.content : '')
+
+    reporter.profiler.emit({
+      type: 'operationEnd',
+      id: engineProfileId
+    }, request, response)
 
     await reporter.afterTemplatingEnginesExecutedListeners.fire(request, response)
 
@@ -75,7 +86,16 @@ module.exports = (reporter) => {
 
     reporter.logger.debug('Executing recipe ' + request.template.recipe, request)
 
-    return recipe.execute(request, response)
+    const recipeProfileId = reporter.profiler.emit({
+      type: 'operationStart',
+      subtype: 'recipe',
+      name: request.template.recipe
+    }, request, response)
+    await recipe.execute(request, response)
+    reporter.profiler.emit({
+      type: 'operationEnd',
+      id: recipeProfileId
+    }, request, response)
   }
 
   async function afterRender (reporter, request, response) {
@@ -93,6 +113,13 @@ module.exports = (reporter) => {
 
     try {
       request.data = resolveReferences(request.data) || {}
+
+      const renderProfileId = reporter.profiler.emit({
+        type: 'operationStart',
+        subtype: 'render',
+        previousOperationId: parentReq ? parentReq.context.profilerLastOperationId : null
+      }, request, response)
+
       if (request.options.reportName) {
         response.meta.reportName = String(request.options.reportName)
       } else {
@@ -124,7 +151,6 @@ module.exports = (reporter) => {
       await beforeRender(reporter, request, response)
       await invokeRender(reporter, request, response)
       await afterRender(reporter, request, response)
-
       response.meta.logs = request.context.logs
 
       if (parentReq) {
@@ -133,6 +159,11 @@ module.exports = (reporter) => {
       }
 
       reporter.logger.info(`Rendering request ${request.context.reportCounter} finished in ${(new Date().getTime() - request.context.startTimestamp)} ms`, req)
+
+      reporter.profiler.emit({
+        type: 'operationEnd',
+        id: renderProfileId
+      }, request, response)
 
       return response
     } catch (e) {

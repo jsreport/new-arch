@@ -41,8 +41,6 @@ class MainReporter extends Reporter {
     this._initialized = false
     this._initializing = false
     this._mainActions = new Map()
-    // todo handle delete
-    this._profilersMap = new Map()
 
     this.settings = new Settings()
     this.extensionsManager = ExtensionsManager(this)
@@ -54,6 +52,7 @@ class MainReporter extends Reporter {
     this.entityTypeValidator = new SchemaValidator()
 
     this.logger = createLogger()
+    this.beforeMainActionListeners = this.createListenerCollection()
   }
 
   discover () {
@@ -153,6 +152,7 @@ class MainReporter extends Reporter {
     }
 
     try {
+      Profiler(this)
       this._registerLogMainAction()
       await this.extensionsLoad()
 
@@ -347,14 +347,6 @@ class MainReporter extends Reporter {
     return response
   }
 
-  attachProfiler (req) {
-    req.context = req.context || {}
-    req.context.rootId = generateRequestId()
-    const profiler = new Profiler(req)
-    this._profilersMap.set(req.context.rootId, profiler)
-    return profiler
-  }
-
   /**
    *
    * @public
@@ -385,21 +377,17 @@ class MainReporter extends Reporter {
     this._mainActions.set(actionName, fn)
   }
 
-  _invokeMainAction (data) {
+  async _invokeMainAction (data) {
+    await this.beforeMainActionListeners.fire(data.actionName, data.data, data.req)
+    if (!this._mainActions.has(data.actionName)) {
+      throw this.createError(`Main process action ${data.actionName} wasn't registered`)
+    }
     return this._mainActions.get(data.actionName)(data.data, data.req)
   }
 
   _registerLogMainAction () {
     this.registerMainAction('log', (log, req) => {
       this.logger[log.level](log.message, { ...req, ...log.meta, timestamp: log.timestamp })
-      if (this._profilersMap.has(req.context.rootId)) {
-        this._profilersMap.get(req.context.rootId).emit('message', {
-          type: 'log',
-          message: log.message,
-          level: log.level,
-          timestamp: log.timestamp
-        })
-      }
     })
   }
 
@@ -416,8 +404,7 @@ class MainReporter extends Reporter {
       timeoutErrorMessage: options.timeoutErrorMessage || ('Timeout during worker action ' + actionName),
       executeMain: async (data) => {
         extend(true, req, data.req)
-        const result = await this._invokeMainAction(data, req)
-        return result
+        return this._invokeMainAction(data, req)
       }
     })
     this._workersManager.convertUint8ArrayToBuffer(result)
