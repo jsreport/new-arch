@@ -29,3 +29,20 @@ Studio.previewListeners.push((request, entities) => {
 
   request.data = dataDetails[0].dataJson || JSON.stringify({})
 })
+
+Studio.entityNewListeners.push((entity) => {
+  if (entity.__entitySet === 'data' && entity.dataJson == null) {
+    entity.dataJson = '{}'
+  }
+})
+
+Studio.entitySaveListeners.push((entity) => {
+  if (entity.__entitySet === 'data' && entity.dataJson != null) {
+    try {
+      JSON.parse(entity.dataJson)
+    } catch (e) {
+      e.message = `Error validating new data entity, Invalid JSON input. ${e.message}`
+      throw e
+    }
+  }
+})

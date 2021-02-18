@@ -88,13 +88,13 @@
 /* 0 */
 /***/ (function(module, exports) {
 
-module.exports = Studio.libraries['react'];
+module.exports = Studio;
 
 /***/ }),
 /* 1 */
 /***/ (function(module, exports) {
 
-module.exports = Studio;
+module.exports = Studio.libraries['react'];
 
 /***/ }),
 /* 2 */
@@ -111,7 +111,7 @@ var _ImportModal = __webpack_require__(5);
 
 var _ImportModal2 = _interopRequireDefault(_ImportModal);
 
-var _jsreportStudio = __webpack_require__(1);
+var _jsreportStudio = __webpack_require__(0);
 
 var _jsreportStudio2 = _interopRequireDefault(_jsreportStudio);
 
@@ -257,11 +257,11 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _react = __webpack_require__(0);
+var _react = __webpack_require__(1);
 
 var _react2 = _interopRequireDefault(_react);
 
-var _jsreportStudio = __webpack_require__(1);
+var _jsreportStudio = __webpack_require__(0);
 
 var _jsreportStudio2 = _interopRequireDefault(_jsreportStudio);
 
@@ -313,6 +313,7 @@ var ExportModal = function (_Component) {
     });
 
     _this.state = {};
+    _this.state.processing = false;
     _this.state.selected = selections;
 
     _this.handleSelectionChange = _this.handleSelectionChange.bind(_this);
@@ -343,8 +344,21 @@ var ExportModal = function (_Component) {
           while (1) {
             switch (_context.prev = _context.next) {
               case 0:
-                _context.prev = 0;
-                _context.next = 3;
+                if (!this.state.processing) {
+                  _context.next = 2;
+                  break;
+                }
+
+                return _context.abrupt('return');
+
+              case 2:
+
+                this.setState({
+                  processing: true
+                });
+
+                _context.prev = 3;
+                _context.next = 6;
                 return _jsreportStudio2.default.api.post('api/export', {
                   data: {
                     selection: Object.keys(this.state.selected).filter(function (k) {
@@ -354,26 +368,34 @@ var ExportModal = function (_Component) {
                   responseType: 'blob'
                 }, true);
 
-              case 3:
+              case 6:
                 response = _context.sent;
 
 
                 _filesaver2.default.saveAs(response, 'export.zip');
-                _context.next = 10;
+
+                this.setState({
+                  processing: false
+                });
+                _context.next = 15;
                 break;
 
-              case 7:
-                _context.prev = 7;
-                _context.t0 = _context['catch'](0);
+              case 11:
+                _context.prev = 11;
+                _context.t0 = _context['catch'](3);
+
+                this.setState({
+                  processing: false
+                });
 
                 alert('Unable to prepare export ' + _context.t0.message + ' ' + _context.t0.stack);
 
-              case 10:
+              case 15:
               case 'end':
                 return _context.stop();
             }
           }
-        }, _callee, this, [[0, 7]]);
+        }, _callee, this, [[3, 11]]);
       }));
 
       function download() {
@@ -395,7 +417,9 @@ var ExportModal = function (_Component) {
       var _this3 = this;
 
       var references = this.getExportableReferences(_jsreportStudio2.default.getReferences());
-      var selected = this.state.selected;
+      var _state = this.state,
+          selected = _state.selected,
+          processing = _state.processing;
 
 
       return _react2.default.createElement(
@@ -426,10 +450,15 @@ var ExportModal = function (_Component) {
           { className: 'button-bar' },
           _react2.default.createElement(
             'a',
-            { className: 'button confirmation', onClick: function onClick() {
+            { className: 'button confirmation ' + (processing ? 'disabled' : ''), onClick: function onClick() {
                 return _this3.download();
               } },
-            'Download'
+            _react2.default.createElement('i', { className: 'fa fa-circle-o-notch fa-spin', style: { display: processing ? 'inline-block' : 'none' } }),
+            _react2.default.createElement(
+              'span',
+              { style: { display: processing ? 'none' : 'inline' } },
+              'Download'
+            )
           )
         )
       );
@@ -460,15 +489,11 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _react = __webpack_require__(0);
+var _react = __webpack_require__(1);
 
 var _react2 = _interopRequireDefault(_react);
 
-var _FileInput = __webpack_require__(6);
-
-var _FileInput2 = _interopRequireDefault(_FileInput);
-
-var _jsreportStudio = __webpack_require__(1);
+var _jsreportStudio = __webpack_require__(0);
 
 var _jsreportStudio2 = _interopRequireDefault(_jsreportStudio);
 
@@ -483,6 +508,7 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 var EntityRefSelect = _jsreportStudio2.default.EntityRefSelect;
+var FileInput = _jsreportStudio2.default.FileInput;
 
 var ImportFinishedModal = function (_Component) {
   _inherits(ImportFinishedModal, _Component);
@@ -786,6 +812,10 @@ var ImportModal = function (_Component2) {
   }, {
     key: 'cancel',
     value: function cancel() {
+      if (this.state.processing) {
+        return;
+      }
+
       this.setState({
         status: null,
         log: null,
@@ -831,7 +861,7 @@ var ImportModal = function (_Component2) {
         _react2.default.createElement(
           'div',
           { className: 'form-group' },
-          _react2.default.createElement(_FileInput2.default, {
+          _react2.default.createElement(FileInput, {
             placeholder: 'select export file to import...',
             selectedFile: this.state.selectedFile,
             onFileSelect: function onFileSelect(file) {
@@ -973,14 +1003,19 @@ var ImportModal = function (_Component2) {
             _react2.default.createElement(
               'button',
               {
-                className: 'button confirmation',
+                className: 'button confirmation ' + (this.state.processing ? 'disabled' : ''),
                 style: { opacity: this.state.selectedFile == null ? 0.7 : 1 },
                 disabled: this.state.selectedFile == null,
                 onClick: function onClick() {
                   return _this5.validate(_this5.state.selectedFile);
                 }
               },
-              'Validate'
+              _react2.default.createElement('i', { className: 'fa fa-circle-o-notch fa-spin', style: { display: this.state.processing ? 'inline-block' : 'none' } }),
+              _react2.default.createElement(
+                'span',
+                { style: { display: this.state.processing ? 'none' : 'inline' } },
+                'Validate'
+              )
             )
           ),
           _react2.default.createElement('br', null),
@@ -1003,17 +1038,22 @@ var ImportModal = function (_Component2) {
             { className: 'button-bar' },
             _react2.default.createElement(
               'button',
-              { className: 'button danger', onClick: function onClick() {
+              { className: 'button danger ' + (this.state.processing ? 'disabled' : ''), onClick: function onClick() {
                   return _this5.cancel();
                 } },
               'Cancel'
             ),
             (this.state.status === '0' || this.state.retryWithContinueOnFail) && _react2.default.createElement(
               'button',
-              { className: 'button confirmation', onClick: function onClick() {
+              { className: 'button confirmation ' + (this.state.processing ? 'disabled' : ''), onClick: function onClick() {
                   return _this5.import();
                 } },
-              this.state.retryWithContinueOnFail ? 'Ignore errors and continue' : 'Import'
+              _react2.default.createElement('i', { className: 'fa fa-circle-o-notch fa-spin', style: { display: this.state.processing ? 'inline-block' : 'none' } }),
+              _react2.default.createElement(
+                'span',
+                { style: { display: this.state.processing ? 'none' : 'inline' } },
+                this.state.retryWithContinueOnFail ? 'Ignore errors and continue' : 'Import'
+              )
             )
           )
         )
@@ -1025,159 +1065,6 @@ var ImportModal = function (_Component2) {
 }(_react.Component);
 
 exports.default = ImportModal;
-
-/***/ }),
-/* 6 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _react = __webpack_require__(0);
-
-var _react2 = _interopRequireDefault(_react);
-
-var _FileInput = __webpack_require__(7);
-
-var _FileInput2 = _interopRequireDefault(_FileInput);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-var FileInput = function (_Component) {
-  _inherits(FileInput, _Component);
-
-  function FileInput(props) {
-    _classCallCheck(this, FileInput);
-
-    var _this = _possibleConstructorReturn(this, (FileInput.__proto__ || Object.getPrototypeOf(FileInput)).call(this, props));
-
-    _this.inputFileRef = _react2.default.createRef();
-
-    _this.state = {};
-    return _this;
-  }
-
-  _createClass(FileInput, [{
-    key: 'handleOpen',
-    value: function handleOpen() {
-      this.inputFileRef.current.dispatchEvent(new MouseEvent('click', {
-        'view': window,
-        'bubbles': false,
-        'cancelable': true
-      }));
-    }
-  }, {
-    key: 'render',
-    value: function render() {
-      var _this2 = this;
-
-      var _props = this.props,
-          placeholder = _props.placeholder,
-          selectedFile = _props.selectedFile,
-          onFileSelect = _props.onFileSelect,
-          disabled = _props.disabled;
-
-
-      var placeholderText = void 0;
-
-      if (placeholder) {
-        placeholderText = placeholder;
-      } else {
-        placeholderText = 'select file...';
-      }
-
-      debugger;
-
-      console.log(_FileInput2.default);
-
-      return _react2.default.createElement(
-        'div',
-        {
-          className: _FileInput2.default.selectInput, onClick: function onClick() {
-            return !disabled && _this2.handleOpen();
-          },
-          style: { opacity: disabled ? 0.7 : 1 }
-        },
-        _react2.default.createElement('i', { className: 'fa fa-upload' }),
-        _react2.default.createElement(
-          'span',
-          {
-            title: placeholderText,
-            className: _FileInput2.default.nameLabel,
-            onClick: function onClick(e) {
-              e.preventDefault();
-              e.stopPropagation();
-
-              if (!disabled) {
-                _this2.handleOpen();
-              }
-            }
-          },
-          selectedFile ? selectedFile.name : placeholderText
-        ),
-        _react2.default.createElement('input', {
-          type: 'file',
-          key: 'file',
-          ref: this.inputFileRef,
-          style: { display: 'none' },
-          onChange: function onChange(e) {
-            if (!e.target.files.length) {
-              return;
-            }
-
-            onFileSelect(e.target.files[0]);
-          }
-        })
-      );
-    }
-  }]);
-
-  return FileInput;
-}(_react.Component);
-
-(function (window) {
-  try {
-    new MouseEvent('test'); // eslint-disable-line
-    return false; // No need to polyfill
-  } catch (e) {}
-  // Need to polyfill - fall through
-
-
-  // Polyfills DOM4 MouseEvent
-
-  var MouseEvent = function MouseEvent(eventType, params) {
-    params = params || { bubbles: false, cancelable: false };
-    var mouseEvent = document.createEvent('MouseEvent');
-    mouseEvent.initMouseEvent(eventType, params.bubbles, params.cancelable, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
-
-    return mouseEvent;
-  };
-
-  MouseEvent.prototype = Event.prototype;
-
-  window.MouseEvent = MouseEvent;
-})(window);
-
-exports.default = FileInput;
-
-/***/ }),
-/* 7 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// extracted by mini-css-extract-plugin
-module.exports = {"selectInput":"x-import-export-FileInput-selectInput","link":"x-import-export-FileInput-link","nameLabel":"x-import-export-FileInput-nameLabel"};
 
 /***/ })
 /******/ ]);

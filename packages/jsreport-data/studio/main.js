@@ -152,6 +152,23 @@ _jsreportStudio2.default.previewListeners.push(function (request, entities) {
   request.data = dataDetails[0].dataJson || JSON.stringify({});
 });
 
+_jsreportStudio2.default.entityNewListeners.push(function (entity) {
+  if (entity.__entitySet === 'data' && entity.dataJson == null) {
+    entity.dataJson = '{}';
+  }
+});
+
+_jsreportStudio2.default.entitySaveListeners.push(function (entity) {
+  if (entity.__entitySet === 'data' && entity.dataJson != null) {
+    try {
+      JSON.parse(entity.dataJson);
+    } catch (e) {
+      e.message = 'Error validating new data entity, Invalid JSON input. ' + e.message;
+      throw e;
+    }
+  }
+});
+
 /***/ }),
 /* 3 */
 /***/ (function(module, exports, __webpack_require__) {
