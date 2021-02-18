@@ -34,10 +34,6 @@ module.exports = (reporter) => {
     return profiler
   }
 
-  reporter.beforeRenderListeners.add('profiler', (req, res) => {
-    req.context.shared.profilerMessages = []
-  })
-
   reporter.afterRenderListeners.add('profiler', (req, res) => {
     profilersMap.delete(req.context.rootId)
   })
