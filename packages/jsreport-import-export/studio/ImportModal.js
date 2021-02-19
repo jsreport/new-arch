@@ -175,6 +175,10 @@ class ImportModal extends Component {
   }
 
   cancel () {
+    if (this.state.processing) {
+      return
+    }
+
     this.setState({
       status: null,
       log: null,
@@ -269,12 +273,13 @@ class ImportModal extends Component {
           {!this.state.validated && (
             <div className='button-bar'>
               <button
-                className='button confirmation'
+                className={`button confirmation ${this.state.processing ? 'disabled' : ''}`}
                 style={{ opacity: this.state.selectedFile == null ? 0.7 : 1 }}
                 disabled={this.state.selectedFile == null}
                 onClick={() => this.validate(this.state.selectedFile)}
               >
-                Validate
+                <i className="fa fa-circle-o-notch fa-spin" style={{ display: this.state.processing ? 'inline-block' : 'none' }}></i>
+                <span style={{ display: this.state.processing ? 'none' : 'inline' }}>Validate</span>
               </button>
             </div>
           )}
@@ -289,12 +294,13 @@ class ImportModal extends Component {
           )}
           {this.state.validated && (
             <div className='button-bar'>
-              <button className='button danger' onClick={() => this.cancel()}>
+              <button className={`button danger ${this.state.processing ? 'disabled' : ''}`} onClick={() => this.cancel()}>
                 Cancel
               </button>
               {(this.state.status === '0' || this.state.retryWithContinueOnFail) && (
-                <button className='button confirmation' onClick={() => this.import()}>
-                  {this.state.retryWithContinueOnFail ? 'Ignore errors and continue' : 'Import'}
+                <button className={`button confirmation ${this.state.processing ? 'disabled' : ''}`} onClick={() => this.import()}>
+                  <i className="fa fa-circle-o-notch fa-spin" style={{ display: this.state.processing ? 'inline-block' : 'none' }}></i>
+                  <span style={{ display: this.state.processing ? 'none' : 'inline' }}>{this.state.retryWithContinueOnFail ? 'Ignore errors and continue' : 'Import'}</span>
                 </button>
               )}
             </div>

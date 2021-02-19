@@ -121,13 +121,15 @@ var _jsreportStudio2 = _interopRequireDefault(_jsreportStudio);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-_jsreportStudio2.default.addEntitySet({ name: 'scripts',
+_jsreportStudio2.default.addEntitySet({
+  name: 'scripts',
   faIcon: 'fa-cog',
   visibleName: 'script',
   helpUrl: 'http://jsreport.net/learn/scripts',
   referenceAttributes: ['isGlobal'],
   entityTreePosition: 800
 });
+
 _jsreportStudio2.default.addPropertiesComponent(_TemplateScriptProperties2.default.title, _TemplateScriptProperties2.default, function (entity) {
   return entity.__entitySet === 'templates';
 });
@@ -166,9 +168,33 @@ _jsreportStudio2.default.previewListeners.push(function (request, entities) {
   });
 });
 
+_jsreportStudio2.default.entityNewListeners.push(function (entity) {
+  if (entity.__entitySet === 'scripts' && entity.content == null) {
+    entity.content = getDefaultScriptContent();
+  }
+});
+
+_jsreportStudio2.default.entitySaveListeners.push(function (entity) {
+  if (entity.__entitySet === 'scripts' && entity.content != null && entity.content.indexOf('function beforeRender') === -1 && entity.content.indexOf('function afterRender') === -1) {
+    _jsreportStudio2.default.openModal(function () {
+      return React.createElement(
+        'div',
+        null,
+        'script "',
+        entity.name,
+        '" does not have any function hook defined, which means that the script won\'t do anything, if that is not what you want make sure to define either "beforeRender" or "afterRender" function.'
+      );
+    });
+  }
+});
+
 _jsreportStudio2.default.entityTreeIconResolvers.push(function (entity) {
   return entity.__entitySet === 'scripts' && entity.isGlobal ? 'fa-cogs' : null;
 });
+
+function getDefaultScriptContent() {
+  return '// Use the "beforeRender" or "afterRender" hook\n// to manipulate and control the report generation\nasync function beforeRender (req, res) {\n\n}';
+}
 
 /***/ }),
 /* 3 */

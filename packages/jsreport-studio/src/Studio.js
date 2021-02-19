@@ -63,6 +63,22 @@ class Studio {
     return configuration.previewListeners
   }
 
+  /**
+   * Array of functions invoked in sequence when new entity is about to be added.
+   * @returns {Function[]}
+   */
+  get entityNewListeners () {
+    return configuration.entityNewListeners
+  }
+
+  /**
+   * Array of async functions invoked in sequence when editor entity save starts.
+   * @returns {Function[]}
+   */
+  get entitySaveListeners () {
+    return configuration.entitySaveListeners
+  }
+
   get textEditorInitializeListeners () {
     return configuration.textEditorInitializeListeners
   }

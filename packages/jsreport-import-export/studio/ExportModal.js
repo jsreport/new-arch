@@ -31,6 +31,7 @@ export default class ExportModal extends Component {
     })
 
     this.state = {}
+    this.state.processing = false
     this.state.selected = selections
 
     this.handleSelectionChange = this.handleSelectionChange.bind(this)
@@ -49,6 +50,14 @@ export default class ExportModal extends Component {
   }
 
   async download () {
+    if (this.state.processing) {
+      return
+    }
+
+    this.setState({
+      processing: true
+    })
+
     try {
       let response = await Studio.api.post('api/export', {
         data: {
@@ -58,7 +67,15 @@ export default class ExportModal extends Component {
       }, true)
 
       fileSaver.saveAs(response, 'export.zip')
+
+      this.setState({
+        processing: false
+      })
     } catch (e) {
+      this.setState({
+        processing: false
+      })
+
       alert('Unable to prepare export ' + e.message + ' ' + e.stack)
     }
   }
@@ -71,7 +88,7 @@ export default class ExportModal extends Component {
 
   render () {
     const references = this.getExportableReferences(Studio.getReferences())
-    const { selected } = this.state
+    const { selected, processing } = this.state
 
     return (
       <div className='form-group'>
@@ -87,8 +104,9 @@ export default class ExportModal extends Component {
           />
         </div>
         <div className='button-bar'>
-          <a className='button confirmation' onClick={() => this.download()}>
-            Download
+          <a className={`button confirmation ${processing ? 'disabled' : ''}`} onClick={() => this.download()}>
+            <i className="fa fa-circle-o-notch fa-spin" style={{ display: processing ? 'inline-block' : 'none' }}></i>
+            <span style={{ display: processing ? 'none' : 'inline' }}>Download</span>
           </a>
         </div>
       </div>

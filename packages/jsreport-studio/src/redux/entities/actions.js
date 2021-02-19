@@ -1,7 +1,7 @@
 import * as ActionTypes from './constants.js'
 import api from '../../helpers/api.js'
 import * as selectors from './selectors.js'
-import { entitySets, referencesLoader } from '../../lib/configuration.js'
+import { entitySets, entityNewListeners, entitySaveListeners, referencesLoader } from '../../lib/configuration.js'
 
 export const prune = (entity) => {
   let pruned = {}
@@ -77,6 +77,10 @@ export function removeExisting (id, children) {
 export function add (entity) {
   if (!entity || !entity._id) {
     throw new Error('Invalid entity submitted to add')
+  }
+
+  for (const l of entityNewListeners) {
+    l(entity)
   }
 
   return (dispatch) => dispatch({
@@ -190,7 +194,12 @@ export function save (id, { ignoreFailed = false, validateConcurrent = true } = 
   return async function (dispatch, getState) {
     try {
       const entity = Object.assign({}, selectors.getById(getState(), id))
+
       dispatch(apiStart())
+
+      for (const l of entitySaveListeners) {
+        await l(entity)
+      }
 
       if (entity.__isNew) {
         const oldId = entity._id
