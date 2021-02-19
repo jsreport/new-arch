@@ -17,7 +17,7 @@ module.exports = (reporter) => {
         message: data.message,
         level: data.level,
         timestamp: data.timestamp,
-        previousOperationId: req.context.profilerLastOperationId
+        previousOperationId: data.previousOperationId
       }, req)
     }
   })

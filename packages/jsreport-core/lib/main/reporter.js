@@ -26,7 +26,6 @@ const blobStorageActions = require('./blobStorage/mainActions')
 const Reporter = require('../shared/reporter')
 const Request = require('../shared/request')
 const generateRequestId = require('../shared/generateRequestId')
-const extend = require('node.extend.without.arrays')
 const Profiler = require('./profiler')
 
 class MainReporter extends Reporter {
@@ -377,12 +376,12 @@ class MainReporter extends Reporter {
     this._mainActions.set(actionName, fn)
   }
 
-  async _invokeMainAction (data) {
-    await this.beforeMainActionListeners.fire(data.actionName, data.data, data.req)
+  async _invokeMainAction (data, req) {
+    await this.beforeMainActionListeners.fire(data.actionName, data.data, req)
     if (!this._mainActions.has(data.actionName)) {
       throw this.createError(`Main process action ${data.actionName} wasn't registered`)
     }
-    return this._mainActions.get(data.actionName)(data.data, data.req)
+    return this._mainActions.get(data.actionName)(data.data, req)
   }
 
   _registerLogMainAction () {
@@ -403,7 +402,6 @@ class MainReporter extends Reporter {
       timeout: options.timeout || 60000,
       timeoutErrorMessage: options.timeoutErrorMessage || ('Timeout during worker action ' + actionName),
       executeMain: async (data) => {
-        extend(true, req, data.req)
         return this._invokeMainAction(data, req)
       }
     })

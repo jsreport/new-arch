@@ -41,6 +41,8 @@ function logFn (level, executeMainAction, ...args) {
     log.meta = meta
   }
 
+  log.previousOperationId = req.context.profilerLastOperationId
+
   return executeMainAction('log', {
     ...log
   }, req)

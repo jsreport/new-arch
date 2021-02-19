@@ -35,7 +35,7 @@ describe('profiler', () => {
     }
 
     should(messages[0].previousOperationId).be.null()
-    // evry operation except first one should have valid previousOperationId
+    // evry operation start except first one should have valid previousOperationId
     for (const message of messages.filter(m => m.type === 'operationStart').slice(1)) {
       messages.find(m => m.id === message.previousOperationId).should.be.ok()
       message.id.should.not.be.eql(message.previousOperationId)

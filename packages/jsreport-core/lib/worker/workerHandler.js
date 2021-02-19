@@ -1,12 +1,10 @@
 const WorkerReporter = require('./reporter')
-const _omit = require('lodash.omit')
 
 module.exports = async (userInitData, { executeMain, convertUint8ArrayToBuffer }) => {
   const reporter = new WorkerReporter(userInitData, async (actionName, data, req) => {
     const actionRes = await executeMain({
       actionName,
-      data,
-      req: _omit(req, 'template', 'data', 'options')
+      data
     }, req.context.advancedWorkersId)
     convertUint8ArrayToBuffer(actionRes)
     return actionRes
