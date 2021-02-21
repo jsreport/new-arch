@@ -2,6 +2,19 @@ const EventEmitter = require('events')
 const generateRequestId = require('../shared/generateRequestId')
 
 module.exports = (reporter) => {
+  reporter.documentStore.registerEntityType('ProfileType', {
+    templateShortid: { type: 'Edm.String', referenceTo: 'templates' },
+    timestamp: { type: 'Edm.DateTimeOffset', schema: { type: 'null' } },
+    state: { type: 'Edm.String' },
+    blobName: { type: 'Edm.String' },
+    error: { type: 'Edm.String' }
+  })
+
+  reporter.documentStore.registerEntitySet('profiles', {
+    entityType: 'jsreport.ProfileType',
+    exportable: false
+  })
+
   const profilersMap = new Map()
 
   function emitProfile (m, req) {
@@ -38,7 +51,7 @@ module.exports = (reporter) => {
     profilersMap.delete(req.context.rootId)
   })
 
-  reporter.renderErrorListeners.add('profiler', (req) => {
+  reporter.renderErrorListeners.add('profiler', (req, res, e) => {
     profilersMap.delete(req.context.rootId)
   })
 }

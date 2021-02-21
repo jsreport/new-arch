@@ -112,13 +112,8 @@ module.exports = (reporter) => {
     const response = { meta: {} }
 
     try {
+      await reporter.profiler.renderStart(request, parentReq, response)
       request.data = resolveReferences(request.data) || {}
-
-      const renderProfileId = reporter.profiler.emit({
-        type: 'operationStart',
-        subtype: 'render',
-        previousOperationId: parentReq ? parentReq.context.profilerLastOperationId : null
-      }, request, response)
 
       if (request.options.reportName) {
         response.meta.reportName = String(request.options.reportName)
@@ -160,10 +155,7 @@ module.exports = (reporter) => {
 
       reporter.logger.info(`Rendering request ${request.context.reportCounter} finished in ${(new Date().getTime() - request.context.startTimestamp)} ms`, req)
 
-      reporter.profiler.emit({
-        type: 'operationEnd',
-        id: renderProfileId
-      }, request, response)
+      await reporter.profiler.renderEnd(request, response)
 
       return response
     } catch (e) {
@@ -190,6 +182,8 @@ module.exports = (reporter) => {
       }
 
       e.logged = true
+
+      await reporter.profiler.renderEnd(request, response, e)
 
       throw e
     } finally {

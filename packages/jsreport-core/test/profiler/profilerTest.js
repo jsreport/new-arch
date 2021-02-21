@@ -2,7 +2,7 @@ const should = require('should')
 const jsreport = require('../../')
 const { applyPatch } = require('../../lib/worker/render/diff')
 
-describe('profiler', () => {
+describe.only('profiler', () => {
   let reporter
 
   beforeEach(() => {
@@ -135,5 +135,66 @@ describe('profiler', () => {
     await reporter.render(renderReq)
     const childRenderStart = messages.slice(1).find(m => m.type === 'operationStart' && m.subtype === 'render')
     childRenderStart.previousOperationId.should.be.eql(messages[0].id)
+  })
+
+  it('should persist profiles without req/res', async () => {
+    await reporter.render({
+      template: {
+        engine: 'none',
+        recipe: 'html',
+        content: 'Hello'
+      }
+    })
+
+    const profile = await reporter.documentStore.collection('profiles').findOne({})
+    should(profile).be.ok()
+
+    profile.state.should.be.eql('success')
+    profile.timestamp.should.be.Date()
+
+    const blobStream = await reporter.blobStorage.read(profile.blobName)
+
+    let chunks = ''
+    for await (const ch of blobStream) {
+      chunks += ch
+    }
+
+    const messages = chunks.split('\n').map(JSON.parse)
+    for (const m of messages) {
+      should(m.req).not.be.ok()
+    }
+  })
+
+  it('should persist profiles when request errors', async () => {
+    reporter.tests.beforeRenderEval((req) => {
+      throw new Error('My error')
+    })
+    try {
+      await reporter.render({
+        template: {
+          engine: 'none',
+          recipe: 'html',
+          content: 'Hello'
+        }
+      })
+    } catch (e) {
+
+    }
+    await new Promise(resolve => setTimeout(resolve, 100))
+
+    const profile = await reporter.documentStore.collection('profiles').findOne({})
+    profile.state.should.be.eql('error')
+
+    const blobStream = await reporter.blobStorage.read(profile.blobName)
+
+    let chunks = ''
+    for await (const ch of blobStream) {
+      chunks += ch
+    }
+
+    const messages = chunks.split('\n').map(JSON.parse)
+    for (const m of messages) {
+      should(m.req).not.be.ok()
+    }
   })
 })

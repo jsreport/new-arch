@@ -3,8 +3,6 @@ import * as _actions from './actions.js'
 import * as _selectors from './selectors.js'
 import _reducer from './reducer.js'
 
-// I am not able to convince webstorm to stop complain about export from syntax...
-
 export const ActionTypes = _ActionTypes
 export const actions = _actions
 export const reducer = _reducer

@@ -22,6 +22,7 @@ module.exports = (reporter) => {
   reporter.registerMainAction('documentStore.collection.update', async (spec, originalReq) => {
     const localReq = reporter.Request(originalReq)
     const res = await reporter.documentStore.collection(spec.collection).update(spec.query, spec.update, spec.options, localReq)
+
     return res
   })
 }

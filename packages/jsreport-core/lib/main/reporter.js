@@ -151,7 +151,6 @@ class MainReporter extends Reporter {
     }
 
     try {
-      Profiler(this)
       this._registerLogMainAction()
       await this.extensionsLoad()
 
@@ -159,6 +158,7 @@ class MainReporter extends Reporter {
       documentStoreActions(this)
       this.blobStorage = BlobStorage(this.options)
       blobStorageActions(this)
+      Profiler(this)
 
       this.documentStore.registerEntityType('TemplateType', {
         content: { type: 'Edm.String', document: { extension: 'html', engine: true } },

@@ -1,30 +1,32 @@
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import { actions } from '../../redux/editor'
-import { actions as settingsActions, selectors as settingsSelectors } from '../../redux/settings'
 import { selectors as entitiesSelectors } from '../../redux/entities'
 import api from '../../helpers/api.js'
-import { previewFrameChangeHandler, extensions } from '../../lib/configuration.js'
+import { previewFrameChangeHandler } from '../../lib/configuration.js'
 
 class Startup extends Component {
   constructor () {
     super()
-    this.state = { templates: [] }
+    this.state = { templates: [], profiles: [] }
   }
 
-  onTabActive () {
-    this.loadLastModifiedTemplates()
+  async onTabActive () {
+    if (this._loading) {
+      return
+    }
+    this._loading = true
+
+    try {
+      await this.loadLastModifiedTemplates()
+      await this.loadProfiles()
+    } finally {
+      this._loading = false
+    }
   }
 
   async loadLastModifiedTemplates () {
-    if (this.fetchRequested) {
-      return
-    }
-
-    this.fetchRequested = true
     const response = await api.get('/odata/templates?$top=5&$select=name,recipe,modificationDate&$orderby=modificationDate desc')
-
-    await this.props.load()
 
     this.setState({
       templates: response.value.map((t) => ({
@@ -32,36 +34,46 @@ class Startup extends Component {
         path: this.props.resolveEntityPath(t)
       }))
     })
+  }
 
-    this.fetchRequested = false
+  async loadProfiles () {
+    const response = await api.get('/odata/profiles')
+
+    this.setState({
+      profiles: response.value.map(p => {
+        let template = this.props.getByShortid(p.templateShortid, false)
+
+        if (!template) {
+          template = { name: 'anonymous', path: 'anonymous' }
+        } else {
+          template = { ...template, path: this.props.resolveEntityPath(template) }
+        }
+
+        return {
+          ...p,
+          template
+        }
+      })
+    })
   }
 
   shouldComponentUpdate (props) {
     return props.activeTabKey === 'StartupPage'
   }
 
-  openLogs (m) {
-    const errorMessage = m.error ? (m.error.message + '<br/>' + m.error.stack + '<br/><br/><br/>') : ''
+  async openProfile (p) {
+    const ab = await api.get(`/api/profile/${p._id}/content`, { responseType: 'arraybuffer' })
+    const str = String.fromCharCode.apply(null, new Uint8Array(ab))
 
-    let logs = ''
-    if (m.logs && m.logs.length) {
-      const start = new Date(m.logs[0].timestamp).getTime()
-      const rows = m.logs.map((m) => {
-        const time = (new Date(m.timestamp).getTime() - start)
-        return `<tr><td>+${time}</td><td>${m.message}</td></tr>`
-      }).join('')
-      logs = '<table>' + rows + '</table>'
-    }
-
-    return previewFrameChangeHandler('data:text/html;charset=utf-8,' + encodeURI(errorMessage + logs))
+    return previewFrameChangeHandler('data:text/html;charset=utf-8,' + encodeURI(str))
   }
 
-  renderRequestLogs (logsWithTemplates, failedLogsWithTemplates) {
+  renderProfiles (profiles) {
     const { openTab } = this.props
 
     return (
       <div>
-        <h2>Last requests</h2>
+        <h2>Last requests' profiles</h2>
 
         <div>
           <table className='table'>
@@ -72,40 +84,14 @@ class Startup extends Component {
               </tr>
             </thead>
             <tbody>
-              {(logsWithTemplates).map((l, k) => (
-                <tr key={k} onClick={() => this.openLogs(l)}>
+              {(profiles).map((p, k) => (
+                <tr key={k} onClick={() => this.openProfile(p)}>
                   <td className='selection'>
-                    <a style={{ textDecoration: 'underline' }} onClick={() => l.template._id ? openTab({ _id: l.template._id }) : null}>
-                      {l.template.path}
+                    <a style={{ textDecoration: 'underline' }} onClick={() => p.template._id ? openTab({ _id: p.template._id }) : null}>
+                      {p.template.path}
                     </a>
                   </td>
-                  <td>{new Date(l.timestamp).toLocaleString()}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        <h2>Last failed requests</h2>
-        <div>
-          <table className='table'>
-            <thead>
-              <tr>
-                <th>template</th>
-                <th>error</th>
-                <th>started</th>
-              </tr>
-            </thead>
-            <tbody>
-              {(failedLogsWithTemplates).map((l, k) => (
-                <tr key={k} onClick={() => this.openLogs(l)}>
-                  <td className='selection'>
-                    <a style={{ textDecoration: 'underline' }} onClick={() => l.template._id ? openTab({ _id: l.template._id }) : null}>
-                      {l.template.path}
-                    </a>
-                  </td>
-                  <td>{!l.error.message || l.error.message.length < 90 ? l.error.message : (l.error.message.substring(0, 80) + '...')}</td>
-                  <td>{new Date(l.timestamp).toLocaleString()}</td>
+                  <td>{new Date(p.timestamp).toLocaleString()}</td>
                 </tr>
               ))}
             </tbody>
@@ -116,8 +102,8 @@ class Startup extends Component {
   }
 
   render () {
-    const { templates } = this.state
-    const { openTab, logsWithTemplates, failedLogsWithTemplates } = this.props
+    const { templates, profiles } = this.state
+    const { openTab } = this.props
 
     return (
       <div className='block custom-editor' style={{ overflow: 'auto', minHeight: 0, height: 'auto' }}>
@@ -143,7 +129,7 @@ class Startup extends Component {
             </tbody>
           </table>
         </div>
-        {extensions.studio.options.requestLogEnabled === false ? <div /> : this.renderRequestLogs(logsWithTemplates, failedLogsWithTemplates)}
+        {this.renderProfiles(profiles)}
       </div>
     )
   }
@@ -151,7 +137,6 @@ class Startup extends Component {
 
 export default connect((state) => ({
   activeTabKey: state.editor.activeTabKey,
-  logsWithTemplates: settingsSelectors.getLogsWithTemplates(state),
-  failedLogsWithTemplates: settingsSelectors.getFailedLogsWithTemplates(state),
-  resolveEntityPath: (...params) => entitiesSelectors.resolveEntityPath(state, ...params)
-}), { ...actions, ...settingsActions }, undefined, { forwardRef: true })(Startup)
+  resolveEntityPath: (...params) => entitiesSelectors.resolveEntityPath(state, ...params),
+  getByShortid: (...params) => entitiesSelectors.getByShortid(state, ...params)
+}), { ...actions }, undefined, { forwardRef: true })(Startup)

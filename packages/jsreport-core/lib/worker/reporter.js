@@ -42,7 +42,7 @@ class WorkerReporter extends Reporter {
 
     super.init()
 
-    Profiler(this)
+    this.profiler = Profiler(this)
 
     this._render = Render(this)
     await this.extensionsManager.init()

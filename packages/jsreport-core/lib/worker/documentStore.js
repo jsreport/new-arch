@@ -19,12 +19,14 @@ module.exports = ({ model, collections }, executeMainAction) => {
           req = options
           options = {}
         }
+
         const r = await executeMainAction('documentStore.collection.update', {
           query,
           update,
           options,
           collection: name
         }, req)
+
         return r
       }
     })

@@ -43,11 +43,52 @@ class Profiler {
       req.context.profilerReqLastVal = stringifiedReq
     }
 
+    req.context.shared.profilerMessages.push(m)
     this.reporter.executeMainAction('profile', m, req).catch((e) => this.reporter.logger.error(e, req))
     return m.id
+  }
+
+  async renderStart (req, parentReq, res) {
+    if (!req.context.isChildRequest) {
+      req.context.shared.profilerMessages = []
+      const blobName = `${req.context.rootId}.log`
+      const profile = await this.reporter.documentStore.collection('profiles').insert({
+        templateShortid: 'foo',
+        timestamp: new Date(),
+        state: 'running',
+        blobName
+      }, req)
+      req.context.profileBlobName = profile.blobName
+    }
+
+    req.context.renderProfileId = this.emit({
+      type: 'operationStart',
+      subtype: 'render',
+      previousOperationId: parentReq ? parentReq.context.profilerLastOperationId : null
+    }, req, res)
+  }
+
+  async renderEnd (req, res, err) {
+    this.emit({
+      type: 'operationEnd',
+      id: req.context.renderProfileId
+    }, req, res)
+
+    await this.reporter.documentStore.collection('profiles').update({
+      blobName: req.context.profileBlobName
+    }, {
+      $set: {
+        templateShortid: req.template.shortid,
+        state: err ? 'error' : 'success',
+        error: err ? err.stack : null
+      }
+    }, req)
+
+    const content = req.context.shared.profilerMessages.map(m => JSON.stringify(m)).join('\n')
+    await this.reporter.blobStorage.write(req.context.profileBlobName, content, req)
   }
 }
 
 module.exports = (reporter) => {
-  reporter.profiler = new Profiler(reporter)
+  return new Profiler(reporter)
 }

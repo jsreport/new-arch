@@ -185,6 +185,22 @@ module.exports = (app, reporter, exposedOptions) => {
     }
     res.send('pong')
   })
+
+  app.get('/api/profile/:id/content', async (req, res, next) => {
+    try {
+      const profile = await reporter.documentStore.collection('profiles').findOne({ _id: req.params.id }, req)
+      if (!profile) {
+        throw this.reporter.createError(`Profile ${req.params.id} not found`, {
+          statusCode: 404
+        })
+      }
+
+      const stream = await reporter.blobStorage.read(profile.blobName)
+      stream.pipe(res)
+    } catch (e) {
+      next(e)
+    }
+  })
 }
 
 function isInvalidASCII (str) {
