@@ -6,6 +6,7 @@ import EntityTreeNewButton from './components/EntityTree/EntityTreeNewButton'
 import EntityTreeInputSearch from './components/EntityTree/EntityTreeInputSearch.js'
 import EntityTreeNavigateButton from './components/EntityTree/EntityTreeNavigateButton.js'
 import Startup from './containers/Startup/Startup.js'
+import Profiler from './containers/Profiler/Profiler.js'
 import AboutModal from './components/Modals/AboutModal'
 import ThemeModal from './components/Modals/ThemeModal'
 import ApiModal from './components/Modals/ApiModal'
@@ -34,8 +35,8 @@ export default () => {
   }
 
   configuration.editorComponents.folders = require('./components/Editor/FolderEditor.js')
-
   configuration.editorComponents.startup = Startup
+  configuration.editorComponents.profiler = Profiler
 
   configuration.entitySets.templates = {
     name: 'templates',

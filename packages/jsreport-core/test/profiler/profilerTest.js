@@ -2,7 +2,7 @@ const should = require('should')
 const jsreport = require('../../')
 const { applyPatch } = require('../../lib/worker/render/diff')
 
-describe.only('profiler', () => {
+describe('profiler', () => {
   let reporter
 
   beforeEach(() => {
@@ -195,6 +195,38 @@ describe.only('profiler', () => {
     const messages = chunks.split('\n').map(JSON.parse)
     for (const m of messages) {
       should(m.req).not.be.ok()
+    }
+  })
+
+  it('should persist profiles with req/res when settings fullProfilerRunning enabled', async () => {
+    await reporter.documentStore.collection('settings').update({
+      key: 'fullProfilerRunning'
+    }, {
+      $set: {
+        value: true,
+        key: 'fullProfilerRunning'
+      }
+    }, { upsert: true })
+
+    await reporter.render({
+      template: {
+        engine: 'none',
+        recipe: 'html',
+        content: 'Hello'
+      }
+    })
+
+    const profile = await reporter.documentStore.collection('profiles').findOne({})
+    const blobStream = await reporter.blobStorage.read(profile.blobName)
+
+    let chunks = ''
+    for await (const ch of blobStream) {
+      chunks += ch
+    }
+
+    const messages = chunks.split('\n').map(JSON.parse)
+    for (const m of messages) {
+      should(m.req).be.ok()
     }
   })
 })

@@ -1,20 +1,4 @@
-import { selectors } from '../entities'
 import parse from '../../helpers/parseJSON.js'
-
-const getLogs = (logs, state) => (logs || []).map((l) => {
-  let template = selectors.getByShortid(state, l.template.shortid, false)
-
-  if (!template) {
-    template = { name: 'anonymous', path: 'anonymous' }
-  } else {
-    template = { ...template, path: selectors.resolveEntityPath(state, template) }
-  }
-
-  return {
-    ...l,
-    template: template
-  }
-})
 
 export const getByKey = (state, key, shouldThrow = true) => {
   const entities = Object.keys(state.settings).map((k) => state.settings[k]).filter((s) => s.key === key)
@@ -45,5 +29,3 @@ export const getValueByKey = (state, key, shouldThrow = true) => {
 }
 
 export const getAll = (state) => state
-export const getFailedLogsWithTemplates = (state) => getLogs(getValueByKey(state, 'failedRequestsLog', false), state)
-export const getLogsWithTemplates = (state) => getLogs(getValueByKey(state, 'requestsLog', false), state)

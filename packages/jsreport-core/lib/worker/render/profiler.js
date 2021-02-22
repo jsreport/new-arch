@@ -49,8 +49,8 @@ class Profiler {
   }
 
   async renderStart (req, parentReq, res) {
+    req.context.shared.profilerMessages = req.context.shared.profilerMessages || []
     if (!req.context.isChildRequest) {
-      req.context.shared.profilerMessages = []
       const blobName = `${req.context.rootId}.log`
       const profile = await this.reporter.documentStore.collection('profiles').insert({
         templateShortid: 'foo',
@@ -59,6 +59,13 @@ class Profiler {
         blobName
       }, req)
       req.context.profileBlobName = profile.blobName
+
+      if (!req.context.isProfilerAttached) {
+        const setting = await this.reporter.documentStore.collection('settings').findOne({ key: 'fullProfilerRunning' }, req)
+        if (setting && JSON.parse(setting.value)) {
+          req.context.isProfilerAttached = true
+        }
+      }
     }
 
     req.context.renderProfileId = this.emit({
@@ -80,7 +87,8 @@ class Profiler {
       $set: {
         templateShortid: req.template.shortid,
         state: err ? 'error' : 'success',
-        error: err ? err.stack : null
+        error: err ? err.stack : null,
+        finishedOn: new Date()
       }
     }, req)
 

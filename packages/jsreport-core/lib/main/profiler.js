@@ -5,6 +5,7 @@ module.exports = (reporter) => {
   reporter.documentStore.registerEntityType('ProfileType', {
     templateShortid: { type: 'Edm.String', referenceTo: 'templates' },
     timestamp: { type: 'Edm.DateTimeOffset', schema: { type: 'null' } },
+    finishedOn: { type: 'Edm.DateTimeOffset', schema: { type: 'null' } },
     state: { type: 'Edm.String' },
     blobName: { type: 'Edm.String' },
     error: { type: 'Edm.String' }

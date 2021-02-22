@@ -27,6 +27,7 @@ const Reporter = require('../shared/reporter')
 const Request = require('../shared/request')
 const generateRequestId = require('../shared/generateRequestId')
 const Profiler = require('./profiler')
+const Monitoring = require('./monitoring')
 
 class MainReporter extends Reporter {
   constructor (options, defaults) {
@@ -159,6 +160,7 @@ class MainReporter extends Reporter {
       this.blobStorage = BlobStorage(this.options)
       blobStorageActions(this)
       Profiler(this)
+      Monitoring(this)
 
       this.documentStore.registerEntityType('TemplateType', {
         content: { type: 'Edm.String', document: { extension: 'html', engine: true } },
@@ -241,6 +243,8 @@ class MainReporter extends Reporter {
       this.extensionsManager.engines.push({
         name: 'none'
       })
+
+      this.monitoring.init()
 
       this.logger.info('reporter initialized')
       this._initialized = true
@@ -352,6 +356,8 @@ class MainReporter extends Reporter {
    */
   async close () {
     this.logger.info('Closing jsreport instance')
+
+    await this.monitoring.close()
 
     if (this._reaperTimerRef) {
       clearInterval(this._reaperTimerRef)

@@ -4,11 +4,19 @@ import { actions } from '../../redux/editor'
 import { selectors as entitiesSelectors } from '../../redux/entities'
 import api from '../../helpers/api.js'
 import { previewFrameChangeHandler } from '../../lib/configuration.js'
+import { Line } from 'react-chartjs-2'
+import { modalHandler } from '../../lib/configuration'
+import NewTemplateModal from '../../components/Modals/NewTemplateModal'
+
+function randomColor () {
+  const hue = Math.floor(Math.random() * 360)
+  return 'hsl(' + hue + ', 100%, 80%)'
+}
 
 class Startup extends Component {
   constructor () {
     super()
-    this.state = { templates: [], profiles: [] }
+    this.state = { templates: [], profiles: [], monitoring: [] }
   }
 
   async onTabActive () {
@@ -20,6 +28,7 @@ class Startup extends Component {
     try {
       await this.loadLastModifiedTemplates()
       await this.loadProfiles()
+      await this.loadMonitoring()
     } finally {
       this._loading = false
     }
@@ -37,7 +46,7 @@ class Startup extends Component {
   }
 
   async loadProfiles () {
-    const response = await api.get('/odata/profiles')
+    const response = await api.get('/odata/profiles?$top=10&$orderby=timestamp desc')
 
     this.setState({
       profiles: response.value.map(p => {
@@ -54,6 +63,24 @@ class Startup extends Component {
           template
         }
       })
+    })
+  }
+
+  async loadMonitoring () {
+    const response = await api.get('/odata/monitoring')
+
+    const servers = response.value.reduce((t, a) => {
+      t[a.hostname] = t[a.hostname] || []
+      t[a.hostname].push(a)
+      return t
+    }, {})
+
+    this.setState({
+      monitoring: Object.keys(servers).map(k => ({
+        label: k,
+        borderColor: randomColor(),
+        data: servers[k]
+      }))
     })
   }
 
@@ -81,6 +108,7 @@ class Startup extends Component {
               <tr>
                 <th>template</th>
                 <th>started</th>
+                <th>duration</th>
               </tr>
             </thead>
             <tbody>
@@ -92,6 +120,7 @@ class Startup extends Component {
                     </a>
                   </td>
                   <td>{new Date(p.timestamp).toLocaleString()}</td>
+                  <td>{p.finishedOn ? ((p.finishedOn - p.timestamp) + ' ms') : ''}</td>
                 </tr>
               ))}
             </tbody>
@@ -101,12 +130,155 @@ class Startup extends Component {
     )
   }
 
+  renderRequestsCountChart (profiles) {
+    const successfullRequests = profiles.filter(p => p.state === 'success').reduce((t, a) => {
+      const minutes = Math.round(a.timestamp / (1000 * 60))
+      t[minutes] = t[minutes] || 0
+      t[minutes]++
+      return t
+    }, { })
+
+    const failedRequests = profiles.filter(p => p.state === 'error').reduce((t, a) => {
+      const minutes = Math.round(a.timestamp / (1000 * 60))
+      t[minutes] = t[minutes] || 0
+      t[minutes]++
+      return t
+    }, { })
+
+    return <Line
+      data={{
+        datasets: [{
+          label: 'successfull requests',
+          borderColor: 'green',
+          data: Object.keys(successfullRequests).map(r => ({
+            x: new Date(r * 1000 * 60),
+            y: successfullRequests[r]
+          }))
+        }, {
+          label: 'failed request',
+          borderColor: 'red',
+          data: Object.keys(failedRequests).map(r => ({
+            x: new Date(r * 1000 * 60),
+            y: failedRequests[r]
+          }))
+        }]
+      }}
+      options={{
+        scales: {
+          xAxes: [{
+            type: 'time'
+          }]
+        }
+      }}
+    />
+  }
+
+  renderRequestsDurationsChart (profiles) {
+    return <Line
+      data={{
+        datasets: [{
+          label: 'duration in seconds',
+          borderColor: 'green',
+          data: profiles.map(p => ({
+            x: p.timestamp,
+            y: (p.finishedOn - p.timestamp) / 1000,
+            name: p.template.name
+          }))
+        }]
+      }}
+      options={{
+        scales: {
+          xAxes: [{
+            type: 'time'
+          }]
+        },
+        tooltips: {
+          callbacks: {
+            label: (item, data) => {
+              const v = data.datasets[item.datasetIndex].data[item.index]
+              return `Template ${v.name}: ${v.y}s`
+            }
+          }
+        }
+      }}
+    />
+  }
+
+  renderCPUChart (monitoring) {
+    return <Line
+      data={{
+        datasets: monitoring.map(m => ({
+          ...m,
+          data: m.data.map((d) => ({
+            y: d.cpu,
+            x: d.timestamp
+          }))
+        }))
+      }}
+      options={{
+        scales: {
+          xAxes: [{
+            type: 'time'
+          }]
+        }
+      }} />
+  }
+
+  renderMemoryChart (monitoring) {
+    return <Line
+      data={{
+        datasets: monitoring.map(m => ({
+          ...m,
+          data: m.data.map((d) => ({
+            y: d.freemem,
+            x: d.timestamp
+          }))
+        }))
+      }}
+      options={{
+        scales: {
+          xAxes: [{
+            type: 'time'
+          }]
+        }
+      }} />
+  }
+
   render () {
-    const { templates, profiles } = this.state
+    const { templates, profiles, monitoring } = this.state
     const { openTab } = this.props
 
     return (
       <div className='block custom-editor' style={{ overflow: 'auto', minHeight: 0, height: 'auto' }}>
+        <div>
+          Quick actions:
+          <button className='button confirmation' onClick={() => modalHandler.open(NewTemplateModal)}>Create template</button>
+          <button className='button confirmation' onClick={() => openTab({ key: 'ProfilerPage', editorComponentKey: 'profiler', title: 'Profiler' })}>Open profiler</button>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'row' }}>
+          <div style={{ flex: '50%' }}>
+            <h2>server CPU</h2>
+            {this.renderCPUChart(monitoring)}
+          </div>
+          <div style={{ flex: '50%' }}>
+            <h2>server free memory</h2>
+            {this.renderMemoryChart(monitoring)}
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'row' }}>
+          <div style={{ flex: '50%' }}>
+            <h2>Render requests status</h2>
+            {this.renderRequestsCountChart(profiles)}
+          </div>
+          <div style={{ flex: '50%' }}>
+            <h2>Render requests durations</h2>
+            {this.renderRequestsDurationsChart(profiles)}
+          </div>
+
+        </div>
+
         <h2>Last edited templates</h2>
 
         <div>
