@@ -35,6 +35,7 @@ describe('profiler', () => {
     }
 
     should(messages[0].previousOperationId).be.null()
+
     // evry operation start except first one should have valid previousOperationId
     for (const message of messages.filter(m => m.type === 'operationStart').slice(1)) {
       messages.find(m => m.id === message.previousOperationId).should.be.ok()
@@ -164,7 +165,6 @@ describe('profiler', () => {
       should(m.req).not.be.ok()
     }
 
-    console.log(messages)
     messages.find(m => m.type === 'log' && m.message.includes('Executing recipe')).should.be.ok()
   })
 

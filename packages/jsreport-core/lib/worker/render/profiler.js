@@ -6,7 +6,7 @@ class Profiler {
   constructor (reporter) {
     this.reporter = reporter
     this.reporter.beforeMainActionListeners.add('profiler', (actionName, data, req) => {
-      if (actionName === 'log') {
+      if (actionName === 'log' && req.context.shared.profilerMessages) {
         data.previousOperationId = req.context.profilerLastOperationId
         req.context.shared.profilerMessages.push({
           type: 'log',
@@ -55,6 +55,7 @@ class Profiler {
     }
 
     req.context.shared.profilerMessages.push(m)
+
     this.reporter.executeMainAction('profile', m, req).catch((e) => this.reporter.logger.error(e, req))
     return m.id
   }
