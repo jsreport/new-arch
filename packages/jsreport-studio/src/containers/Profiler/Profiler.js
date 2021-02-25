@@ -46,7 +46,7 @@ class Profiler extends Component {
 
     return (
       <div>
-        <h2><i className='fa fa-spinner fa-spin fa-fw' /> profiling {this.props.gettSettingsByKey('fullProfilerRunning') ? 'with request data' : ''} ...</h2>
+        <h2><i className='fa fa-spinner fa-spin fa-fw' /> profiling {this.props.gettSettingsByKey('fullProfilerRunning', false) ? 'with request data' : ''} ...</h2>
 
         <div>
           <table className='table'>
@@ -94,7 +94,7 @@ class Profiler extends Component {
   render () {
     return <div className='block custom-editor' style={{ overflow: 'auto', minHeight: 0, height: 'auto' }}>
       <div>
-        {this.props.gettSettingsByKey('fullProfilerRunning')
+        {this.props.gettSettingsByKey('fullProfilerRunning', false)
           ? <button className='button danger' onClick={() => this.stopFullRequestProfiling()}>Stop full requests profiling</button>
           : <button className='button danger' onClick={() => this.startFullRequestProfiling()}>Start full requests profiling</button>
         }
