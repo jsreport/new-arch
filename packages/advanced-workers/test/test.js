@@ -44,4 +44,28 @@ describe('advanced workers', () => {
 
     result.someData.should.be.eql('hello')
   })
+
+  it('should wait until all callbacks are processed before it exits the worker', async () => {
+    workers = new Workers({
+    }, {
+      workerModule: path.join(__dirname, 'workers', 'executeMainDontWait.js'),
+      numberOfWorkers: 1
+    })
+
+    await workers.init()
+
+    let wasResolved = false
+    await workers.executeWorker({}, {
+      executeMain: () => {
+        return new Promise((resolve) => {
+          setTimeout(() => {
+            wasResolved = true
+            resolve()
+          }, 100)
+        })
+      }
+    })
+
+    wasResolved.should.be.true()
+  })
 })
