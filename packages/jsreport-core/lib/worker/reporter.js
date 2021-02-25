@@ -33,6 +33,7 @@ class WorkerReporter extends Reporter {
     this.extensionsManager = ExtensionsManager(this, extensionsDefs)
 
     this.extendProxy((proxy, req) => defaultProxyExtend(this)(proxy, req))
+    this.beforeMainActionListeners = this.createListenerCollection()
   }
 
   async init () {
@@ -119,7 +120,8 @@ class WorkerReporter extends Reporter {
     return this._render(req, parentReq)
   }
 
-  executeMainAction (actionName, data, req) {
+  async executeMainAction (actionName, data, req) {
+    await this.beforeMainActionListeners.fire(actionName, data, req)
     return this._executeMain(actionName, data, req)
   }
 

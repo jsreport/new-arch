@@ -163,6 +163,9 @@ describe('profiler', () => {
     for (const m of messages) {
       should(m.req).not.be.ok()
     }
+
+    console.log(messages)
+    messages.find(m => m.type === 'log' && m.message.includes('Executing recipe')).should.be.ok()
   })
 
   it('should persist profiles when request errors', async () => {

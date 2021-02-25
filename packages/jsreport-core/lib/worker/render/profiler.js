@@ -5,6 +5,17 @@ const generateRequestId = require('../../shared/generateRequestId')
 class Profiler {
   constructor (reporter) {
     this.reporter = reporter
+    this.reporter.beforeMainActionListeners.add('profiler', (actionName, data, req) => {
+      if (actionName === 'log') {
+        data.previousOperationId = req.context.profilerLastOperationId
+        req.context.shared.profilerMessages.push({
+          type: 'log',
+          message: data.message,
+          level: data.level,
+          timestamp: data.timestamp
+        })
+      }
+    })
   }
 
   emit (m, req, res) {
