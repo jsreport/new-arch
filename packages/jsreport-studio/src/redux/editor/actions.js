@@ -402,7 +402,7 @@ export function run (target) {
 
     dispatch({ type: ActionTypes.RUN })
 
-    await previewConfigurationHandler({ ...previewConfig, src: null })
+    await previewConfigurationHandler({ ...previewConfig, src: null, id: target.previewId, type: 'report' })
 
     preview(request, target)
   }

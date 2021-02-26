@@ -20,7 +20,6 @@
   display:flex;
   background-color: $tab-title-backgroundColor;
   padding: 0.3rem 0.5rem 0.3rem 0.9rem;
-  /*border-right: 1px $tab-title-borderColor solid;*/
   cursor: pointer;
   font-size: 0.9rem;
   user-select: none;

@@ -153,7 +153,7 @@ module.exports = (reporter) => {
         parentReq.context.shared = extend(true, parentReq.context.shared, request.context.shared)
       }
 
-      reporter.logger.info(`Rendering request ${request.context.reportCounter} finished in ${(new Date().getTime() - request.context.startTimestamp)} ms`, req)
+      reporter.logger.info(`Rendering request ${request.context.reportCounter} finished in ${(new Date().getTime() - request.context.startTimestamp)} ms`, request)
 
       await reporter.profiler.renderEnd(request, response)
 

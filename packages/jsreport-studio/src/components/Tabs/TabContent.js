@@ -14,7 +14,12 @@ class TabContent extends Component {
 
   render () {
     const { active } = this.props
-    return <div className='block' style={{ display: active ? 'flex' : 'none' }}>{this.props.children}</div>
+
+    return (
+      <div className='block' style={{ display: active ? 'flex' : 'none' }}>
+        {this.props.children}
+      </div>
+    )
   }
 }
 

@@ -1,7 +1,6 @@
 import PropTypes from 'prop-types'
-import React, { Component } from 'react'
-import Tab from './Tab'
-import TabPane from './TabPane.js'
+import React, { Fragment, Component } from 'react'
+import TabPane from './TabPane'
 import { editorComponents, entityEditorComponentKeyResolvers } from '../../lib/configuration.js'
 
 export default class EditorTabs extends Component {
@@ -75,9 +74,9 @@ export default class EditorTabs extends Component {
     }
 
     return (
-      <Tab key={t.tab.key}>
+      <Fragment key={t.tab.key}>
         {React.createElement(editorComponents[editorComponentResult.key], editorProps)}
-      </Tab>
+      </Fragment>
     )
   }
 

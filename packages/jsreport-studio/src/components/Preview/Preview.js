@@ -1,6 +1,9 @@
 import PropTypes from 'prop-types'
-import React, { Component } from 'react'
+import React, { Fragment, Component } from 'react'
+import classNames from 'classnames'
 import shortid from 'shortid'
+import PreviewDisplay from './PreviewDisplay'
+import ProfilerContent from './ProfilerContent'
 import {
   subscribeToThemeChange,
   registerPreviewFrameChangeHandler,
@@ -20,19 +23,28 @@ class Preview extends Component {
   constructor (props) {
     super(props)
 
-    this.containerRef = React.createRef()
-    this.overlayRef = React.createRef()
-    this.iframeRef = React.createRef()
+    this.previewDisplayContainerRef = React.createRef()
+    this.previewDisplayOverlayRef = React.createRef()
+    this.previewDisplayIframeRef = React.createRef()
 
     this.state = {
-      nodeKey: shortid.generate(),
+      previewDisplayIframeKey: shortid.generate(),
       src: this.props.initialSrc,
-      disableTheming: false
+      previewId: null,
+      previewType: 'normal',
+      disableTheming: false,
+      activePreviewTab: 'profiler',
+      profilerOperations: [],
+      profilerLogs: []
     }
 
     this.lastURLBlobCreated = null
-    this.handleOnLoad = this.handleOnLoad.bind(this)
+    this.handleOnPreviewDisplayLoad = this.handleOnPreviewDisplayLoad.bind(this)
     this.applyStylesToIframe = this.applyStylesToIframe.bind(this)
+    this.addProfilerOperation = this.addProfilerOperation.bind(this)
+    this.addProfilerLog = this.addProfilerLog.bind(this)
+    this.changeSrc = this.changeSrc.bind(this)
+    this.changeActiveTab = this.changeActiveTab.bind(this)
   }
 
   componentDidMount () {
@@ -71,7 +83,17 @@ class Preview extends Component {
           newState.src = opts.src
         }
 
-        if (opts.disableTheming === true) {
+        if (opts.id !== this.state.previewId) {
+          newState.previewId = opts.id
+          newState.previewType = opts.type
+          newState.profilerOperations = []
+          newState.profilerLogs = []
+        }
+
+        if (
+          opts.disableTheming === true ||
+          (newState.src != null && this.state.src == null && this.state.disableTheming === true)
+        ) {
           newState.disableTheming = true
         } else {
           newState.disableTheming = false
@@ -116,7 +138,7 @@ class Preview extends Component {
     delete Preview.instances[this.instanceId]
   }
 
-  handleOnLoad () {
+  handleOnPreviewDisplayLoad () {
     this.applyStylesToIframe()
 
     if (this.props.onLoad) {
@@ -125,29 +147,29 @@ class Preview extends Component {
   }
 
   applyStylesToIframe () {
-    if (!this.containerRef.current || !this.iframeRef.current) {
+    if (!this.previewDisplayContainerRef.current || !this.previewDisplayIframeRef.current) {
       return
     }
 
     try {
       const { disableTheming } = this.state
 
-      if (this.containerRef.current.classList.contains(styles.containerDefaultBackground)) {
-        this.containerRef.current.classList.remove(styles.containerDefaultBackground)
+      if (this.previewDisplayContainerRef.current.classList.contains(styles.previewDisplayContainerDefaultBackground)) {
+        this.previewDisplayContainerRef.current.classList.remove(styles.previewDisplayContainerDefaultBackground)
       }
 
-      const previousStyle = this.iframeRef.current.contentDocument.head.querySelector('style[data-jsreport-theme-styles]')
+      const previousStyle = this.previewDisplayIframeRef.current.contentDocument.head.querySelector('style[data-jsreport-theme-styles]')
 
       if (previousStyle) {
         previousStyle.remove()
       }
 
       if (disableTheming) {
-        this.containerRef.current.classList.add(styles.containerDefaultBackground)
+        this.previewDisplayContainerRef.current.classList.add(styles.previewDisplayContainerDefaultBackground)
         return
       }
 
-      const containerStyles = window.getComputedStyle(this.containerRef.current, null)
+      const containerStyles = window.getComputedStyle(this.previewDisplayContainerRef.current, null)
       const style = document.createElement('style')
 
       style.dataset.jsreportThemeStyles = true
@@ -160,71 +182,202 @@ class Preview extends Component {
         }
       `))
 
-      this.iframeRef.current.contentDocument.head.insertBefore(
+      this.previewDisplayIframeRef.current.contentDocument.head.insertBefore(
         style,
-        this.iframeRef.current.contentDocument.head.firstChild
+        this.previewDisplayIframeRef.current.contentDocument.head.firstChild
       )
     } catch (e) {
       // ignore error, because it was just cross-origin issues
     }
   }
 
+  addProfilerOperation (operation) {
+    this.setState((prev) => {
+      let newOperations = prev.profilerOperations
+
+      if (operation.type === 'operationEnd') {
+        let foundIndex
+
+        for (let i = prev.profilerOperations.length - 1; i >= 0; i--) {
+          const targetOperation = prev.profilerOperations[i]
+
+          if (targetOperation.id === operation.id) {
+            foundIndex = i
+            break
+          }
+        }
+
+        if (foundIndex != null) {
+          newOperations = [...prev.profilerOperations.slice(0, foundIndex), {
+            ...prev.profilerOperations[foundIndex],
+            completed: true,
+            completedTimestamp: operation.timestamp,
+            completedReq: operation.req,
+            completedRes: operation.res
+          }, ...prev.profilerOperations.slice(foundIndex + 1)]
+        }
+      } else {
+        newOperations = [...prev.profilerOperations, {
+          id: operation.id,
+          type: operation.subtype,
+          name: operation.name,
+          timestamp: operation.timestamp,
+          req: operation.req,
+          res: operation.res,
+          completed: false,
+          completedTimestamp: null,
+          completedReq: null,
+          completedRes: null,
+          previousOperationId: operation.previousOperationId
+        }]
+      }
+
+      return {
+        profilerOperations: newOperations
+      }
+    })
+  }
+
+  addProfilerLog (log) {
+    this.setState((prev) => ({
+      profilerLogs: [...prev.profilerLogs, {
+        level: log.level,
+        message: log.message,
+        timestamp: log.timestamp,
+        previousOperationId: log.previousOperationId
+      }]
+    }))
+  }
+
   changeSrc (newSrc, opts = {}) {
     previewFrameChangeHandler(newSrc, opts)
   }
 
+  changeActiveTab (tabName) {
+    this.setState({
+      activePreviewTab: tabName
+    })
+  }
+
   clear () {
     this.setState({
-      nodeKey: shortid.generate(),
+      previewDisplayIframeKey: shortid.generate(),
       src: null,
-      disableTheming: false
+      disableTheming: false,
+      previewId: null,
+      previewType: 'normal',
+      activePreviewTab: 'profiler',
+      profilerOperations: [],
+      profilerLogs: []
     })
   }
 
   resizeStarted () {
-    if (this.overlayRef.current) {
-      this.overlayRef.current.style.display = 'block'
+    if (this.previewDisplayOverlayRef.current) {
+      this.previewDisplayOverlayRef.current.style.display = 'block'
     }
 
-    if (this.iframeRef.current) {
-      this.iframeRef.current.style.display = 'none'
+    if (this.previewDisplayIframeRef.current) {
+      this.previewDisplayIframeRef.current.style.display = 'none'
     }
   }
 
   resizeEnded () {
-    if (this.overlayRef.current) {
-      this.overlayRef.current.style.display = 'none'
+    if (this.previewDisplayOverlayRef.current) {
+      this.previewDisplayOverlayRef.current.style.display = 'none'
     }
 
-    if (this.iframeRef.current) {
-      this.iframeRef.current.style.display = 'block'
+    if (this.previewDisplayIframeRef.current) {
+      this.previewDisplayIframeRef.current.style.display = 'block'
     }
   }
 
   render () {
-    const { nodeKey, src } = this.state
-    let mainProps = {}
+    const { previewDisplayIframeKey, src, activePreviewTab, previewType, profilerOperations, profilerLogs } = this.state
+    const { main } = this.props
+    let previewContent
 
-    if (this.props.main) {
-      mainProps.id = 'preview'
-      mainProps.name = 'previewFrame'
+    if (previewType === 'report') {
+      const tabs = [{
+        name: 'report',
+        title: 'report',
+        renderContent: () => {
+          return (
+            <PreviewDisplay
+              main={main}
+              iframeKey={previewDisplayIframeKey}
+              src={src}
+              containerRef={this.previewDisplayContainerRef}
+              overlayRef={this.previewDisplayOverlayRef}
+              iframeRef={this.previewDisplayIframeRef}
+              onLoad={this.handleOnPreviewDisplayLoad}
+            />
+          )
+        }
+      }, {
+        name: 'profiler',
+        title: 'profiler',
+        renderContent: () => {
+          return (
+            <ProfilerContent
+              operations={profilerOperations}
+              logs={profilerLogs}
+            />
+          )
+        }
+      }]
+
+      previewContent = (
+        <Fragment>
+          <div className={styles.previewTitles}>
+            {tabs.map((t) => {
+              const isActive = activePreviewTab === t.name
+
+              const previewTabClass = classNames(styles.previewTitle, {
+                [styles.active]: isActive
+              })
+
+              return (
+                <div key={`${t.name}-title`} className={previewTabClass} onClick={() => this.changeActiveTab(t.name)}>
+                  <span>{t.icon != null ? (
+                    <span className={styles.previewTitleIcon}><i className={`fa ${t.icon || ''}`} />&nbsp;</span>
+                  ) : ''}{t.title}</span>
+                </div>
+              )
+            })}
+          </div>
+          <div className='block'>
+            {tabs.map((t) => {
+              const isActive = activePreviewTab === t.name
+
+              return (
+                <div key={`${t.name}-content`} className='block' style={{ display: isActive ? 'flex' : 'none' }}>
+                  {t.renderContent()}
+                </div>
+              )
+            })}
+          </div>
+        </Fragment>
+      )
+    } else {
+      previewContent = (
+        <div className='block'>
+          <PreviewDisplay
+            main={main}
+            iframeKey={previewDisplayIframeKey}
+            src={src}
+            containerRef={this.previewDisplayContainerRef}
+            overlayRef={this.previewDisplayOverlayRef}
+            iframeRef={this.previewDisplayIframeRef}
+            onLoad={this.handleOnPreviewDisplayLoad}
+          />
+        </div>
+      )
     }
 
     return (
-      <div ref={this.containerRef} className={`block ${styles.container}`}>
-        <div ref={this.overlayRef} style={{ display: 'none' }} />
-        <iframe
-          key={nodeKey}
-          ref={this.iframeRef}
-          frameBorder='0'
-          onLoad={this.handleOnLoad}
-          allowFullScreen
-          width='100%'
-          height='100%'
-          src={src == null ? 'about:blank' : src}
-          className='block-item'
-          {...mainProps}
-        />
+      <div className={styles.previewContainer}>
+        {previewContent}
       </div>
     )
   }

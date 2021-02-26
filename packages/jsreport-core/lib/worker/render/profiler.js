@@ -83,6 +83,7 @@ class Profiler {
     req.context.renderProfileId = this.emit({
       type: 'operationStart',
       subtype: 'render',
+      name: 'start',
       previousOperationId: parentReq ? parentReq.context.profilerLastOperationId : null
     }, req, res)
   }

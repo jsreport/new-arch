@@ -1,11 +1,148 @@
 
-.container {
+.previewContainer {
+  display: flex;
+  flex: 1 1;
+  flex-direction: column;
+  background-color: $preview-backgroundColor;
+}
+
+.previewTitles {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  background-color: $tab-titles-backgroundColor;
+  border-bottom: 0.2rem $tab-titles-borderColor solid;
+  padding-top: 0.1rem;
+  min-height: 2.0rem;
+}
+
+.previewTitle {
+  position: relative;
+  flex: 0;
+  /*flexbox workaround some browsers (mostly Safari) needs to have some properties defined explicitly to handle auto sizing correctly*/
+  flex-basis: auto;
+  flex-shrink: 0;
+  /*end flexbox workaround*/
+  min-height: 1.7rem;
+  white-space: nowrap;
+  display:flex;
+  background-color: $tab-title-backgroundColor;
+  padding: 0.3rem 0.9rem 0.3rem 0.9rem;
+  border-right: 1px $tab-title-borderColor solid;
+  cursor: pointer;
+  font-size: 0.9rem;
+  user-select: none;
+}
+
+.previewTitle.active {
+  background: $tab-title-active-backgroundColor;
+  color: $tab-title-active-color;
+}
+
+.previewTitle:hover {
+  background: $tab-title-hover-backgroundColor;
+  color: $tab-title-hover-color;
+}
+
+.previewTitleIcon {
+  font-size: 0.9em;
+  margin-right: 2px;
+}
+
+.previewDisplayContainer {
   background-color: $preview-backgroundColor;
   color: $preview-color;
 }
 
-.containerDefaultBackground {
+.previewDisplayContainerDefaultBackground {
   /* emulates default background, color of browser */
   background-color: #fff;
   color: #000;
+}
+
+.profilerOperations {
+  width: 100%;
+  height: 100%;
+}
+
+.profilerOperationNode {
+  cursor: pointer !important;
+}
+
+.profilerOperationNode :global(.react-flow__handle) {
+  opacity: 0 !important;
+}
+
+.profilerOperationNode.active {
+  outline: 2px solid $primary-selection-backgroundColor;
+}
+
+.profilerOperationNode.running {
+  animation: runningBlinker 0.7s linear infinite;
+}
+
+@keyframes runningBlinker {
+  50% {
+    opacity: 0.3;
+  }
+}
+
+.profilerLogs {
+  width: 100%;
+  overflow: auto;
+  height: 100%;
+  padding-left: 0.4rem;
+  padding-right: 0.4rem;
+}
+
+.profilerLogItem {
+  display: flex;
+  font-size: 1.1rem;
+  margin-bottom: 0.2rem;
+  align-items: baseline;
+  border-bottom: 1px dashed transparent;
+}
+
+.profilerLogItem:last-child {
+  margin-bottom: 0;
+}
+
+.profilerLogItem.notActive {
+  opacity: 0.6;
+}
+
+.profilerLogItem.active {
+  opacity: 1;
+  border-bottom: 1px dashed $primary-selection-backgroundColor;
+}
+
+.profilerLogItemLevel {
+  min-width: 3.2em;
+  max-width: 3.2em;
+  margin-right: 0.3rem;
+}
+
+.profilerLogItemTime {
+  font-size: 0.8em;
+  min-width: 3.6em;
+  max-width: 3.6em;
+  margin-right: 0.5rem;
+}
+
+.profilerLogItemMessage {
+  flex-grow: 1;
+  word-break: break-all;
+}
+
+.profilerLogItemLevel,
+.profilerLogItemTime {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.profilerLogItemLevel,
+.profilerLogItemTime,
+.profilerLogItemMessage {
+  font-family: monospace;
 }

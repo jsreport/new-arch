@@ -1,7 +1,6 @@
 import Promise from 'bluebird'
 import PropTypes from 'prop-types'
 import React, { Component } from 'react'
-import ReactDOM from 'react-dom'
 import assign from 'lodash/assign'
 import Pane from './Pane'
 import Resizer from './Resizer'

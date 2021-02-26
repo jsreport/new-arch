@@ -26,6 +26,7 @@ import * as progress from '../../redux/progress'
 import getCloneName from '../../../shared/getCloneName'
 import fileSaver from 'filesaver.js-npm'
 import cookies from 'js-cookie'
+import uid from '../../helpers/uid.js'
 import getPreviewWindowName from '../../helpers/getPreviewWindowName'
 import {
   extensions,
@@ -159,7 +160,7 @@ class App extends Component {
     if (normalizedType === 'preview' || normalizedType.indexOf(windowPrefix) === 0) {
       const isWindowType = normalizedType.indexOf(windowPrefix) === 0
 
-      processFile = (fileInfo) => {
+      processFile = (fileInfo, previewId) => {
         if (fileInfo.name === 'report') {
           const file = new window.File([fileInfo.rawData.buffer], fileInfo.filename, {
             type: fileInfo.contentType
@@ -173,12 +174,22 @@ class App extends Component {
             const windowRef = previews[windowId]
             windowRef.location.href = newURLBlob
           } else {
-            // TODO: here we should instead use some Preview method or
-            // make a standard way to update the content of the Preview component
-            document.getElementById('preview').src = newURLBlob
+            this.previewRef.current.changeSrc(newURLBlob, { id: previewId })
           }
-        } else {
-          console.log('name:', fileInfo.name, 'content:', new TextDecoder().decode(fileInfo.rawData))
+        } else if (fileInfo.name === 'log') {
+          try {
+            const log = JSON.parse(new TextDecoder().decode(fileInfo.rawData))
+            this.previewRef.current.addProfilerLog(log)
+          } catch (e) {
+            console.warn(`Unable to parse profiler log. Error: ${e.message}`)
+          }
+        } else if (fileInfo.name === 'operationStart' || fileInfo.name === 'operationEnd') {
+          try {
+            const operation = JSON.parse(new TextDecoder().decode(fileInfo.rawData))
+            this.previewRef.current.addProfilerOperation(operation)
+          } catch (e) {
+            console.warn(`Unable to parse profiler operation. Error: ${e.message}`)
+          }
         }
       }
 
@@ -197,7 +208,12 @@ class App extends Component {
             type: fileInfo.contentType
           }), fileInfo.filename)
         } else {
-          console.log('name:', fileInfo.name, 'content:', new TextDecoder().decode(fileInfo.rawData))
+          try {
+            const log = JSON.parse(new TextDecoder().decode(fileInfo.rawData))
+            this.previewRef.current.addProfilerLog(log)
+          } catch (e) {
+            console.warn(`Unable to parse profiler log. Error: ${e.message}`)
+          }
         }
       }
 
@@ -227,6 +243,7 @@ class App extends Component {
       }
     }, 1000)
 
+    target.previewId = uid()
     this.props.run(target)
   }
 
@@ -531,7 +548,10 @@ class App extends Component {
                       onDragFinished={() => this.handleSplitDragFinished()}
                       resizerClassName='resizer'>
                       <EditorTabs
-                        activeTabKey={activeTabKey} onUpdate={(v) => groupedUpdate(v)} tabs={tabsWithEntities} />
+                        activeTabKey={activeTabKey}
+                        onUpdate={(v) => groupedUpdate(v)}
+                        tabs={tabsWithEntities}
+                      />
                       <Preview ref={this.previewRef} main onLoad={stop} />
                     </SplitPane>
                   </div>
