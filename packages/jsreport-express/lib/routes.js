@@ -106,13 +106,18 @@ module.exports = (app, reporter, exposedOptions) => {
       if (!stream) {
         next(renderErr)
       } else {
-        profiler.on('profile', (m) => {
-          form.append(m.type, JSON.stringify({
-            type: 'error',
-            error: renderErr.stack
-          }), { contentType: 'application/json' })
-        })
-        // TODO: send error to client in field "error"
+        form.append('error', JSON.stringify({
+          message: renderErr.message,
+          stack: renderErr.stack
+        }), { contentType: 'application/json' })
+
+        form.end()
+        // profiler.on('profile', (m) => {
+        //   form.append(m.type, JSON.stringify({
+        //     type: 'error',
+        //     error: renderErr.stack
+        //   }), { contentType: 'application/json' })
+        // })
       }
     })
   }

@@ -157,10 +157,40 @@ class App extends Component {
     let processFile
     let focus
 
+    const handleLog = (fileInfo) => {
+      try {
+        const log = JSON.parse(new TextDecoder().decode(fileInfo.rawData))
+        this.previewRef.current.addProfilerLog(log)
+      } catch (e) {
+        console.warn(`Unable to parse profiler log. Error: ${e.message}`)
+      }
+    }
+
+    const handleOperation = (fileInfo) => {
+      try {
+        const operation = JSON.parse(new TextDecoder().decode(fileInfo.rawData))
+        this.previewRef.current.addProfilerOperation(operation)
+      } catch (e) {
+        console.warn(`Unable to parse profiler operation. Error: ${e.message}`)
+      }
+    }
+
+    const handleError = (fileInfo) => {
+      try {
+        // we get here when there was an error during the render, usually the error
+        // here is something general so it should show as part of the general error state
+        const error = JSON.parse(new TextDecoder().decode(fileInfo.rawData))
+        this.previewRef.current.addProfilerError(error)
+        return error
+      } catch (e) {
+        console.warn(`Unable to parse error. Error: ${e.message}`)
+      }
+    }
+
     if (normalizedType === 'preview' || normalizedType.indexOf(windowPrefix) === 0) {
       const isWindowType = normalizedType.indexOf(windowPrefix) === 0
 
-      processFile = (fileInfo, previewId) => {
+      processFile = (fileInfo, previewId, previewName) => {
         if (fileInfo.name === 'report') {
           const file = new window.File([fileInfo.rawData.buffer], fileInfo.filename, {
             type: fileInfo.contentType
@@ -177,19 +207,13 @@ class App extends Component {
             this.previewRef.current.changeSrc(newURLBlob, { id: previewId })
           }
         } else if (fileInfo.name === 'log') {
-          try {
-            const log = JSON.parse(new TextDecoder().decode(fileInfo.rawData))
-            this.previewRef.current.addProfilerLog(log)
-          } catch (e) {
-            console.warn(`Unable to parse profiler log. Error: ${e.message}`)
-          }
+          handleLog(fileInfo)
         } else if (fileInfo.name === 'operationStart' || fileInfo.name === 'operationEnd') {
-          try {
-            const operation = JSON.parse(new TextDecoder().decode(fileInfo.rawData))
-            this.previewRef.current.addProfilerOperation(operation)
-          } catch (e) {
-            console.warn(`Unable to parse profiler operation. Error: ${e.message}`)
-          }
+          handleOperation(fileInfo)
+        } else if (fileInfo.name === 'error') {
+          const error = handleError(fileInfo)
+          const newURLBlob = URL.createObjectURL(new Blob([`Report${previewName != null ? ` "${previewName}"` : ''} render failed.\n\n${error.message}\n${error.stack}`], { type: 'text/plain' }))
+          this.previewRef.current.changeSrc(newURLBlob, { id: previewId })
         }
       }
 
@@ -207,13 +231,12 @@ class App extends Component {
           fileSaver.saveAs(new Blob([fileInfo.rawData], {
             type: fileInfo.contentType
           }), fileInfo.filename)
-        } else {
-          try {
-            const log = JSON.parse(new TextDecoder().decode(fileInfo.rawData))
-            this.previewRef.current.addProfilerLog(log)
-          } catch (e) {
-            console.warn(`Unable to parse profiler log. Error: ${e.message}`)
-          }
+        } else if (fileInfo.name === 'log') {
+          handleLog(fileInfo)
+        } else if (fileInfo.name === 'operationStart' || fileInfo.name === 'operationEnd') {
+          handleOperation(fileInfo)
+        } else if (fileInfo.name === 'error') {
+          handleError(fileInfo)
         }
       }
 

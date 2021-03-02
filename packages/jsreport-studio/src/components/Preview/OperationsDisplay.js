@@ -4,13 +4,13 @@ import ReactFlow, { Controls } from 'react-flow-renderer'
 import styles from './Preview.css'
 
 const OperationsDisplay = (props) => {
-  const { activeOperation, operations, onCanvasClick, onOperationClick } = props
+  const { activeOperation, operations, errors, onCanvasClick, onOperationClick } = props
 
   const onElementClick = useCallback((ev, element) => {
-    onOperationClick(element.data.operation)
+    onOperationClick({ operation: element.data.operation, error: element.data.error })
   }, [onOperationClick])
 
-  const elements = useMemo(() => getElementsFromOperations(operations, activeOperation), [operations, activeOperation])
+  const elements = useMemo(() => getElementsFromOperations(operations, errors, activeOperation), [operations, errors, activeOperation])
 
   return (
     <div className={styles.profilerOperations}>
@@ -33,7 +33,7 @@ const OperationsDisplay = (props) => {
   )
 }
 
-function getElementsFromOperations (operations, activeOperation) {
+function getElementsFromOperations (operations, errors, activeOperation) {
   const elements = []
   let prevElement
   let needsEndNode = false
@@ -88,11 +88,15 @@ function getElementsFromOperations (operations, activeOperation) {
   if (prevElement != null && needsEndNode) {
     const lastNode = elements[elements.length - 1]
 
+    const endNodeClass = classNames(styles.profilerOperationNode, {
+      [styles.error]: errors.general != null
+    })
+
     const endNode = {
       id: `${elements[0].id}-end`,
-      data: { label: 'end' },
+      data: { label: 'end', error: errors.general },
       position: { x: lastNode.position.x, y: lastNode.position.y + 85 },
-      className: styles.profilerOperationNode
+      className: endNodeClass
     }
 
     elements.push(endNode)

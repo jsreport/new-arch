@@ -390,6 +390,8 @@ export function run (target) {
     let request = { template: template, options: {} }
     const entities = Object.assign({}, getState().entities)
 
+    target.previewName = template.name
+
     const previewListenersReturns = await Promise.all([...previewListeners.map((l) => l(request, entities, target))])
 
     const previewConfig = previewListenersReturns.reduce((acu, value) => {

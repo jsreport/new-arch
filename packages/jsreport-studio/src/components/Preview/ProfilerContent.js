@@ -2,9 +2,11 @@ import { useState, useCallback } from 'react'
 import SplitPane from '../../components/common/SplitPane/SplitPane'
 import OperationsDisplay from './OperationsDisplay'
 import LogsDisplay from './LogsDisplay'
+import ProfilerErrorModal from '../Modals/ProfilerErrorModal'
+import { modalHandler } from '../../lib/configuration'
 
 const ProfilerContent = (props) => {
-  const { operations, logs } = props
+  const { operations, logs, errors } = props
   const [activeOperation, setActiveOperation] = useState(null)
 
   const handleCanvasClick = useCallback(() => {
@@ -17,16 +19,21 @@ const ProfilerContent = (props) => {
     })
   }, [setActiveOperation])
 
-  const handleOperationClick = useCallback((operation) => {
-    if (operation == null) {
+  const handleOperationClick = useCallback((meta) => {
+    if (meta.error != null) {
+      modalHandler.open(ProfilerErrorModal, { error: meta.error })
+    }
+
+    if (meta.operation == null) {
+      setActiveOperation(null)
       return
     }
 
     setActiveOperation((prevActiveOperation) => {
-      if (prevActiveOperation === operation.id) {
+      if (prevActiveOperation === meta.operation.id) {
         return null
       } else {
-        return operation.id
+        return meta.operation.id
       }
     })
   }, [setActiveOperation])
@@ -40,6 +47,7 @@ const ProfilerContent = (props) => {
       <OperationsDisplay
         activeOperation={activeOperation}
         operations={operations}
+        errors={errors}
         onCanvasClick={handleCanvasClick}
         onOperationClick={handleOperationClick}
       />

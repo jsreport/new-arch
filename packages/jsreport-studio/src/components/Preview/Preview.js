@@ -35,7 +35,8 @@ class Preview extends Component {
       disableTheming: false,
       activePreviewTab: 'profiler',
       profilerOperations: [],
-      profilerLogs: []
+      profilerLogs: [],
+      profilerErrors: { general: null, operations: {} }
     }
 
     this.lastURLBlobCreated = null
@@ -249,6 +250,23 @@ class Preview extends Component {
     }))
   }
 
+  addProfilerError (errorInfo, operationId) {
+    this.setState((prev) => {
+      const newProfilerErrors = { ...prev.profilerErrors }
+
+      if (operationId != null) {
+        newProfilerErrors.operations = { ...newProfilerErrors.operations }
+        newProfilerErrors.operations[operationId] = errorInfo
+      } else {
+        newProfilerErrors.general = errorInfo
+      }
+
+      return {
+        profilerErrors: newProfilerErrors
+      }
+    })
+  }
+
   changeSrc (newSrc, opts = {}) {
     previewFrameChangeHandler(newSrc, opts)
   }
@@ -293,7 +311,16 @@ class Preview extends Component {
   }
 
   render () {
-    const { previewDisplayIframeKey, src, activePreviewTab, previewType, profilerOperations, profilerLogs } = this.state
+    const {
+      previewDisplayIframeKey,
+      src,
+      activePreviewTab,
+      previewType,
+      profilerOperations,
+      profilerLogs,
+      profilerErrors
+    } = this.state
+
     const { main } = this.props
     let previewContent
 
@@ -322,6 +349,7 @@ class Preview extends Component {
             <ProfilerContent
               operations={profilerOperations}
               logs={profilerLogs}
+              errors={profilerErrors}
             />
           )
         }

@@ -57,7 +57,7 @@ async function streamRender (request, target) {
       }
 
       await parseStreamingMultipart(response, (fileInfo) => {
-        target.processFile(fileInfo, target.previewId)
+        target.processFile(fileInfo, target.previewId, target.previewName)
       })
     } else {
       let content
