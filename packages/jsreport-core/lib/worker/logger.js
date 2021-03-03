@@ -1,16 +1,16 @@
 const util = require('util')
 const getLogMeta = require('../shared/getLogMeta')
 
-module.exports = function createLogger (executeMainAction) {
+module.exports = function createLogger (profiler) {
   return {
-    debug: (...args) => logFn('debug', executeMainAction, ...args),
-    info: (...args) => logFn('info', executeMainAction, ...args),
-    warn: (...args) => logFn('warn', executeMainAction, ...args),
-    error: (...args) => logFn('error', executeMainAction, ...args)
+    debug: (...args) => logFn('debug', profiler, ...args),
+    info: (...args) => logFn('info', profiler, ...args),
+    warn: (...args) => logFn('warn', profiler, ...args),
+    error: (...args) => logFn('error', profiler, ...args)
   }
 }
 
-function logFn (level, executeMainAction, ...args) {
+function logFn (level, profiler, ...args) {
   const lastArg = args.slice(-1)[0]
   let req
 
@@ -41,7 +41,8 @@ function logFn (level, executeMainAction, ...args) {
     log.meta = meta
   }
 
-  return executeMainAction('log', {
+  return profiler.emit({
+    type: 'log',
     ...log
   }, req)
 }

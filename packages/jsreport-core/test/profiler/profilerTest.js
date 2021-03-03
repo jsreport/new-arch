@@ -228,7 +228,7 @@ describe('profiler', () => {
     }
 
     const messages = chunks.split('\n').map(JSON.parse)
-    for (const m of messages) {
+    for (const m of messages.filter(m => m.type !== 'log')) {
       should(m.req).be.ok()
     }
   })

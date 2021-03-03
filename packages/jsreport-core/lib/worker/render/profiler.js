@@ -20,6 +20,11 @@ class Profiler {
 
   emit (m, req, res) {
     m.timestamp = m.timpestamp || new Date().getTime()
+
+    if (m.type === 'log' && !req.context.shared && !req.context.shared.profilerMessages) {
+      return this.reporter.executeMainAction('log', m, req)
+    }
+
     m.id = m.id || generateRequestId()
 
     if (m.previousOperationId == null && req.context.profilerLastOperationId) {

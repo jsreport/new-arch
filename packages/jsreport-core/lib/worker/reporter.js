@@ -28,8 +28,6 @@ class WorkerReporter extends Reporter {
     this.afterTemplatingEnginesExecutedListeners = this.createListenerCollection()
     this.validateRenderListeners = this.createListenerCollection()
 
-    this.logger = createLogger(this.executeMainAction.bind(this))
-
     this.extensionsManager = ExtensionsManager(this, extensionsDefs)
 
     this.extendProxy((proxy, req) => defaultProxyExtend(this)(proxy, req))
@@ -44,6 +42,7 @@ class WorkerReporter extends Reporter {
     super.init()
 
     this.profiler = Profiler(this)
+    this.logger = createLogger(this.profiler)
 
     this._render = Render(this)
     await this.extensionsManager.init()

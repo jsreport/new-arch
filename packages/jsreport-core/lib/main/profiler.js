@@ -24,18 +24,6 @@ module.exports = (reporter) => {
     }
   }
 
-  reporter.beforeMainActionListeners.add('profiler', (actionName, data, req) => {
-    if (actionName === 'log') {
-      emitProfile({
-        type: 'log',
-        message: data.message,
-        level: data.level,
-        timestamp: data.timestamp,
-        previousOperationId: data.previousOperationId
-      }, req)
-    }
-  })
-
   reporter.registerMainAction('profile', emitProfile)
 
   reporter.attachProfiler = (req) => {
