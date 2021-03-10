@@ -65,6 +65,11 @@
   height: 100%;
 }
 
+.profilerOperationsControlsOverlay {
+  position: absolute;
+  z-index: 6;
+}
+
 .profilerOperationNode {
   cursor: pointer !important;
 }
@@ -101,6 +106,20 @@
   50% {
     opacity: 0.3;
   }
+}
+
+.profilerOperationEdge :global(.react-flow__edge-path) {
+  cursor: pointer;
+  stroke-width: 2;
+}
+
+.profilerOperationEdge .profilerOperationEdgeExpander {
+  stroke-width: 40;
+  stroke-opacity: 0;
+}
+
+.profilerOperationEdge.active .main {
+  outline: 1px solid $primary-selection-backgroundColor;
 }
 
 .profilerLogs {
@@ -162,4 +181,17 @@
 .profilerLogItemTime,
 .profilerLogItemMessage {
   font-family: monospace;
+}
+
+.profilerReqResButtons {
+  cursor: default;
+  position: absolute;
+  padding: 0.3rem;
+  border-radius: 5px;
+  border: 1px solid #000;
+  background: #fff;
+}
+
+.profilerReqResButton {
+  cursor: pointer;
 }

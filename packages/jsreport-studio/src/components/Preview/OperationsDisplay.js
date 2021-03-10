@@ -2,21 +2,35 @@ import { useEffect, useRef, useCallback, useMemo } from 'react'
 import classNames from 'classnames'
 import ReactFlow, { Controls, isNode } from 'react-flow-renderer'
 import dagre from 'dagre'
+import CustomNode from './CustomNode'
+import CustomEdge from './CustomEdge'
 import styles from './Preview.css'
 
+const nodeTypes = {
+  custom: CustomNode
+}
+
+const edgeTypes = {
+  custom: CustomEdge
+}
+
 const OperationsDisplay = (props) => {
-  const { activeOperation, operations, errors, onCanvasClick, onOperationClick } = props
+  const { activeElement, operations, errors, onCanvasClick, onElementClick } = props
   const graphInstanceRef = useRef(null)
 
-  const onLoad = useCallback((reactFlowInstance) => {
+  const handleLoad = useCallback((reactFlowInstance) => {
     graphInstanceRef.current = reactFlowInstance
   }, [])
 
-  const onElementClick = useCallback((ev, element) => {
-    onOperationClick({ operation: element.data.operation, error: element.data.error })
-  }, [onOperationClick])
+  const handleElementClick = useCallback((ev, element) => {
+    if (isNode(element)) {
+      onElementClick({ id: element.id, isEdge: false, data: { operation: element.data.operation, error: element.data.error } })
+    } else {
+      onElementClick({ id: element.id, isEdge: true, data: { edge: element } })
+    }
+  }, [onElementClick])
 
-  const elements = useMemo(() => getElementsFromOperations(operations, errors, activeOperation), [operations, errors, activeOperation])
+  const elements = useMemo(() => getElementsFromOperations(operations, errors, activeElement), [operations, errors, activeElement])
   const firstOperation = elements[0]
   const isCompleted = firstOperation != null ? firstOperation.data.operation.completed : false
 
@@ -49,9 +63,11 @@ const OperationsDisplay = (props) => {
         selectNodesOnDrag={false}
         onlyRenderVisibleElements={false}
         defaultZoom={0.8}
-        onLoad={onLoad}
-        onElementClick={onElementClick}
+        onLoad={handleLoad}
+        onElementClick={handleElementClick}
         onPaneClick={onCanvasClick}
+        nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
       >
         <Controls showInteractive={false} />
       </ReactFlow>
@@ -59,7 +75,7 @@ const OperationsDisplay = (props) => {
   )
 }
 
-function getElementsFromOperations (operations, errors, activeOperation) {
+function getElementsFromOperations (operations, errors, activeElement) {
   const elements = []
   const defaultPosition = { x: 0, y: 0 }
   let prevElement
@@ -67,29 +83,45 @@ function getElementsFromOperations (operations, errors, activeOperation) {
 
   for (let i = 0; i < operations.length; i++) {
     const operation = operations[i]
-    const isActive = operation.id === activeOperation
+    const isOperationActive = activeElement != null ? operation.id === activeElement.id : false
 
     if (operation.previousOperationId != null) {
+      const edgeId = `${operation.previousOperationId}-edge-${operation.id}`
+
+      const edgeClass = classNames(styles.profilerOperationEdge, {
+        [styles.active]: activeElement != null && edgeId === activeElement.id
+      })
+
       const edge = {
-        id: `${operation.previousOperationId}-edge-${operation.id}`,
+        id: edgeId,
         source: operation.previousOperationId,
         target: operation.id,
-        type: 'smoothstep',
+        type: 'custom',
+        className: edgeClass,
         arrowHeadType: 'arrowclosed'
       }
 
       elements.push(edge)
     }
 
-    const nodeClass = classNames(styles.profilerOperationNode, {
-      [styles.active]: isActive,
+    const nodeClass = classNames('react-flow__node-default', styles.profilerOperationNode, {
+      [styles.active]: isOperationActive,
       [styles.running]: !operation.completed && i !== 0
     })
 
     const node = {
       id: operation.id,
-      data: { label: operation.name, operation },
+      data: {
+        label: operation.name,
+        operation,
+        reqResInfo: activeElement != null && activeElement.isEdge && activeElement.data.edge.target === operation.id ? {
+          reqState: operation.reqState,
+          resState: operation.resState,
+          edge: activeElement.data.edge
+        } : undefined
+      },
       position: defaultPosition,
+      type: 'custom',
       className: nodeClass
     }
 
@@ -105,24 +137,42 @@ function getElementsFromOperations (operations, errors, activeOperation) {
   if (prevElement != null && needsEndNode) {
     const lastNode = elements[elements.length - 1]
 
-    const endNodeClass = classNames(styles.profilerOperationNode, {
+    const endNodeClass = classNames('react-flow__node-default', styles.profilerOperationNode, {
       [styles.error]: errors.general != null
     })
 
+    const endNodeId = `${elements[0].id}-end`
+
     const endNode = {
-      id: `${elements[0].id}-end`,
-      data: { label: 'end', error: errors.general },
+      id: endNodeId,
+      data: {
+        label: 'end',
+        error: errors.general,
+        reqResInfo: activeElement != null && activeElement.isEdge && activeElement.data.edge.target === endNodeId ? {
+          reqState: operations[0].completedReqState,
+          resState: operations[0].completedResState,
+          edge: activeElement.data.edge
+        } : undefined
+      },
       position: defaultPosition,
+      type: 'custom',
       className: endNodeClass
     }
 
     elements.push(endNode)
 
+    const edgeId = `${lastNode.id}-edge-${endNodeId}`
+
+    const edgeClass = classNames(styles.profilerOperationEdge, {
+      [styles.active]: activeElement != null && edgeId === activeElement.id
+    })
+
     elements.push({
-      id: `${lastNode.id}-edge-${endNode.id}`,
+      id: edgeId,
       source: lastNode.id,
       target: endNode.id,
-      type: 'smoothstep',
+      type: 'custom',
+      className: edgeClass,
       arrowHeadType: 'arrowclosed'
     })
   }

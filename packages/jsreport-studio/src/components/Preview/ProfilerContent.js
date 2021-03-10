@@ -7,36 +7,44 @@ import { modalHandler } from '../../lib/configuration'
 
 const ProfilerContent = (props) => {
   const { operations, logs, errors } = props
-  const [activeOperation, setActiveOperation] = useState(null)
+  const [activeElement, setActiveElement] = useState(null)
 
   const handleCanvasClick = useCallback(() => {
-    setActiveOperation((prevActiveOperation) => {
-      if (prevActiveOperation == null) {
-        return prevActiveOperation
+    setActiveElement((prevActiveElement) => {
+      if (prevActiveElement == null) {
+        return prevActiveElement
       }
 
       return null
     })
-  }, [setActiveOperation])
+  }, [setActiveElement])
 
-  const handleOperationClick = useCallback((meta) => {
-    if (meta.error != null) {
-      modalHandler.open(ProfilerErrorModal, { error: meta.error })
+  const handleElementClick = useCallback((meta) => {
+    if (!meta.isEdge) {
+      if (meta.data.error != null) {
+        modalHandler.open(ProfilerErrorModal, { error: meta.data.error })
+      }
+
+      if (meta.data.operation == null) {
+        setActiveElement(null)
+        return
+      }
     }
 
-    if (meta.operation == null) {
-      setActiveOperation(null)
-      return
-    }
-
-    setActiveOperation((prevActiveOperation) => {
-      if (prevActiveOperation === meta.operation.id) {
+    setActiveElement((prevActiveElement) => {
+      if (prevActiveElement != null && prevActiveElement.id === meta.id) {
         return null
       } else {
-        return meta.operation.id
+        return meta
       }
     })
-  }, [setActiveOperation])
+  }, [setActiveElement])
+
+  let activeOperation
+
+  if (activeElement != null && !activeElement.isEdge) {
+    activeOperation = activeElement
+  }
 
   return (
     <SplitPane
@@ -45,11 +53,11 @@ const ProfilerContent = (props) => {
       defaultSize={(window.innerHeight * 0.2) + 'px'}
     >
       <OperationsDisplay
-        activeOperation={activeOperation}
+        activeElement={activeElement}
         operations={operations}
         errors={errors}
         onCanvasClick={handleCanvasClick}
-        onOperationClick={handleOperationClick}
+        onElementClick={handleElementClick}
       />
       <LogsDisplay
         activeOperation={activeOperation}

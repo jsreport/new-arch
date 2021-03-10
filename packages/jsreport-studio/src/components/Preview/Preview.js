@@ -2,6 +2,7 @@ import PropTypes from 'prop-types'
 import React, { Fragment, Component } from 'react'
 import classNames from 'classnames'
 import shortid from 'shortid'
+import { applyPatch } from 'diff'
 import PreviewDisplay from './PreviewDisplay'
 import ProfilerContent from './ProfilerContent'
 import {
@@ -198,6 +199,7 @@ class Preview extends Component {
 
       if (operation.type === 'operationEnd') {
         let foundIndex
+        let previousFoundIndex
 
         for (let i = prev.profilerOperations.length - 1; i >= 0; i--) {
           const targetOperation = prev.profilerOperations[i]
@@ -208,23 +210,112 @@ class Preview extends Component {
           }
         }
 
-        if (foundIndex != null) {
-          newOperations = [...prev.profilerOperations.slice(0, foundIndex), {
-            ...prev.profilerOperations[foundIndex],
-            completed: true,
-            completedTimestamp: operation.timestamp,
-            completedReq: operation.req,
-            completedRes: operation.res
-          }, ...prev.profilerOperations.slice(foundIndex + 1)]
+        if (foundIndex == null) {
+          throw new Error(`Operation with id "${operation.id}" not found`)
         }
+
+        const foundOperation = prev.profilerOperations[foundIndex]
+
+        if (foundIndex !== 0) {
+          for (let i = prev.profilerOperations.length - 1; i >= 0; i--) {
+            const targetOperation = prev.profilerOperations[i]
+
+            if (targetOperation.id === foundOperation.previousOperationId) {
+              previousFoundIndex = i
+              break
+            }
+          }
+        } else {
+          previousFoundIndex = prev.profilerOperations.length - 1
+        }
+
+        if (previousFoundIndex == null) {
+          throw new Error(`Previous operation with id "${foundOperation.previousOperationId}" not found`)
+        }
+
+        const previousOperation = prev.profilerOperations[previousFoundIndex]
+
+        let completedReqState
+        let completedResState
+
+        completedReqState = applyPatch(
+          foundIndex !== 0 ? foundOperation.reqState : prev.profilerOperations[prev.profilerOperations.length - 1].reqState,
+          operation.req.diff
+        )
+
+        if (operation.res.content != null) {
+          if (operation.res.content.encoding === 'diff') {
+            completedResState = applyPatch(
+              foundIndex !== 0 ? foundOperation.resState : prev.profilerOperations[prev.profilerOperations.length - 1].resState,
+              operation.res.content.content
+            )
+          } else {
+            completedResState = operation.res.content.content
+          }
+        } else {
+          completedResState = previousOperation.completedResState
+        }
+
+        newOperations = [...prev.profilerOperations.slice(0, foundIndex), {
+          ...foundOperation,
+          completed: true,
+          completedTimestamp: operation.timestamp,
+          completedReq: operation.req,
+          completedReqState,
+          completedRes: operation.res,
+          completedResState
+        }, ...prev.profilerOperations.slice(foundIndex + 1)]
       } else {
+        let reqState
+        let resState
+        let prevOperation
+
+        if (operation.previousOperationId != null) {
+          let foundIndex
+
+          for (let i = prev.profilerOperations.length - 1; i >= 0; i--) {
+            const targetOperation = prev.profilerOperations[i]
+
+            if (targetOperation.id === operation.previousOperationId) {
+              foundIndex = i
+              break
+            }
+          }
+
+          if (foundIndex == null) {
+            throw new Error(`Previous operation with id "${operation.previousOperationId}" not found`)
+          }
+
+          prevOperation = prev.profilerOperations[foundIndex]
+        }
+
+        reqState = applyPatch(prevOperation != null ? (
+          prevOperation.completed ? prevOperation.completedReqState : prevOperation.reqState
+        ) : '', operation.req.diff)
+
+        if (prevOperation != null) {
+          if (operation.res.content != null) {
+            if (operation.res.content.encoding === 'diff') {
+              resState = applyPatch(prevOperation.completed ? prevOperation.completedResState : prevOperation.resState, operation.res.content.content)
+            } else {
+              resState = operation.res.content.content
+            }
+          } else {
+            resState = prevOperation.completed ? prevOperation.completedResState : prevOperation.resState
+          }
+        } else {
+          resState = ''
+        }
+
         newOperations = [...prev.profilerOperations, {
           id: operation.id,
           type: operation.subtype,
           name: operation.name,
           timestamp: operation.timestamp,
           req: operation.req,
+          reqState,
           res: operation.res,
+          resState,
           completed: false,
           completedTimestamp: null,
           completedReq: null,

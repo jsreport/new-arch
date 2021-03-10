@@ -25,7 +25,7 @@ const LogsDisplay = (props) => {
     let foundIndex = -1
 
     for (let i = 0; i < logs.length; i++) {
-      if (logs[i].previousOperationId === activeOperation) {
+      if (activeOperation != null && logs[i].previousOperationId === activeOperation.id) {
         foundIndex = i
         break
       }
@@ -49,8 +49,8 @@ const LogsDisplay = (props) => {
     const relatimeTime = `+${prevLog == null ? '0' : String(getRelativeTimestamp(prevLog.timestamp, log.timestamp))}`
 
     const profilerLogItemClass = classNames(styles.profilerLogItem, {
-      [styles.active]: log.previousOperationId === activeOperation,
-      [styles.notActive]: activeOperation != null && log.previousOperationId !== activeOperation
+      [styles.active]: activeOperation != null && log.previousOperationId === activeOperation.id,
+      [styles.notActive]: activeOperation != null && log.previousOperationId !== activeOperation.id
     })
 
     logsElements.push(
