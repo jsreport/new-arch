@@ -195,3 +195,15 @@
 .profilerReqResButton {
   cursor: pointer;
 }
+
+.profilerExecutionTime {
+  position: absolute;
+  left: 50%;
+  bottom: calc(-50% - 5px)
+}
+
+.profilerExecutionTimeLabel {
+  display: inline-block;
+  color: $primary-color;
+  transform: translateX(-50%);
+}

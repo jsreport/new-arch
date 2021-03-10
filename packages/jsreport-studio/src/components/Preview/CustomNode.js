@@ -13,8 +13,8 @@ const CustomNode = (props) => {
     sourcePosition = 'bottom'
   } = props
 
-  const { reqResInfo } = data
-
+  const { operation, reqResInfo } = data
+  const showExecutionTime = operation != null && operation.previousOperationId != null && operation.completed === true
   const nodeContentRef = useRef(null)
 
   const edgeId = reqResInfo != null ? reqResInfo.edge.id : undefined
@@ -60,6 +60,11 @@ const CustomNode = (props) => {
           >
             res
           </button>
+        </div>
+      )}
+      {showExecutionTime && (
+        <div className={styles.profilerExecutionTime}>
+          <span className={styles.profilerExecutionTimeLabel}>{operation.completedTimestamp - operation.timestamp}ms</span>
         </div>
       )}
     </Fragment>
