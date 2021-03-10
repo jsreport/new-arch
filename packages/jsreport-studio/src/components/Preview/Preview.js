@@ -40,7 +40,6 @@ class Preview extends Component {
       profilerErrors: { general: null, operations: {} }
     }
 
-    this.lastURLBlobCreated = null
     this.handleOnPreviewDisplayLoad = this.handleOnPreviewDisplayLoad.bind(this)
     this.applyStylesToIframe = this.applyStylesToIframe.bind(this)
     this.addProfilerOperation = this.addProfilerOperation.bind(this)
@@ -63,20 +62,10 @@ class Preview extends Component {
           srcToUse = window.URL.createObjectURL(blob)
         }
 
-        previewConfigurationHandler({ ...opts, src: srcToUse }).then(() => {
-          if (dataURLMatch != null) {
-            this.lastURLBlobCreated = srcToUse
-          }
-        })
+        previewConfigurationHandler({ ...opts, src: srcToUse })
       })
 
       this.disposePreviewConfigurationHandler = registerPreviewConfigurationHandler(async (opts = {}) => {
-        // removing lastURLBlob on each execution
-        if (this.lastURLBlobCreated != null) {
-          window.URL.revokeObjectURL(this.lastURLBlobCreated)
-          this.lastURLBlobCreated = null
-        }
-
         const newState = {}
 
         if (opts.src == null) {
@@ -113,9 +102,12 @@ class Preview extends Component {
   }
 
   componentDidUpdate (prevProps, prevState) {
-    if (prevState.src !== this.state.src && this.lastURLBlobCreated != null) {
-      window.URL.revokeObjectURL(this.lastURLBlobCreated)
-      this.lastURLBlobCreated = null
+    if (
+      prevState.src != null &&
+      prevState.src !== this.state.src &&
+      prevState.src.indexOf('blob:') === 0
+    ) {
+      window.URL.revokeObjectURL(prevState.src)
     }
   }
 
@@ -132,9 +124,8 @@ class Preview extends Component {
       this.unsubscribeThemeChange()
     }
 
-    if (this.lastURLBlobCreated != null) {
-      window.URL.revokeObjectURL(this.lastURLBlobCreated)
-      this.lastURLBlobCreated = null
+    if (this.props.src != null && this.props.src.indexOf('blob:') === 0) {
+      window.URL.revokeObjectURL(this.props.src)
     }
 
     delete Preview.instances[this.instanceId]
@@ -194,6 +185,7 @@ class Preview extends Component {
   }
 
   addProfilerOperation (operation) {
+    console.log(operation)
     this.setState((prev) => {
       let newOperations = prev.profilerOperations
 
@@ -331,6 +323,7 @@ class Preview extends Component {
   }
 
   addProfilerLog (log) {
+    console.log(log)
     this.setState((prev) => ({
       profilerLogs: [...prev.profilerLogs, {
         level: log.level,
@@ -342,6 +335,7 @@ class Preview extends Component {
   }
 
   addProfilerError (errorInfo, operationId) {
+    console.warn(errorInfo)
     this.setState((prev) => {
       const newProfilerErrors = { ...prev.profilerErrors }
 
