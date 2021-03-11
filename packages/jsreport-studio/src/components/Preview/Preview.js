@@ -5,7 +5,9 @@ import shortid from 'shortid'
 import { applyPatch } from 'diff'
 import PreviewDisplay from './PreviewDisplay'
 import ProfilerContent from './ProfilerContent'
+import ProfilerErrorModal from '../Modals/ProfilerErrorModal'
 import {
+  modalHandler,
   subscribeToThemeChange,
   registerPreviewFrameChangeHandler,
   registerPreviewConfigurationHandler,
@@ -37,10 +39,13 @@ class Preview extends Component {
       activePreviewTab: 'profiler',
       profilerOperations: [],
       profilerLogs: [],
+      profilerActiveElement: null,
       profilerErrors: { general: null, operations: {} }
     }
 
     this.handleOnPreviewDisplayLoad = this.handleOnPreviewDisplayLoad.bind(this)
+    this.handleOnProfilerCanvasClick = this.handleOnProfilerCanvasClick.bind(this)
+    this.handleOnProfilerElementClick = this.handleOnProfilerElementClick.bind(this)
     this.applyStylesToIframe = this.applyStylesToIframe.bind(this)
     this.addProfilerOperation = this.addProfilerOperation.bind(this)
     this.addProfilerLog = this.addProfilerLog.bind(this)
@@ -79,6 +84,7 @@ class Preview extends Component {
           newState.previewType = opts.type
           newState.profilerOperations = []
           newState.profilerLogs = []
+          newState.profilerActiveElement = null
         }
 
         if (
@@ -137,6 +143,37 @@ class Preview extends Component {
     if (this.props.onLoad) {
       this.props.onLoad()
     }
+  }
+
+  handleOnProfilerCanvasClick () {
+    this.setState((prevState) => {
+      if (prevState.profilerActiveElement == null) {
+        return null
+      }
+
+      return { ...prevState, profilerActiveElement: null }
+    })
+  }
+
+  handleOnProfilerElementClick (meta) {
+    if (!meta.isEdge) {
+      if (meta.data.error != null) {
+        modalHandler.open(ProfilerErrorModal, { error: meta.data.error })
+      }
+
+      if (meta.data.operation == null) {
+        this.setState({ profilerActiveElement: null })
+        return
+      }
+    }
+
+    this.setState((prevState) => {
+      if (prevState.profilerActiveElement != null && prevState.profilerActiveElement.id === meta.id) {
+        return { ...prevState, profilerActiveElement: null }
+      } else {
+        return { ...prevState, profilerActiveElement: meta }
+      }
+    })
   }
 
   applyStylesToIframe () {
@@ -371,7 +408,8 @@ class Preview extends Component {
       previewType: 'normal',
       activePreviewTab: 'profiler',
       profilerOperations: [],
-      profilerLogs: []
+      profilerLogs: [],
+      profilerActiveElement: null
     })
   }
 
@@ -403,7 +441,8 @@ class Preview extends Component {
       previewType,
       profilerOperations,
       profilerLogs,
-      profilerErrors
+      profilerErrors,
+      profilerActiveElement
     } = this.state
 
     const { main } = this.props
@@ -432,9 +471,12 @@ class Preview extends Component {
         renderContent: () => {
           return (
             <ProfilerContent
+              activeElement={profilerActiveElement}
               operations={profilerOperations}
               logs={profilerLogs}
               errors={profilerErrors}
+              onCanvasClick={this.handleOnProfilerCanvasClick}
+              onElementClick={this.handleOnProfilerElementClick}
             />
           )
         }
