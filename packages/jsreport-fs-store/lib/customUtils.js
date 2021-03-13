@@ -52,9 +52,15 @@ function serialize (obj, prettify = true) {
   var res
 
   var originalDateToJSON = Date.prototype.toJSON
+  const originalBufferToJSON = Buffer.prototype.toJSON
+
   // Keep track of the fact that this is a Date object
   Date.prototype.toJSON = function () { // eslint-disable-line
     return { $$date: this.getTime() }
+  }
+
+  Buffer.prototype.toJSON = function (...args) { // eslint-disable-line
+    return { $$buffer: this.toString('base64') }
   }
 
   res = JSON.stringify(obj, function (k, v) {
@@ -70,20 +76,32 @@ function serialize (obj, prettify = true) {
 
   // Return Date to its original state
   Date.prototype.toJSON = originalDateToJSON // eslint-disable-line
+  // Return Buffer to its original state
+  Buffer.prototype.toJSON = originalBufferToJSON // eslint-disable-line
 
   return res
 }
 
 function parse (rawData) {
   return JSON.parse(rawData, function (k, v) {
+    if (k === '$$buffer') {
+      return Buffer.from(v, 'base64')
+    }
+
     if (k === '$$date') {
       return new Date(v)
     }
+
     if (typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean' || v === null) {
       return v
     }
+
     if (v && v.$$date) {
       return v.$$date
+    }
+
+    if (v && v.$$buffer) {
+      return v.$$buffer
     }
 
     return v

@@ -7,17 +7,17 @@ const documentModel = require('./documentModel')
 const Queue = require('./queue')
 const omit = require('lodash.omit')
 const FileSystemPersistence = require('./fileSystem')
-const FileSystemSync = require('./fileSystemSync')
+const ExternalModificationsSync = require('./externalModificationsSync')
 const rimrafAsync = Promise.promisify(require('rimraf'))
 const EventEmitter = require('events').EventEmitter
 const extend = require('node.extend.without.arrays')
+const Journal = require('./journal')
 
 module.exports = ({
   dataDirectory,
   blobStorageDirectory,
   logger,
-  sync = {},
-  syncModifications,
+  externalModificationsSync,
   persistence = {},
   corruptAlertThreshold = 0.1,
   compactionEnabled = true,
@@ -30,9 +30,6 @@ module.exports = ({
     name: 'fs',
     persistenceHandlers: {
       fs: FileSystemPersistence
-    },
-    syncHandlers: {
-      fs: FileSystemSync({ logger })
     },
     emitter: new EventEmitter(),
     createError,
@@ -64,25 +61,25 @@ module.exports = ({
 
       this.transaction = Transaction({ queue: Queue(persistenceQueueWaitingTimeout), persistence: this.persistence, fs: this.fs, logger })
 
-      if (syncModifications === false && sync.provider === 'fs') {
-        this.sync = { subscribe: () => ({}), init: () => ({}), publish: () => ({}) }
-        logger.info('fs store sync is disabled')
-      } else {
-        const Sync = this.syncHandlers[sync.provider]
-        if (!Sync) {
-          throw new Error(`fs store store synchronization with ${sync.provider} was not registered`)
-        }
+      this.journal = Journal({
+        fs: this.fs,
+        transaction: this.transaction,
+        reload: this.reload.bind(this),
+        logger
+      })
 
-        logger.info(`fs store is synchronizing using ${sync.provider}`)
-
-        this.sync = Sync(Object.assign({
+      if (externalModificationsSync) {
+        this.externalModificationsSync = ExternalModificationsSync({
           dataDirectory,
           fs: this.fs,
           blobStorageDirectory,
-          transaction: this.transaction
-        }, sync))
-
-        this.sync.subscribe(this._handleSync.bind(this))
+          transaction: this.transaction,
+          logger,
+          onModification: (e) => {
+            this.emit('external-modification', e)
+            return this.reload()
+          }
+        })
       }
 
       await this.fs.init()
@@ -90,7 +87,12 @@ module.exports = ({
       await this.transaction.init()
 
       await this.reload()
-      await this.sync.init()
+
+      await this.journal.init()
+
+      if (externalModificationsSync) {
+        await this.externalModificationsSync.init()
+      }
 
       if (compactionEnabled) {
         await this._startCompactionInterval()
@@ -116,9 +118,11 @@ module.exports = ({
 
     async commitTransaction (tran) {
       await this.transaction.commit(tran)
-      return this.sync.publish({
-        action: 'reload'
-      })
+      return this.journal.commit()
+    },
+
+    sync () {
+      return this.journal.sync()
     },
 
     async rollbackTransaction (tran) {
@@ -149,30 +153,7 @@ module.exports = ({
           return doc
         }
 
-        // big messages are sent as refresh, the others include the data right in the message
-        if (JSON.stringify(clone).length < (this.sync.messageSizeLimit || 60 * 1024)) {
-          await this.sync.publish({
-            action: 'insert',
-            doc: clone
-          })
-        } else {
-          const entityType = this.documentsModel.entitySets[doc.$entitySet].entityType
-          const eventDoc = {
-            _id: clone._id,
-            $entitySet: clone.$entitySet,
-            $$etag: clone.$$etag,
-            [entityType.publicKey]: clone[entityType.publicKey]
-          }
-          if (clone.folder) {
-            eventDoc.folder = clone.folder
-          }
-
-          await this.sync.publish({
-            action: 'refresh',
-            doc: eventDoc
-          })
-        }
-
+        await this.journal.insert(clone)
         return doc
       })
     },
@@ -201,29 +182,7 @@ module.exports = ({
             return
           }
 
-          // big messages are sent as refresh, the others include the data right in the message
-          if (JSON.stringify(doc).length < (this.sync.messageSizeLimit || 60 * 1024)) {
-            await this.sync.publish({
-              action: 'update',
-              doc
-            })
-          } else {
-            const entityType = this.documentsModel.entitySets[doc.$entitySet].entityType
-            const eventDoc = {
-              _id: doc._id,
-              $entitySet: doc.$entitySet,
-              $$etag: doc.$$etag,
-              [entityType.publicKey]: doc[entityType.publicKey]
-            }
-            if (doc.folder) {
-              eventDoc.folder = doc.folder
-            }
-
-            await this.sync.publish({
-              action: 'refresh',
-              doc: eventDoc
-            })
-          }
+          await this.journal.update(doc)
         }
       })
 
@@ -250,91 +209,18 @@ module.exports = ({
         }
 
         for (const doc of toRemove) {
-          await this.sync.publish({
-            action: 'remove',
-            doc: {
-              $entitySet: doc.$entitySet,
-              _id: doc._id
-            }
-          })
+          await this.journal.remove(doc)
         }
       })
-    },
-
-    registerSync (name, sync) {
-      this.syncHandlers[name] = sync
     },
 
     registerPersistence (name, persistence) {
       this.persistenceHandlers[name] = persistence
     },
 
-    _handleSync (e) {
-      function process () {
-        if (e.action === 'refresh') {
-          return this.transaction.operation(async (documents) => {
-            const reloadedDoc = await this.persistence.reload(e.doc, documents)
-
-            if (!reloadedDoc) {
-              // deleted in the meantime
-              return
-            }
-
-            const existingDoc = documents[e.doc.$entitySet].find((d) => d._id === e.doc._id)
-
-            if (!existingDoc) {
-              return documents[e.doc.$entitySet].push(reloadedDoc)
-            }
-
-            if (existingDoc.$$etag > e.doc.$$etag) {
-              return
-            }
-
-            Object.assign(existingDoc, reloadedDoc)
-          })
-        }
-
-        if (e.action === 'reload') {
-          return this.reload()
-        }
-
-        if (e.action === 'insert') {
-          return this.transaction.operation((documents) => {
-            documents[e.doc.$entitySet].push(e.doc)
-          })
-        }
-
-        if (e.action === 'update') {
-          return this.transaction.operation((documents) => {
-            const originalDoc = documents[e.doc.$entitySet].find((d) => d._id === e.doc._id)
-
-            if (!originalDoc) {
-              return documents[e.doc.$entitySet].push(e.doc)
-            }
-
-            if (originalDoc.$$etag > e.doc.$$etag) {
-              return
-            }
-
-            Object.assign(originalDoc, e.doc)
-          })
-        }
-
-        if (e.action === 'remove') {
-          return this.transaction.operation((documents) => {
-            documents[e.doc.$entitySet] = documents[e.doc.$entitySet].filter((d) => d._id !== e.doc._id)
-          })
-        }
-      }
-
-      return Promise.resolve(process.apply(this))
-        .then(() => this.emit('external-modification', e))
-        .catch((e) => logger.error('Error when performing remote sync', e))
-    },
-
     async close () {
-      if (this.sync.close) {
-        await this.sync.close()
+      if (externalModificationsSync) {
+        await this.externalModificationsSync.close()
       }
 
       if (this.autoCompactionInterval) {
@@ -342,6 +228,7 @@ module.exports = ({
       }
 
       this.transaction.close()
+      this.journal.close()
     },
 
     drop () {

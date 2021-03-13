@@ -12,6 +12,7 @@ Promise.promisifyAll(fs)
 const rimrafAsync = Promise.promisify(require('rimraf'))
 const should = require('should')
 const once = require('lodash.once')
+const { serialize, parse } = require('../lib/customUtils')
 
 const AssetType = {
   _id: { type: 'Edm.String', key: true },
@@ -66,6 +67,19 @@ describe('common core tests', () => {
     await rimrafAsync(tmpData)
   })
 
+  it('render should cause journal sync', () => {
+    return new Promise((resolve) => {
+      reporter.documentStore.provider.sync = () => resolve()
+      reporter.render({
+        template: {
+          content: 'foo',
+          engine: 'none',
+          recipe: 'html'
+        }
+      })
+    })
+  })
+
   jsreport.tests.documentStore()(() => reporter.documentStore)
 })
 
@@ -87,7 +101,7 @@ describe('provider', () => {
       Provider({
         dataDirectory: tmpData,
         blobStorageDirectory,
-        sync: { provider: 'fs' },
+        externalModificationsSync: true,
         persistence: { provider: 'fs' },
         logger: store.options.logger,
         resolveFileExtension: store.resolveFileExtension.bind(store),
@@ -300,17 +314,16 @@ describe('provider', () => {
     it('should fire reload event on file changes', async () => {
       await store.collection('templates').insert({ name: 'test', recipe: 'foo' })
       return new Promise(resolve => {
-        store.provider.sync.subscribe(e => {
-          e.action.should.be.eql('reload')
-          resolve()
-        })
+        store.provider.on('external-modification', () => resolve())
         fs.writeFileSync(path.join(tmpData, 'foo.ff'), 'changing')
       })
     })
 
     it('should not fire reload for common cud operations', async () => {
       let notified = null
-      store.provider.sync.subscribe(e => (notified = e))
+      store.provider.on('external-modification', () => {
+        notified = true
+      })
 
       await store.collection('templates').insert({ name: 'test', recipe: 'foo' })
       await store.collection('templates').update({ name: 'test' }, { $set: { content: 'changed' } })
@@ -323,7 +336,10 @@ describe('provider', () => {
 
     it('should not fire reload for update', async () => {
       let notified = null
-      store.provider.sync.subscribe(e => (notified = e))
+      store.provider.on('external-modification', () => {
+        notified = true
+      })
+
       await store.collection('templates').insert({ name: 'test', recipe: 'foo', content: 'a' })
       await store.collection('templates').update({ name: 'test' }, { $set: { content: 'changed' } })
 
@@ -335,7 +351,10 @@ describe('provider', () => {
     it('should debounce reload events', async () => {
       await store.collection('templates').insert({ name: 'test', recipe: 'foo' })
       let reloadCount = 0
-      store.provider.sync.subscribe(e => reloadCount++)
+      store.provider.on('external-modification', () => {
+        reloadCount++
+      })
+
       fs.writeFileSync(path.join(tmpData, 'a.ff'), 'changing')
       fs.writeFileSync(path.join(tmpData, 'b.ff'), 'changing')
       fs.writeFileSync(path.join(tmpData, 'c.ff'), 'changing')
@@ -346,7 +365,9 @@ describe('provider', () => {
 
     it('should not fire reload for changes in pressure', async () => {
       let notified = null
-      store.provider.sync.subscribe(e => (notified = e))
+      store.provider.on('external-modification', () => {
+        notified = true
+      })
 
       const promises = []
       for (let i = 0; i < 100; i++) {
@@ -364,7 +385,10 @@ describe('provider', () => {
 
     it('should not fire reload for settings changes', async () => {
       let notified = null
-      store.provider.sync.subscribe(e => (notified = e))
+      store.provider.on('external-modification', () => {
+        notified = true
+      })
+
       await store.collection('settings').insert({ key: 'a', value: 'b' })
       await store.collection('settings').update({ key: 'a' }, { $set: { value: 'c' } })
 
@@ -375,17 +399,17 @@ describe('provider', () => {
 
     it('should fire reload when a custom folder added', async () => {
       return new Promise(resolve => {
-        store.provider.sync.subscribe(e => {
-          e.action.should.be.eql('reload')
-          resolve()
-        })
+        store.provider.on('external-modification', () => resolve())
         setTimeout(() => fs.mkdirSync(path.join(tmpData, 'myCustomFolder')), 500)
       })
     })
 
     it('should not fire reload for changes in the blob storage', async () => {
       let notified = null
-      store.provider.sync.subscribe(e => (notified = e))
+      store.provider.on('external-modification', () => {
+        notified = true
+      })
+
       fs.writeFileSync(path.join(blobStorageDirectory, 'file.txt'), 'aaa')
       return Promise.delay(1000).then(() => {
         should(notified).be.null()
@@ -394,7 +418,10 @@ describe('provider', () => {
 
     it('should not fire reload for flat files compaction', async () => {
       let notified = null
-      store.provider.sync.subscribe(e => (notified = e))
+      store.provider.on('external-modification', () => {
+        notified = true
+      })
+
       await store.collection('settings').insert({ key: 'a', value: 'b' })
       await store.collection('settings').update({ key: 'a' }, { $set: { value: 'c' } })
       await store.provider.persistence.compact(store.provider.transaction.getCurrentDocuments())
@@ -410,13 +437,14 @@ describe('provider', () => {
 
       const doneOnce = once(done)
 
-      store.provider.sync.subscribe(e => {
+      store.provider.on('external-modification', (e) => {
         if (e.filePath === path.join(tmpData, 'test')) {
           return
         }
 
         doneOnce(new Error('shouldnt be called'))
       })
+
       ignoredFiles.forEach((f) => fs.writeFileSync(path.join(tmpData, 'test', f), 'foo'))
       setTimeout(() => doneOnce(), 1000)
     })
@@ -444,123 +472,6 @@ describe('provider', () => {
       store.provider.transaction = { operation: sinon.mock(), close: () => {} }
       await store.collection('templates').update({ name: 'test' }, { $set: { recipe: 'foo' } })
       sinon.assert.called(store.provider.transaction.operation)
-    })
-  })
-
-  describe('syncing', () => {
-    // stop default monitoring and use mocks instead
-    beforeEach(() => store.provider.close())
-
-    it('insert should publish event', async () => {
-      store.provider.sync.publish = sinon.spy()
-      const doc = await store.collection('templates').insert({ name: 'test' })
-      sinon.assert.alwaysCalledWithMatch(store.provider.sync.publish, { action: 'insert', doc: doc })
-    })
-
-    it('insert should publish refresh event if message big', async () => {
-      store.provider.sync.publish = sinon.spy()
-      store.provider.sync.messageSizeLimit = 1
-      const doc = await store.collection('templates').insert({ name: 'test' })
-      sinon.assert.alwaysCalledWithMatch(store.provider.sync.publish, {
-        action: 'refresh',
-        doc: { _id: doc._id, $entitySet: 'templates', name: 'test' }
-      })
-    })
-
-    it('update should publish event', async () => {
-      const doc = await store.collection('templates').insert({ name: 'test' })
-      store.provider.sync.publish = sinon.spy()
-      await store.collection('templates').update({ name: 'test' }, { $set: { recipe: 'foo' } })
-      doc.recipe = 'foo'
-      sinon.assert.alwaysCalledWithMatch(store.provider.sync.publish, { action: 'update', doc: doc })
-    })
-
-    it('insert should publish refresh event if message big', async () => {
-      const doc = await store.collection('templates').insert({ name: 'test' })
-      store.provider.sync.publish = sinon.spy()
-      store.provider.sync.messageSizeLimit = 1
-      await store.collection('templates').update({ name: 'test' }, { $set: { name: 'foo' } })
-      sinon.assert.alwaysCalledWithMatch(store.provider.sync.publish, {
-        action: 'refresh',
-        doc: { _id: doc._id, $entitySet: 'templates', name: 'foo' }
-      })
-    })
-
-    it('remove should publish event', async () => {
-      const doc = await store.collection('templates').insert({ name: 'test' })
-      store.provider.sync.publish = sinon.spy()
-      await store.collection('templates').remove({ name: 'test' })
-      sinon.assert.alwaysCalledWithMatch(store.provider.sync.publish, { action: 'remove', doc: { $entitySet: doc.$entitySet, _id: doc._id } })
-    })
-
-    it('subscribed insert event should insert doc', async () => {
-      await store.provider.sync.subscription({
-        action: 'insert',
-        doc: { _id: 'a', name: 'foo', $entitySet: 'templates' }
-      })
-      const templates = await store.collection('templates').find({ _id: 'a' })
-      templates.should.have.length(1)
-      templates[0].name.should.be.eql('foo')
-    })
-
-    it('subscribed update event should update doc', async () => {
-      const doc = await store.collection('templates').insert({ name: 'test' })
-      doc.name = 'foo'
-      await store.provider.sync.subscription({
-        action: 'update',
-        doc: doc
-      })
-      const templates = await store.collection('templates').find({ _id: doc._id })
-      templates.should.have.length(1)
-      templates[0].name.should.be.eql('foo')
-    })
-
-    it('subscribed update event should insert doc if not found', async () => {
-      const doc = { _id: 'a', name: 'a', $entitySet: 'templates' }
-      await store.provider.sync.subscription({
-        action: 'update',
-        doc: doc
-      })
-      const templates = await store.collection('templates').find({ _id: doc._id })
-      templates.should.have.length(1)
-      templates[0].name.should.be.eql('a')
-    })
-
-    it('subscribed remove event should remove doc', async () => {
-      const doc = await store.collection('templates').insert({ name: 'test' })
-      await store.provider.sync.subscription({
-        action: 'remove',
-        doc: doc
-      })
-      const templates = await store.collection('templates').find({ _id: doc._id })
-      templates.should.have.length(0)
-    })
-
-    it('subscribed refresh event should reload new doc', async () => {
-      store.provider.persistence.reload = doc => doc
-
-      await store.provider.sync.subscription({
-        action: 'refresh',
-        doc: { _id: 'a', name: 'foo', $entitySet: 'templates' }
-      })
-
-      const templates = await store.collection('templates').find({ _id: 'a' })
-      templates.should.have.length(1)
-      templates[0].name.should.be.eql('foo')
-    })
-
-    it('subscribed refresh event should reload existing doc', async () => {
-      const doc = await store.collection('templates').insert({ name: 'test' })
-      store.provider.persistence.reload = d => Object.assign({}, d, { name: 'foo' })
-
-      await store.provider.sync.subscription({
-        action: 'refresh',
-        doc: doc
-      })
-
-      const templates = await store.collection('templates').find({ _id: doc._id })
-      templates.should.have.length(1)
-      templates[0].name.should.be.eql('foo')
     })
   })
 
@@ -799,6 +710,156 @@ describe('load cleanup inconsistent transaction', () => {
   it('should remove ~.tran and dont copy to root', () => {
     fs.existsSync(path.join(__dirname, 'tranDataToCleanupCopy', '~.tran')).should.be.false()
     fs.existsSync(path.join(__dirname, 'tranDataToCleanupCopy', 'b')).should.be.false()
+  })
+})
+
+describe('cluster', () => {
+  let store1, store2
+  const tmpData = path.join(__dirname, 'tmpData')
+  const blobStorageDirectory = path.join(tmpData, 'blobs')
+
+  beforeEach(async () => {
+    await rimrafAsync(tmpData)
+
+    store1 = createDefaultStore()
+    store2 = createDefaultStore()
+
+    addCommonTypes(store1)
+    addCommonTypes(store2)
+
+    store1.registerProvider(
+      Provider({
+        dataDirectory: tmpData,
+        blobStorageDirectory,
+        externalModificationsSync: true,
+        persistence: { provider: 'fs' },
+        logger: store1.options.logger,
+        createError: m => new Error(m),
+        resolveFileExtension: () => null
+      })
+    )
+
+    store2.registerProvider(
+      Provider({
+        dataDirectory: tmpData,
+        blobStorageDirectory,
+        externalModificationsSync: true,
+        persistence: { provider: 'fs' },
+        logger: store1.options.logger,
+        createError: m => new Error(m),
+        resolveFileExtension: () => null
+      })
+    )
+
+    await store1.init()
+    await store2.init()
+  })
+
+  afterEach(async () => {
+    await store1.provider.close()
+    await store2.provider.close()
+    return rimrafAsync(tmpData)
+  })
+
+  it('second server should see insert writes from the first', async () => {
+    await store1.collection('templates').insert({
+      name: 'a'
+    })
+    await store2.provider.sync()
+    const doc = await store2.collection('templates').findOne({})
+    doc.name.should.be.eql('a')
+  })
+
+  it('second server should see update writes from the first', async () => {
+    await store1.collection('templates').insert({
+      name: 'a'
+    })
+    await store2.provider.reload()
+    await store1.collection('templates').update({
+      name: 'a'
+    }, {
+      $set: { content: 'hello' }
+    })
+    await store2.provider.sync()
+
+    const doc = await store2.collection('templates').findOne({})
+    doc.content.should.be.eql('hello')
+  })
+
+  it('second server should see remove writes from the first', async () => {
+    await store1.collection('templates').insert({
+      name: 'a'
+    })
+    await store2.provider.reload()
+    await store1.collection('templates').remove({
+      name: 'a'
+    })
+    await store2.provider.sync()
+
+    const doc = await store2.collection('templates').findOne({})
+    should(doc).be.null()
+  })
+
+  it('the first server should skip its own changes', async () => {
+    await store1.collection('templates').insert({
+      name: 'a'
+    })
+    await store1.provider.sync()
+    const docs = await store1.collection('templates').find({})
+    docs.should.have.length(1)
+  })
+
+  it('transaction commit should cause reload on the second server', async () => {
+    const req1 = Request({})
+    await store1.beginTransaction(req1)
+    await store1.collection('templates').insert({
+      name: 'a'
+    }, req1)
+    await store1.commitTransaction(req1)
+    await store2.provider.sync()
+    const doc = await store2.collection('templates').findOne({
+      name: 'a'
+    })
+    doc.name.should.be.eql('a')
+  })
+
+  it('journal should be cleaned from old entries', async () => {
+    const old = serialize({
+      operation: 'insert',
+      timestamp: new Date(new Date().getTime() - 120000)
+    }, false)
+    const recent = serialize({
+      operation: 'update',
+      timestamp: new Date(new Date().getTime() - 20000)
+    }, false)
+    fs.writeFileSync(path.join(tmpData, 'fs.journal'), [old, recent].join('\n'))
+    await store1.provider.journal.clean()
+    const journalItems = fs.readFileSync(path.join(tmpData, 'fs.journal')).toString().split('\n').filter(l => l).map(parse)
+    journalItems.should.have.length(1)
+    journalItems[0].operation.should.be.eql('update')
+  })
+
+  it('journal sync should cause reload if it could contain cleaned entries', async () => {
+    await store1.collection('templates').insert({
+      name: 'a'
+    })
+    store1.provider.transaction.getCurrentDocuments().templates = []
+    store1.provider.journal.lastSync = new Date(new Date().getTime() - 120000)
+    await store1.provider.sync()
+    const doc = await store1.collection('templates').findOne({})
+    should(doc).be.ok()
+  })
+
+  it('corrupted journal should cause reload', async () => {
+    await store1.collection('templates').insert({
+      name: 'a'
+    })
+    fs.writeFileSync(path.join(tmpData, 'fs.journal'), 'corrupted')
+    await store2.provider.sync()
+    const doc = await store2.collection('templates').findOne({
+      name: 'a'
+    })
+    doc.name.should.be.eql('a')
   })
 })
 

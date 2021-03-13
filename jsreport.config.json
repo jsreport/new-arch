@@ -18,9 +18,6 @@
     },
     "sample-template": {
       "createSamples": true
-    },
-    "fs-store": {
-      "syncModifications": false
     }
   },
   "extensionsList": [

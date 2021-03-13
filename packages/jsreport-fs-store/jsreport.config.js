@@ -13,26 +13,12 @@ module.exports = {
       'fs-store': {
         type: 'object',
         properties: {
-          syncModifications: {
-            type: ['boolean', 'object'],
-            properties: {
-              updateStudio: { type: 'boolean', default: false }
-            }
-          },
           dataDirectory: { type: 'string' },
           compactionEnabled: { type: 'boolean', default: true },
           compactionInterval: { type: 'number' },
           corruptAlertThreshold: { type: 'number' },
           persistenceQueueWaitingTimeout: { type: 'number' },
-          sync: {
-            type: 'object',
-            default: {},
-            properties: {
-              provider: { type: 'string', enum: ['fs'], default: 'fs' },
-              usePolling: { type: 'boolean', default: true },
-              reloadDebounce: { type: 'number', default: 800 }
-            }
-          },
+          externalModificationsSync: { type: 'boolean', default: false },
           persistence: {
             type: 'object',
             default: {},

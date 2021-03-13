@@ -79,7 +79,7 @@ describe('extension sockets', () => {
     io = IO('http://localhost:3000')
     jsreport = JsReport({ store: { provider: 'fs' } })
     jsreport.use(require('jsreport-express')({ httpPort: 3000 }))
-    jsreport.use(require('../')({ syncModifications: true, sync: { reloadDebounce: 10 }, dataDirectory: tmpData }))
+    jsreport.use(require('../')({ externalModificationsSync: true, dataDirectory: tmpData }))
     return jsreport.init()
   })
 

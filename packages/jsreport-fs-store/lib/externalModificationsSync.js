@@ -13,30 +13,25 @@ async function exists (p) {
   }
 }
 
-module.exports = ({ logger }) => ({
+module.exports = ({
   dataDirectory,
   fs,
   blobStorageDirectory,
-  usePolling = true,
-  reloadDebounce = 800,
-  transaction
+  transaction,
+  onModification,
+  logger
 }) => ({
   init () {
-    if (usePolling === true) {
-      logger.debug('fs store sync is configured to use polling for files watcher')
-    } else {
-      logger.debug('fs store sync is configured to use native os watching for files watcher')
-    }
+    logger.info('fs store is monitoring external modifications')
 
     const reload = debounce(filePath => {
       logger.debug(`fs store sync is triggering reload, because ${filePath} was changed by other process`)
-      this.subscription({
-        action: 'reload',
+      onModification({
         filePath
       })
-    }, reloadDebounce)
+    }, 800)
 
-    const ignored = ['**/fs.lock', '**/~*', '**/.git/**', '**/.tran', '**/.DS_Store']
+    const ignored = ['**/fs.journal', '**/fs.lock', '**/~*', '**/.git/**', '**/.tran', '**/.DS_Store']
 
     if (blobStorageDirectory && blobStorageDirectory.startsWith(dataDirectory)) {
       ignored.push(blobStorageDirectory.replace(/\\/g, '/'))
@@ -45,9 +40,7 @@ module.exports = ({ logger }) => ({
     this.watcher = chokidar.watch(dataDirectory, {
       ignorePermissionErrors: true,
       ignoreInitial: true,
-      // chokidar for some reason doesn't fire for me on windows without usePolling
-      // it was happening in average every 5th change, the usePolling seems to fix that
-      usePolling,
+      usePolling: true,
       ignored
     })
 
@@ -102,14 +95,6 @@ module.exports = ({ logger }) => ({
       })
     })
   },
-
-  subscribe (subscription) {
-    this.subscription = subscription
-  },
-
-  // it is too late here
-  // the file system sync doesn't publish any changes, the changes are being monitored
-  async publish () {},
 
   async close () {
     if (this.watcher) {
