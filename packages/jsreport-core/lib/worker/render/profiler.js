@@ -94,6 +94,16 @@ class Profiler {
   }
 
   async renderEnd (req, res, err) {
+    if (err) {
+      this.emit({
+        type: 'error',
+        id: req.context.renderProfileId,
+        message: err.message,
+        stack: err.stack
+      }, req, res)
+      err.profileBlobName = req.context.profileBlobName
+    }
+
     this.emit({
       type: 'operationEnd',
       id: req.context.renderProfileId

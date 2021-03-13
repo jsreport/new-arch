@@ -40,7 +40,28 @@ module.exports = (reporter) => {
     profilersMap.delete(req.context.rootId)
   })
 
-  reporter.renderErrorListeners.add('profiler', (req, res, e) => {
+  reporter.renderErrorListeners.add('profiler', async (req, res, e) => {
     profilersMap.delete(req.context.rootId)
+
+    // error alreadly appended to the profile
+    if (e.profileBlobName) {
+      return
+    }
+
+    // a hard error, the request doesn't reach the worker or worker failed badly
+    const blobName = `${req.context.rootId}.log`
+    await reporter.documentStore.collection('profiles').insert({
+      templateShortid: req.template.shortid,
+      timestamp: new Date(),
+      finishedOn: new Date(),
+      state: 'error',
+      blobName: blobName
+    }, req)
+
+    await reporter.blobStorage.write(blobName, JSON.stringify({
+      type: 'error',
+      message: e.message,
+      stack: e.stack
+    }), req)
   })
 }

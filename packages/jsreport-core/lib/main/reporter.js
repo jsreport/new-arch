@@ -324,17 +324,16 @@ class MainReporter extends Reporter {
     }
 
     const response = { meta: {} }
-    let responseResult
-
-    await this.beforeRenderListeners.fire(request, response)
-
-    if (request.context.isFinished) {
-      response.stream = Readable.from(response.content)
-      return response
-    }
 
     try {
-      responseResult = await this.executeWorkerAction('render', {}, {
+      await this.beforeRenderListeners.fire(request, response)
+
+      if (request.context.isFinished) {
+        response.stream = Readable.from(response.content)
+        return response
+      }
+
+      const responseResult = await this.executeWorkerAction('render', {}, {
         timeout: reportTimeout,
         timeoutErrorMessage: 'Report timeout during render'
       }, request)

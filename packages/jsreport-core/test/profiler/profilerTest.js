@@ -196,9 +196,40 @@ describe('profiler', () => {
     }
 
     const messages = chunks.split('\n').map(JSON.parse)
-    for (const m of messages) {
-      should(m.req).not.be.ok()
+    const errorMesage = messages.find(m => m.type === 'error')
+    should(errorMesage).be.ok()
+  })
+
+  it('should persist profile also when request doesnt reach the worker', async () => {
+    reporter.beforeRenderListeners.add('test', () => {
+      throw new Error('My error')
+    })
+
+    try {
+      await reporter.render({
+        template: {
+          engine: 'none',
+          recipe: 'html',
+          content: 'Hello'
+        }
+      })
+    } catch (e) {
+
     }
+
+    const profile = await reporter.documentStore.collection('profiles').findOne({})
+    profile.state.should.be.eql('error')
+
+    const blobStream = await reporter.blobStorage.read(profile.blobName)
+
+    let chunks = ''
+    for await (const ch of blobStream) {
+      chunks += ch
+    }
+
+    const messages = chunks.split('\n').map(JSON.parse)
+    const errorMesage = messages.find(m => m.type === 'error')
+    should(errorMesage).be.ok()
   })
 
   it('should persist profiles with req/res when settings fullProfilerRunning enabled', async () => {

@@ -49,13 +49,13 @@ module.exports = (reporter) => {
       })
     }
 
-    reporter.logger.debug(`Rendering engine ${engine.name}`, request)
-
     const engineProfileId = reporter.profiler.emit({
       type: 'operationStart',
       subtype: 'engine',
       name: request.template.engine
     }, request, response)
+
+    reporter.logger.debug(`Rendering engine ${engine.name}`, request)
 
     const engineRes = await executeEngine({
       engine
@@ -84,13 +84,14 @@ module.exports = (reporter) => {
       })
     }
 
-    reporter.logger.debug('Executing recipe ' + request.template.recipe, request)
-
     const recipeProfileId = reporter.profiler.emit({
       type: 'operationStart',
       subtype: 'recipe',
       name: request.template.recipe
     }, request, response)
+
+    reporter.logger.debug('Executing recipe ' + request.template.recipe, request)
+
     await recipe.execute(request, response)
     reporter.profiler.emit({
       type: 'operationEnd',

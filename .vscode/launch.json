@@ -9,12 +9,12 @@
             "type": "node",
             "program": "${workspaceFolder}/packages/jsreport-data/node_modules/mocha/bin/_mocha",
             "args": [
-                "${workspaceFolder}/packages/jsreport-data/test/**/*.js",
+                "${workspaceFolder}/packages/jsreport-core/test/**/*.js",
                 "--timeout=0"
             ],
             "request": "launch",
             "outFiles": [
-                "${workspaceFolder}/packages/jsreport-data/**/*.js"
+                "${workspaceFolder}/packages/jsreport-core/**/*.js"
             ]
         },
         {
