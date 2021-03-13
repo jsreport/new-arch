@@ -8,8 +8,7 @@ module.exports = ({
   reload,
   logger
 }) => {
-  // THROW ERRORS when updating modified entity in the meantime
-  // co compaction, performance
+  // TODO THROW ERRORS when updating modified entity in the meantime
   return {
     async init () {
       this.lastSync = new Date()
