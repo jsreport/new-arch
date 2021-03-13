@@ -19,6 +19,9 @@ module.exports = (reporter) => {
   const profilersMap = new Map()
 
   function emitProfile (m, req) {
+    if (m.type === 'log') {
+      reporter.logger[m.level](m.message, { ...req, ...m.meta, timestamp: m.timestamp })
+    }
     if (profilersMap.has(req.context.rootId)) {
       profilersMap.get(req.context.rootId).emit('profile', m)
     }
