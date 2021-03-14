@@ -11,6 +11,8 @@ module.exports = (reporter) => {
     onRequire,
     propertiesConfig
   }, req) => {
+    const jsreportProxy = reporter.createProxy({ req })
+
     context.executionFn = executionFn
     context.__appDirectory = reporter.options.appDirectory
     context.__rootDirectory = reporter.options.rootDirectory
@@ -39,6 +41,10 @@ module.exports = (reporter) => {
 
         if (m) {
           return require(m.path)
+        }
+
+        if (moduleName === 'jsreport-proxy') {
+          return jsreportProxy
         }
 
         if (onRequire) {

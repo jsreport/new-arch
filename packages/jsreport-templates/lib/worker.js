@@ -28,7 +28,7 @@ async function resolveCurrentPath (reporter, req) {
 const beforeRender = (reporter) => async (req, res) => {
   if (!req.template._id && !req.template.shortid && !req.template.name) {
     if (!req.template.content) {
-      throw reporter.createError('Template must contains _id, shortid or content attribute', {
+      throw reporter.createError('Template must contains _id, name, shortid or content attribute', {
         weak: true,
         statusCode: 400
       })

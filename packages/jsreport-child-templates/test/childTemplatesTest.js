@@ -915,4 +915,29 @@ describe('childTemplates', () => {
     const res = await reporter.render(request)
     res.content.toString().should.be.eql('foo')
   })
+
+  it('childTemplate call in templating engine', async () => {
+    await reporter.documentStore.collection('templates').insert({
+      content: '{{foo}}',
+      engine: 'handlebars',
+      recipe: 'html',
+      name: 't1'
+    })
+
+    const request = {
+      template: {
+        content: '{{childTemplate "t1" someProp}}',
+        engine: 'handlebars',
+        recipe: 'html'
+      },
+      data: {
+        someProp: {
+          foo: 'xxx'
+        }
+      }
+    }
+
+    const res = await reporter.render(request)
+    res.content.toString().should.be.eql('xxx')
+  })
 })

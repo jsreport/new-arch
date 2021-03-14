@@ -4,7 +4,6 @@ const promisify = require('util').promisify
 
 module.exports = async function executeScript (reporter, script, method, req, res) {
   const requestContextMetaConfig = reporter.getRequestContextMetaConfig() || {}
-  let jsreportProxy = reporter.createProxy({ req })
 
   const initialContext = {
     __request: {
@@ -98,11 +97,6 @@ module.exports = async function executeScript (reporter, script, method, req, re
       context: initialContext,
       userCode: script.content,
       executionFn,
-      onRequire: (moduleName) => {
-        if (moduleName === 'jsreport-proxy') {
-          return jsreportProxy
-        }
-      },
       propertiesConfig: Object.keys(requestContextMetaConfig).reduce((acu, prop) => {
       // configure properties inside the context of sandbox
         acu[`__request.context.${prop}`] = requestContextMetaConfig[prop]

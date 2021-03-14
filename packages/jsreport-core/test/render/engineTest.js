@@ -537,6 +537,29 @@ describe('engine', () => {
       template
     }).should.be.rejectedWith(/line 3/)
   })
+
+  it('should be able call jsreport proxy from helper', async () => {
+    const res = await reporter.render({
+      template: {
+        content: 'content',
+        helpers: `async function a() { 
+          const jsreport = require('jsreport-proxy')
+          const res = await jsreport.render({
+            template: {
+              content: 'foo',
+              engine: 'none',
+              recipe: 'html'
+            }            
+          })
+          return res.content.toString()
+        }`,
+        engine: 'helpers',
+        recipe: 'html'
+      }
+    })
+
+    should(res.content.toString()).be.eql('foo')
+  })
 })
 
 function createReporter (options) {
