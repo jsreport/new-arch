@@ -940,4 +940,37 @@ describe('childTemplates', () => {
     const res = await reporter.render(request)
     res.content.toString().should.be.eql('xxx')
   })
+
+  it('childTemplate call in templating engine recipe override', async () => {
+    await reporter.documentStore.collection('templates').insert({
+      content: '{{foo}}',
+      engine: 'handlebars',
+      recipe: 'invalid',
+      name: 't1'
+    })
+
+    const request = {
+      template: {
+        content: '{{childTemplate (template) someProp}}',
+        engine: 'handlebars',
+        recipe: 'html',
+        helpers: `
+          function template() {
+            return {
+              name: 't1',
+              recipe: 'html'
+            }
+          }
+        `
+      },
+      data: {
+        someProp: {
+          foo: 'xxx'
+        }
+      }
+    }
+
+    const res = await reporter.render(request)
+    res.content.toString().should.be.eql('xxx')
+  })
 })
