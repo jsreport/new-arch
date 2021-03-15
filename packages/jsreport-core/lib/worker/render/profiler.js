@@ -85,10 +85,18 @@ class Profiler {
       }
     }
 
+    // TODO: for now we just take the template name if it is there in the request
+    // later we are going to decide how to fetch correctly in all cases
+    let templateName = 'anonymous'
+
+    if (req.template != null && req.template.name != null) {
+      templateName = req.template.name
+    }
+
     req.context.renderProfileId = this.emit({
       type: 'operationStart',
       subtype: 'render',
-      name: 'start',
+      name: templateName,
       previousOperationId: parentReq ? parentReq.context.profilerLastOperationId : null
     }, req, res)
   }

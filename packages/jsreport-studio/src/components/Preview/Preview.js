@@ -222,7 +222,6 @@ class Preview extends Component {
   }
 
   addProfilerOperation (operation) {
-    console.log(operation)
     this.setState((prev) => {
       let newOperations = prev.profilerOperations
 
@@ -245,21 +244,17 @@ class Preview extends Component {
 
         const foundOperation = prev.profilerOperations[foundIndex]
 
-        if (foundIndex !== 0) {
-          for (let i = prev.profilerOperations.length - 1; i >= 0; i--) {
-            const targetOperation = prev.profilerOperations[i]
+        for (let i = prev.profilerOperations.length - 1; i >= 0; i--) {
+          const targetOperation = prev.profilerOperations[i]
 
-            if (targetOperation.id === foundOperation.previousOperationId) {
-              previousFoundIndex = i
-              break
-            }
+          if (targetOperation.id === operation.previousOperationId) {
+            previousFoundIndex = i
+            break
           }
-        } else {
-          previousFoundIndex = prev.profilerOperations.length - 1
         }
 
         if (previousFoundIndex == null) {
-          throw new Error(`Previous operation with id "${foundOperation.previousOperationId}" not found`)
+          throw new Error(`Previous operation with id "${operation.previousOperationId}" not found`)
         }
 
         const previousOperation = prev.profilerOperations[previousFoundIndex]
@@ -268,14 +263,14 @@ class Preview extends Component {
         let completedResState
 
         completedReqState = applyPatch(
-          foundIndex !== 0 ? foundOperation.reqState : prev.profilerOperations[prev.profilerOperations.length - 1].reqState,
+          previousOperation.type === 'render' || operation.id === previousOperation.id ? previousOperation.reqState : previousOperation.completedReqState,
           operation.req.diff
         )
 
         if (operation.res.content != null) {
           if (operation.res.content.encoding === 'diff') {
             completedResState = applyPatch(
-              foundIndex !== 0 ? foundOperation.resState : prev.profilerOperations[prev.profilerOperations.length - 1].resState,
+              previousOperation.type === 'render' || operation.id === previousOperation.id ? previousOperation.resState : previousOperation.completedResState,
               operation.res.content.content
             )
           } else {
@@ -292,12 +287,13 @@ class Preview extends Component {
           completedReq: operation.req,
           completedReqState,
           completedRes: operation.res,
-          completedResState
+          completedResState,
+          completedPreviousOperationId: operation.previousOperationId
         }, ...prev.profilerOperations.slice(foundIndex + 1)]
       } else {
         let reqState
         let resState
-        let prevOperation
+        let previousOperation
 
         if (operation.previousOperationId != null) {
           let foundIndex
@@ -315,22 +311,22 @@ class Preview extends Component {
             throw new Error(`Previous operation with id "${operation.previousOperationId}" not found`)
           }
 
-          prevOperation = prev.profilerOperations[foundIndex]
+          previousOperation = prev.profilerOperations[foundIndex]
         }
 
-        reqState = applyPatch(prevOperation != null ? (
-          prevOperation.completed ? prevOperation.completedReqState : prevOperation.reqState
+        reqState = applyPatch(previousOperation != null ? (
+          previousOperation.type === 'render' ? previousOperation.reqState : previousOperation.completedReqState
         ) : '', operation.req.diff)
 
-        if (prevOperation != null) {
+        if (previousOperation != null) {
           if (operation.res.content != null) {
             if (operation.res.content.encoding === 'diff') {
-              resState = applyPatch(prevOperation.completed ? prevOperation.completedResState : prevOperation.resState, operation.res.content.content)
+              resState = applyPatch(previousOperation.type === 'render' ? previousOperation.resState : previousOperation.completedResState, operation.res.content.content)
             } else {
               resState = operation.res.content.content
             }
           } else {
-            resState = prevOperation.completed ? prevOperation.completedResState : prevOperation.resState
+            resState = previousOperation.type === 'render' ? previousOperation.resState : previousOperation.completedResState
           }
         } else {
           resState = ''
@@ -345,11 +341,12 @@ class Preview extends Component {
           reqState,
           res: operation.res,
           resState,
+          previousOperationId: operation.previousOperationId,
           completed: false,
           completedTimestamp: null,
           completedReq: null,
           completedRes: null,
-          previousOperationId: operation.previousOperationId
+          completedPreviousOperationId: null
         }]
       }
 
@@ -360,7 +357,6 @@ class Preview extends Component {
   }
 
   addProfilerLog (log) {
-    console.log(log)
     this.setState((prev) => ({
       profilerLogs: [...prev.profilerLogs, {
         level: log.level,
@@ -372,7 +368,6 @@ class Preview extends Component {
   }
 
   addProfilerError (errorInfo, operationId) {
-    console.warn(errorInfo)
     this.setState((prev) => {
       const newProfilerErrors = { ...prev.profilerErrors }
 
