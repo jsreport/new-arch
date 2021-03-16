@@ -1,5 +1,6 @@
-const { createPatch } = require('./diff')
 const isbinaryfile = require('isbinaryfile').isBinaryFileSync
+const omit = require('lodash.omit')
+const { createPatch } = require('./diff')
 const generateRequestId = require('../../shared/generateRequestId')
 
 class Profiler {
@@ -37,6 +38,7 @@ class Profiler {
 
     if (req.context.isProfilerAttached && (m.type === 'operationStart' || m.type === 'operationEnd')) {
       let content = res.content
+
       if (content != null) {
         if (isbinaryfile(content)) {
           content = {
@@ -50,12 +52,16 @@ class Profiler {
           }
         }
       }
-      m.res = { content }
+
+      const stringifiedResMeta = JSON.stringify(omit(res.meta, ['logs']))
+
+      m.res = { content, meta: { diff: createPatch('resMeta', req.context.profilerResMetaLastVal || '', stringifiedResMeta, 0) } }
 
       const stringifiedReq = JSON.stringify({ template: req.template, data: req.data }, null, 2)
       m.req = { diff: createPatch('req', req.context.profilerReqLastVal || '', stringifiedReq, 0) }
 
       req.context.profilerResLastVal = res.content
+      req.context.profilerResMetaLastVal = stringifiedResMeta
       req.context.profilerReqLastVal = stringifiedReq
     }
 
@@ -67,6 +73,7 @@ class Profiler {
 
   async renderStart (req, parentReq, res) {
     req.context.shared.profilerMessages = req.context.shared.profilerMessages || []
+
     if (!req.context.isChildRequest) {
       const blobName = `${req.context.rootId}.log`
       const profile = await this.reporter.documentStore.collection('profiles').insert({

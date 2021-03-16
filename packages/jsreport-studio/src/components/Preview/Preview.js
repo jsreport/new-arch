@@ -261,6 +261,7 @@ class Preview extends Component {
 
         let completedReqState
         let completedResState
+        let completedResMetaState
 
         completedReqState = applyPatch(
           previousOperation.type === 'render' || operation.id === previousOperation.id ? previousOperation.reqState : previousOperation.completedReqState,
@@ -280,6 +281,11 @@ class Preview extends Component {
           completedResState = previousOperation.completedResState
         }
 
+        completedResMetaState = applyPatch(
+          previousOperation.type === 'render' || operation.id === previousOperation.id ? previousOperation.resMetaState : previousOperation.completedResMetaState,
+          operation.res.meta.diff
+        )
+
         newOperations = [...prev.profilerOperations.slice(0, foundIndex), {
           ...foundOperation,
           completed: true,
@@ -288,11 +294,13 @@ class Preview extends Component {
           completedReqState,
           completedRes: operation.res,
           completedResState,
+          completedResMetaState,
           completedPreviousOperationId: operation.previousOperationId
         }, ...prev.profilerOperations.slice(foundIndex + 1)]
       } else {
         let reqState
         let resState
+        let resMetaState
         let previousOperation
 
         if (operation.previousOperationId != null) {
@@ -332,6 +340,10 @@ class Preview extends Component {
           resState = ''
         }
 
+        resMetaState = applyPatch(previousOperation != null ? (
+          previousOperation.type === 'render' ? previousOperation.resMetaState : previousOperation.completedResMetaState
+        ) : '', operation.res.meta.diff)
+
         newOperations = [...prev.profilerOperations, {
           id: operation.id,
           type: operation.subtype,
@@ -341,11 +353,13 @@ class Preview extends Component {
           reqState,
           res: operation.res,
           resState,
+          resMetaState,
           previousOperationId: operation.previousOperationId,
           completed: false,
           completedTimestamp: null,
           completedReq: null,
           completedRes: null,
+          completedResMetaState: null,
           completedPreviousOperationId: null
         }]
       }

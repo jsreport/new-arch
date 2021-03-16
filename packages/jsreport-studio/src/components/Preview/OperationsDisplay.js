@@ -119,6 +119,7 @@ function getElementsFromOperations (operations, errors, activeElement) {
         reqResInfo: activeElement != null && activeElement.isEdge && activeElement.data.edge.target === operation.id ? {
           reqState: operation.reqState,
           resState: operation.resState,
+          resMetaState: operation.resMetaState,
           edge: activeElement.data.edge
         } : undefined
       },
@@ -144,20 +145,25 @@ function getElementsFromOperations (operations, errors, activeElement) {
       })
     }
 
-    const endNodeClass = classNames(...classArgs)
+    const endNodeClass = classNames(...classArgs, styles.profilerEndNode)
 
     const endNodeId = `${operation.id}-end`
 
     const endNode = {
       id: endNodeId,
       data: {
-        label: 'end',
         error: isMainRender ? errors.general : undefined,
         reqResInfo: activeElement != null && activeElement.isEdge && activeElement.data.edge.target === endNodeId ? {
           reqState: operation.completedReqState,
           resState: operation.completedResState,
+          resMetaState: operation.completedResMetaState,
           edge: activeElement.data.edge
-        } : undefined
+        } : undefined,
+        output: {
+          content: operation.completedResState,
+          contentEncoding: operation.completedRes.content.encoding === 'diff' ? 'plain' : operation.completedRes.content.encoding,
+          meta: operation.completedResMetaState
+        }
       },
       position: defaultPosition,
       type: 'operation',

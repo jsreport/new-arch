@@ -70,6 +70,12 @@
   z-index: 6;
 }
 
+.profilerButtonAction {
+  cursor: pointer;
+  padding-left: 0.6rem;
+  padding-right: 0.6rem;
+}
+
 .profilerStartNode {
   cursor: pointer !important;
   width: 35px !important;
@@ -83,6 +89,11 @@
 .profilerOperationNode {
   cursor: pointer !important;
   border-radius: 1px !important;
+}
+
+.profilerEndNode {
+  width: 70px !important;
+  border-radius: 50% !important;
 }
 
 .profilerStartNode :global(.react-flow__handle),
@@ -208,10 +219,7 @@
   border-radius: 5px;
   border: 1px solid #000;
   background: #fff;
-}
-
-.profilerReqResButton {
-  cursor: pointer;
+  min-width: 100px;
 }
 
 .profilerExecutionTime {
