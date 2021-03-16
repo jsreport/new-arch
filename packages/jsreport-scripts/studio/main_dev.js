@@ -67,7 +67,7 @@ Studio.entityTreeIconResolvers.push((entity) => (entity.__entitySet === 'scripts
 
 function getDefaultScriptContent () {
   return (
-`// Use the "beforeRender" or "afterRender" hook
+    `// Use the "beforeRender" or "afterRender" hook
 // to manipulate and control the report generation
 async function beforeRender (req, res) {
 

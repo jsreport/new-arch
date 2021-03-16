@@ -100,7 +100,7 @@ function handleError (errValue) {
       newError = new Error(errValue)
     } else {
       newError = new Error(errValue.message)
-
+      Object.assign(newError, errValue)
       if (errValue.stack) {
         newError.stack = errValue.stack
       }

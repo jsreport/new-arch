@@ -24,15 +24,22 @@ module.exports = (opts = {}) => {
         changed++
       })
 
-      // this compiles a template representation that does not depend on the current
-      // handlebars, we care about this because template can be cached and we need to
-      // ensure that the template does not get bound to some previous handlebars
-      // instance of different render
-      const templateSpecStr = handlebarsInstance.precompile(html)
+      try {
+        // this compiles a template representation that does not depend on the current
+        // handlebars, we care about this because template can be cached and we need to
+        // ensure that the template does not get bound to some previous handlebars
+        // instance of different render
 
-      const templateSpec = new Function(`return ${templateSpecStr}`)() // eslint-disable-line
+        const templateSpecStr = handlebarsInstance.precompile(html)
+        const templateSpec = new Function(`return ${templateSpecStr}`)() // eslint-disable-line
+        return templateSpec
+      } catch (e) {
+        if (e.message && e.message.includes('Parse error on line')) {
+          e.lineNumber = parseInt(e.message.match(/Parse error on line ([0-9]+):/)[1])
+        }
 
-      return templateSpec
+        throw e
+      }
     },
     createContext: () => {
       const handlebarsInstance = handlebars.create()

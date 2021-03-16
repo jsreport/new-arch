@@ -6,7 +6,7 @@ describe('handlebars', () => {
 
   beforeEach(() => {
     jsreport = JsReport()
-    jsreport.use(require('../')())
+    jsreport.use(require('../')()).use(require('jsreport-templates')())
     return jsreport.init()
   })
 
@@ -150,5 +150,49 @@ describe('handlebars', () => {
       }
     })
     res.content.toString().should.be.eql('foo')
+  })
+
+  it('should throw error with lineNumber information when handlebars syntax error', async () => {
+    await jsreport.documentStore.collection('templates').insert({
+      content: `empty line      
+      {{#if}}`,
+      engine: 'handlebars',
+      recipe: 'html',
+      name: 'templateA'
+    })
+
+    try {
+      await jsreport.render({
+        template: {
+          name: 'templateA'
+        }
+      })
+    } catch (e) {
+      e.lineNumber.should.be.eql(2)
+      e.property.should.be.eql('content')
+    }
+  })
+
+  it('should throw error with lineNumber information when helper errors', async () => {
+    await jsreport.documentStore.collection('templates').insert({
+      content: `{{a}}`,
+      engine: 'handlebars',
+      recipe: 'html',
+      name: 'templateA',
+      helpers: `function a() {
+        throw new Error('My error')
+      }`
+    })
+
+    try {
+      await jsreport.render({
+        template: {
+          name: 'templateA'
+        }
+      })
+    } catch (e) {
+      e.lineNumber.should.be.eql(2)
+      e.property.should.be.eql('helpers')
+    }
   })
 })

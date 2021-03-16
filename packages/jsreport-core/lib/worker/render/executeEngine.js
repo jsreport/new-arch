@@ -27,7 +27,12 @@ module.exports = (reporter) => {
 
       if (!cache.has(key)) {
         console.log('Compiled template not found in the cache, compiling')
-        cache.set(key, engine.compile(req.template.content, { require }))
+        try {
+          cache.set(key, engine.compile(req.template.content, { require }))
+        } catch (e) {
+          e.property = 'content'
+          throw e
+        }
       } else {
         console.log('Taking compiled template from engine cache')
       }
@@ -70,6 +75,9 @@ module.exports = (reporter) => {
     } catch (e) {
       const templatePath = req.template._id ? await reporter.folders.resolveEntityPath(req.template, 'templates', req) : 'anonymous'
       e.message = `Error when evaluating engine ${engine.name} for template ${templatePath}\n` + e.message
+      if (e.property !== 'content') {
+        e.property = 'helpers'
+      }
       throw e
     }
   }

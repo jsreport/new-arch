@@ -287,6 +287,7 @@ function decorateErrorMessage (e, { mainFilename, mainSource } = {}) {
         current.getFileName() === mainFilename &&
         i === 0 && current.getLineNumber() != null
       ) {
+        e.lineNumber = current.getLineNumber()
         suffix = `(line ${current.getLineNumber()}:${current.getColumnNumber()})`
       }
 

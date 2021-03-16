@@ -4,6 +4,8 @@ const { readAsset } = require('./assetsShared')
 const test = /{#asset ([^{}]{0,500})}/g
 const imageTest = /\.(jpeg|jpg|gif|png|svg)$/
 const fontTest = /\.(woff|ttf|otf|eot|woff2)$/
+const fs = require('fs').promises
+const path = require('path')
 
 function isImage (name) {
   return name.match(imageTest) != null
@@ -70,7 +72,11 @@ module.exports = (reporter, definition) => {
   reporter.assets = { options: definition.options }
   reporter.addRequestContextMetaConfig('evaluateAssetsCounter', { sandboxHidden: true })
 
+  let assetHelpers
+
   reporter.beforeRenderListeners.insert({ after: 'scripts' }, definition.name, this, async (req, res) => {
+    req.template.helpers += '\n' + assetHelpers
+
     const sharedHelpersAssets = await reporter.documentStore.collection('assets').find({ isSharedHelper: true }, req)
 
     if (sharedHelpersAssets.length > 0 && typeof req.template.helpers === 'object') {
@@ -97,13 +103,23 @@ module.exports = (reporter, definition) => {
     res.content = Buffer.from(result)
   })
 
-  reporter.initializeListeners.add('assets', () => {
+  reporter.initializeListeners.add('assets', async () => {
+    assetHelpers = (await fs.readFile(path.join(__dirname, '../static/helpers.js'))).toString()
     if (reporter.beforeScriptListeners) {
       reporter.beforeScriptListeners.add('assets', function ({ script }, req) {
         return evaluateAssets(reporter, definition, script.content, req).then(function (result) {
           script.content = result
         })
       })
+    }
+  })
+
+  reporter.extendProxy((proxy, req) => {
+    proxy.assets = {
+      read: async (path, encoding) => {
+        const r = await readAsset(reporter, definition, null, path, encoding, req)
+        return r.content
+      }
     }
   })
 }

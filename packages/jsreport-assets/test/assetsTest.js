@@ -414,6 +414,21 @@ describe('assets', function () {
     res.content.toString().should.be.eql('hello')
   })
 
+  it('should expose asset helper', async () => {
+    await reporter.documentStore.collection('assets').insert({
+      name: 'foo.html',
+      content: 'hello'
+    })
+    const res = await reporter.render({
+      template: {
+        content: '{{:~asset(\'foo.html\', \'base64\')}}',
+        recipe: 'html',
+        engine: 'jsrender'
+      }
+    })
+    res.content.toString().should.be.eql(Buffer.from('hello').toString('base64'))
+  })
+
   describe('folders', () => {
     it('should throw error when duplicated results are found', async () => {
       await reporter.documentStore.collection('folders').insert({

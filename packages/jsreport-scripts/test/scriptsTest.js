@@ -996,5 +996,34 @@ describe('scripts', () => {
 
       await reporter.render(request)
     })
+
+    it('script error should contain lineNumber and entity identification', async () => {
+      const script = await reporter.documentStore.collection('scripts').insert({
+        content: `function beforeRender(req, res, done) { 
+          done(new Error('foo')) 
+        }`,
+        name: 'script'
+      })
+      try {
+        await reporter.render({
+          template: {
+            content: 'main',
+            recipe: 'html',
+            engine: 'none',
+            scripts: [{
+              name: 'script'
+            }]
+          }
+        })
+        throw new Error('should have failed')
+      } catch (e) {
+        e.lineNumber.should.be.eql(2)
+        should(e.entity).be.ok()
+        e.entity.shortid.should.be.eql(script.shortid)
+        e.entity.name.should.be.eql(script.name)
+        e.entity.content.should.be.eql(script.content)
+        e.property.should.be.eql('content')
+      }
+    })
   }
 })

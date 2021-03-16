@@ -97,9 +97,10 @@ class Profiler {
     if (err) {
       this.emit({
         type: 'error',
-        id: req.context.renderProfileId,
+        ...err,
+        stack: err.stack,
         message: err.message,
-        stack: err.stack
+        id: req.context.renderProfileId
       }, req, res)
       err.profileBlobName = req.context.profileBlobName
     }
