@@ -70,10 +70,22 @@
   z-index: 6;
 }
 
-.profilerOperationNode {
+.profilerStartNode {
   cursor: pointer !important;
+  width: 35px !important;
+  border-radius: 50% !important;
 }
 
+.profilerStartNode span {
+  margin-right: -2px;
+}
+
+.profilerOperationNode {
+  cursor: pointer !important;
+  border-radius: 1px !important;
+}
+
+.profilerStartNode :global(.react-flow__handle),
 .profilerOperationNode :global(.react-flow__handle) {
   opacity: 0 !important;
 }
@@ -108,6 +120,11 @@
   }
 }
 
+:global(#react-flow__arrowclosed-active) > * {
+  stroke: $primary-selection-backgroundColor !important;
+  fill: $primary-selection-backgroundColor !important;
+}
+
 .profilerOperationEdge :global(.react-flow__edge-path) {
   cursor: pointer;
   stroke-width: 2;
@@ -119,7 +136,8 @@
 }
 
 .profilerOperationEdge.active .main {
-  outline: 1px solid $primary-selection-backgroundColor;
+  stroke: $primary-selection-backgroundColor !important;
+  marker-end: url("#react-flow__arrowclosed-active") !important;
 }
 
 .profilerLogs {

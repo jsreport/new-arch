@@ -1,5 +1,5 @@
 import classNames from 'classnames'
-import { Fragment } from 'react'
+import { Fragment, useEffect } from 'react'
 import { getSmoothStepPath, getMarkerEnd } from 'react-flow-renderer'
 import styles from './Preview.css'
 
@@ -21,6 +21,21 @@ const CustomEdge = (props) => {
   const markerEnd = getMarkerEnd(arrowHeadType, markerEndId)
   const expanderClass = classNames('react-flow__edge-path', styles.profilerOperationEdgeExpander)
   const mainClass = classNames('react-flow__edge-path', styles.main)
+
+  useEffect(() => {
+    let elId
+    let clonedElId
+
+    elId = 'react-flow__arrowclosed'
+    clonedElId = `${elId}-active`
+
+    if (document.getElementById(clonedElId) == null) {
+      const markerEndEl = document.getElementById(elId)
+      const clonedMarkerEndEl = markerEndEl.cloneNode(true)
+      clonedMarkerEndEl.id = `${clonedMarkerEndEl.id}-active`
+      markerEndEl.parentElement.appendChild(clonedMarkerEndEl)
+    }
+  }, [])
 
   return (
     <Fragment>
