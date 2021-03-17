@@ -401,7 +401,13 @@ class MainReporter extends Reporter {
     const result = await this._workersManager.executeWorker({
       actionName,
       data,
-      req
+      // we set just known props, to avoid clonning failures on expres req properties
+      req: {
+        context: req.context,
+        template: req.template,
+        data: req.data,
+        options: req.options
+      }
     }, {
       // TODO add worker timeout
       timeout: options.timeout || 60000,

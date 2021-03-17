@@ -7,27 +7,15 @@ const bytes = require('bytes')
 const mimeTypes = require('mime-types')
 const omit = require('lodash.omit')
 const DocumentModel = require('./documentModel')
-const sortVersions = require('./sortVersions')
+const sortVersions = require('../shared/sortVersions')
+const uuid = require('uuid')
 
 module.exports = (reporter, options) => {
-  // defining entity used for persisting changes in all entities across commits
-  reporter.documentStore.registerComplexType('ChangeType', {
-    // used when operation is insert
-    serializedDoc: { type: 'Edm.String' },
-    // used when operation is update
-    serializedPatch: { type: 'Edm.String' },
-    entityId: { type: 'Edm.String' },
-    // insert, remove, update
-    operation: { type: 'Edm.String' },
-    // full path to hierarchy "/folder/entity"
-    path: { type: 'Edm.String' },
-    entitySet: { type: 'Edm.String' }
-  })
-
   // now it basically represents a commit
   reporter.documentStore.registerEntityType('VersionType', {
     message: { type: 'Edm.String' },
-    changes: { type: 'Collection(jsreport.ChangeType)' }
+    creationDate: { type: 'Edm.DateTimeOffset' },
+    blobName: { type: 'Edm.String' }
   })
 
   reporter.documentStore.registerEntitySet('versions', {
@@ -336,7 +324,13 @@ module.exports = (reporter, options) => {
         throw new Error('Can not save an empty commit, there is no changes to commit')
       }
 
-      return reporter.documentStore.collection('versions').insert(newCommit, req)
+      const version = await reporter.documentStore.collection('versions').insert({
+        ...omit(newCommit, 'changes'),
+        blobName: uuid() + '.json'
+      }, req)
+      await reporter.blobStorage.write(version.blobName, JSON.stringify(newCommit.changes))
+      version.changes = newCommit.changes
+      return version
     },
 
     async revert (req) {

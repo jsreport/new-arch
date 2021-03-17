@@ -10,10 +10,14 @@ module.exports = ({ model, collections }, executeMainAction) => {
         query: q,
         collection: name
       }, req),
-      insert: (doc, req) => executeMainAction('documentStore.collection.insert', {
-        doc,
-        collection: name
-      }, req),
+      insert: async (doc, req) => {
+        const entity = executeMainAction('documentStore.collection.insert', {
+          doc,
+          collection: name
+        }, req)
+        doc._id = entity._id
+        return doc
+      },
       update: async (query, update, options, req) => {
         if (req == null) {
           req = options

@@ -5,7 +5,7 @@
 const extend = require('node.extend.without.arrays')
 const isbinaryfile = require('isbinaryfile')
 const { serialize, parse, deepGet, deepSet, deepDelete } = require('./customUtils')
-const sortVersions = require('./sortVersions')
+const sortVersions = require('../shared/sortVersions')
 const diff = require('./diff.js')
 
 function serializeConfig (doc, entitySet, documentModel) {
@@ -18,25 +18,32 @@ function serializeConfig (doc, entitySet, documentModel) {
 }
 
 // apply all patches in collection and return final state of entities
-function applyPatches (versions, documentModel) {
+async function applyPatches (versions, documentModel, reporter, req) {
   versions = sortVersions(versions, 'ASC')
 
   let state = []
   // iterate patches to the final one => get previous commit state
-  versions.forEach((v) => {
-    v.changes.forEach((c) => {
+  for (const v of versions) {
+    let changes = v.changes
+    if (changes == null) {
+      const changesContent = await reporter.blobStorage.readBuffer(v.blobName, req)
+      changes = JSON.parse(changesContent.toString())
+    }
+
+    for (const c of changes) {
       if (c.operation === 'insert') {
-        return state.push({
+        state.push({
           entityId: c.entityId,
           entitySet: c.entitySet,
           entity: parse(c.serializedDoc),
           path: c.path
         })
+        continue
       }
 
       if (c.operation === 'remove') {
         state = state.filter((e) => e.entityId !== c.entityId)
-        return
+        continue
       }
 
       const entityState = state.find((e) => e.entityId === c.entityId)
@@ -46,8 +53,9 @@ function applyPatches (versions, documentModel) {
       if (entityState.entityId !== entityState.entity._id) {
         entityState.entityId = entityState.entity._id
       }
-    })
-  })
+    }
+  }
+
   return state
 }
 

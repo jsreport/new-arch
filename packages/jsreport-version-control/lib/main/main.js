@@ -4,7 +4,7 @@ const fs = require('fs')
 const path = require('path')
 
 module.exports = (reporter, definition) => {
-  const diff2htmlStyle = fs.readFileSync(path.join(__dirname, '../static/diff.css')).toString()
+  const diff2htmlStyle = fs.readFileSync(path.join(__dirname, '../../static/diff.css')).toString()
 
   const options = Object.assign({}, reporter.options.versionControl, definition.options)
 

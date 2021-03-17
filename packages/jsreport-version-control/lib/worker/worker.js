@@ -4,14 +4,14 @@ const applyPatches = require('./applyPatchesProcess')
 
 module.exports = (reporter, definition) => {
   reporter.registerWorkerAction('version-control-diff', (data, req) => {
-    return diff(data)
+    return diff(data, reporter, req)
   })
 
   reporter.registerWorkerAction('version-control-commit', (data, req) => {
-    return commit(data)
+    return commit(data, reporter, req)
   })
 
   reporter.registerWorkerAction('version-control-apply-pathes', (data, req) => {
-    return applyPatches(data)
+    return applyPatches(data, reporter, req)
   })
 }

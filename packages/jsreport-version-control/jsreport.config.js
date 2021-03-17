@@ -9,8 +9,8 @@ const schema = {
 
 module.exports = {
   'name': 'version-control',
-  'main': 'lib/main.js',
-  'worker': 'lib/worker.js',
+  'main': 'lib/main/main.js',
+  'worker': 'lib/worker/worker.js',
   'optionsSchema': {
     versionControl: schema,
     extensions: {
