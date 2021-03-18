@@ -76,10 +76,10 @@ class Monitoring {
 
 module.exports = (reporter) => {
   reporter.documentStore.registerEntityType('MonitoringType', {
-    cpu: { type: 'Edm.Integer' },
-    freemem: { type: 'Edm.Integer' },
+    cpu: { type: 'Edm.Int32' },
+    freemem: { type: 'Edm.Int32' },
     timestamp: { type: 'Edm.DateTimeOffset', schema: { type: 'null' } },
-    hostname: { type: 'Edm.Integer' }
+    hostname: { type: 'Edm.String' }
   })
 
   reporter.documentStore.registerEntitySet('monitoring', {
