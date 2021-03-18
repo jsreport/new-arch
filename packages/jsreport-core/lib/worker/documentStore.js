@@ -16,7 +16,7 @@ module.exports = ({ model, collections }, executeMainAction) => {
           collection: name
         }, req)
         doc._id = entity._id
-        return doc
+        return entity
       },
       update: async (query, update, options, req) => {
         if (req == null) {

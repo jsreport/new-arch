@@ -10,6 +10,7 @@ describe('with reports extension', () => {
     reporter.use(require('../')())
     reporter.use(require('jsreport-express')())
     reporter.use(require('jsreport-scripts')())
+    reporter.use(require('jsreport-templates')())
     reporter.use(jsreport.tests.listeners())
 
     return reporter.init()
@@ -33,6 +34,30 @@ describe('with reports extension', () => {
 
     const blob = await streamToString(await reporter.blobStorage.read(reports[0].blobName))
     blob.should.be.eql('hello')
+  })
+
+  it('should use template path for blobname when save: true', async () => {
+    const folder = await reporter.documentStore.collection('folders').insert({
+      name: 'foldera'
+    })
+    await reporter.documentStore.collection('templates').insert({
+      name: 'mytemplate',
+      engine: 'none',
+      content: 'hello',
+      recipe: 'html',
+      folder: {
+        shortid: folder.shortid
+      }
+    })
+    await reporter.render({
+      options: { reports: {save: true} },
+      template: {
+        name: 'mytemplate'
+      }
+    })
+
+    const reports = await reporter.documentStore.collection('reports').find({})
+    reports[0].blobName.should.containEql('reports/foldera/mytemplate')
   })
 
   it('should store report entity and single report with async: true', async () => {

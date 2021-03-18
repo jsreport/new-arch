@@ -8,7 +8,8 @@ const mimeTypes = require('mime-types')
 const omit = require('lodash.omit')
 const DocumentModel = require('./documentModel')
 const sortVersions = require('../shared/sortVersions')
-const uuid = require('uuid')
+const { customAlphabet } = require('nanoid')
+const nanoid = customAlphabet('0123456789abcdefghijklmnopqrstuvwxyz', 10)
 
 module.exports = (reporter, options) => {
   // now it basically represents a commit
@@ -326,7 +327,7 @@ module.exports = (reporter, options) => {
 
       const version = await reporter.documentStore.collection('versions').insert({
         ...omit(newCommit, 'changes'),
-        blobName: uuid() + '.json'
+        blobName: `versions/${newCommit.message.replace(/[^a-zA-Z0-9]/g, '')}${nanoid()}.json`
       }, req)
       await reporter.blobStorage.write(version.blobName, JSON.stringify(newCommit.changes))
       version.changes = newCommit.changes

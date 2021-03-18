@@ -25,25 +25,22 @@ module.exports = (options) => {
 
   return {
     async write (blobName, buffer) {
-      checkBlobName(options, storageDirectory, blobName)
+      checkPathIsInsideDirectory(options, storageDirectory, blobName)
 
       const targetPath = path.join(storageDirectory, blobName)
-
-      if (options.allowLocalFilesAccess) {
-        await fsAsync.mkdir(path.dirname(targetPath), { recursive: true })
-      }
+      await fsAsync.mkdir(path.dirname(targetPath), { recursive: true })
 
       await fsAsync.writeFile(targetPath, buffer)
       return blobName
     },
 
     read (blobName) {
-      checkBlobName(options, storageDirectory, blobName)
+      checkPathIsInsideDirectory(options, storageDirectory, blobName)
       return fs.createReadStream(path.join(storageDirectory, blobName))
     },
 
     async remove (blobName) {
-      checkBlobName(options, storageDirectory, blobName)
+      checkPathIsInsideDirectory(options, storageDirectory, blobName)
       return fsAsync.unlink(path.join(storageDirectory, blobName))
     },
 
@@ -53,19 +50,8 @@ module.exports = (options) => {
   }
 }
 
-function checkBlobName (options, directory, blobName) {
-  if (
-    !options.allowLocalFilesAccess &&
-    (blobName.includes(path.posix.sep) || blobName.includes(path.win32.sep))
-  ) {
-    throw new Error('blobName can not be a path when "options.allowLocalFilesAccess" is not enabled')
-  }
-
-  checkPathIsInsideDirectory(options, directory, blobName)
-}
-
 function checkPathIsInsideDirectory (options, directory, blobName) {
-  if (!options.allowLocalFilesAccess) {
+  if (options.allowLocalFilesAccess === true) {
     return
   }
 

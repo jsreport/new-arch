@@ -40,6 +40,13 @@ describe.only('version control', () => {
     patch.documentProperties.should.have.length(2)
   })
 
+  it('commit changes should be persisted to the blob', async () => {
+    const req = jsreport.Request({})
+    await jsreport.documentStore.collection('templates').insert({ name: 'foo', content: '1', helpers: '1', engine: 'none', recipe: 'html' }, req)
+    const commit = await jsreport.versionControl.commit('my first commit', undefined, req)
+    commit.blobName.should.containEql('versions/myfirstcommit')
+  })
+
   it('commit should store diffs only for changed document props', async () => {
     const req = jsreport.Request({})
     await jsreport.documentStore.collection('templates').insert({ name: 'foo', content: '1', helpers: '1', engine: 'none', recipe: 'html' }, req)

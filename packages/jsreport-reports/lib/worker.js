@@ -37,7 +37,15 @@ module.exports = (reporter, definition) => {
         report._id = response.meta.reportsOptions._id
       }
 
-      const reportBlobName = reportsOptions.blobName ? reportsOptions.blobName : report._id
+      let reportBlobName = reportsOptions.blobName
+      if (!reportBlobName) {
+        if (request.template._id) {
+          const templatePath = await reporter.folders.resolveEntityPath(request.template, 'templates', request)
+          reportBlobName = `reports/${templatePath.substring(1)}/${report._id}`
+        } else {
+          reportBlobName = `reports/${report._id}`
+        }
+      }
 
       report.blobName = await reporter.blobStorage.write(`${reportBlobName}.${report.fileExtension}`, response.content, request, response)
 

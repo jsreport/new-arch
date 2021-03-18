@@ -8,7 +8,7 @@ const configureExpress = (reporter) => (app) => {
 }
 
 module.exports = function (reporter, definition) {
-  Object.assign(reporter.documentStore.model.entityTypes['TemplateType'], {
+  Object.assign(reporter.documentStore.model.entityTypes.TemplateType, {
     name: { type: 'Edm.String', publicKey: true }
   })
 
@@ -19,7 +19,7 @@ module.exports = function (reporter, definition) {
   })
 
   reporter.initializeListeners.add('templates', function () {
-    var col = reporter.documentStore.collection('templates')
+    const col = reporter.documentStore.collection('templates')
 
     if (reporter.express) {
       reporter.express.exposeOptionsToApi(definition.name, {

@@ -158,6 +158,11 @@ const beforeRender = (reporter) => async (req, res) => {
     req.context.renderHierarchy.push(template._id)
   }
 
+  if (!req.context.isChildRequest && template && template._id) {
+    const templatePath = await reporter.folders.resolveEntityPath(template, 'templates', req)
+    req.context.profileBlobName = `/profiles/${templatePath}/${req.context.rootId}.log`
+  }
+
   req.template = template ? extend(true, template, req.template) : req.template
   req.template.content = req.template.content || ''
 

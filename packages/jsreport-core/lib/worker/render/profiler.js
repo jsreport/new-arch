@@ -75,7 +75,8 @@ class Profiler {
     req.context.shared.profilerMessages = req.context.shared.profilerMessages || []
 
     if (!req.context.isChildRequest) {
-      const blobName = `${req.context.rootId}.log`
+      const blobName = `/profiles/${req.context.rootId}.log`
+
       const profile = await this.reporter.documentStore.collection('profiles').insert({
         templateShortid: 'foo',
         timestamp: new Date(),

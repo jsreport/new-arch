@@ -49,18 +49,18 @@ describe('fileSystemBlobStorage', () => {
       }
     })
 
-    describe('should now allow blobName as path', () => {
+    describe('should not allow writing outside storage directory', () => {
       it('write', async () => {
-        return reporter.blobStorage.write('dir/foo', Buffer.from('hula')).should.be.rejectedWith(/blobName can not be a path/)
+        return reporter.blobStorage.write('../foo', Buffer.from('hula')).should.be.rejectedWith(/blobName must be a relative path inside blobStorage directory/)
       })
 
       it('read', async () => {
-        const exec = async () => reporter.blobStorage.read('dir/foo')
-        return exec().should.be.rejectedWith(/blobName can not be a path/)
+        const exec = async () => reporter.blobStorage.read('../dir/foo')
+        return exec().should.be.rejectedWith(/blobName must be a relative path inside blobStorage directory/)
       })
 
       it('remove', async () => {
-        return reporter.blobStorage.remove('dir/foo').should.be.rejectedWith(/blobName can not be a path/)
+        return reporter.blobStorage.remove('..//foo').should.be.rejectedWith(/blobName must be a relative path inside blobStorage directory/)
       })
     })
   })
@@ -81,36 +81,6 @@ describe('fileSystemBlobStorage', () => {
       if (reporter) {
         await reporter.close()
       }
-    })
-
-    describe('should not allow blobName as full path', () => {
-      it('write', async () => {
-        return reporter.blobStorage.write('/dir/foo', Buffer.from('hula')).should.be.rejectedWith(/blobName can not be an absolute path/)
-      })
-
-      it('read', async () => {
-        const exec = async () => reporter.blobStorage.read('/dir/foo')
-        return exec().should.be.rejectedWith(/blobName can not be an absolute path/)
-      })
-
-      it('remove', async () => {
-        return reporter.blobStorage.remove('/dir/foo').should.be.rejectedWith(/blobName can not be an absolute path/)
-      })
-    })
-
-    describe('should not allow blobName as relative path that results in path outside blobStorage directory', () => {
-      it('write', async () => {
-        return reporter.blobStorage.write('../../dir/foo', Buffer.from('hula')).should.be.rejectedWith(/blobName must be a relative path inside blobStorage directory/)
-      })
-
-      it('read', async () => {
-        const exec = async () => reporter.blobStorage.read('../../dir/foo')
-        return exec().should.be.rejectedWith(/blobName must be a relative path inside blobStorage directory/)
-      })
-
-      it('remove', async () => {
-        return reporter.blobStorage.remove('../../dir/foo').should.be.rejectedWith(/blobName must be a relative path inside blobStorage directory/)
-      })
     })
 
     describe('should work with correct blobName', () => {

@@ -18,6 +18,12 @@ module.exports = (storage) => {
     })
   })
 
+  it('write and readBuffer', async () => {
+    await storage().write('foo', Buffer.from('hula'))
+    const buf = await storage().readBuffer('foo')
+    buf.toString().should.be.eql('hula')
+  })
+
   it('write remove read should fail', async () => {
     await storage().write('foo', Buffer.from('hula'))
     await storage().remove('foo')
@@ -28,5 +34,11 @@ module.exports = (storage) => {
       stream.on('error', () => resolve())
       stream.resume()
     })
+  })
+
+  it('should work with folders and paths', async () => {
+    await storage().write('foldera/folderb/myblob.txt', Buffer.from('hula'))
+    const buf = await storage().readBuffer('foldera/folderb/myblob.txt')
+    buf.toString().should.be.eql('hula')
   })
 }
