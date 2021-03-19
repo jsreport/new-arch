@@ -32,8 +32,8 @@ describe('with reports extension', () => {
     const reports = await reporter.documentStore.collection('reports').find({})
     reports.should.have.length(1)
 
-    const blob = await streamToString(await reporter.blobStorage.read(reports[0].blobName))
-    blob.should.be.eql('hello')
+    const blob = await reporter.blobStorage.read(reports[0].blobName)
+    blob.toString().should.be.eql('hello')
   })
 
   it('should use template path for blobname when save: true', async () => {
@@ -71,8 +71,8 @@ describe('with reports extension', () => {
         try {
           const reports = await reporter.documentStore.collection('reports').find({})
           reports.should.have.length(1)
-          const blob = await streamToString(await reporter.blobStorage.read(reports[0].blobName))
-          blob.should.be.eql('hello')
+          const blob = await reporter.blobStorage.read(reports[0].blobName)
+          blob.toString().should.be.eql('hello')
         } catch (e) {
           reject(e)
         }
@@ -157,14 +157,14 @@ describe('with reports extension', () => {
   })
 
   it('should return 200 status code on /status if report is not finished', async () => {
-    const r = await reporter.documentStore.collection('reports').insert({name: 'foo'})
+    const r = await reporter.documentStore.collection('reports').insert({name: 'foo', state: 'planned'})
     return supertest(reporter.express.app)
       .get('/reports/' + r._id + '/status')
       .expect(200)
   })
 
   it('should return 201 status code and Location header on /status if report is finished', async () => {
-    const r = await reporter.documentStore.collection('reports').insert({name: 'foo', blobName: 'foo'})
+    const r = await reporter.documentStore.collection('reports').insert({name: 'foo', blobName: 'foo', state: 'finished'})
     return supertest(reporter.express.app)
       .get('/reports/' + r._id + '/status')
       .expect(201)
@@ -294,8 +294,8 @@ describe('with reports extension', () => {
     const reports = await reporter.documentStore.collection('reports').find({})
     reports.should.have.length(1)
 
-    const blob = await streamToString(await reporter.blobStorage.read(reports[0].blobName))
-    blob.should.be.eql('nested')
+    const blob = await reporter.blobStorage.read(reports[0].blobName)
+    blob.toString().should.be.eql('nested')
   })
 
   it('should store report after custom script afterRender modifies it', async () => {
@@ -317,8 +317,8 @@ describe('with reports extension', () => {
     })
 
     const report = await reporter.documentStore.collection('reports').findOne({})
-    const blob = await streamToString(await reporter.blobStorage.read(report.blobName))
-    blob.should.be.eql('changed')
+    const blob = await reporter.blobStorage.read(report.blobName)
+    blob.toString().should.be.eql('changed')
   })
 })
 
@@ -370,13 +370,4 @@ describe('with reports extension and clean enabled but long treshold', () => {
 
 function delay (timeToWait) {
   return new Promise((resolve) => setTimeout(resolve, timeToWait))
-}
-
-function streamToString (stream) {
-  const chunks = []
-  return new Promise((resolve, reject) => {
-    stream.on('data', chunk => chunks.push(chunk))
-    stream.on('error', reject)
-    stream.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')))
-  })
 }

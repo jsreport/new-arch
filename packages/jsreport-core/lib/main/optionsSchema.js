@@ -104,7 +104,7 @@ module.exports.getRootSchemaOptions = () => ({
     blobStorage: {
       type: 'object',
       properties: {
-        provider: { type: 'string', enum: ['memory', 'fs'] }
+        provider: { type: 'string', enum: ['memory'] }
       }
     },
     extensions: {

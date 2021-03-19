@@ -1,12 +1,13 @@
 const Promise = require('bluebird')
 const pg = require('pg-promise')({promiseLib: Promise})
+
 // how to configure type parsing per instance
 // https://github.com/brianc/node-postgres/issues/1838
 const TypeOverrides = require('pg/lib/type-overrides')
 const Store = require('jsreport-sql-store')
 
 module.exports = function (reporter, definition) {
-  if (reporter.options.store.provider !== 'postgres') {
+  if (reporter.options.store.provider !== 'postgres' && reporter.options.blobStorage.provider !== 'fs') {
     definition.options.enabled = false
     return
   }
@@ -29,6 +30,32 @@ module.exports = function (reporter, definition) {
     ...definition.options,
     types: customTypes
   })
+
+  if (reporter.options.blobStorage.provider === 'postgres') {
+    const blobsTable = definition.options.prefix + 'Blobs'
+    reporter.blobStorage.registerProvider({
+      init: () => {
+        return db.query(`CREATE TABLE IF NOT EXISTS  ${blobsTable} (blobName varchar(1024), content bytea);`)
+      },
+      write: async (blobName, buf) => {
+        await db.query(`INSERT INTO ${blobsTable} VALUES($1, $2)`, [blobName, buf])
+        return blobName
+      },
+      read: async (blobName, buf) => {
+        const r = await db.query(`SELECT content FROM  ${blobsTable} WHERE blobName = $1`, [blobName])
+        if (r.length === 0) {
+          return null
+        }
+        return r[0].content
+      },
+      remove: async (blobName) => {
+        await db.query(`DELETE FROM ${blobsTable} WHERE blobName = $1`, [blobName])
+      },
+      drop: () => {
+        return db.query(`DROP TABLE IF EXISTS ${blobsTable}`)
+      }
+    })
+  }
 
   function executeQuery (a, opts = {}) {
     const transform = (r) => {
@@ -106,12 +133,10 @@ module.exports = function (reporter, definition) {
     {
       close: () => {
         return db.$pool.end()
-      }
+      },
+      db
     }
   )
 
   reporter.documentStore.registerProvider(store)
-
-  // avoid exposing connection string through /api/extensions
-  definition.options = {}
 }

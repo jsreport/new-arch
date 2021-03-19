@@ -153,14 +153,9 @@ describe('profiler', () => {
     profile.state.should.be.eql('success')
     profile.timestamp.should.be.Date()
 
-    const blobStream = await reporter.blobStorage.read(profile.blobName)
+    const content = await reporter.blobStorage.read(profile.blobName)
 
-    let chunks = ''
-    for await (const ch of blobStream) {
-      chunks += ch
-    }
-
-    const messages = chunks.split('\n').map(JSON.parse)
+    const messages = content.toString().split('\n').map(JSON.parse)
     for (const m of messages) {
       should(m.req).not.be.ok()
     }
@@ -188,14 +183,8 @@ describe('profiler', () => {
     const profile = await reporter.documentStore.collection('profiles').findOne({})
     profile.state.should.be.eql('error')
 
-    const blobStream = await reporter.blobStorage.read(profile.blobName)
-
-    let chunks = ''
-    for await (const ch of blobStream) {
-      chunks += ch
-    }
-
-    const messages = chunks.split('\n').map(JSON.parse)
+    const content = await reporter.blobStorage.read(profile.blobName)
+    const messages = content.toString().split('\n').map(JSON.parse)
     const errorMesage = messages.find(m => m.type === 'error')
     should(errorMesage).be.ok()
   })
@@ -220,14 +209,8 @@ describe('profiler', () => {
     const profile = await reporter.documentStore.collection('profiles').findOne({})
     profile.state.should.be.eql('error')
 
-    const blobStream = await reporter.blobStorage.read(profile.blobName)
-
-    let chunks = ''
-    for await (const ch of blobStream) {
-      chunks += ch
-    }
-
-    const messages = chunks.split('\n').map(JSON.parse)
+    const content = await reporter.blobStorage.read(profile.blobName)
+    const messages = content.toString().split('\n').map(JSON.parse)
     const errorMesage = messages.find(m => m.type === 'error')
     should(errorMesage).be.ok()
   })
@@ -251,14 +234,9 @@ describe('profiler', () => {
     })
 
     const profile = await reporter.documentStore.collection('profiles').findOne({})
-    const blobStream = await reporter.blobStorage.read(profile.blobName)
+    const content = await reporter.blobStorage.read(profile.blobName)
 
-    let chunks = ''
-    for await (const ch of blobStream) {
-      chunks += ch
-    }
-
-    const messages = chunks.split('\n').map(JSON.parse)
+    const messages = content.toString().split('\n').map(JSON.parse)
     for (const m of messages.filter(m => m.type !== 'log')) {
       should(m.req).be.ok()
     }

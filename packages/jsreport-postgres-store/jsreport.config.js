@@ -9,6 +9,12 @@ module.exports = {
         provider: { type: 'string', enum: ['postgres'] }
       }
     },
+    blobStorage: {
+      type: 'object',
+      properties: {
+        provider: { type: 'string', enum: ['postgres'] }
+      }
+    },
     extensions: {
       'postgres-store': {
         type: 'object',
@@ -18,7 +24,8 @@ module.exports = {
           port: { type: 'number' },
           database: { type: 'string' },
           user: { type: 'string' },
-          password: { type: 'string' }
+          password: { type: 'string' },
+          prefix: { type: 'string', default: 'jsreport_' }
         }
       }
     }

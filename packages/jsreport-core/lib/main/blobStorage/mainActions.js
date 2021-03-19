@@ -3,11 +3,7 @@ module.exports = (reporter) => {
     const localReq = reporter.Request(originalReq)
     const res = await reporter.blobStorage.read(spec.blobName, localReq)
 
-    const chunks = []
-    for await (const chunk of res) {
-      chunks.push(chunk)
-    }
-    return Buffer.concat(chunks).toString('base64')
+    return res.toString('base64')
   })
 
   reporter.registerMainAction('blobStorage.write', async (spec, originalReq) => {

@@ -33,8 +33,8 @@ class Reports {
       // the blob attacthed to the report. ideally we should execute this remove in an "afterRemove"
       // event but since that does not exists we have to make sure that the listener executes after
       // the authorization check
-      col.beforeRemoveListeners.add({ after: 'authorization-cascade-remove' }, definition.name, async (query) => {
-        const result = await col.find({ _id: query._id })
+      col.beforeRemoveListeners.add({ after: 'authorization-cascade-remove' }, definition.name, async (query, req) => {
+        const result = await col.find({ _id: query._id }, req)
 
         if (result.length === 0) {
           throw reporter.createError(`Report ${query._id} not found`, {
@@ -45,13 +45,7 @@ class Reports {
         if (!result[0].blobName) {
           return
         }
-
-        if (typeof reporter.blobStorage.remove !== 'function') {
-          reporter.logger.debug('Skipping removing ' + result[0].blobName + ' from storage because configured blobStorage doesn\'t support remove functionality')
-          return
-        }
-
-        await reporter.blobStorage.remove(result[0].blobName)
+        await reporter.blobStorage.remove(result[0].blobName, req)
         reporter.logger.debug('Report ' + result[0].blobName + ' was removed from storage')
       })
     })
@@ -70,28 +64,20 @@ class Reports {
   }
 
   configureExpress (app) {
-    const serveReport = async (req, res) => {
-      const result = await this.reporter.documentStore.collection('reports').find({ _id: req.params.id }, req)
+    const findReport = async (reportId, req) => {
+      const report = await this.reporter.documentStore.collection('reports').findOne({ _id: reportId }, req)
 
-      if (result.length !== 1) {
+      if (report == null) {
         throw this.reporter.createError(`Report ${req.params.id} not found`, {
           statusCode: 404
         })
       }
 
-      let state = result[0].state
-
-      if (state == null && result[0].blobName) {
-        state = 'success'
-      } else if (state == null) {
-        state = 'error'
-      }
-
-      if (state !== 'success') {
-        let errMsg = `Report ${req.params.id} content not found`
+      if (report.state !== 'success') {
+        let errMsg = `Report ${req.params.id} wasn't successfull`
 
         if (req.context.http) {
-          errMsg = `${errMsg}, check ${req.context.http.baseUrl}/reports/${result[0]._id}/status for details`
+          errMsg = `${errMsg}, check ${req.context.http.baseUrl}/reports/${report._id}/status for details`
         }
 
         throw this.reporter.createError(errMsg, {
@@ -99,92 +85,83 @@ class Reports {
         })
       }
 
-      const stream = await this.reporter.blobStorage.read(result[0].blobName)
-
-      stream.on('error', function (err) {
-        res.error(err)
-      })
-
-      if (result[0].contentType) {
-        res.setHeader('Content-Type', result[0].contentType)
+      return {
+        report,
+        content: await this.reporter.blobStorage.read(report.blobName)
       }
-      if (result[0].fileExtension) {
-        res.setHeader('File-Extension', result[0].fileExtension)
-      }
-
-      return { stream: stream, report: result[0] }
     }
 
     app.get('/reports/public/:id/content', async (req, res, next) => {
-      const reportId = req.params.id
-
       try {
-        const result = await this.reporter.documentStore.collection('reports').find({ _id: reportId }, req)
-
-        if (result.length !== 1 || !result[0].public) {
-          throw this.reporter.createError(`Report ${req.params.id} not found`, {
-            statusCode: 404
-          })
-        }
-
-        const reportResult = await serveReport(req, res)
-        reportResult.stream.pipe(res)
+        const { report, content } = await findReport(req.params.id, req)
+        res.setHeader('Content-Type', report.contentType)
+        res.setHeader('File-Extension', report.fileExtension)
+        res.send(content)
       } catch (e) {
         next(e)
       }
     })
 
-    app.get('/reports/:id/content', (req, res, next) => {
-      serveReport(req, res).then((result) => result.stream.pipe(res)).catch(next)
+    app.get('/reports/:id/content', async (req, res, next) => {
+      try {
+        const { report, content } = await findReport(req.params.id, req)
+        res.setHeader('Content-Type', report.contentType)
+        res.setHeader('File-Extension', report.fileExtension)
+        res.send(content)
+      } catch (e) {
+        next(e)
+      }
     })
 
-    app.get('/reports/:id/attachment', (req, res, next) => {
-      serveReport(req, res).then((result) => {
-        res.setHeader('Content-Disposition', `attachment; filename="${result.report.name}.${result.report.fileExtension}"`)
-        result.stream.pipe(res)
-      }).catch(next)
+    app.get('/reports/:id/attachment', async (req, res, next) => {
+      try {
+        const { report, content } = await findReport(req.params.id, req)
+        res.setHeader('Content-Type', report.contentType)
+        res.setHeader('File-Extension', report.fileExtension)
+        res.setHeader('Content-Disposition', `attachment; filename="${report.name}.${report.fileExtension}"`)
+        res.send(content)
+      } catch (e) {
+        next(e)
+      }
     })
 
-    app.get('/reports/:id/status', (req, res, next) => {
-      this.reporter.documentStore.collection('reports').find({ _id: req.params.id }, req).then((result) => {
-        if (result.length !== 1) {
+    app.get('/reports/:id/status', async (req, res, next) => {
+      try {
+        const report = await this.reporter.documentStore.collection('reports').findOne({ _id: req.params.id }, req)
+        if (report == null) {
           throw this.reporter.createError(`Report ${req.params.id} not found`, {
             statusCode: 404
           })
         }
 
-        let state = result[0].state
-
-        if (state == null && result[0].blobName) {
-          state = 'success'
-        } else if (state == null) {
-          state = 'error'
+        if (report.state === 'planned') {
+          res.setHeader('Report-State', report.state)
+          return res.send('Report is pending. Wait until 201 response status code')
         }
 
-        if (state === 'planned') {
-          res.setHeader('Report-State', state)
-          res.send('Report is pending. Wait until 201 response status code')
-        } else if (state === 'error') {
-          res.setHeader('Report-State', state)
-          res.send(`Report generation failed.${' ' + (result[0].error || '')}`)
-        } else {
-          let link = req.protocol + '://' + req.headers.host
-          const pathnameParts = url.parse(req.originalUrl).pathname.split('/')
-
-          pathnameParts[pathnameParts.length - 1] = 'content'
-
-          if (result[0].public === true) {
-            pathnameParts.splice(pathnameParts.length - 2, 0, 'public')
-          }
-
-          link += pathnameParts.join('/')
-
-          res.setHeader('Report-State', state)
-          res.setHeader('Location', link)
-          res.setHeader('Content-Type', 'text/html')
-          res.status(201).send("Report is ready, check Location header or download it <a href='" + link + "'>here</a>")
+        if (report.state === 'error') {
+          res.setHeader('Report-State', report.state)
+          return res.send(`Report generation failed.${' ' + (report.error || '')}`)
         }
-      }).catch(next)
+
+        let link = req.protocol + '://' + req.headers.host
+        const pathnameParts = url.parse(req.originalUrl).pathname.split('/')
+
+        pathnameParts[pathnameParts.length - 1] = 'content'
+
+        if (report.public === true) {
+          pathnameParts.splice(pathnameParts.length - 2, 0, 'public')
+        }
+
+        link += pathnameParts.join('/')
+
+        res.setHeader('Report-State', report.state)
+        res.setHeader('Location', link)
+        res.setHeader('Content-Type', 'text/html')
+        res.status(201).send("Report is ready, check Location header or download it <a href='" + link + "'>here</a>")
+      } catch (e) {
+        next(e)
+      }
     })
   }
 

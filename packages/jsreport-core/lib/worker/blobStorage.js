@@ -1,18 +1,10 @@
-const { Readable } = require('stream')
-
 module.exports = (executeMainAction) => {
   return {
     async read (blobName, req) {
       const r = await executeMainAction('blobStorage.read', {
         blobName
       }, req)
-      return Readable.from(Buffer.from(r, 'base64'))
-    },
-
-    async readBuffer (blobName, req) {
-      return Buffer.from(await executeMainAction('blobStorage.read', {
-        blobName
-      }, req), 'base64')
+      return Buffer.from(r, 'base64')
     },
 
     write (blobName, content, req) {

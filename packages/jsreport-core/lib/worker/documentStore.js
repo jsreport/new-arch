@@ -11,7 +11,7 @@ module.exports = ({ model, collections }, executeMainAction) => {
         collection: name
       }, req),
       insert: async (doc, req) => {
-        const entity = executeMainAction('documentStore.collection.insert', {
+        const entity = await executeMainAction('documentStore.collection.insert', {
           doc,
           collection: name
         }, req)

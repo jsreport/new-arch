@@ -157,7 +157,7 @@ class MainReporter extends Reporter {
 
       this.documentStore = DocumentStore(Object.assign({}, this.options, { logger: this.logger }), this.entityTypeValidator, this.encryption)
       documentStoreActions(this)
-      this.blobStorage = BlobStorage(this.options)
+      this.blobStorage = BlobStorage(this, this.options)
       blobStorageActions(this)
       Profiler(this)
       Monitoring(this)
@@ -176,12 +176,12 @@ class MainReporter extends Reporter {
 
       this.options.blobStorage = this.options.blobStorage || {}
 
-      if (!this.options.blobStorage.provider || this.options.blobStorage.provider === 'memory') {
-        this.blobStorage.registerProvider(require('./blobStorage/inMemoryBlobStorageProvider.js')(this.options))
+      if (this.options.blobStorage.provider == null) {
+        this.options.blobStorage.provider = this.options.store.provider
       }
 
-      if (this.options.blobStorage.provider === 'fs') {
-        this.blobStorage.registerProvider(require('./blobStorage/fileSystemBlobStorageProvider.js')(this.options))
+      if (this.options.blobStorage.provider === 'memory') {
+        this.blobStorage.registerProvider(require('./blobStorage/inMemoryProvider.js')(this.options))
       }
 
       await this.extensionsManager.init()

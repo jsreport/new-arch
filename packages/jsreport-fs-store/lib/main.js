@@ -9,7 +9,7 @@ const IO = require('socket.io')
 const path = require('path')
 
 module.exports = function (reporter, definition) {
-  if (reporter.options.store.provider !== 'fs') {
+  if (reporter.options.store.provider !== 'fs' && reporter.options.blobStorage.provider !== 'fs') {
     definition.options.enabled = false
     return
   }
@@ -22,20 +22,24 @@ module.exports = function (reporter, definition) {
     definition.options.dataDirectory = path.join(reporter.options.rootDirectory, 'data')
   }
 
-  let blobStorageDirectory = null
   if (reporter.options.blobStorage.provider === 'fs') {
     if (reporter.options.blobStorage.dataDirectory) {
-      blobStorageDirectory = path.isAbsolute(reporter.options.blobStorage.dataDirectory)
+      reporter.options.blobStorage.dataDirectory = path.isAbsolute(reporter.options.blobStorage.dataDirectory)
         ? reporter.options.blobStorage.dataDirectory : path.join(reporter.options.rootDirectory, reporter.options.blobStorage.dataDirectory)
     } else {
-      blobStorageDirectory = path.join(reporter.options.rootDirectory, 'data', 'storage')
+      reporter.options.blobStorage.dataDirectory = path.join(definition.options.dataDirectory, 'storage')
     }
+    reporter.blobStorage.registerProvider(require('./blobStorageProvider')(reporter.options))
+  }
+
+  if (reporter.options.store.provider !== 'fs') {
+    return
   }
 
   const options = Object.assign({
     logger: reporter.logger,
     createError: reporter.createError.bind(reporter),
-    blobStorageDirectory
+    blobStorageDirectory: reporter.options.blobStorage.dataDirectory
   }, definition.options)
 
   options.resolveFileExtension = reporter.documentStore.resolveFileExtension.bind(reporter.documentStore)

@@ -1,33 +1,35 @@
-module.exports = (options) => {
+module.exports = (reporter, options) => {
   let provider
 
   return {
-    read (...args) {
-      return provider.read(...args)
-    },
-
-    readBuffer (...args) {
-      const stream = provider.read(...args)
-      return new Promise((resolve, reject) => {
-        const bufs = []
-        stream.on('error', reject)
-        stream.on('data', (d) => bufs.push(d))
-        stream.on('end', () => {
-          resolve(Buffer.concat(bufs))
+    async read (blobName, req) {
+      const r = await provider.read(blobName, req)
+      if (r == null) {
+        throw reporter.createError(`Blob ${blobName} wasn't found`, {
+          statusCode: 404
         })
-      })
+      }
+      return r
     },
 
-    write (...args) {
-      return provider.write(...args)
+    write (blobName, buffer, req) {
+      return provider.write(blobName, buffer, req)
     },
 
-    async remove (...args) {
-      return provider.remove(...args)
+    async remove (blobName, req) {
+      return provider.remove(blobName)
     },
 
     async init () {
-      return provider.init()
+      if (provider.init) {
+        return provider.init()
+      }
+    },
+
+    drop () {
+      if (provider.drop) {
+        return provider.drop()
+      }
     },
 
     registerProvider (p) {

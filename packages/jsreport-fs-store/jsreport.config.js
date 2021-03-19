@@ -9,6 +9,12 @@ module.exports = {
         provider: { type: 'string', enum: ['fs'] }
       }
     },
+    blobStorage: {
+      type: 'object',
+      properties: {
+        provider: { type: 'string', enum: ['fs'] }
+      }
+    },
     extensions: {
       'fs-store': {
         type: 'object',

@@ -1,23 +1,8 @@
-/*!
- * Copyright(c) 2014 Jan Blaha
- * FileSystem - blob storage in file system
- */
 const path = require('path')
 const fs = require('fs')
-const fsAsync = require('fs/promises')
 
 module.exports = (options) => {
-  let storageDirectory
-
-  if (options.blobStorage.dataDirectory) {
-    if (path.isAbsolute(options.blobStorage.dataDirectory)) {
-      storageDirectory = options.blobStorage.dataDirectory
-    } else {
-      storageDirectory = path.join(options.rootDirectory, options.blobStorage.dataDirectory)
-    }
-  } else {
-    storageDirectory = path.join(options.rootDirectory, 'data', 'storage')
-  }
+  const storageDirectory = options.blobStorage.dataDirectory
 
   if (!fs.existsSync(storageDirectory)) {
     fs.mkdirSync(storageDirectory, { recursive: true })
@@ -28,20 +13,20 @@ module.exports = (options) => {
       checkPathIsInsideDirectory(options, storageDirectory, blobName)
 
       const targetPath = path.join(storageDirectory, blobName)
-      await fsAsync.mkdir(path.dirname(targetPath), { recursive: true })
+      await fs.promises.mkdir(path.dirname(targetPath), { recursive: true })
 
-      await fsAsync.writeFile(targetPath, buffer)
+      await fs.promises.writeFile(targetPath, buffer)
       return blobName
     },
 
     read (blobName) {
       checkPathIsInsideDirectory(options, storageDirectory, blobName)
-      return fs.createReadStream(path.join(storageDirectory, blobName))
+      return fs.promises.readFile(path.join(storageDirectory, blobName))
     },
 
     async remove (blobName) {
       checkPathIsInsideDirectory(options, storageDirectory, blobName)
-      return fsAsync.unlink(path.join(storageDirectory, blobName))
+      return fs.promises.unlink(path.join(storageDirectory, blobName))
     },
 
     init () {
