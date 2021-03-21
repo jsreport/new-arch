@@ -32,10 +32,23 @@ module.exports = function (reporter, definition) {
         return resolve()
       })
     }),
-    read: (blobName) => blobService.createReadStream(options.container, blobName),
+    read: async (blobName) => {
+      const stream = blobService.createReadStream(options.container, blobName)
+      const bufs = []
+      return new Promise((resolve, reject) => {
+        stream.on('error', (e) => {
+          if (e.code === 'NotFound') {
+            return resolve(null)
+          }
+          reject(e)
+        })
+        stream.on('data', (b) => bufs.push(b))
+        stream.on('end', () => resolve(Buffer.concat(bufs)))
+      })
+    },
     write: (blobName, buffer) => {
       return new Promise((resolve, reject) => {
-        let s = new stream.Readable()
+        const s = new stream.Readable()
         s._read = () => {}
         s.push(buffer)
         s.push(null)

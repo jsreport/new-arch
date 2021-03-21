@@ -29,10 +29,18 @@ module.exports = function (reporter, definition) {
         Key: blobName
       }
 
+      const bufs = []
       return new Promise((resolve, reject) => {
-        resolve(s3.getObject(params)
+        s3.getObject(params)
           .createReadStream()
-          .on('error', (err) => reject(err)))
+          .on('data', (b) => bufs.push(b))
+          .on('error', (err) => {
+            if (err.code === 'NoSuchKey') {
+              return resolve(null)
+            }
+            reject(err)
+          })
+          .on('end', () => resolve(Buffer.concat(bufs)))
       })
     },
     write: (defaultBlobName, buffer, request, response) => {
