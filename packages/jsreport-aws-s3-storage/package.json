@@ -1,0 +1,30 @@
+{
+  "author": {
+    "name": "Jan Blaha"
+  },
+  "dependencies": {
+    "aws-sdk": "2.611.0"
+  },
+  "description": "jsreport extension adding support for storing blobs in aws s3 storage",
+  "devDependencies": {
+    "eslint": "6.8.0",
+    "standard": "14.3.1"
+  },
+  "engines": {
+    "node": ">=8.9"
+  },
+  "homepage": "https://github.com/jsreport/jsreport-aws-s3-storage",
+  "keywords": [
+    "jsreport",
+    "aws"
+  ],
+  "name": "jsreport-aws-s3-storage",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/jsreport/jsreport-aws-s3-storage.git"
+  },
+  "scripts": {
+    "test": "standard"
+  },
+  "version": "1.1.0"
+}
