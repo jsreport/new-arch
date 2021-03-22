@@ -44,7 +44,7 @@ module.exports = ({ queue, persistence, fs, logger }) => {
       }
 
       if (opts.transaction) {
-        return queue.push(() => lock(fs, () => {
+        return queue.push(() => {
           // the transaction operations shouldn't do real writes to the disk, just memory changes
           // we store the function call so we can replay it during commit to the disk
           const persistenceStub = {
@@ -55,7 +55,7 @@ module.exports = ({ queue, persistence, fs, logger }) => {
 
           opts.transaction.operations.push(fn)
           return fn(opts.transaction.documents, persistenceStub)
-        }))
+        })
       }
 
       return queue.push(() => lock(fs, () => fn(commitedDocuments, persistence)))

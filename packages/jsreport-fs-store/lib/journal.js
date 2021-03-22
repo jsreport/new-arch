@@ -111,6 +111,7 @@ module.exports = ({
         timestamp: new Date(),
         doc
       }, false) + '\n')
+
       this.lastSync = new Date()
     },
 
