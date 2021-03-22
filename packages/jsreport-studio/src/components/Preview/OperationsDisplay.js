@@ -97,6 +97,7 @@ function getElementsFromOperations (operations, errors, activeElement) {
     const operation = operations[i]
 
     const isOperationActive = activeElement != null ? operation.id === activeElement.id : false
+    let errorSource
 
     if (operation.previousOperationId != null) {
       elements.push(createEdge(operation.previousOperationId, operation.id, activeElement))
@@ -106,9 +107,20 @@ function getElementsFromOperations (operations, errors, activeElement) {
       needsEndNode.push(operation)
     }
 
+    if (errors.operations != null) {
+      for (let errorKey of Object.keys(errors.operations)) {
+        // error.id is equal to the id of the operation "render" which it belongs
+        if (errorKey === operation.id) {
+          errorSource = errors.operations[errorKey]
+          break
+        }
+      }
+    }
+
     const nodeClass = classNames('react-flow__node-default', styles.profilerOperationNode, {
       [styles.active]: isOperationActive,
-      [styles.running]: !operation.completed && operation.type !== 'render'
+      [styles.running]: !operation.completed && operation.type !== 'render' && errorSource == null,
+      [styles.error]: errorSource != null
     })
 
     const node = {
@@ -116,6 +128,7 @@ function getElementsFromOperations (operations, errors, activeElement) {
       data: {
         label: operation.name,
         operation,
+        error: errorSource,
         reqResInfo: activeElement != null && activeElement.isEdge && activeElement.data.edge.target === operation.id ? {
           reqState: operation.reqState,
           resState: operation.resState,
@@ -138,32 +151,55 @@ function getElementsFromOperations (operations, errors, activeElement) {
   for (const operation of needsEndNode) {
     const classArgs = ['react-flow__node-default', styles.profilerOperationNode]
     const isMainRender = operation.previousOperationId == null
+    let errorSource
+    let errorInRender
 
     if (isMainRender) {
+      errorSource = errors.general
+    }
+
+    if (errorSource != null) {
       classArgs.push({
-        [styles.error]: errors.general != null
+        [styles.error]: errorSource != null
       })
     }
 
-    const endNodeClass = classNames(...classArgs, styles.profilerEndNode)
+    if (errorSource != null) {
+      errorInRender = errorSource
+    } else if (errors.operations != null) {
+      for (let errorKey of Object.keys(errors.operations)) {
+        const error = errors.operations[errorKey]
+
+        // error.id is equal to the id of the operation "render" which it belongs
+        if (error.id === operation.id) {
+          errorInRender = error
+          break
+        }
+      }
+    }
+
+    const endNodeClass = classNames(...classArgs, styles.profilerEndNode, {
+      [styles.renderError]: errorInRender != null
+    })
 
     const endNodeId = `${operation.id}-end`
 
     const endNode = {
       id: endNodeId,
       data: {
-        error: isMainRender ? errors.general : undefined,
+        error: errorInRender,
         reqResInfo: activeElement != null && activeElement.isEdge && activeElement.data.edge.target === endNodeId ? {
           reqState: operation.completedReqState,
           resState: operation.completedResState,
           resMetaState: operation.completedResMetaState,
           edge: activeElement.data.edge
         } : undefined,
-        output: {
+        output: errorInRender == null ? {
           content: operation.completedResState,
           contentEncoding: operation.completedRes.content.encoding === 'diff' ? 'plain' : operation.completedRes.content.encoding,
           meta: operation.completedResMetaState
-        }
+        } : undefined,
+        end: true
       },
       position: defaultPosition,
       type: 'operation',

@@ -14,8 +14,8 @@ const OperationNode = (props) => {
     sourcePosition = 'bottom'
   } = props
 
-  const { operation, reqResInfo, output } = data
-  const showExecutionTime = operation != null && operation.previousOperationId != null && operation.completed === true
+  const { operation, reqResInfo, error, output, end } = data
+  const showExecutionTime = operation != null && operation.previousOperationId != null && operation.timestamp != null && operation.completedTimestamp != null
   const nodeContentRef = useRef(null)
 
   const targetEdgeId = reqResInfo != null ? reqResInfo.edge.id : undefined
@@ -75,7 +75,7 @@ const OperationNode = (props) => {
             <i className='fa fa-download' />
           </button>
         ) : (
-          <span>{data.label}</span>
+          error != null && end ? <span className={styles.profilerEndNodeLabel} title='report ended with error'><i className='fa fa-times' /></span> : <span>{data.label}</span>
         )}
       </div>
       <Handle type='source' position={sourcePosition} isConnectable={isConnectable} />

@@ -25,6 +25,7 @@ import * as progress from './redux/progress'
 import * as settings from './redux/settings'
 import * as configuration from './lib/configuration.js'
 import resolveUrl from './helpers/resolveUrl.js'
+import { findTextEditor } from './helpers/textEditorInstance'
 import babelRuntime from './lib/babelRuntime.js'
 import customPreview from './helpers/customPreview.js'
 import bluebird from 'bluebird'
@@ -606,6 +607,14 @@ class Studio {
    */
   getAllEntities () {
     return entities.selectors.getAll(this.store.getState())
+  }
+
+  /**
+   * If exists get a text editor instance of an opened text editor by name
+   * @returns {Object|null}
+   */
+  getTextEditor (name) {
+    return findTextEditor(name)
   }
 
   /**

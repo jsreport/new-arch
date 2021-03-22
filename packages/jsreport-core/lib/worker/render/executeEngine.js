@@ -74,10 +74,25 @@ module.exports = (reporter) => {
       }, req)
     } catch (e) {
       const templatePath = req.template._id ? await reporter.folders.resolveEntityPath(req.template, 'templates', req) : 'anonymous'
+
+      if (templatePath !== 'anonymous') {
+        const templateFound = await reporter.folders.resolveEntityFromPath(templatePath, 'templates', req)
+
+        if (templateFound != null) {
+          e.entity = {
+            shortid: templateFound.entity.shortid,
+            name: templateFound.entity.name,
+            content: req.template.content
+          }
+        }
+      }
+
       e.message = `Error when evaluating engine ${engine.name} for template ${templatePath}\n` + e.message
+
       if (e.property !== 'content') {
         e.property = 'helpers'
       }
+
       throw e
     }
   }
