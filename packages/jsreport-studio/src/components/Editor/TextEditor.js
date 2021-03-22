@@ -8,7 +8,7 @@ import { reformat } from '../../redux/editor/actions'
 import reformatter from '../../helpers/reformatter'
 import { getCurrentTheme } from '../../helpers/theme'
 import LinterWorker from './workers/linter.worker'
-import { textEditorInitializeListeners, textEditorCreatedListeners, subscribeToThemeChange, subscribeToSplitResize } from '../../lib/configuration.js'
+import { textEditorInstances, textEditorInitializeListeners, textEditorCreatedListeners, subscribeToThemeChange, subscribeToSplitResize } from '../../lib/configuration.js'
 
 let lastTextEditorMounted = {
   timeoutId: null,
@@ -59,6 +59,15 @@ class TextEditor extends Component {
   }
 
   componentWillUnmount () {
+    for (let i = 0; i < textEditorInstances.length; i++) {
+      const textEditorInfo = textEditorInstances[i]
+
+      if (textEditorInfo.name === this.props.name) {
+        textEditorInstances.splice(i, 1)
+        break
+      }
+    }
+
     this.oldCode = null
 
     this.unsubscribe()
@@ -107,6 +116,8 @@ class TextEditor extends Component {
   }
 
   editorDidMount (editor, monaco) {
+    textEditorInstances.push({ name: this.props.name, instance: editor })
+
     monaco.languages.typescript.typescriptDefaults.setMaximumWorkerIdleTime(-1)
     monaco.languages.typescript.javascriptDefaults.setMaximumWorkerIdleTime(-1)
 

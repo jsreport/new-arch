@@ -1,11 +1,15 @@
 import PropTypes from 'prop-types'
 import React, { Fragment, Component } from 'react'
+import { connect } from 'react-redux'
 import classNames from 'classnames'
 import shortid from 'shortid'
 import { applyPatch } from 'diff'
 import PreviewDisplay from './PreviewDisplay'
 import ProfilerContent from './ProfilerContent'
 import ProfilerErrorModal from '../Modals/ProfilerErrorModal'
+import { selectors as entitiesSelectors } from '../../redux/entities'
+import { actions as editorActions } from '../../redux/editor'
+import { findTextEditor, selectLine as selectLineInTextEditor } from '../../helpers/textEditorInstance'
 import {
   modalHandler,
   subscribeToThemeChange,
@@ -157,8 +161,26 @@ class Preview extends Component {
 
   handleOnProfilerElementClick (meta) {
     if (!meta.isEdge) {
-      if (meta.data.error != null) {
+      if (meta.data.error != null && meta.data.operation == null) {
         modalHandler.open(ProfilerErrorModal, { error: meta.data.error })
+      } else if (meta.data.error != null && meta.data.operation != null) {
+        if (
+          meta.data.error.entity != null &&
+          (meta.data.error.property === 'content' || meta.data.error.property === 'helpers') &&
+          meta.data.error.lineNumber != null
+        ) {
+          this.props.openTab({ shortid: meta.data.error.entity.shortid }).then(() => {
+            setTimeout(() => {
+              const entity = this.props.getEntityByShortid(meta.data.error.entity.shortid)
+              const contentIsTheSame = entity.content === meta.data.error.entity.content
+              const entityEditor = findTextEditor(meta.data.error.property === 'content' ? entity._id : `${entity._id}_helpers`)
+
+              if (entityEditor != null && contentIsTheSame) {
+                selectLineInTextEditor(entityEditor, { lineNumber: meta.data.error.lineNumber })
+              }
+            }, 300)
+          })
+        }
       }
 
       if (meta.data.operation == null) {
@@ -222,6 +244,7 @@ class Preview extends Component {
   }
 
   addProfilerOperation (operation) {
+    console.log(operation)
     this.setState((prev) => {
       let newOperations = prev.profilerOperations
 
@@ -264,25 +287,31 @@ class Preview extends Component {
         let completedResMetaState
 
         completedReqState = applyPatch(
-          previousOperation.type === 'render' || operation.id === previousOperation.id ? previousOperation.reqState : previousOperation.completedReqState,
+          previousOperation.type === 'render' || operation.id === previousOperation.id ? (
+            previousOperation.reqState
+          ) : previousOperation.completed ? previousOperation.completedReqState : previousOperation.reqState,
           operation.req.diff
         )
 
         if (operation.res.content != null) {
           if (operation.res.content.encoding === 'diff') {
             completedResState = applyPatch(
-              previousOperation.type === 'render' || operation.id === previousOperation.id ? previousOperation.resState : previousOperation.completedResState,
+              previousOperation.type === 'render' || operation.id === previousOperation.id ? (
+                previousOperation.resState
+              ) : previousOperation.completed ? previousOperation.completedResState : previousOperation.resState,
               operation.res.content.content
             )
           } else {
             completedResState = operation.res.content.content
           }
         } else {
-          completedResState = previousOperation.completedResState
+          completedResState = previousOperation.completed ? previousOperation.completedResState : previousOperation.resState
         }
 
         completedResMetaState = applyPatch(
-          previousOperation.type === 'render' || operation.id === previousOperation.id ? previousOperation.resMetaState : previousOperation.completedResMetaState,
+          previousOperation.type === 'render' || operation.id === previousOperation.id ? (
+            previousOperation.resMetaState
+          ) : previousOperation.completed ? previousOperation.completedResMetaState : previousOperation.resMetaState,
           operation.res.meta.diff
         )
 
@@ -371,6 +400,7 @@ class Preview extends Component {
   }
 
   addProfilerLog (log) {
+    console.log(log)
     this.setState((prev) => ({
       profilerLogs: [...prev.profilerLogs, {
         level: log.level,
@@ -381,20 +411,48 @@ class Preview extends Component {
     }))
   }
 
-  addProfilerError (errorInfo, operationId) {
+  addProfilerError (errorInfo) {
+    console.warn(errorInfo)
     this.setState((prev) => {
+      let newState = {}
       const newProfilerErrors = { ...prev.profilerErrors }
+      let newProfilerOperations
 
-      if (operationId != null) {
+      if (errorInfo.id != null && errorInfo.previousOperationId != null) {
         newProfilerErrors.operations = { ...newProfilerErrors.operations }
-        newProfilerErrors.operations[operationId] = errorInfo
+        newProfilerErrors.operations[errorInfo.previousOperationId] = errorInfo
+
+        let foundIndex
+
+        for (let i = prev.profilerOperations.length - 1; i >= 0; i--) {
+          const targetOperation = prev.profilerOperations[i]
+
+          if (targetOperation.id === errorInfo.previousOperationId) {
+            foundIndex = i
+            break
+          }
+        }
+
+        if (foundIndex != null) {
+          const foundOperation = prev.profilerOperations[foundIndex]
+
+          newProfilerOperations = [...prev.profilerOperations.slice(0, foundIndex), {
+            ...foundOperation,
+            completedTimestamp: errorInfo.timestamp,
+            completedPreviousOperationId: errorInfo.previousOperationId
+          }, ...prev.profilerOperations.slice(foundIndex + 1)]
+        }
       } else {
         newProfilerErrors.general = errorInfo
       }
 
-      return {
-        profilerErrors: newProfilerErrors
+      newState.profilerErrors = newProfilerErrors
+
+      if (newProfilerOperations != null) {
+        newState.profilerOperations = newProfilerOperations
       }
+
+      return newState
     })
   }
 
@@ -547,4 +605,11 @@ class Preview extends Component {
   }
 }
 
-export default Preview
+export default connect(
+  (state) => ({
+    getEntityByShortid: (shortid, ...params) => entitiesSelectors.getByShortid(state, shortid, ...params)
+  }),
+  { ...editorActions },
+  null,
+  { forwardRef: true }
+)(Preview)

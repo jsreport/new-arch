@@ -36,6 +36,7 @@ export const toolbarComponents = {
   settingsBottom: []
 }
 export const tabTitleComponents = []
+export const textEditorInstances = []
 
 export let toolbarVisibilityResolver = () => true
 

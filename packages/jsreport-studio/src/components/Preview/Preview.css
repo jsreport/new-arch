@@ -82,7 +82,7 @@
   border-radius: 50% !important;
 }
 
-.profilerStartNode span {
+.profilerStartNodeLabel {
   margin-right: -2px;
 }
 
@@ -94,6 +94,15 @@
 .profilerEndNode {
   width: 70px !important;
   border-radius: 50% !important;
+}
+
+.profilerEndNode.renderError {
+  width: 35px !important;
+}
+
+.profilerEndNodeLabel {
+  font-size: 1rem;
+  color: #ff0000;
 }
 
 .profilerStartNode :global(.react-flow__handle),

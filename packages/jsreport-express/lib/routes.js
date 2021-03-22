@@ -46,6 +46,7 @@ module.exports = (app, reporter, exposedOptions) => {
       res.setHeader('Content-Type', `multipart/mixed; boundary=${form.getBoundary()}`)
 
       profiler = reporter.attachProfiler(renderRequest)
+
       profiler.on('profile', (m) => {
         form.append(m.type, JSON.stringify(m), { contentType: 'application/json' })
       })
@@ -106,18 +107,7 @@ module.exports = (app, reporter, exposedOptions) => {
       if (!stream) {
         next(renderErr)
       } else {
-        form.append('error', JSON.stringify({
-          message: renderErr.message,
-          stack: renderErr.stack
-        }), { contentType: 'application/json' })
-
         form.end()
-        // profiler.on('profile', (m) => {
-        //   form.append(m.type, JSON.stringify({
-        //     type: 'error',
-        //     error: renderErr.stack
-        //   }), { contentType: 'application/json' })
-        // })
       }
     })
   }
