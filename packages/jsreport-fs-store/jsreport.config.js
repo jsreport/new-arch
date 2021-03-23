@@ -21,9 +21,9 @@ module.exports = {
         properties: {
           dataDirectory: { type: 'string' },
           compactionEnabled: { type: 'boolean', default: true },
-          compactionInterval: { type: 'number' },
-          corruptAlertThreshold: { type: 'number' },
-          persistenceQueueWaitingTimeout: { type: 'number' },
+          compactionInterval: { type: 'number', default: 60000 },
+          corruptAlertThreshold: { type: 'number', default: 0.1 },
+          persistenceQueueWaitingTimeout: { type: 'number', default: 60000 },
           externalModificationsSync: { type: 'boolean', default: false },
           persistence: {
             type: 'object',

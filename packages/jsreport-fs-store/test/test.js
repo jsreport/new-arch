@@ -611,6 +611,7 @@ describe('load cleanup', () => {
         persistence: { provider: 'fs' },
         sync: { provider: 'fs' },
         resolveFileExtension: store.resolveFileExtension.bind(store),
+        compactionEnabled: true,
         createError: m => new Error(m)
       })
     )

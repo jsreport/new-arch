@@ -19,10 +19,10 @@ module.exports = ({
   logger,
   externalModificationsSync,
   persistence = {},
-  corruptAlertThreshold = 0.1,
-  compactionEnabled = true,
-  compactionInterval = 15000,
-  persistenceQueueWaitingTimeout = 60000,
+  corruptAlertThreshold,
+  compactionEnabled,
+  compactionInterval,
+  persistenceQueueWaitingTimeout,
   resolveFileExtension,
   createError
 }) => {
