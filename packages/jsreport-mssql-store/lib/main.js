@@ -3,15 +3,50 @@ const Store = require('jsreport-sql-store')
 const Semaphore = require('semaphore-async-await').default
 
 module.exports = async (reporter, definition) => {
-  if (reporter.options.store.provider !== 'mssql') {
+  if (reporter.options.store.provider !== 'mssql' && reporter.options.blobStorage.provider !== 'mssql') {
     definition.options.enabled = false
     return
   }
 
-  let pool
+  const pool = await sql.connect(definition.options.uri || definition.options)
+
+  if (reporter.options.blobStorage.provider === 'mssql') {
+    const blobsTable = definition.options.prefix + 'Blob'
+    reporter.blobStorage.registerProvider({
+      init: () => {
+        return pool.request().query(`IF OBJECT_ID('${definition.options.schema}.${blobsTable}', 'U') IS NULL CREATE TABLE ${definition.options.schema}.${blobsTable} (blobName varchar(1024), content varbinary(max))`)
+      },
+      write: async (blobName, buf) => {
+        await pool.request()
+          .input('blobName', blobName)
+          .input('content', buf)
+          .query(`INSERT INTO ${definition.options.schema}.${blobsTable} VALUES(@blobName, @content)`)
+        return blobName
+      },
+      read: async (blobName, buf) => {
+        const r = await pool.request()
+          .input('blobName', blobName)
+          .query(`SELECT content FROM ${definition.options.schema}.${blobsTable} WHERE blobName = @blobName`)
+
+        if (r.recordset.length === 0) {
+          return null
+        }
+
+        return r.recordset[0].content
+      },
+      remove: async (blobName) => {
+        await pool.request()
+          .input('blobName', blobName)
+          .query(`DELETE FROM ${definition.options.schema}.${blobsTable} WHERE blobName = @blobName`)
+      },
+      drop: () => {
+        return pool.request().query(`IF OBJECT_ID('${definition.options.schema}.${blobsTable}', 'U') IS NOT NULL DROP TABLE ${definition.options.schema}.${blobsTable}`)
+      }
+    })
+  }
 
   async function executeQuery (q, opts = {}) {
-    let connection = pool
+    const connection = pool
 
     async function execute (connection) {
       const request = new sql.Request(connection)
@@ -72,14 +107,10 @@ module.exports = async (reporter, definition) => {
         if (pool) {
           return pool.close()
         }
-      }
+      },
+      pool
     }
   )
 
   reporter.documentStore.registerProvider(store)
-
-  pool = await sql.connect(definition.options.uri || definition.options)
-
-  // avoid exposing connection string through /api/extensions
-  definition.options = {}
 }

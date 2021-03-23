@@ -1,9 +1,15 @@
 
 module.exports = {
-  'name': 'mssql-store',
-  'main': './lib/main.js',
-  'optionsSchema': {
+  name: 'mssql-store',
+  main: './lib/main.js',
+  optionsSchema: {
     store: {
+      type: 'object',
+      properties: {
+        provider: { type: 'string', enum: ['mssql'] }
+      }
+    },
+    blobStorage: {
       type: 'object',
       properties: {
         provider: { type: 'string', enum: ['mssql'] }
@@ -14,13 +20,14 @@ module.exports = {
         type: 'object',
         properties: {
           schemaCreation: { type: 'boolean', default: true },
-          schema: { type: 'string' },
+          schema: { type: 'string', default: 'dbo' },
           uri: { type: 'string' },
           user: { type: 'string' },
           password: { type: 'string' },
           server: { type: 'string' },
           database: { type: 'string' },
-          options: { type: 'object' }
+          options: { type: 'object' },
+          prefix: { type: 'string', default: 'jsreport_' }
         }
       }
     }

@@ -24,16 +24,16 @@
   "homepage": "https://github.com/jsreport/jsreport-mssql-store#readme",
   "dependencies": {
     "jsreport-sql-store": "1.4.1",
-    "mssql": "6.0.1",
+    "mssql": "6.3.1",
     "semaphore-async-await": "1.5.1"
   },
   "devDependencies": {
-    "eslint": "4.19.1",
-    "eslint-config-standard": "11.0.0",
-    "jsreport-core": "2.7.0",
-    "mocha": "5.0.5",
+    "eslint": "7.22.0",
+    "eslint-config-standard": "16.0.2",
+    "jsreport-core": "2.10.1",
+    "mocha": "8.3.2",
     "should": "13.2.3",
-    "standard": "11.0.1"
+    "standard": "16.0.3"
   },
   "engines": {
     "node": ">=8.9"

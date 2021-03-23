@@ -7,7 +7,7 @@ const TypeOverrides = require('pg/lib/type-overrides')
 const Store = require('jsreport-sql-store')
 
 module.exports = function (reporter, definition) {
-  if (reporter.options.store.provider !== 'postgres' && reporter.options.blobStorage.provider !== 'fs') {
+  if (reporter.options.store.provider !== 'postgres' && reporter.options.blobStorage.provider !== 'postgres') {
     definition.options.enabled = false
     return
   }
@@ -32,7 +32,7 @@ module.exports = function (reporter, definition) {
   })
 
   if (reporter.options.blobStorage.provider === 'postgres') {
-    const blobsTable = definition.options.prefix + 'Blobs'
+    const blobsTable = definition.options.prefix + 'Blob'
     reporter.blobStorage.registerProvider({
       init: () => {
         return db.query(`CREATE TABLE IF NOT EXISTS  ${blobsTable} (blobName varchar(1024), content bytea);`)

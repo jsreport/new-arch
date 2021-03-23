@@ -20,7 +20,7 @@ describe('common store tests', () => {
     const localOpts = {
       user: 'jsreport',
       password: 'password',
-      server: 'localhost\\SQLEXPRESS',
+      server: 'localhot',
       database: 'jsreport'
     }
 
@@ -48,13 +48,12 @@ describe('common store tests', () => {
     return instance
   }
 
-  before(async () => {
+  beforeEach(async () => {
     reporter = await createReporter()
+    await reporter.blobStorage.drop()
     await reporter.documentStore.drop()
     await reporter.close()
-  })
 
-  beforeEach(async () => {
     reporter = await createReporter()
     await jsreport.tests.documentStore().clean(() => reporter.documentStore)
   })
@@ -62,4 +61,14 @@ describe('common store tests', () => {
   afterEach(() => reporter.close())
 
   jsreport.tests.documentStore()(() => reporter.documentStore)
+  jsreport.tests.blobStorage()(() => reporter.blobStorage)
+
+  it('should persist blobs', async () => {
+    await reporter.blobStorage.write('myblob.txt', Buffer.from('hello'))
+    const blob = await reporter.blobStorage.read('myblob.txt')
+    blob.toString().should.be.eql('hello')
+
+    const res = await reporter.documentStore.provider.pool.request().query('SELECT blobName, content from jsreport_Blob')
+    res.recordset.should.have.length(1)
+  })
 })

@@ -33,16 +33,13 @@ describe('common store tests', () => {
     return instance
   }
 
-  before(async () => {
+  beforeEach(async () => {
     reporter = await createReporter()
     await reporter.documentStore.drop()
     await reporter.blobStorage.drop()
     await reporter.close()
-  })
 
-  beforeEach(async () => {
     reporter = await createReporter()
-    await reporter.documentStore.provider.db.query('DELETE FROM jsreport_Blobs')
     await jsreport.tests.documentStore().clean(() => reporter.documentStore)
   })
 
@@ -69,7 +66,7 @@ describe('common store tests', () => {
     const blob = await reporter.blobStorage.read('myblob.txt')
     blob.toString().should.be.eql('hello')
 
-    const res = await reporter.documentStore.provider.db.query('SELECT blobName, content from jsreport_Blobs')
+    const res = await reporter.documentStore.provider.db.query('SELECT blobName, content from jsreport_Blob')
     res.should.have.length(1)
   })
 })
