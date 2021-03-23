@@ -241,6 +241,8 @@ async function remove (fs, model, doc, documents, rootDirectory) {
 }
 
 async function loadFlatDocument (fs, file, documents, corruptAlertThreshold) {
+  let doesNeedCompaction = false
+
   const contents = (await fs.readFile(file)).toString().split('\n').filter(c => c)
   const resultDocs = {}
   let corruptItems = -1 // Last line of every data file is usually blank so not really corrupt
@@ -250,13 +252,18 @@ async function loadFlatDocument (fs, file, documents, corruptAlertThreshold) {
       const doc = parse(docContent)
 
       if (doc.$$deleted) {
+        doesNeedCompaction = true
         delete resultDocs[doc._id]
         continue
       }
 
+      if (resultDocs[doc._id]) {
+        doesNeedCompaction = true
+      }
       doc.$entitySet = file
       resultDocs[doc._id] = doc
     } catch (e) {
+      doesNeedCompaction = true
       corruptItems += 1
     }
   }
@@ -266,6 +273,9 @@ async function loadFlatDocument (fs, file, documents, corruptAlertThreshold) {
   }
 
   Object.keys(resultDocs).forEach((k) => documents.push(resultDocs[k]))
+  return {
+    doesNeedCompaction
+  }
 }
 
 async function loadFlatDocuments (fs, documentsModel, documents, corruptAlertThreshold) {
@@ -273,14 +283,17 @@ async function loadFlatDocuments (fs, documentsModel, documents, corruptAlertThr
   const contentStats = await Promise.all(dirEntries.map(async (e) => ({ name: e, stat: await fs.stat(e) })))
   const flatFilesToLoad = contentStats.filter(e => !e.stat.isDirectory() && documentsModel.entitySets[e.name]).map(e => e.name)
 
+  const compactionNeedResults = {}
   for (const file of flatFilesToLoad.filter(f => !f.startsWith('~'))) {
-    await loadFlatDocument(fs, file, documents, corruptAlertThreshold)
+    const { doesNeedCompaction } = await loadFlatDocument(fs, file, documents, corruptAlertThreshold)
+    compactionNeedResults[file] = doesNeedCompaction
   }
+  return compactionNeedResults
 }
 
 async function compactFlatFiles (fs, model, memoryDocumentsByEntitySet, corruptAlertThreshold) {
   const documents = []
-  await loadFlatDocuments(fs, model, documents, corruptAlertThreshold)
+  const compactionNeedResults = await loadFlatDocuments(fs, model, documents, corruptAlertThreshold)
 
   const documentsByEntitySet = {}
   Object.keys(model.entitySets).forEach(e => (documentsByEntitySet[e] = []))
@@ -297,11 +310,13 @@ async function compactFlatFiles (fs, model, memoryDocumentsByEntitySet, corruptA
       continue
     }
 
-    await fs.writeFile('~' + es, documentsByEntitySet[es].map((d) => serialize(d, false)).join('\n') + '\n')
+    if (compactionNeedResults[es]) {
+      await fs.writeFile('~' + es, documentsByEntitySet[es].map((d) => serialize(d, false)).join('\n') + '\n')
 
-    // the final rename sometimes throws EPERM error, because the folder is still somehow
-    // blocked because of previous reload, the retry should help in the case
-    await retry(() => fs.rename('~' + es, es), 5)
+      // the final rename sometimes throws EPERM error, because the folder is still somehow
+      // blocked because of previous reload, the retry should help in the case
+      await retry(() => fs.rename('~' + es, es), 5)
+    }
   }
 }
 

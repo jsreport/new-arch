@@ -595,11 +595,11 @@ describe('load', () => {
 
 describe('load cleanup', () => {
   let store
-
+  let startTime
   beforeEach(async () => {
     await rimrafAsync(path.join(__dirname, 'dataToCleanupCopy'))
     await ncpAsync(path.join(__dirname, 'dataToCleanup'), path.join(__dirname, 'dataToCleanupCopy'))
-
+    startTime = new Date()
     store = createDefaultStore()
 
     addCommonTypes(store)
@@ -640,6 +640,11 @@ describe('load cleanup', () => {
 
   it('should compact flat files on load', () => {
     fs.readFileSync(path.join(__dirname, 'dataToCleanupCopy', 'settings'), 'utf8').should.not.containEql('"value":"1"')
+  })
+
+  it('should not modify flat files when there are no changes', () => {
+    const stat = fs.statSync(path.join(__dirname, 'dataToCleanupCopy', 'reports'))
+    stat.mtime.should.be.lessThanOrEqual(startTime)
   })
 })
 
@@ -908,6 +913,13 @@ function addCommonTypes (store) {
   })
 
   store.registerEntitySet('settings', { entityType: 'jsreport.SettingsType' })
+
+  store.registerEntityType('ReportsType', {
+    _id: { type: 'Edm.String', key: true },
+    blobName: { type: 'Edm.String' }
+  })
+
+  store.registerEntitySet('reports', { entityType: 'jsreport.ReportsType' })
 
   store.registerEntitySet('folders', { entityType: 'jsreport.FolderType', splitIntoDirectories: true })
 }

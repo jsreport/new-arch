@@ -100,9 +100,9 @@ describe('persistence', () => {
       isDirectory: () => false,
       isFile: () => true
     })
-    fs.readFile.returns(JSON.stringify({ name: 'a' }) + '\n')
+    fs.readFile.returns(JSON.stringify({ _id: 'aaa', name: 'a' }) + '\n' + JSON.stringify({ _id: 'aaa', name: 'a' }))
     await persistence.compact({ reports: {} })
-    sinon.assert.calledWith(fs.writeFile, '~reports', serialize({ name: 'a', $entitySet: 'reports' }, false) + '\n')
+    sinon.assert.calledWith(fs.writeFile, '~reports', serialize({ _id: 'aaa', name: 'a', $entitySet: 'reports' }, false) + '\n')
     sinon.assert.calledWith(fs.rename, '~reports', 'reports')
   })
 
