@@ -432,8 +432,11 @@ class MainReporter extends Reporter {
       return
     }
 
-    // 3 minutes old files will be deleted
-    const reaper = new Reaper({ threshold: 180000 })
+    const threshold = this.options.reportTimeout > 180000 ? this.options.reportTimeout : 180000
+
+    this.logger.info(`Starting temp files cleanup with ${threshold}ms threshold`)
+
+    const reaper = new Reaper({ threshold })
 
     dirsToWatch.forEach(d => reaper.watch(d))
 
