@@ -9,7 +9,7 @@ const openDiff = async (change) => {
     })
   }
 
-  Studio.customPreview('/api/version-control/diff-html', { patch: change.patch })
+  Studio.customPreview('/studio/diff-html', { patch: change.patch })
 }
 
 const operationIcon = (operation) => {

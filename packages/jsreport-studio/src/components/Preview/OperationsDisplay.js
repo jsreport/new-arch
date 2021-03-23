@@ -64,6 +64,7 @@ const OperationsDisplay = (props) => {
         panOnScroll
         selectNodesOnDrag={false}
         onlyRenderVisibleElements={false}
+        minZoom={0}
         defaultZoom={0.8}
         onLoad={handleLoad}
         onElementClick={handleElementClick}
@@ -131,8 +132,10 @@ function getElementsFromOperations (operations, errors, activeElement) {
         error: errorSource,
         reqResInfo: activeElement != null && activeElement.isEdge && activeElement.data.edge.target === operation.id ? {
           reqState: operation.reqState,
+          reqDiff: operation.req.diff,
           resState: operation.resState,
           resMetaState: operation.resMetaState,
+          resDiff: operation.res.content != null && operation.res.content.encoding === 'diff' ? operation.res.content.content : '',
           edge: activeElement.data.edge
         } : undefined
       },
@@ -190,8 +193,10 @@ function getElementsFromOperations (operations, errors, activeElement) {
         error: errorInRender,
         reqResInfo: activeElement != null && activeElement.isEdge && activeElement.data.edge.target === endNodeId ? {
           reqState: operation.completedReqState,
+          reqDiff: operation.completedReq.diff,
           resState: operation.completedResState,
           resMetaState: operation.completedResMetaState,
+          resDiff: operation.completedRes.content != null && operation.completedRes.content.encoding === 'diff' ? operation.completedRes.content.content : '',
           edge: activeElement.data.edge
         } : undefined,
         output: errorInRender == null ? {

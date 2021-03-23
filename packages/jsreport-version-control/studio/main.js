@@ -143,7 +143,7 @@ var openDiff = function () {
 
           case 2:
 
-            _jsreportStudio2.default.customPreview('/api/version-control/diff-html', { patch: change.patch });
+            _jsreportStudio2.default.customPreview('/studio/diff-html', { patch: change.patch });
 
           case 3:
           case 'end':

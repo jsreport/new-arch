@@ -61,7 +61,6 @@
     "bytes": "3.0.0",
     "diff": "3.5.0",
     "diff-match-patch": "1.0.5",
-    "diff2html": "2.5.0",
     "isbinaryfile": "3.0.3",
     "lodash.omit": "4.5.0",
     "mime-types": "2.1.27",

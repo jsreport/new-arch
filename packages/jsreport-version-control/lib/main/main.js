@@ -1,11 +1,6 @@
 const VC = require('./versionControl')
-const { Diff2Html } = require('diff2html')
-const fs = require('fs')
-const path = require('path')
 
 module.exports = (reporter, definition) => {
-  const diff2htmlStyle = fs.readFileSync(path.join(__dirname, '../../static/diff.css')).toString()
-
   const options = Object.assign({}, reporter.options.versionControl, definition.options)
 
   reporter.versionControl = {
@@ -81,12 +76,6 @@ module.exports = (reporter, definition) => {
       reporter.versionControl.revert(req)
         .then((d) => res.send({ status: 1 }))
         .catch(next)
-    })
-
-    app.post('/api/version-control/diff-html', (req, res, next) => {
-      const style = '<style>' + diff2htmlStyle + '</style>'
-      const diff = Diff2Html.getPrettyHtml(req.body.patch, { inputFormat: 'diff', showFiles: false, matching: 'lines' })
-      res.send(`<!DOCTYPE html><html><head>${style}</head><body>${diff}</body></html>`)
     })
   })
 }

@@ -36,11 +36,11 @@ const OperationNode = (props) => {
   }, [targetEdgeId])
 
   const handleReqClick = useCallback(() => {
-    modalHandler.open(ProfilerInspectReqResModal, { title: 'Request', content: reqResInfo.reqState })
+    modalHandler.open(ProfilerInspectReqResModal, { title: 'Request', content: reqResInfo.reqState, diff: reqResInfo.reqDiff })
   }, [reqResInfo])
 
   const handleResClick = useCallback(() => {
-    modalHandler.open(ProfilerInspectReqResModal, { title: 'Response', content: reqResInfo.resState })
+    modalHandler.open(ProfilerInspectReqResModal, { title: 'Response', content: reqResInfo.resState, diff: reqResInfo.resDiff })
   }, [reqResInfo])
 
   const handleDownloadOutputClick = useCallback(async () => {

@@ -6,12 +6,14 @@ const crypto = require('crypto')
 const fs = Promise.promisifyAll(require('fs'))
 const serveStatic = require('serve-static')
 const favicon = require('serve-favicon')
+const { Diff2Html } = require('diff2html')
 const compression = require('compression')
 const requestLog = require('./requestLog')
 const ThemeManager = require('./themeManager')
 const distPath = path.join(__dirname, '../static/dist')
 
 module.exports = (reporter, definition) => {
+  const diff2htmlStyle = fs.readFileSync(path.join(__dirname, '../static/diff.css')).toString()
   const mainCssFilename = findMainCssFilename()
   const extensionsJsChunkName = findExtensionsJsChunkName()
   const themeManager = ThemeManager(reporter.options.mode !== 'jsreport-development', reporter.logger.warn)
@@ -367,6 +369,12 @@ module.exports = (reporter, definition) => {
 
         res.status(400).json(errorRes)
       }
+    })
+
+    app.post('/studio/diff-html', (req, res, next) => {
+      const style = `<style>${diff2htmlStyle}</style>`
+      const diff = Diff2Html.getPrettyHtml(req.body.patch, { inputFormat: 'diff', showFiles: false, matching: 'lines' })
+      res.send(`<!DOCTYPE html><html><head>${style}</head><body>${diff}</body></html>`)
     })
 
     app.post('/studio/validate-entity-name', async (req, res) => {
