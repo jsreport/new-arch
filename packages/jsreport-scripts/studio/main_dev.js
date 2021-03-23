@@ -57,7 +57,8 @@ Studio.entitySaveListeners.push((entity) => {
   ) {
     Studio.openModal(() => (
       <div>
-        script "{entity.name}" does not have any function hook defined, which means that the script won't do anything, if that is not what you want make sure to define either "beforeRender" or "afterRender" function.
+        The script "{entity.name}" doesn't have a function hook defined. This means the script won't do anything. You should define either "beforeRender" or "afterRender" function hooks.
+        <br />See the <a href='https://jsreport.net/learn/scripts'>scripts docummentation</a> for the details.
       </div>
     ))
   }
