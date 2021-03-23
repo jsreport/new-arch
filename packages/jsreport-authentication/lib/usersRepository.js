@@ -12,7 +12,8 @@ module.exports = (reporter, admin) => {
 
   reporter.documentStore.registerEntitySet('users', {
     entityType: 'jsreport.UserType',
-    shared: true
+    shared: true,
+    splitIntoDirectories: true
   })
 
   reporter.initializeListeners.add('repository', () => {

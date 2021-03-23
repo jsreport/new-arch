@@ -34,7 +34,8 @@ class Scheduling {
 
     this.reporter.documentStore.registerEntitySet('schedules', {
       entityType: 'jsreport.ScheduleType',
-      shared: true
+      shared: true,
+      splitIntoDirectories: true
     })
 
     this.reporter.documentStore.model.entityTypes['ReportType'].taskId = { type: 'Edm.String' }
