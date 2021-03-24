@@ -228,7 +228,7 @@ class App extends Component {
     } else if (normalizedType === 'download') {
       processFile = (fileInfo) => {
         if (fileInfo.name === 'report') {
-          fileSaver.saveAs(new Blob([fileInfo.rawData], {
+          fileSaver.saveAs(new Blob([fileInfo.rawData.buffer], {
             type: fileInfo.contentType
           }), fileInfo.filename)
         } else if (fileInfo.name === 'log') {

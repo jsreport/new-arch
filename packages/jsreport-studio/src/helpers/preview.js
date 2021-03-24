@@ -56,9 +56,55 @@ async function streamRender (request, target) {
         throw new Error('Got invalid response content-type, expected multipart/mixed')
       }
 
-      await parseStreamingMultipart(response, (fileInfo) => {
-        target.processFile(fileInfo, target.previewId, target.previewName)
+      const files = []
+
+      let parsing = true
+
+      let filesProcessingExecution = {}
+
+      filesProcessingExecution.promise = new Promise((resolve, reject) => {
+        filesProcessingExecution.resolve = resolve
+        filesProcessingExecution.reject = reject
       })
+
+      window.requestAnimationFrame(function processFile () {
+        const shouldContinue = parsing || files.length > 0
+
+        if (files.length > 0) {
+          const fileInfo = files.shift()
+
+          try {
+            target.processFile(fileInfo, target.previewId, target.previewName)
+          } catch (e) {
+            console.error(`Error during onFile callback of "${fileInfo.name}" entry`, e)
+          }
+        }
+
+        if (shouldContinue) {
+          window.requestAnimationFrame(processFile)
+        } else {
+          filesProcessingExecution.resolve()
+        }
+      })
+
+      let parseErr
+
+      try {
+        await parseStreamingMultipart(response, (fileInfo) => {
+          files.push(fileInfo)
+        })
+
+        parsing = false
+      } catch (err) {
+        parseErr = err
+        parsing = false
+      }
+
+      await filesProcessingExecution.promise
+
+      if (parseErr) {
+        throw parseErr
+      }
     } else {
       let content
 

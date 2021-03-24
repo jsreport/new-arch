@@ -244,7 +244,6 @@ class Preview extends Component {
   }
 
   addProfilerOperation (operation) {
-    console.log(operation)
     this.setState((prev) => {
       let newOperations = prev.profilerOperations
 
@@ -400,7 +399,6 @@ class Preview extends Component {
   }
 
   addProfilerLog (log) {
-    console.log(log)
     this.setState((prev) => ({
       profilerLogs: [...prev.profilerLogs, {
         level: log.level,
@@ -412,7 +410,6 @@ class Preview extends Component {
   }
 
   addProfilerError (errorInfo) {
-    console.warn(errorInfo)
     this.setState((prev) => {
       let newState = {}
       const newProfilerErrors = { ...prev.profilerErrors }

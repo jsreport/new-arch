@@ -406,7 +406,7 @@ export function run (target) {
 
     await previewConfigurationHandler({ ...previewConfig, src: null, id: target.previewId, type: 'report' })
 
-    preview(request, target)
+    await preview(request, target)
   }
 }
 

@@ -5,7 +5,6 @@ const DISPOSITION_TYPE_REGEXP = /^([!#$%&'*+.0-9A-Z^_`a-z|~-]+)[\x09\x20]*(?:$|;
 // eslint-disable-next-line no-control-regex
 const QESC_REGEXP = /\\([\u0000-\u007f])/g
 const NEW_LINE = '\r\n'
-// const HEADER_DELIMITER = `${NEW_LINE}${NEW_LINE}`
 const NEW_LINE_BUF = new TextEncoder().encode(NEW_LINE)
 
 async function parseStreamingMultipart (response, onFile) {
@@ -21,31 +20,17 @@ async function parseStreamingMultipart (response, onFile) {
     meta: {}
   }
 
-  const onResponse = (partsFound) => {
-    for (let i = 0; i < partsFound.length; i++) {
-      try {
-        onFile(partsFound[i])
-      } catch (e) {
-        console.error(`Error during onFile callback of "${partsFound[i].name}" entry`, e)
-      }
-    }
-  }
-
   return reader.read().then(function sendNext ({ value, done }) {
     if (done) {
       return
     }
 
     try {
-      const parts = parseMultipartHttp(parsingProgress, textDecoder, value, boundary, [])
-
-      if (parts.length > 0) {
-        onResponse(parts)
-      }
+      parseMultipartHttp(parsingProgress, textDecoder, value, boundary, onFile)
     } catch (err) {
-      const parseError = new Error(`Parsing error. ${err.message}`)
+      const parseError = new Error(`Stream MultiPart Parsing Error. ${err.message}`)
       parseError.stack = err.stack
-      throw parseError
+      return reader.cancel().then(() => Promise.reject(parseError))
     }
 
     return reader.read().then(sendNext)
@@ -54,20 +39,32 @@ async function parseStreamingMultipart (response, onFile) {
 
 export default parseStreamingMultipart
 
-function parseMultipartHttp (parsingProgress, textDecoder, buffer, boundary, previousParts = []) {
+function parseMultipartHttp (parsingProgress, textDecoder, buffer, boundary, onFileFound) {
   const chunk = concatUInt8Array(parsingProgress.pending, buffer)
-  const newParts = [...previousParts]
   let rest
 
   if (parsingProgress.state === 'initial') {
-    const boundaryDelimiterByteLength = new TextEncoder().encode(getDelimiter(boundary)).byteLength
-    // skip the first bytes that contain the boundary delimiters
-    const results = parseUntilDelimiter(chunk.slice(boundaryDelimiterByteLength), concatUInt8Array(NEW_LINE_BUF, NEW_LINE_BUF))
+    const boundaryDelimiterBuf = new TextEncoder().encode(getDelimiter(boundary))
+    const boundaryDelimiterByteLength = boundaryDelimiterBuf.byteLength
+    let results = []
+
+    // check the expected bytes that should contain the boundary delimiters
+    const expectedBoundaryBuf = chunk.slice(0, boundaryDelimiterByteLength)
+
+    if (arrayBufferEqual(expectedBoundaryBuf.buffer, boundaryDelimiterBuf.buffer)) {
+      results = parseUntilDelimiter(chunk.slice(boundaryDelimiterByteLength), concatUInt8Array(NEW_LINE_BUF, NEW_LINE_BUF))
+    } else {
+      if (chunk.length > boundaryDelimiterByteLength) {
+        console.warn(`Got a invalid chunk at parse streaming multi-part data, did not found correct header boundary delimiter, found: "${new TextDecoder().decode(expectedBoundaryBuf)}", expected: "${new TextDecoder().decode(boundaryDelimiterBuf)}"`)
+        throw new Error('Got Invalid chunk while trying to parse multi-part file entry')
+      }
+    }
 
     if (results.length === 0) {
       parsingProgress.pending = chunk
     } else {
       const headers = textDecoder.decode(results[0])
+
       rest = results[1]
 
       const parsedHeaders = parseHeaders(headers)
@@ -85,6 +82,7 @@ function parseMultipartHttp (parsingProgress, textDecoder, buffer, boundary, pre
       }
 
       const contentDisposition = parsedHeaders['content-disposition']
+
       const [contentDispositionType, contentDispositionParams] = parseContentDisposition(contentDisposition)
 
       parsingProgress.state = 'header'
@@ -121,7 +119,7 @@ function parseMultipartHttp (parsingProgress, textDecoder, buffer, boundary, pre
         rawData: body
       }
 
-      newParts.push(part)
+      onFileFound(part)
 
       parsingProgress.state = 'initial'
       parsingProgress.meta = {}
@@ -130,10 +128,8 @@ function parseMultipartHttp (parsingProgress, textDecoder, buffer, boundary, pre
   }
 
   if (rest && rest.length > 0) {
-    return parseMultipartHttp(parsingProgress, textDecoder, rest, boundary, newParts)
+    parseMultipartHttp(parsingProgress, textDecoder, rest, boundary, onFileFound)
   }
-
-  return newParts
 }
 
 function parseUntilDelimiter (chunk, delimiterChunk) {
