@@ -14,7 +14,6 @@ module.exports = function (reporter, definition) {
 
   reporter.documentStore.registerEntitySet('templates', {
     entityType: 'jsreport.TemplateType',
-    humanReadableKey: 'shortid',
     splitIntoDirectories: true
   })
 

@@ -105,7 +105,7 @@ export default class ExportModal extends Component {
         </div>
         <div className='button-bar'>
           <a className={`button confirmation ${processing ? 'disabled' : ''}`} onClick={() => this.download()}>
-            <i className="fa fa-circle-o-notch fa-spin" style={{ display: processing ? 'inline-block' : 'none' }}></i>
+            <i className='fa fa-circle-o-notch fa-spin' style={{ display: processing ? 'inline-block' : 'none' }} />
             <span style={{ display: processing ? 'none' : 'inline' }}>Download</span>
           </a>
         </div>

@@ -278,7 +278,7 @@ class ImportModal extends Component {
                 disabled={this.state.selectedFile == null}
                 onClick={() => this.validate(this.state.selectedFile)}
               >
-                <i className="fa fa-circle-o-notch fa-spin" style={{ display: this.state.processing ? 'inline-block' : 'none' }}></i>
+                <i className='fa fa-circle-o-notch fa-spin' style={{ display: this.state.processing ? 'inline-block' : 'none' }} />
                 <span style={{ display: this.state.processing ? 'none' : 'inline' }}>Validate</span>
               </button>
             </div>
@@ -299,7 +299,7 @@ class ImportModal extends Component {
               </button>
               {(this.state.status === '0' || this.state.retryWithContinueOnFail) && (
                 <button className={`button confirmation ${this.state.processing ? 'disabled' : ''}`} onClick={() => this.import()}>
-                  <i className="fa fa-circle-o-notch fa-spin" style={{ display: this.state.processing ? 'inline-block' : 'none' }}></i>
+                  <i className='fa fa-circle-o-notch fa-spin' style={{ display: this.state.processing ? 'inline-block' : 'none' }} />
                   <span style={{ display: this.state.processing ? 'none' : 'inline' }}>{this.state.retryWithContinueOnFail ? 'Ignore errors and continue' : 'Import'}</span>
                 </button>
               )}

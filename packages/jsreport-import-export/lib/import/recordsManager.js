@@ -123,8 +123,6 @@ module.exports = function createRecordManager (reporter, req, {
     },
     addDelete,
     addAndResolveAction: async ({ collectionName, entity: originalEntity }) => {
-      const entitySet = reporter.documentStore.model.entitySets[collectionName]
-      const humanReadableKey = entitySet.humanReadableKey
       const entity = { ...originalEntity }
       let targetEntityPath
       let parentEntitySetInfo
@@ -191,79 +189,77 @@ module.exports = function createRecordManager (reporter, req, {
           delete entity._id
         }
 
-        if (humanReadableKey && entity[humanReadableKey] !== existingEntity[humanReadableKey]) {
-          const entityHumanReadableValue = entity[humanReadableKey]
+        if (entity.shortid !== existingEntity.shortid) {
+          const entityShortid = entity.shortid
 
-          // we need to remove the humanReadableKey because we want to preserve
-          // the humanReadableKey that is already on store
-          delete entity[humanReadableKey]
+          // we need to remove the shortid because we want to preserve
+          // the shortid that is already on store
+          delete entity.shortid
 
           // we need to fix the references on the export file to
-          // use the humanReadableKey of the store (normal update)
+          // use the shortid of the store (normal update)
           pendingReferencesUpdates.push({
             collectionName,
-            referenceValue: entityHumanReadableValue,
-            newReferenceValue: existingEntity[humanReadableKey]
+            referenceValue: entityShortid,
+            newReferenceValue: existingEntity.shortid
           })
         }
       } else {
         // no collision on path
         action = 'insert'
 
-        if (humanReadableKey) {
-          const duplicatedEntityByHumanReadableKey = await collection.findOne({
-            [humanReadableKey]: entity[humanReadableKey]
-          }, reqWithNoUser(reporter, req))
+        const duplicatedEntityByShortid = await collection.findOne({
+          shortid: entity.shortid
+        }, reqWithNoUser(reporter, req))
 
-          const duplicatedEntityIsDeleted = duplicatedEntityByHumanReadableKey ? await isDeleted({
-            collectionName,
-            entity: duplicatedEntityByHumanReadableKey
-          }) : false
+        const duplicatedEntityIsDeleted = duplicatedEntityByShortid ? await isDeleted({
+          collectionName,
+          entity: duplicatedEntityByShortid
+        }) : false
 
-          if (duplicatedEntityByHumanReadableKey && !duplicatedEntityIsDeleted) {
-            const entityPathOfDuplicated = await reporter.folders.resolveEntityPath(duplicatedEntityByHumanReadableKey, collectionName, req, async (folderShortId) => {
-              const found = await reporter.documentStore.collection('folders').findOne({ shortid: folderShortId }, reqWithNoUser(reporter, req))
+        if (duplicatedEntityByShortid && !duplicatedEntityIsDeleted) {
+          const entityPathOfDuplicated = await reporter.folders.resolveEntityPath(duplicatedEntityByShortid, collectionName, req, async (folderShortId) => {
+            const found = await reporter.documentStore.collection('folders').findOne({ shortid: folderShortId }, reqWithNoUser(reporter, req))
 
-              if (!found) {
-                return found
-              }
-
-              // this takes in consideration rename of parent folders to return
-              // the updated full path
-              if (folderRenameToMap.has(folderShortId)) {
-                found.name = folderRenameToMap.get(folderShortId)
-              }
-
+            if (!found) {
               return found
-            })
-
-            const parentEntityPathOfDuplicated = getParentEntityPath(entityPathOfDuplicated)
-
-            if (parentEntityPathOfDuplicated === targetParentEntityPath) {
-              if (collectionName === 'folders') {
-                folderRenameToMap.set(entity[humanReadableKey], entity.name)
-              }
-
-              // handle entity rename, nothing more to update here because
-              // the humanReadableKey on the export file at this point should be the same
-              // than the one on the store
-              action = 'update'
-              updateEntityId = duplicatedEntityByHumanReadableKey._id
-            } else {
-              const entityHumanReadableValue = entity[humanReadableKey]
-
-              // we should remove the humanReadableKey to avoid the conflict
-              // we need to re-generate a new one
-              delete entity[humanReadableKey]
-
-              // we need to fix the references on the export file to
-              // use the humanReadableKey that is going to be generated (lazy update)
-              pendingReferencesUpdates.push({
-                collectionName,
-                referenceValue: entityHumanReadableValue,
-                baseEntity: entity
-              })
             }
+
+            // this takes in consideration rename of parent folders to return
+            // the updated full path
+            if (folderRenameToMap.has(folderShortId)) {
+              found.name = folderRenameToMap.get(folderShortId)
+            }
+
+            return found
+          })
+
+          const parentEntityPathOfDuplicated = getParentEntityPath(entityPathOfDuplicated)
+
+          if (parentEntityPathOfDuplicated === targetParentEntityPath) {
+            if (collectionName === 'folders') {
+              folderRenameToMap.set(entity.shortid, entity.name)
+            }
+
+            // handle entity rename, nothing more to update here because
+            // the shortid on the export file at this point should be the same
+            // than the one on the store
+            action = 'update'
+            updateEntityId = duplicatedEntityByShortid._id
+          } else {
+            const entityShortidValue = entity.shortid
+
+            // we should remove the shortid to avoid the conflict
+            // we need to re-generate a new one
+            delete entity.shortid
+
+            // we need to fix the references on the export file to
+            // use the shortid that is going to be generated (lazy update)
+            pendingReferencesUpdates.push({
+              collectionName,
+              referenceValue: entityShortidValue,
+              baseEntity: entity
+            })
           }
         }
 
@@ -411,11 +407,6 @@ module.exports = function createRecordManager (reporter, req, {
         for (const { properties: linkedProperties, entity, referenceValue } of linkedEntitiesToUpdate) {
           const collectionReferenceOriginName = entityRecordCollectionMap.get(entity)
           const collectionReferenceTargetName = entityRecordCollectionMap.get(record.entity)
-          const originHumanReadableKey = reporter.documentStore.model.entitySets[collectionReferenceOriginName].humanReadableKey
-
-          if (originHumanReadableKey == null) {
-            continue
-          }
 
           if (entityRecordNewValueMap.has(entity)) {
             // if we get here it means that the entity was already processed, so we need to
@@ -429,7 +420,7 @@ module.exports = function createRecordManager (reporter, req, {
                 entityNewInfo,
                 collectionReferenceTargetName,
                 { referenceProp: prop, referenceValue },
-                newEntity[originHumanReadableKey]
+                newEntity.shortid
               )
 
               const rootProp = prop.split('.')[0]
@@ -455,7 +446,7 @@ module.exports = function createRecordManager (reporter, req, {
                 entity,
                 collectionReferenceTargetName,
                 { referenceProp: prop, referenceValue },
-                newEntity[originHumanReadableKey]
+                newEntity.shortid
               )
             }
           }

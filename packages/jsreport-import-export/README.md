@@ -1,7 +1,7 @@
 # jsreport-import-export
 
 [![NPM Version](http://img.shields.io/npm/v/jsreport-import-export.svg?style=flat-square)](https://npmjs.com/package/jsreport-import-export)
-[![Build Status](https://travis-ci.org/jsreport/jsreport-import-export.png?branch=master)](https://travis-ci.org/jsreport/jsreport-import-export)
+[![Build Status](https://travis-ci.com/jsreport/jsreport-import-export.png?branch=master)](https://travis-ci.com/jsreport/jsreport-import-export)
 
 > jsreport extension adding support for exporting and importing jsreport objects
 

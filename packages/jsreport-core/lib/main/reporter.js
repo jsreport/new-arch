@@ -20,7 +20,7 @@ const WorkersManager = require('advanced-workers')
 const { validateDuplicatedName } = require('./folders/validateDuplicatedName')
 const { validateReservedName } = require('./folders/validateReservedName')
 const setupValidateId = require('./store/setupValidateId')
-const setupValidateHumanReadableKey = require('./store/setupValidateHumanReadableKey')
+const setupValidateShortid = require('./store/setupValidateShortid')
 const documentStoreActions = require('./store/mainActions')
 const blobStorageActions = require('./blobStorage/mainActions')
 const Reporter = require('../shared/reporter')
@@ -228,9 +228,9 @@ class MainReporter extends Reporter {
 
       this.logger.info(`${this.options.workers.numberOfWorkers} worker threads initialized in ${new Date().getTime() - workersStart}ms`)
 
-      // adding the validation of humanReadableKey after extensions has been loaded
+      // adding the validation of shortid after extensions has been loaded
       setupValidateId(this)
-      setupValidateHumanReadableKey(this)
+      setupValidateShortid(this)
 
       await this.initializeListeners.fire()
 

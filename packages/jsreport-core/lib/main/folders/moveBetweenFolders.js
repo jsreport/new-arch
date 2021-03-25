@@ -189,8 +189,6 @@ module.exports = (reporter) => async ({ source, target, shouldCopy, shouldReplac
           return
         }
 
-        const humanReadableKey = reporter.documentStore.model.entitySets[entitySet].humanReadableKey
-
         for (const { properties: linkedProperties, entity: originalLinkedEntity } of linkedEntities) {
           const currentNewLinkedEntity = originalEntitiesNewMap.get(originalLinkedEntity)
 
@@ -203,7 +201,7 @@ module.exports = (reporter) => async ({ source, target, shouldCopy, shouldReplac
             for (const prop of linkedProperties) {
               // here we care to use the new object result because we want to preserve other values
               // in case the property is array with objects
-              reporter.documentStore.updateReference(originalLinkedEntity.__entitySet, currentEntityProcessedNew, entitySet, { referenceProp: prop, referenceValue: originalEntity[humanReadableKey] }, newEntity.shortid)
+              reporter.documentStore.updateReference(originalLinkedEntity.__entitySet, currentEntityProcessedNew, entitySet, { referenceProp: prop, referenceValue: originalEntity.shortid }, newEntity.shortid)
               const rootProp = prop.split('.')[0]
               currentEntityUpdate[rootProp] = currentEntityProcessedNew[rootProp]
             }
@@ -213,7 +211,7 @@ module.exports = (reporter) => async ({ source, target, shouldCopy, shouldReplac
             }, { $set: currentEntityUpdate }, req)
           } else {
             // here we care to update all properties to point to old reference value
-            reporter.documentStore.updateReference(originalLinkedEntity.__entitySet, currentNewLinkedEntity, entitySet, { referenceValue: originalEntity[humanReadableKey] }, newEntity.shortid)
+            reporter.documentStore.updateReference(originalLinkedEntity.__entitySet, currentNewLinkedEntity, entitySet, { referenceValue: originalEntity.shortid }, newEntity.shortid)
           }
         }
       }

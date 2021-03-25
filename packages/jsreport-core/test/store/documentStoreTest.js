@@ -167,17 +167,6 @@ describe('document store', () => {
       should(lastDoc.modificationDate).be.eql(previousModificationDate)
     })
 
-    it('should not add default fields if they are already defined', async () => {
-      const doc = await reporter.documentStore.collection('custom').insert({
-        name: 'foo'
-      })
-
-      // _id is handled by the store provider so it will always have a value
-      should(doc._shortid).be.undefined()
-      should(doc.creationDate).be.undefined()
-      should(doc.modificationDate).be.undefined()
-    })
-
     it('should set properties with references to other entity sets (.referenceProperties) into entity type information', async () => {
       const reportsReferenceProperties = reporter.documentStore.model.entitySets.reports.referenceProperties
 
@@ -188,10 +177,6 @@ describe('document store', () => {
     })
 
     it('should set properties that reference an entity set (.linkedReferenceProperties) into such entity set type information', async () => {
-      const customLinkedReferenceProperties = reporter.documentStore.model.entitySets.custom.linkedReferenceProperties
-
-      customLinkedReferenceProperties.should.have.length(0)
-
       const templatesLinkedReferenceProperties = reporter.documentStore.model.entitySets.templates.linkedReferenceProperties
 
       templatesLinkedReferenceProperties.should.not.have.length(0)
@@ -683,17 +668,7 @@ function init (options, customExt) {
         })
 
         reporter.documentStore.registerEntityType('FooType', {
-          name: { type: 'Edm.String', publicKey: true },
-          hummanKey: { type: 'Edm.String' }
-        })
-
-        // entity that define default fields just for the test cases
-        reporter.documentStore.registerEntityType('CustomType', {
-          _id: { type: 'Edm.String' },
-          name: { type: 'Edm.String', publicKey: true },
-          shortid: { type: 'Edm.String' },
-          creationDate: { type: 'Edm.DateTimeOffset' },
-          modificationDate: { type: 'Edm.DateTimeOffset' }
+          name: { type: 'Edm.String', publicKey: true }
         })
 
         reporter.documentStore.registerEntitySet('reports', {
@@ -701,12 +676,7 @@ function init (options, customExt) {
         })
 
         reporter.documentStore.registerEntitySet('foo', {
-          entityType: 'jsreport.FooType',
-          humanReadableKey: 'hummanKey'
-        })
-
-        reporter.documentStore.registerEntitySet('custom', {
-          entityType: 'jsreport.CustomType'
+          entityType: 'jsreport.FooType'
         })
 
         reporter.documentStore.registerEntitySet('validationTest', {

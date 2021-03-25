@@ -66,7 +66,6 @@ const DocumentStore = (options, validator, encryption) => {
       this.collections = {}
       this.internalCollections = {}
 
-      const defaultFieldsAddedPerEntitySet = {}
       const entitySetsLinkedReferenceProperties = {}
 
       Object.entries(this.model.entitySets).forEach((e) => {
@@ -75,10 +74,7 @@ const DocumentStore = (options, validator, encryption) => {
         const entityTypeName = es.entityType
         const entityType = this.getEntityType(entityTypeName)
 
-        const defaultFieldsAdded = {}
-
         if (!entityType._id) {
-          defaultFieldsAdded._id = true
           entityType._id = { type: 'Edm.String' }
 
           if (!entityTypeHasKey(entityType)) {
@@ -89,23 +85,15 @@ const DocumentStore = (options, validator, encryption) => {
         }
 
         if (!entityType.creationDate) {
-          defaultFieldsAdded.creationDate = true
           entityType.creationDate = { type: 'Edm.DateTimeOffset' }
         }
 
         if (!entityType.modificationDate) {
-          defaultFieldsAdded.modificationDate = true
           entityType.modificationDate = { type: 'Edm.DateTimeOffset' }
         }
 
-        if ((!es.humanReadableKey || es.humanReadableKey === 'shortid') && !entityType.shortid) {
-          defaultFieldsAdded.shortid = true
+        if (!entityType.shortid) {
           entityType.shortid = { type: 'Edm.String' }
-          es.humanReadableKey = 'shortid'
-        }
-
-        if (Object.keys(defaultFieldsAdded).length > 0) {
-          defaultFieldsAddedPerEntitySet[eName] = defaultFieldsAdded
         }
 
         const publicKeyPropEntry = Object.entries(entityType).find((e) => e[1].publicKey)
@@ -137,41 +125,29 @@ const DocumentStore = (options, validator, encryption) => {
 
         const col = collection(eName, this.provider, this.model, validator, encryption, transactions)
 
-        if (defaultFieldsAddedPerEntitySet[eName] != null) {
-          const defaultFieldsAdded = defaultFieldsAddedPerEntitySet[eName]
+        const addDefaultFields = (doc) => {
+          doc.creationDate = new Date()
+          doc.modificationDate = new Date()
+          doc.shortid = doc.shortid || nanoid(7)
+        }
 
-          const addDefaultFields = (doc) => {
-            if (defaultFieldsAdded.creationDate) {
-              doc.creationDate = new Date()
-            }
+        col.beforeInsertListeners.add('core-default-fields', (doc, req) => {
+          addDefaultFields(doc)
+        })
 
-            if (defaultFieldsAdded.modificationDate) {
-              doc.modificationDate = new Date()
-            }
-
-            if (defaultFieldsAdded.shortid) {
-              doc.shortid = doc.shortid || nanoid(7)
-            }
+        col.beforeUpdateListeners.add('core-default-fields', (q, u, o, req) => {
+          if (u.$set && o && o.upsert === true) {
+            addDefaultFields(u.$set)
           }
 
-          col.beforeInsertListeners.add('core-default-fields', (doc, req) => {
-            addDefaultFields(doc)
-          })
+          if (req && req.context.skipModificationDateUpdate === true) {
+            return
+          }
 
-          col.beforeUpdateListeners.add('core-default-fields', (q, u, o, req) => {
-            if (u.$set && o && o.upsert === true) {
-              addDefaultFields(u.$set)
-            }
-
-            if (req && req.context.skipModificationDateUpdate === true) {
-              return
-            }
-
-            if (defaultFieldsAdded.modificationDate && u.$set) {
-              u.$set.modificationDate = new Date()
-            }
-          })
-        }
+          if (u.$set) {
+            u.$set.modificationDate = new Date()
+          }
+        })
 
         this.collections[eName] = col
       })

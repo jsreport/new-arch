@@ -226,7 +226,7 @@ module.exports = (client, options, db) => {
     },
 
     close () {
-      client.close()
+      return client.close()
     }
   }
 }

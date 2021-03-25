@@ -173,12 +173,6 @@ function collectionTests (store, isInternal, runTransactions) {
     res.should.be.eql(2)
   })
 
-  it('should validate that humanReadableKey is required', async () => {
-    return should(store().collection('footesting').insert({
-      name: 'some'
-    })).be.rejected()
-  })
-
   it('should validate duplicated _id on insert', async () => {
     const newEntity = await store().collection('templates').insert({
       name: 'a',
@@ -214,7 +208,7 @@ function collectionTests (store, isInternal, runTransactions) {
     })).be.rejected()
   })
 
-  it('should validate duplicated humanReadableKey on upsert', async () => {
+  it('should validate duplicated shortid on upsert', async () => {
     const a = await store().collection('templates').insert({
       name: 'a'
     })
@@ -229,7 +223,7 @@ function collectionTests (store, isInternal, runTransactions) {
     }, { upsert: true })).be.rejected()
   })
 
-  it('should validate duplicated humanReadableKey on insert', async () => {
+  it('should validate duplicated shortid on insert', async () => {
     await store().collection('templates').insert({
       name: 'a',
       shortid: 'a'
@@ -241,7 +235,7 @@ function collectionTests (store, isInternal, runTransactions) {
     })).be.rejected()
   })
 
-  it('should validate duplicated humanReadableKey on update', async () => {
+  it('should validate duplicated shortid on update', async () => {
     const a = await store().collection('templates').insert({
       name: 'a',
       shortid: 'a'
@@ -261,7 +255,7 @@ function collectionTests (store, isInternal, runTransactions) {
     })).be.rejected()
   })
 
-  it('should validate duplicated humanReadableKey on upsert', async () => {
+  it('should validate duplicated shortid on upsert', async () => {
     await store().collection('templates').insert({
       name: 'a',
       shortid: 'a'
@@ -1340,11 +1334,6 @@ function init (store) {
   store().registerEntityType('CommonTemplateType', { ...templateType })
   store().registerEntityType('CommonTemplateType2', { ...templateType })
 
-  store().registerEntityType('FooTestingType', {
-    name: { type: 'Edm.String', publicKey: true },
-    hummanKey: { type: 'Edm.String' }
-  })
-
   store().registerEntitySet('templates', {
     entityType: 'jsreport.CommonTemplateType',
     splitIntoDirectories: true
@@ -1353,11 +1342,6 @@ function init (store) {
   store().registerEntitySet('templates2', {
     entityType: 'jsreport.CommonTemplateType2',
     splitIntoDirectories: true
-  })
-
-  store().registerEntitySet('footesting', {
-    entityType: 'jsreport.FooTestingType',
-    humanReadableKey: 'hummanKey'
   })
 
   store().registerEntitySet('internalTemplates', {

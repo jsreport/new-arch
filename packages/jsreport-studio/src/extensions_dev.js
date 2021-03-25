@@ -1,9 +1,12 @@
+import '../../jsreport-authentication/studio/main_dev.js'
 
 import '../../jsreport-freeze/studio/main_dev.js'
 
 import '../../jsreport-import-export/studio/main_dev.js'
 
+
 import '../../jsreport-templates/studio/main_dev.js'
+import '../../jsreport-authorization/studio/main_dev.js'
 
 
 import '../../jsreport-chrome-pdf/studio/main_dev.js'
@@ -17,6 +20,8 @@ import '../../jsreport-reports/studio/main_dev.js'
 import '../../jsreport-text/studio/main_dev.js'
 import '../../jsreport-version-control/studio/main_dev.js'
 import '../../jsreport-assets/studio/main_dev.js'
+
+
 import '../../jsreport-html-to-xlsx/studio/main_dev.js'
 import '../../jsreport-scheduling/studio/main_dev.js'
 import '../../jsreport-scripts/studio/main_dev.js'
