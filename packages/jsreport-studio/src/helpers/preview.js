@@ -68,25 +68,33 @@ async function streamRender (request, target) {
       })
 
       window.requestAnimationFrame(function processFile () {
-        const shouldContinue = parsing || files.length > 0
+        let shouldContinue = parsing || files.length > 0
 
         if (files.length > 0) {
+
           const toProcess = []
-          let stop = false
 
-          do {
-            const fileInfo = files.shift()
-
+          // if the report is already available we process it inmediatly
+          if (files[files.length - 1].name === 'report') {
+            const fileInfo = files.pop()
             toProcess.push(fileInfo)
+          } else {
+            let stop = false
 
-            if (
-              fileInfo.rawData.length > 2000 ||
-              files.length === 0 ||
-              files[0].rawData.length > 2000
-            ) {
-              stop = true
-            }
-          } while (!stop)
+            do {
+              const fileInfo = files.shift()
+
+              toProcess.push(fileInfo)
+
+              if (
+                fileInfo.rawData.length > 2000 ||
+                files.length === 0 ||
+                files[0].rawData.length > 2000
+              ) {
+                stop = true
+              }
+            } while (!stop)
+          }
 
           for (const fileInfo of toProcess) {
             try {
@@ -96,6 +104,8 @@ async function streamRender (request, target) {
             }
           }
         }
+
+        shouldContinue = parsing || files.length > 0
 
         if (shouldContinue) {
           window.requestAnimationFrame(processFile)
