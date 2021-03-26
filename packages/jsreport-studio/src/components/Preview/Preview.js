@@ -44,7 +44,7 @@ class Preview extends Component {
       profilerOperations: [],
       profilerLogs: [],
       profilerActiveElement: null,
-      profilerErrors: { general: null, operations: {} }
+      profilerErrors: { global: null, general: null, operations: {} }
     }
 
     this.handleOnPreviewDisplayLoad = this.handleOnPreviewDisplayLoad.bind(this)
@@ -89,6 +89,7 @@ class Preview extends Component {
           newState.profilerOperations = []
           newState.profilerLogs = []
           newState.profilerActiveElement = null
+          newState.profilerErrors = { global: null, general: null, operations: {} }
         }
 
         if (
@@ -439,6 +440,8 @@ class Preview extends Component {
             completedPreviousOperationId: errorInfo.previousOperationId
           }, ...prev.profilerOperations.slice(foundIndex + 1)]
         }
+      } else if (errorInfo.type === 'globalError') {
+        newProfilerErrors.global = errorInfo
       } else {
         newProfilerErrors.general = errorInfo
       }
@@ -473,7 +476,8 @@ class Preview extends Component {
       activePreviewTab: 'profiler',
       profilerOperations: [],
       profilerLogs: [],
-      profilerActiveElement: null
+      profilerActiveElement: null,
+      profilerErrors: { global: null, general: null, operations: {} }
     })
   }
 

@@ -65,6 +65,15 @@
   height: 100%;
 }
 
+.profilerOperations.globalError :global(.react-flow__renderer),
+.profilerOperations.globalError :global(.react-flow__controls) {
+  opacity: 0.4;
+}
+
+.profilerOperationsGlobalError {
+  color: #ff0000;
+}
+
 .profilerOperationsControlsOverlay {
   position: absolute;
   z-index: 6;

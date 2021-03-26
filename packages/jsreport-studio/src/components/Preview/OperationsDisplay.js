@@ -52,8 +52,10 @@ const OperationsDisplay = (props) => {
     }, 200)
   }, [isCompleted])
 
+  const operationsClass = classNames(styles.profilerOperations, { [styles.globalError]: errors != null && errors.global != null })
+
   return (
-    <div className={styles.profilerOperations}>
+    <div className={operationsClass}>
       <ReactFlow
         elements={elements}
         nodesDraggable={false}
@@ -73,6 +75,11 @@ const OperationsDisplay = (props) => {
         edgeTypes={edgeTypes}
       >
         <Controls showInteractive={false} />
+        {errors != null && errors.global != null && (
+          <div className={styles.profilerOperationsGlobalError}>
+            {errors.global.message}
+          </div>
+        )}
       </ReactFlow>
     </div>
   )

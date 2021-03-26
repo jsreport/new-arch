@@ -266,8 +266,22 @@ class App extends Component {
       }
     }, 1000)
 
-    target.previewId = uid()
-    this.props.run(target)
+    const previewId = uid()
+
+    target.previewId = previewId
+
+    try {
+      await this.props.run(target)
+    } catch (error) {
+      this.previewRef.current.addProfilerError({
+        type: 'globalError',
+        message: error.message,
+        stack: error.stack
+      })
+
+      const newURLBlob = URL.createObjectURL(new Blob([`${error.message}\n\n${error.stack}`], { type: 'text/plain' }))
+      this.previewRef.current.changeSrc(newURLBlob, { id: previewId })
+    }
   }
 
   openModal (componentOrText, options) {

@@ -71,12 +71,29 @@ async function streamRender (request, target) {
         const shouldContinue = parsing || files.length > 0
 
         if (files.length > 0) {
-          const fileInfo = files.shift()
+          const toProcess = []
+          let stop = false
 
-          try {
-            target.processFile(fileInfo, target.previewId, target.previewName)
-          } catch (e) {
-            console.error(`Error during onFile callback of "${fileInfo.name}" entry`, e)
+          do {
+            const fileInfo = files.shift()
+
+            toProcess.push(fileInfo)
+
+            if (
+              fileInfo.rawData.length > 2000 ||
+              files.length === 0 ||
+              files[0].rawData.length > 2000
+            ) {
+              stop = true
+            }
+          } while (!stop)
+
+          for (const fileInfo of toProcess) {
+            try {
+              target.processFile(fileInfo, target.previewId, target.previewName)
+            } catch (e) {
+              console.error(`Error during onFile callback of "${fileInfo.name}" entry`, e)
+            }
           }
         }
 
@@ -121,7 +138,7 @@ async function streamRender (request, target) {
       throw notOkError
     }
   } catch (e) {
-    const newError = new Error(`Preview failed. ${e.message}`)
+    const newError = new Error(`Render Preview failed. ${e.message}`)
 
     newError.stack = e.stack
     Object.assign(newError, e)
