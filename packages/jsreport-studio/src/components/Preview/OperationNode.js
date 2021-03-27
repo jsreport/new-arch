@@ -14,7 +14,7 @@ const OperationNode = (props) => {
     sourcePosition = 'bottom'
   } = props
 
-  const { operation, reqResInfo, error, output, end } = data
+  const { timeCost, operation, reqResInfo, error, output, end } = data
   const showExecutionTime = operation != null && operation.previousOperationId != null && operation.timestamp != null && operation.completedTimestamp != null
   const nodeContentRef = useRef(null)
 
@@ -96,6 +96,14 @@ const OperationNode = (props) => {
           </button>
         </div>
       )}
+      {timeCost != null && (
+        <div
+          className={`${styles.profilerExecutionTimeCost} ${getTimeCostCategoryClass(timeCost * 100)}`}
+          style={{ width: `${timeCost * 100}%` }}
+        >
+          &nbsp;
+        </div>
+      )}
       {showExecutionTime && (
         <div className={styles.profilerExecutionTime}>
           <span className={styles.profilerExecutionTimeLabel}>{operation.completedTimestamp - operation.timestamp}ms</span>
@@ -103,6 +111,16 @@ const OperationNode = (props) => {
       )}
     </Fragment>
   )
+}
+
+function getTimeCostCategoryClass (percentageCost) {
+  if (percentageCost < 20) {
+    return styles.low
+  } else if (percentageCost < 60) {
+    return styles.medium
+  } else {
+    return styles.high
+  }
 }
 
 function b64toBlob (b64Data, contentType = '', sliceSize = 512) {

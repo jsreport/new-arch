@@ -243,11 +243,33 @@
 .profilerExecutionTime {
   position: absolute;
   left: 50%;
-  bottom: calc(-50% - 5px)
+  bottom: calc(-50% - 5px);
 }
 
 .profilerExecutionTimeLabel {
   display: inline-block;
   color: $primary-color;
   transform: translateX(-50%);
+}
+
+.profilerExecutionTimeCost {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(-50% - 5px);
+}
+
+.profilerExecutionTimeCost.low {
+  background-color: #22b14c;
+  opacity: 0.8;
+}
+
+.profilerExecutionTimeCost.medium {
+  background-color: #f9e127;
+  opacity: 0.8;
+}
+
+.profilerExecutionTimeCost.high {
+  background-color: #fa7f27;
+  opacity: 0.8;
 }

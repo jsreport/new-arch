@@ -4,7 +4,7 @@ import ReactFlow, { Controls, isNode } from 'react-flow-renderer'
 import dagre from 'dagre'
 import StartNode from './StartNode'
 import OperationNode from './OperationNode'
-import CustomEdge from './CustomEdge'
+import DefaultEdge from './DefaultEdge'
 import styles from './Preview.css'
 
 const nodeTypes = {
@@ -13,7 +13,7 @@ const nodeTypes = {
 }
 
 const edgeTypes = {
-  custom: CustomEdge
+  customDefault: DefaultEdge
 }
 
 const OperationsDisplay = (props) => {
@@ -33,8 +33,8 @@ const OperationsDisplay = (props) => {
   }, [onElementClick])
 
   const elements = useMemo(() => getElementsFromOperations(operations, errors, activeElement), [operations, errors, activeElement])
-  const firstOperation = elements.find((el) => el.type === 'operation')
-  const isCompleted = firstOperation != null ? firstOperation.data.operation.completed : false
+  const mainOperation = operations.find((op) => op.type === 'render')
+  const isMainCompleted = mainOperation != null && mainOperation.completed === true ? true : false
 
   useEffect(() => {
     if (graphInstanceRef.current == null) {
@@ -46,11 +46,11 @@ const OperationsDisplay = (props) => {
         return
       }
 
-      if (isCompleted) {
+      if (isMainCompleted) {
         graphInstanceRef.current.fitView()
       }
     }, 200)
-  }, [isCompleted])
+  }, [isMainCompleted])
 
   const operationsClass = classNames(styles.profilerOperations, { [styles.globalError]: errors != null && errors.global != null })
 
@@ -88,6 +88,8 @@ const OperationsDisplay = (props) => {
 function getElementsFromOperations (operations, errors, activeElement) {
   const elements = []
   const defaultPosition = { x: 0, y: 0 }
+  const mainOperation = operations.find((op) => op.type === 'render')
+  const isMainCompleted = mainOperation != null && mainOperation.completed === true ? true : false
 
   if (operations.length > 0) {
     elements.push({
@@ -103,7 +105,7 @@ function getElementsFromOperations (operations, errors, activeElement) {
 
   for (let i = 0; i < operations.length; i++) {
     const operation = operations[i]
-
+    const isMainOperation = mainOperation.id === operation.id
     const isOperationActive = activeElement != null ? operation.id === activeElement.id : false
     let errorSource
 
@@ -135,6 +137,7 @@ function getElementsFromOperations (operations, errors, activeElement) {
       id: operation.id,
       data: {
         label: operation.name,
+        timeCost: isMainCompleted && !isMainOperation ? getTimeCost(operation.completedTimestamp - operation.timestamp, mainOperation.completedTimestamp - mainOperation.timestamp) : null,
         operation,
         error: errorSource,
         reqResInfo: activeElement != null && activeElement.isEdge && activeElement.data.edge.target === operation.id ? {
@@ -274,12 +277,16 @@ function createEdge (sourceId, targetId, activeElement) {
     id: edgeId,
     source: sourceId,
     target: targetId,
-    type: 'custom',
+    type: 'customDefault',
     className: edgeClass,
     arrowHeadType: 'arrowclosed'
   }
 
   return edge
+}
+
+function getTimeCost (cost, totalCost) {
+  return cost / totalCost
 }
 
 export default OperationsDisplay
