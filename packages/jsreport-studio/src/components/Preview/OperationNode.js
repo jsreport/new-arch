@@ -14,8 +14,9 @@ const OperationNode = (props) => {
     sourcePosition = 'bottom'
   } = props
 
-  const { timeCost, operation, reqResInfo, error, output, end } = data
-  const showExecutionTime = operation != null && operation.previousOperationId != null && operation.timestamp != null && operation.completedTimestamp != null
+  const { time, timeCost, operation, reqResInfo, error, output, end } = data
+  const showExecutionTime = end ? time != null : (operation.type !== 'render' && time != null)
+  const showTimeCost = end ? timeCost != null : (operation.type !== 'render' && timeCost != null)
   const nodeContentRef = useRef(null)
 
   const targetEdgeId = reqResInfo != null ? reqResInfo.edge.id : undefined
@@ -96,7 +97,7 @@ const OperationNode = (props) => {
           </button>
         </div>
       )}
-      {timeCost != null && (
+      {showTimeCost && (
         <div
           className={`${styles.profilerExecutionTimeCost} ${getTimeCostCategoryClass(timeCost * 100)}`}
           style={{ width: `${timeCost * 100}%` }}
@@ -105,9 +106,14 @@ const OperationNode = (props) => {
         </div>
       )}
       {showExecutionTime && (
-        <div className={styles.profilerExecutionTime}>
-          <span className={styles.profilerExecutionTimeLabel}>{operation.completedTimestamp - operation.timestamp}ms</span>
-        </div>
+        <Fragment>
+          <div className={styles.profilerExecutionTime}>
+            <span className={styles.profilerExecutionTimeLabel}>{time}ms</span>
+          </div>
+          <div className={styles.profilerExecutionTimeCover} title={`${time}ms`}>
+            &nbsp;
+          </div>
+        </Fragment>
       )}
     </Fragment>
   )

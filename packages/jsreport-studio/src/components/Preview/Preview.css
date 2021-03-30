@@ -65,6 +65,15 @@
   height: 100%;
 }
 
+.profilerOperations :global(.react-flow__edge-text) {
+  fill: $primary-color;
+}
+
+.profilerOperations :global(.react-flow__node-default),
+.profilerOperations :global(.react-flow__edge-text) {
+  font-size: 12px;
+}
+
 .profilerOperations.globalError :global(.react-flow__renderer),
 .profilerOperations.globalError :global(.react-flow__controls) {
   opacity: 0.4;
@@ -246,10 +255,18 @@
   bottom: calc(-50% - 5px);
 }
 
+.profilerExecutionTimeCover {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(-50% - 5px);
+}
+
 .profilerExecutionTimeLabel {
   display: inline-block;
   color: $primary-color;
   transform: translateX(-50%);
+  text-shadow: -1px 0 $primary-backgroundColor, 0 1px $primary-backgroundColor, 1px 0 $primary-backgroundColor, 0 -1px $primary-backgroundColor;
 }
 
 .profilerExecutionTimeCost {
