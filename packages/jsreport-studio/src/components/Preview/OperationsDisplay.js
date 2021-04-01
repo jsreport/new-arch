@@ -34,7 +34,7 @@ const OperationsDisplay = (props) => {
 
   const elements = useMemo(() => getElementsFromOperations(operations, errors, activeElement), [operations, errors, activeElement])
   const mainOperation = operations.find((op) => op.type === 'render')
-  const isMainCompleted = mainOperation != null && mainOperation.completed === true ? true : false
+  const isMainCompleted = mainOperation != null ? mainOperation.completed === true : false
 
   useEffect(() => {
     if (graphInstanceRef.current == null) {
@@ -89,7 +89,7 @@ function getElementsFromOperations (operations, errors, activeElement) {
   const elements = []
   const defaultPosition = { x: 0, y: 0 }
   const mainOperation = operations.find((op) => op.type === 'render')
-  const isMainCompleted = mainOperation != null && mainOperation.completed === true ? true : false
+  const isMainCompleted = mainOperation != null ? mainOperation.completed === true : false
 
   if (operations.length > 0) {
     elements.push({
@@ -105,7 +105,6 @@ function getElementsFromOperations (operations, errors, activeElement) {
 
   for (let i = 0; i < operations.length; i++) {
     const operation = operations[i]
-    const isMainOperation = mainOperation.id === operation.id
     const isOperationActive = activeElement != null ? operation.id === activeElement.id : false
     let errorSource
 
@@ -137,7 +136,8 @@ function getElementsFromOperations (operations, errors, activeElement) {
       id: operation.id,
       data: {
         label: operation.name,
-        timeCost: isMainCompleted && !isMainOperation ? getTimeCost(operation.completedTimestamp - operation.timestamp, mainOperation.completedTimestamp - mainOperation.timestamp) : null,
+        time: operation.completed ? operation.completedTimestamp - operation.timestamp : null,
+        timeCost: isMainCompleted ? getTimeCost(operation.completedTimestamp - operation.timestamp, mainOperation.completedTimestamp - mainOperation.timestamp) : null,
         operation,
         error: errorSource,
         reqResInfo: activeElement != null && activeElement.isEdge && activeElement.data.edge.target === operation.id ? {
@@ -200,6 +200,8 @@ function getElementsFromOperations (operations, errors, activeElement) {
     const endNode = {
       id: endNodeId,
       data: {
+        time: operation.completedTimestamp - operation.timestamp,
+        timeCost: isMainCompleted && mainOperation.id !== operation.id ? getTimeCost(operation.completedTimestamp - operation.timestamp, mainOperation.completedTimestamp - mainOperation.timestamp) : null,
         error: errorInRender,
         reqResInfo: activeElement != null && activeElement.isEdge && activeElement.data.edge.target === endNodeId ? {
           reqState: operation.completedReqState,
@@ -266,7 +268,7 @@ function getElementsFromOperations (operations, errors, activeElement) {
   })
 }
 
-function createEdge (sourceId, targetId, activeElement) {
+function createEdge (sourceId, targetId, activeElement, opts = {}) {
   const edgeId = `${sourceId}-edge-${targetId}`
 
   const edgeClass = classNames(styles.profilerOperationEdge, {
