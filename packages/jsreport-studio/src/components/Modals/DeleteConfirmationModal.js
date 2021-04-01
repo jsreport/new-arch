@@ -38,8 +38,8 @@ class DeleteConfirmationModal extends Component {
 
     let entityDisplay
 
-    if (entity[entitySets[entity.__entitySet].nameAttribute] != null) {
-      entityDisplay = entity[entitySets[entity.__entitySet].nameAttribute]
+    if (entity.name) {
+      entityDisplay = entity.name
     } else {
       entityDisplay = `entity with _id: ${entity._id}`
     }

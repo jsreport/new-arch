@@ -45,17 +45,15 @@ class Properties extends Component {
 
   renderProperties () {
     const { entity, onChange, entities } = this.props
-
-    const nameAttribute = entitySets[entity.__entitySet].nameAttribute
-
+   
     return (
       <div className={style.propertiesNodes}>
         <div>
           <div className='form-group'>
-            <label>{nameAttribute}</label>
+            <label>name</label>
             <input
-              type='text' value={entity[nameAttribute] || ''}
-              onChange={(v) => onChange({ _id: entity._id, [nameAttribute]: v.target.value })} />
+              type='text' value={entity.name || ''}
+              onChange={(v) => onChange({ _id: entity._id, name: v.target.value })} />
           </div>
         </div>
         {propertiesComponents.map((p, i) => this.renderOne(p, i, entity, entities, onChange))}

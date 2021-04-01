@@ -1,7 +1,5 @@
 import { entitySets } from '../../lib/configuration.js'
 
-const getEntityName = (e) => entitySets[e.__entitySet].nameAttribute ? e[entitySets[e.__entitySet].nameAttribute] : e.name
-
 export const getById = (state, id, shouldThrow = true) => {
   if (!state.entities[id] && shouldThrow) {
     throw new Error(`Unable to find entity with id ${id}`)
@@ -28,7 +26,7 @@ export const getReferences = (state) => {
   })
 
   Object.keys(result).forEach((k) => {
-    result[k] = result[k].sort((a, b) => getEntityName(a).toLowerCase().localeCompare(getEntityName(b).toLowerCase()))
+    result[k] = result[k].sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()))
   })
 
   Object.keys(entitySets).forEach((e) => (result[e] = result[e] || []))
@@ -40,7 +38,7 @@ export const getNormalizedEntities = (state) => {
   return getAll(state).map((entity) => {
     return {
       _id: entity._id,
-      name: getEntityName(entity),
+      name: entity.name,
       path: resolveEntityPath(state, entity),
       entity: entity
     }
@@ -54,7 +52,7 @@ export const resolveEntityPath = (state, { _id }) => {
     return
   }
 
-  const pathFragments = [getEntityName(entity)]
+  const pathFragments = [entity.name]
 
   while (entity.folder) {
     const folder = getByShortid(state, entity.folder.shortid)

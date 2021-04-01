@@ -29,7 +29,6 @@ module.exports = (model) => {
     const es = documentModel.entitySets[e]
     es.entityType = Object.assign({}, model.entityTypes[es.entityType.replace(documentModel.namespace + '.', '')])
     es.entityType.documentProperties = collectDocumentProperties(model, es.entityType)
-    es.entityType.publicKey = Object.keys(es.entityType).find(t => es.entityType[t].publicKey)
   })
 
   return documentModel

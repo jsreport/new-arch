@@ -1,4 +1,4 @@
-import React, {Component} from 'react'
+import React, { Component } from 'react'
 import { tabTitleComponents, entitySets } from '../../lib/configuration.js'
 import style from './Tabs.css'
 
@@ -68,14 +68,14 @@ class TabTitle extends Component {
             })
           ) : (
             [
-              <span key='main-title' className={style.tabMainTitle}>{tab.tab.title || (tab.entity[entitySets[tab.entity.__entitySet].nameAttribute] + (tab.entity.__isDirty ? '*' : ''))}</span>,
+              <span key='main-title' className={style.tabMainTitle}>{tab.tab.title || (tab.entity.name + (tab.entity.__isDirty ? '*' : ''))}</span>,
               (complementTitle != null && (
                 <span key='complement-title' className={style.tabComplementTitle}>&nbsp;{`- ${complementTitle}`}</span>
               ))
             ]
           )}
         </span>
-        <div className={style.tabClose} onClick={(e) => { e.stopPropagation(); onClose(tab.tab.key) }}></div>
+        <div className={style.tabClose} onClick={(e) => { e.stopPropagation(); onClose(tab.tab.key) }} />
         {contextMenu != null ? contextMenu : <div key='empty-contextmenu' />}
       </div>
     )

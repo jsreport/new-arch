@@ -7,7 +7,7 @@ const migrateEntitySetsToFolders = require('./migrateEntitySetsToFolders')
 
 module.exports = (reporter) => {
   reporter.documentStore.registerEntityType('FolderType', {
-    name: { type: 'Edm.String', publicKey: true }
+    name: { type: 'Edm.String' }
   })
 
   reporter.documentStore.registerEntitySet('folders', {

@@ -2,7 +2,7 @@ const events = require('events')
 const { nanoid } = require('nanoid')
 const uuidv4 = require('uuid/v4')
 const ListenerCollection = require('listener-collection')
-const { getType, resolvePropDefinition, typeDefToJSONSchema } = require('./typeUtils')
+const { resolvePropDefinition, typeDefToJSONSchema } = require('./typeUtils')
 const { findReferencePropertiesInType, findLinkedEntitiesForReferenceValue, existsReferenceValue, updateReferenceValue } = require('./referenceUtils')
 const collection = require('./collection')
 const checkDuplicatedId = require('./checkDuplicatedId')
@@ -71,8 +71,9 @@ const DocumentStore = (options, validator, encryption) => {
       Object.entries(this.model.entitySets).forEach((e) => {
         const eName = e[0]
         const es = e[1]
-        const entityTypeName = es.entityType
-        const entityType = this.getEntityType(entityTypeName)
+        es.normalizedEntityTypeName = es.entityType.replace(this.model.namespace + '.', '')
+        es.entityTypeDef = this.model.entityTypes[es.normalizedEntityTypeName]
+        const entityType = es.entityTypeDef
 
         if (!entityType._id) {
           entityType._id = { type: 'Edm.String' }
@@ -95,9 +96,6 @@ const DocumentStore = (options, validator, encryption) => {
         if (!entityType.shortid) {
           entityType.shortid = { type: 'Edm.String' }
         }
-
-        const publicKeyPropEntry = Object.entries(entityType).find((e) => e[1].publicKey)
-        es.entityTypePublicKey = publicKeyPropEntry ? publicKeyPropEntry[0] : null
 
         const referenceProperties = findReferencePropertiesInType(this.model, entityType)
 
@@ -197,10 +195,6 @@ const DocumentStore = (options, validator, encryption) => {
       this.model.entityTypes[type] = def
     },
 
-    getEntityType (entityTypeName, returnNormalizedTypeName) {
-      return getType(this.model, this.model.entityTypes, entityTypeName, returnNormalizedTypeName)
-    },
-
     addFileExtensionResolver (fn) {
       fileExtensionResolvers.push(fn)
     },
@@ -215,7 +209,7 @@ const DocumentStore = (options, validator, encryption) => {
       }
 
       const entityTypeName = es.entityType
-      const entityType = this.getEntityType(entityTypeName)
+      const entityType = es.entityTypeDef
       const propTypeParts = propertyName.split('.')
       const propTypePartsLastIndex = propTypeParts.length - 1
       let propType = entityType
@@ -271,10 +265,6 @@ const DocumentStore = (options, validator, encryption) => {
       this.model.complexTypes[name] = def
     },
 
-    getComplexType (complexTypeName, returnNormalizedTypeName) {
-      return getType(this.model, this.model.complexTypes, complexTypeName, returnNormalizedTypeName)
-    },
-
     /**
      * Register complete entity set for odata. The first parameter is then use as a collection name
      * Example:
@@ -313,6 +303,8 @@ const DocumentStore = (options, validator, encryption) => {
       if (!isInternal) {
         this.model.entitySets[name] = def
       } else {
+        def.normalizedEntityTypeName = def.entityType.replace(this.model.namespace + '.', '')
+        def.entityTypeDef = this.model.entityTypes[def.normalizedEntityTypeName]
         internalEntitySets[name] = def
       }
     },

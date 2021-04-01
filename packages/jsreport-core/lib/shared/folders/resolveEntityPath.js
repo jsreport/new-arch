@@ -1,5 +1,5 @@
 
-async function resolveEntityPath (reporter, entity, nameAttr, lookup, req) {
+async function resolveEntityPath (reporter, entity, lookup, req) {
   const fullPath = []
   let currentEntity = entity
 
@@ -26,7 +26,7 @@ async function resolveEntityPath (reporter, entity, nameAttr, lookup, req) {
     }
   }
 
-  fullPath.push(entity[nameAttr])
+  fullPath.push(entity.name)
 
   return `/${fullPath.join('/')}`
 }
@@ -38,9 +38,9 @@ module.exports = (reporter) => async (entity, entitySet, req, lookup) => {
     throw new Error(`Unknown entitySet "${entitySet}"`)
   }
 
-  if (entitySetInfo.entityTypePublicKey == null) {
+  if (entitySetInfo.entityTypeDef.name == null) {
     throw new Error(`Could not find name attribute of entity of type "${entitySet}"`)
   }
 
-  return resolveEntityPath(reporter, entity, entitySetInfo.entityTypePublicKey, lookup, req)
+  return resolveEntityPath(reporter, entity, lookup, req)
 }

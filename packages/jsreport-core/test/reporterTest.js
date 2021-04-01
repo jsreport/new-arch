@@ -621,6 +621,7 @@ describe('reporter', () => {
   it('should parse prod.config.json when loadConfig and NODE_ENV=production', async () => {
     fs.writeFileSync(path.join(__dirname, 'prod.config.json'), JSON.stringify({ test: 'prod' }))
     process.env.NODE_ENV = 'production'
+    process.env.mode = 'production'
     reporter = core({
       rootDirectory: path.join(__dirname),
       loadConfig: true

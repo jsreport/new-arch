@@ -75,9 +75,7 @@ function existsReferenceValue (store, collectionReferenceOriginName, entity, col
   const properties = []
 
   for (const propName of propertiesToCheck) {
-    const entityType = store.getEntityType(
-      store.model.entitySets[collectionReferenceOriginName].entityType
-    )
+    const entityType = store.model.entitySets[collectionReferenceOriginName].entityTypeDef
 
     const propParts = propName.split('.')
 
@@ -162,9 +160,7 @@ function updateReferenceValue (store, collectionReferenceOriginName, entity, col
       continue
     }
 
-    const entityType = store.getEntityType(
-      store.model.entitySets[collectionReferenceOriginName].entityType
-    )
+    const entityType = store.model.entitySets[collectionReferenceOriginName].entityTypeDef
 
     const propParts = propName.split('.')
 

@@ -1,5 +1,5 @@
 
-module.exports = (entitySetsNames, entities, getEntityTypeNameAttr) => {
+module.exports = (entitySetsNames, entities) => {
   const newItems = []
   let allFoldersEntities = Studio.getReferences().folders || []
   const entitiesByFolderLevel = {}
@@ -46,7 +46,7 @@ module.exports = (entitySetsNames, entities, getEntityTypeNameAttr) => {
     }
   })
 
-  addItemsByHierarchy(newItems, entitiesByFolderLevel, getEntityTypeNameAttr)
+  addItemsByHierarchy(newItems, entitiesByFolderLevel)
 
   return newItems
 }
@@ -64,7 +64,7 @@ function getLevel (allFolders, entity) {
   return level
 }
 
-function addItemsByHierarchy (newItems, entitiesByFolderLevel, getEntityTypeNameAttr, level = 0, parentFolderShortId) {
+function addItemsByHierarchy (newItems, entitiesByFolderLevel, level = 0, parentFolderShortId) {
   const entitiesInLevel = entitiesByFolderLevel[level]
   const foldersInLevel = []
   const otherEntitiesInLevel = []
@@ -78,8 +78,8 @@ function addItemsByHierarchy (newItems, entitiesByFolderLevel, getEntityTypeName
       return 0
     }
 
-    const nameA = getEntityTypeNameAttr(a.__entitySet, a)
-    const nameB = getEntityTypeNameAttr(b.__entitySet, b)
+    const nameA = a.name
+    const nameB = b.name
 
     if (nameA < nameB) {
       return -1
@@ -105,7 +105,7 @@ function addItemsByHierarchy (newItems, entitiesByFolderLevel, getEntityTypeName
       })
     } else {
       otherEntitiesInLevel.push({
-        name: getEntityTypeNameAttr(entity.__entitySet, entity),
+        name: entity.name,
         data: entity
       })
     }
@@ -116,7 +116,7 @@ function addItemsByHierarchy (newItems, entitiesByFolderLevel, getEntityTypeName
 
   if (foldersInLevel.length > 0) {
     foldersInLevel.forEach((f) => {
-      addItemsByHierarchy(f.items, entitiesByFolderLevel, getEntityTypeNameAttr, level + 1, f.data.shortid)
+      addItemsByHierarchy(f.items, entitiesByFolderLevel, level + 1, f.data.shortid)
     })
   }
 }

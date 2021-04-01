@@ -46,7 +46,7 @@ class HierarchyReplaceEntityModal extends Component {
       return <div />
     }
 
-    const sourceEntityName = sourceEntity[entitySets[sourceEntity.__entitySet].nameAttribute]
+    const sourceEntityName = sourceEntity.name
     const sourceEntitySetVisibleName = entitySets[sourceEntity.__entitySet].visibleName || entitySets[sourceEntity.__entitySet].name
     const existingEntityEntitySetVisibleName = entitySets[existingEntityEntitySet].visibleName || entitySets[existingEntityEntitySet].name
     const shouldCopy = options.shouldCopy

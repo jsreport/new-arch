@@ -456,7 +456,7 @@ class App extends Component {
         const options = {
           cloning: true,
           entity: entity,
-          initialName: getCloneName(entity[entitySets[entity.__entitySet].nameAttribute])
+          initialName: getCloneName(entity.name)
         }
 
         if (entity.__entitySet === 'folders') {

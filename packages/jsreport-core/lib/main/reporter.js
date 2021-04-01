@@ -270,13 +270,11 @@ class MainReporter extends Reporter {
   }
 
   async checkValidEntityName (c, doc, req) {
-    const publicKey = this.documentStore.model.entitySets[c].entityTypePublicKey
-
-    if (!publicKey) {
+    if (!this.documentStore.model.entitySets[c].entityTypeDef.name) {
       return
     }
 
-    checkEntityName(doc[publicKey])
+    checkEntityName(doc.name)
 
     await validateDuplicatedName(this, c, doc, undefined, req)
 

@@ -14,8 +14,8 @@ module.exports = (reporter) => async (entityPathParam, targetEntitySet, req) => 
       throw new Error(`Target entity set "${targetEntitySet}" does not exists`)
     }
 
-    if (!entitySet.entityTypePublicKey) {
-      throw new Error(`Entity set "${targetEntitySet}" does not have a public key`)
+    if (!entitySet.entityTypeDef.name) {
+      throw new Error(`Entity set "${targetEntitySet}" does not have a name attribute`)
     }
   }
 
@@ -29,11 +29,11 @@ module.exports = (reporter) => async (entityPathParam, targetEntitySet, req) => 
     if (lastIndex === index) {
       if (!targetEntitySet) {
         for (const c of Object.keys(reporter.documentStore.collections)) {
-          if (!reporter.documentStore.model.entitySets[c].entityTypePublicKey) {
+          if (!reporter.documentStore.model.entitySets[c].entityTypeDef.name) {
             continue
           }
 
-          const query = getSearchQuery(reporter.documentStore.model.entitySets[c].entityTypePublicKey, entityName, currentFolder)
+          const query = getSearchQuery(entityName, currentFolder)
           currentEntitySet = c
           currentEntity = await reporter.documentStore.collection(c).findOne(query, req)
 
@@ -42,12 +42,12 @@ module.exports = (reporter) => async (entityPathParam, targetEntitySet, req) => 
           }
         }
       } else {
-        const query = getSearchQuery(reporter.documentStore.model.entitySets[targetEntitySet].entityTypePublicKey, entityName, currentFolder)
+        const query = getSearchQuery(entityName, currentFolder)
         currentEntitySet = targetEntitySet
         currentEntity = await reporter.documentStore.collection(targetEntitySet).findOne(query, req)
       }
     } else {
-      const query = getSearchQuery('name', entityName, currentFolder)
+      const query = getSearchQuery(entityName, currentFolder)
       const folder = await reporter.documentStore.collection('folders').findOne(query, req)
 
       if (!folder) {
@@ -68,9 +68,9 @@ module.exports = (reporter) => async (entityPathParam, targetEntitySet, req) => 
   }
 }
 
-function getSearchQuery (publicKey, publicKeyValue, currentFolder) {
+function getSearchQuery (name, currentFolder) {
   const query = {
-    [publicKey]: decodeURIComponent(publicKeyValue)
+    name: decodeURIComponent(name)
   }
 
   if (currentFolder) {

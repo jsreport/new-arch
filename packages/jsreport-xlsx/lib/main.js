@@ -50,7 +50,7 @@ module.exports = (reporter, definition) => {
   }
 
   reporter.documentStore.registerEntityType('XlsxTemplateType', {
-    name: { type: 'Edm.String', publicKey: 'true' },
+    name: { type: 'Edm.String' },
     contentRaw: { type: 'Edm.Binary', document: { extension: 'xlsx' } },
     content: { type: 'Edm.String', document: { extension: 'txt' } }
   })

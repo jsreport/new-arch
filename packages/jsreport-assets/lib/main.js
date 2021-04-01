@@ -9,7 +9,7 @@ const { readFile, linkPath, readAsset } = require('./assetsShared')
 
 module.exports = function (reporter, definition) {
   reporter.documentStore.registerEntityType('AssetType', {
-    name: { type: 'Edm.String', key: true, publicKey: true },
+    name: { type: 'Edm.String' },
     content: { type: 'Edm.Binary', document: { extension: 'html', content: true } },
     forceUpdate: { type: 'Edm.Boolean' },
     isSharedHelper: { type: 'Edm.Boolean' },
@@ -123,7 +123,7 @@ module.exports = function (reporter, definition) {
 
       if (entity.link) {
         if (!allowAssetsLinkedToFiles) {
-          throw reporter.createError(`Can't set .link in asset when "allowAssetsLinkedToFiles" option is false`, {
+          throw reporter.createError('Can\'t set .link in asset when "allowAssetsLinkedToFiles" option is false', {
             statusCode: 400,
             weak: true
           })
@@ -139,7 +139,7 @@ module.exports = function (reporter, definition) {
       const allowAssetsLinkedToFiles = definition.options.allowAssetsLinkedToFiles !== false
 
       if (update.$set.link && !allowAssetsLinkedToFiles) {
-        throw reporter.createError(`Can't set .link in asset when "allowAssetsLinkedToFiles" option is false`, {
+        throw reporter.createError('Can\'t set .link in asset when "allowAssetsLinkedToFiles" option is false', {
           statusCode: 400,
           weak: true
         })

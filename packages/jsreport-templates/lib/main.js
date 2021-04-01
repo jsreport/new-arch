@@ -9,7 +9,7 @@ const configureExpress = (reporter) => (app) => {
 
 module.exports = function (reporter, definition) {
   Object.assign(reporter.documentStore.model.entityTypes.TemplateType, {
-    name: { type: 'Edm.String', publicKey: true }
+    name: { type: 'Edm.String' }
   })
 
   reporter.documentStore.registerEntitySet('templates', {

@@ -16,7 +16,7 @@ describe('common store tests', () => {
       'password': 'password'
     })).use(() => {
       instance.documentStore.registerEntityType('InstanceCustomType', {
-        name: { type: 'Edm.String', publicKey: true },
+        name: { type: 'Edm.String' },
         score: { type: 'Edm.Decimal' }
       })
 

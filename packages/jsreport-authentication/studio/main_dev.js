@@ -21,7 +21,6 @@ Studio.initializeListeners.unshift(async () => {
       name: 'users',
       faIcon: 'fa-user',
       visibleName: 'user',
-      nameAttribute: 'username',
       onNew: (options) => Studio.openModal(NewUserModal, options),
       entityTreePosition: 200
     })
@@ -32,7 +31,7 @@ Studio.initializeListeners.unshift(async () => {
   Studio.addToolbarComponent(ChangePasswordSettingsButton, 'settings')
   Studio.addToolbarComponent(() =>
     <div className='toolbar-button'>
-      <span><i className='fa fa-user' /> {Studio.authentication.user.username}</span>
+      <span><i className='fa fa-user' /> {Studio.authentication.user.name}</span>
     </div>, 'settingsBottom')
   Studio.addToolbarComponent(LogoutSettingsButton, 'settingsBottom')
 })

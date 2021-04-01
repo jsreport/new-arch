@@ -77,9 +77,7 @@ module.exports = function createRecordManager (reporter, req, {
       record.entityNameDisplay = entityNameDisplay
       record.entityNameDisplayProperty = entityNameDisplayProperty
     } else {
-      const publicKey = reporter.documentStore.model.entitySets[record.collectionName].entityTypePublicKey
-
-      if (publicKey) {
+      if (record.entity.name) {
         const entityNameDisplay = await reporter.folders.resolveEntityPath(record.entity, record.collectionName, req)
         record.entityNameDisplayProperty = 'path'
         record.entityNameDisplay = entityNameDisplay

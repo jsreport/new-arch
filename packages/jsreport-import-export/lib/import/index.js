@@ -160,7 +160,6 @@ async function processImport (reporter, exportFilePath, opts, req) {
 
     for (const record of records) {
       const { action, collectionName, entity, entityNameDisplay, entityNameDisplayProperty } = record
-      const publicKey = reporter.documentStore.model.entitySets[collectionName].entityTypePublicKey
       let customLog
 
       if (action === 'delete' && collectionName === 'folders') {
@@ -177,14 +176,14 @@ async function processImport (reporter, exportFilePath, opts, req) {
             entityNameDisplayProperty: 'path'
           })
         }
-      } else if (action === 'update' && publicKey) {
+      } else if (action === 'update' && entity.name) {
         const originalEntity = await reporter.documentStore.collection(collectionName).findOne({
           _id: record.entityId
         }, reqWithNoUser(reporter, req))
 
         let renamedFrom
 
-        if (originalEntity[publicKey] !== entity[publicKey]) {
+        if (originalEntity.name !== entity.name) {
           renamedFrom = await reporter.folders.resolveEntityPath(originalEntity, collectionName, req)
         }
 

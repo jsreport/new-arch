@@ -3,13 +3,11 @@ function validateReservedName (reporter, c, doc) {
     return
   }
 
-  const publicKey = reporter.documentStore.model.entitySets[c].entityTypePublicKey
-
-  if (!publicKey) {
+  if (!reporter.documentStore.model.entitySets[c].entityTypeDef.name) {
     return
   }
 
-  const name = doc[publicKey]
+  const name = doc.name
 
   if (!name) {
     return
@@ -37,13 +35,11 @@ module.exports = function (reporter) {
 
     reporter.documentStore.collection(c).beforeInsertListeners.add('folders', (doc, req) => validateReservedName(reporter, c, doc))
     reporter.documentStore.collection(c).beforeUpdateListeners.add('folders', async (q, update, opts, req) => {
-      const publicKey = reporter.documentStore.model.entitySets[c].entityTypePublicKey
-
       if (update.$set && opts && opts.upsert === true) {
         await validateReservedName(reporter, c, update.$set)
       }
 
-      if (!update.$set[publicKey] || update.$set.folder) {
+      if (!update.$set.name || update.$set.folder) {
         return
       }
 

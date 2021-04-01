@@ -6,16 +6,14 @@ import { entitySets } from '../../lib/configuration.js'
 const reducer = createReducer({})
 export default reducer.export()
 
-const getEntityName = (e) => entitySets[e.__entitySet].nameAttribute ? e[entitySets[e.__entitySet].nameAttribute] : e.name
-
 const getMetaReferenceAttributes = (e) => {
   const entitySet = entitySets[e.__entitySet]
 
   const result = {
-    __name: getEntityName(e)
+    __name: e.name
   }
 
-  entitySet.referenceAttributes.filter((a) => a !== entitySet.nameAttribute && e[a] != null).forEach((a) => (result['__' + a] = e[a]))
+  entitySet.referenceAttributes.filter((a) => a !== 'name' && e[a] != null).forEach((a) => (result['__' + a] = e[a]))
 
   return result
 }
@@ -24,10 +22,10 @@ const getReferenceAttributes = (e) => {
   const entitySet = entitySets[e.__entitySet]
 
   const result = {
-    [entitySets[e.__entitySet].nameAttribute]: e.__name
+    name: e.__name
   }
 
-  entitySet.referenceAttributes.filter((a) => a !== entitySet.nameAttribute).forEach((a) => (result[a] = e['__' + a]))
+  entitySet.referenceAttributes.filter((a) => a !== 'name').forEach((a) => (result[a] = e['__' + a]))
 
   return result
 }
@@ -83,7 +81,7 @@ reducer.handleAction(ActionTypes.LOAD_REFERENCES, (state, action) => {
   let newStateRef = Object.assign({}, state)
   action.entities.forEach((e) => {
     e.__entitySet = action.entitySet
-    e.__name = e[entitySets[action.entitySet].nameAttribute]
+    e.__name = e.name
     newStateRef[e._id] = e
   })
   return newStateRef

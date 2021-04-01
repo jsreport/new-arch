@@ -19,7 +19,7 @@ const url = require('url')
 const bodyParser = require('body-parser')
 const UsersRepository = require('./usersRepository')
 const { shouldDelegateTokenAuth, hasBearerSchema, authenticateToken } = require('./externalAuthentication.js')
-let viewsPath = path.join(__dirname, '../public/views')
+const viewsPath = path.join(__dirname, '../public/views')
 const basicSchemaReg = /Basic/i
 const bearerSchemaReg = /Bearer/i
 const absoluteUrlReg = new RegExp('^(?:[a-z]+:)?//', 'i')
@@ -79,9 +79,9 @@ function addPassport (reporter, app, admin, definition) {
     ))
   }
 
-  passport.serializeUser((user, done) => done(null, user.username))
+  passport.serializeUser((user, done) => done(null, user.name))
   passport.deserializeUser((id, done) => {
-    if (id === admin.username) {
+    if (id === admin.name) {
       return done(null, admin)
     }
 
@@ -108,7 +108,7 @@ function addPassport (reporter, app, admin, definition) {
     }
   })
 
-  app.post('/login', bodyParser.urlencoded({extended: true, limit: '2mb'}), (req, res, next) => {
+  app.post('/login', bodyParser.urlencoded({ extended: true, limit: '2mb' }), (req, res, next) => {
     if (req.query.returnUrl && absoluteUrlReg.test(req.query.returnUrl)) {
       return res.status(400).end('Unsecure returnUrl')
     }
@@ -133,7 +133,7 @@ function addPassport (reporter, app, admin, definition) {
         }
 
         req.context.user = req.user = user
-        reporter.logger.info('Logging in user ' + user.username)
+        reporter.logger.info('Logging in user ' + user.name)
 
         return res.redirect(decodeURIComponent(req.query.returnUrl) || '/')
       })
@@ -211,7 +211,7 @@ function addPassport (reporter, app, admin, definition) {
       // (passing `apiAuthStrategiesOpts`)
       req.logIn(user, apiAuthStrategiesOpts, () => {
         req.context.user = user
-        reporter.logger.debug('API logging in user ' + user.username)
+        reporter.logger.debug('API logging in user ' + user.name)
         next()
       })
     })(req, res, next)
@@ -247,7 +247,7 @@ function configureRoutes (reporter, app, admin, definition) {
       return next()
     }
 
-    var viewModel = Object.assign({}, req.session.viewModel || {})
+    const viewModel = Object.assign({}, req.session.viewModel || {})
     req.session.viewModel = null
 
     return res.render(path.join(viewsPath, 'login.html'), {
@@ -279,14 +279,14 @@ function configureRoutes (reporter, app, admin, definition) {
 
   app.post('/api/users/:shortid/password', (req, res, next) => {
     reporter.authentication.usersRepository.changePassword(req.user, req.params.shortid, req.body.oldPassword, req.body.newPassword).then(function (user) {
-      res.send({result: 'ok'})
+      res.send({ result: 'ok' })
     }).catch(function (e) {
       next(e)
     })
   })
 
   app.get('/api/current-user', function (req, res, next) {
-    res.send({username: req.user.username})
+    res.send({ username: req.user.name })
   })
 }
 

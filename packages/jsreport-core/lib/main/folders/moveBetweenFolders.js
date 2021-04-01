@@ -319,8 +319,7 @@ module.exports = (reporter) => async ({ source, target, shouldCopy, shouldReplac
   // this helps with concurrent validation on studio
   await Promise.all(entitiesInHierarchy.map(async (entity) => {
     const entitySet = reporter.documentStore.model.entitySets[entity.__entitySet]
-    const entityTypeName = entitySet.entityType
-    const entityType = reporter.documentStore.getEntityType(entityTypeName)
+    const entityType = entitySet.entityTypeDef
     const projection = {}
 
     if (entityType.creationDate != null && entityType.creationDate.type === 'Edm.DateTimeOffset') {

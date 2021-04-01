@@ -17,7 +17,7 @@ class Scheduling {
 
     this.ScheduleType = this.reporter.documentStore.registerEntityType('ScheduleType', {
       cron: { type: 'Edm.String' },
-      name: { type: 'Edm.String', publicKey: true },
+      name: { type: 'Edm.String' },
       templateShortid: { type: 'Edm.String', referenceTo: 'templates' },
       nextRun: { type: 'Edm.DateTimeOffset', schema: { type: 'null' } },
       enabled: { type: 'Edm.Boolean' },

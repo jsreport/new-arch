@@ -5,7 +5,6 @@ import {
   getNodeId,
   groupEntitiesByType,
   groupEntitiesByHierarchy,
-  getEntityTypeNameAttr,
   getSetsToRender,
   checkIsGroupNode,
   checkIsGroupEntityNode
@@ -109,7 +108,6 @@ const TreeList = React.forwardRef(function TreeList ({ entities, children }, ref
         </div>
       ),
       getSetsToRender: getSetsToRender,
-      getEntityTypeNameAttr: getEntityTypeNameAttr,
       groupEntitiesByType: groupEntitiesByType,
       groupEntitiesByHierarchy: groupEntitiesByHierarchy,
       entitySets,

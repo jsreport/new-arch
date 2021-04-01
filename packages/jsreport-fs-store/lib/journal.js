@@ -19,15 +19,27 @@ module.exports = ({
       this.syncInterval.unref()
     },
 
-    insert (doc) {
+    insert (doc, opts) {
+      if (opts.transaction) {
+        return
+      }
+
       return this._appendToJournal('insert', doc)
     },
 
-    update (doc) {
+    update (doc, opts) {
+      if (opts.transaction) {
+        return
+      }
+
       return this._appendToJournal('update', doc)
     },
 
-    remove (doc) {
+    remove (doc, opts) {
+      if (opts.transaction) {
+        return
+      }
+
       return this._appendToJournal('remove', { _id: doc._id, $entitySet: doc.$entitySet })
     },
 
@@ -116,8 +128,6 @@ module.exports = ({
     },
 
     async clean () {
-      logger.debug('Cleaning journal')
-
       try {
         if (!(await fs.exists('fs.journal'))) {
           return

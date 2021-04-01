@@ -14,7 +14,7 @@ class UserEditor extends Component {
 
     return (
       <div className='custom-editor'>
-        <h1><i className='fa fa-user' /> {entity.username}</h1>
+        <h1><i className='fa fa-user' /> {entity.name}</h1>
         <div>
           {Studio.authentication.useEditorComponents.map((c, i) => <div key={i}>{c(entity, onUpdate)}</div>)}
         </div>

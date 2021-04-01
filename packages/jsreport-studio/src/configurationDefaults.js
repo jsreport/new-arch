@@ -41,7 +41,6 @@ export default () => {
   configuration.entitySets.templates = {
     name: 'templates',
     visibleName: 'template',
-    nameAttribute: 'name',
     referenceAttributes: ['name', 'recipe', 'shortid'],
     entityTreePosition: 1000,
     onNew: (options) => configuration.modalHandler.open(NewTemplateModal, options)
@@ -52,7 +51,6 @@ export default () => {
     faIcon: 'fa-folder',
     visibleName: 'folder',
     visibleInTree: false,
-    nameAttribute: 'name',
     referenceAttributes: ['name', 'shortid'],
     onNew: (options) => configuration.modalHandler.open(NewFolderModal, options)
   }
@@ -80,9 +78,7 @@ export default () => {
       return true
     }
 
-    const entityName = entitySets[entity.__entitySet].nameAttribute ? entity[entitySets[entity.__entitySet].nameAttribute] : entity.name
-
-    return entityName.indexOf(name) !== -1
+    return entity.name.indexOf(name) !== -1
   })
 
   configuration.entityTreeContextMenuItemsResolvers.push(({

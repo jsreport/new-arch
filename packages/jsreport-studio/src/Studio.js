@@ -98,8 +98,7 @@ class Studio {
    * @param {Object} entitySet
    */
   addEntitySet (entitySet) {
-    entitySet.nameAttribute = entitySet.nameAttribute || 'name'
-    entitySet.referenceAttributes = [...new Set([...(entitySet.referenceAttributes || []), entitySet.nameAttribute, 'shortid'])]
+    entitySet.referenceAttributes = [...new Set([...(entitySet.referenceAttributes || []), 'name', 'shortid'])]
     configuration.entitySets[entitySet.name] = entitySet
   }
 
@@ -339,7 +338,7 @@ class Studio {
   }
 
   /**
-   * Get registered entity sets, each one is object { visibleName: 'foo', nameAttribute: 'name' }
+   * Get registered entity sets, each one is object { visibleName: 'foo' }
    * @returns {Object[]}
    */
   get entitySets () {

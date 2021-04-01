@@ -185,44 +185,9 @@ describe('document store', () => {
       templatesLinkedReferenceProperties.should.matchAny((t) => t.name.should.be.eql('templateObj.shortid') && t.entitySet.should.be.eql('reports'))
     })
 
-    it('should return entity type when passing valid type using documentStore.getEntityType', async () => {
-      const es = reporter.documentStore.model.entitySets.templates
-      const typeInfo = reporter.documentStore.getEntityType(es.entityType)
-      typeInfo.should.be.Object()
-      typeInfo.should.ownProperty('name')
-    })
-
-    it('should return undefined when passing invalid type using documentStore.getEntityType', async () => {
-      const typeInfo = reporter.documentStore.getEntityType('jsreport.DoesNotExists')
-      should(typeInfo).be.undefined()
-    })
-
-    it('should return normalized entity type name when passing true using documentStore.getEntityType', async () => {
-      const es = reporter.documentStore.model.entitySets.templates
-      const typeName = reporter.documentStore.getEntityType(es.entityType, true)
-      typeName.should.be.eql('TemplateType')
-    })
-
-    it('should return entity type when passing valid type using documentStore.getComplexType', async () => {
-      const typeInfo = reporter.documentStore.getComplexType('jsreport.TemplateReportRefType')
-      typeInfo.should.be.Object()
-      typeInfo.should.ownProperty('shortid')
-    })
-
-    it('should return undefined when passing invalid type using documentStore.getComplexType', async () => {
-      const typeInfo = reporter.documentStore.getComplexType('jsreport.DoesNotExists')
-      should(typeInfo).be.undefined()
-    })
-
-    it('should return normalized entity type name when passing true using documentStore.getComplexType', async () => {
-      const typeName = reporter.documentStore.getComplexType('jsreport.TemplateReportRefType', true)
-      typeName.should.be.eql('TemplateReportRefType')
-    })
-
     it('should resolve property definition for simple case using documentStore.resolvePropertyDefinition', async () => {
       const es = reporter.documentStore.model.entitySets.templates
-      const typeInfo = reporter.documentStore.getEntityType(es.entityType)
-      const resolved = reporter.documentStore.resolvePropertyDefinition(typeInfo.name)
+      const resolved = reporter.documentStore.resolvePropertyDefinition(es.entityTypeDef.name)
       resolved.def.type.should.be.eql('Edm.String')
     })
 
@@ -233,8 +198,7 @@ describe('document store', () => {
 
     it('should return sub type when passing def with complex type using documentStore.resolvePropertyDefinition', async () => {
       const es = reporter.documentStore.model.entitySets.reports
-      const typeInfo = reporter.documentStore.getEntityType(es.entityType)
-      const resolved = reporter.documentStore.resolvePropertyDefinition(typeInfo.templateObj)
+      const resolved = reporter.documentStore.resolvePropertyDefinition(es.entityTypeDef.templateObj)
       resolved.def.type.should.be.eql('jsreport.TemplateReportRefType')
       resolved.subType.should.be.Object()
       resolved.subType.should.ownProperty('shortid')
@@ -243,8 +207,7 @@ describe('document store', () => {
 
     it('should return sub type when passing def with collection of complex type using documentStore.resolvePropertyDefinition', async () => {
       const es = reporter.documentStore.model.entitySets.reports
-      const typeInfo = reporter.documentStore.getEntityType(es.entityType)
-      const resolved = reporter.documentStore.resolvePropertyDefinition(typeInfo.tags)
+      const resolved = reporter.documentStore.resolvePropertyDefinition(es.entityTypeDef.tags)
       resolved.def.type.should.be.eql('Collection(jsreport.TagRefType)')
       resolved.subType.should.be.Object()
       resolved.subType.should.ownProperty('value')
@@ -253,8 +216,7 @@ describe('document store', () => {
 
     it('should return sub def when passing def with collection of simple type using documentStore.resolvePropertyDefinition', async () => {
       const es = reporter.documentStore.model.entitySets.reports
-      const typeInfo = reporter.documentStore.getEntityType(es.entityType)
-      const resolved = reporter.documentStore.resolvePropertyDefinition(typeInfo.values)
+      const resolved = reporter.documentStore.resolvePropertyDefinition(es.entityTypeDef.values)
       resolved.def.type.should.be.eql('Collection(Edm.String)')
       should(resolved.subType).be.undefined()
       resolved.subDef.type.should.be.eql('Edm.String')

@@ -37,7 +37,7 @@ export default class NewUserModal extends Component {
       return this.setState({ passwordError: true })
     }
 
-    entity.username = this.usernameRef.current.value
+    entity.name = this.usernameRef.current.value
     entity.password = this.password1Ref.current.value
 
     try {

@@ -37,7 +37,6 @@ class RenameModal extends Component {
     }
 
     const newName = this.nameRef.current.value
-    const nameAttribute = entitySets[this.props.entity.__entitySet].nameAttribute
 
     try {
       await api.post('/studio/validate-entity-name', {
@@ -64,15 +63,14 @@ class RenameModal extends Component {
 
     this.props.update({
       _id: this.props.entity._id,
-      [nameAttribute]: newName
+      name: newName
     })
     this.props.save(this.props.entity._id)
   }
 
   render () {
     const { error } = this.state
-    const { entity } = this.props
-    const nameAttribute = entitySets[entity.__entitySet].nameAttribute
+    const { entity } = this.props    
 
     return <div>
       <div className='form-group'>
@@ -80,7 +78,7 @@ class RenameModal extends Component {
         <input
           ref={this.nameRef}
           type='text'
-          defaultValue={entity[nameAttribute]}
+          defaultValue={entity.name}
           onKeyPress={(e) => this.handleKeyPress(e)}
         />
       </div>

@@ -7,7 +7,7 @@
 module.exports = function (reporter, definition) {
   reporter.documentStore.registerEntityType('DataItemType', {
     dataJson: { type: 'Edm.String', document: { extension: 'json' } },
-    name: { type: 'Edm.String', publicKey: true }
+    name: { type: 'Edm.String' }
   })
 
   reporter.documentStore.registerComplexType('DataItemRefType', {

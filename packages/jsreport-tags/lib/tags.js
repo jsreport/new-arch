@@ -5,7 +5,7 @@ const HEX_COLOR_REGEXP = /^#[0-9A-F]{6}$/i
 module.exports = function (reporter, definition) {
   // define entity Tag
   reporter.documentStore.registerEntityType('TagType', {
-    name: { type: 'Edm.String', publicKey: true },
+    name: { type: 'Edm.String' },
     description: { type: 'Edm.String' },
     color: { type: 'Edm.String' }
   })

@@ -7,15 +7,13 @@ function getDirectoryPath (fs, model, doc, documents) {
     return ''
   }
 
-  const entityType = model.entitySets[doc.$entitySet].entityType
-
   const folders = []
 
   while (doc.folder) {
     const folderEntity = documents.folders.find((f) => f.shortid === doc.folder.shortid)
 
     if (!folderEntity) {
-      throw new Error(`Can not find parent folder for entity "${doc[entityType.publicKey]}" (entitySet: ${doc.$entitySet})`)
+      throw new Error(`Can not find parent folder for entity "${doc.name}" (entitySet: ${doc.$entitySet})`)
     }
 
     folders.push(folderEntity.name)
@@ -70,7 +68,7 @@ async function parseFiles (fs, parentDirectory, documentsModel, files) {
   }
   const entityType = es.entityType
 
-  document[entityType.publicKey] = fs.path.basename(parentDirectory)
+  document.name = fs.path.basename(parentDirectory)
 
   for (const prop of entityType.documentProperties) {
     const matchingDocumentFile = files.find((f) => {
@@ -155,19 +153,19 @@ async function persist (fs, resolveFileExtension, model, doc, originalDoc, docum
 
   const entityType = model.entitySets[doc.$entitySet].entityType
 
-  if (doc[entityType.publicKey].indexOf('/') !== -1) {
-    throw new Error('Document cannot contain / in the ' + entityType.publicKey)
+  if (doc.name.indexOf('/') !== -1) {
+    throw new Error('Document cannot contain / in the name')
   }
 
-  const docFinalPath = fs.path.join(rootDirectory, getDirectoryPath(fs, model, doc, documents), doc[entityType.publicKey])
+  const docFinalPath = fs.path.join(rootDirectory, getDirectoryPath(fs, model, doc, documents), doc.name)
 
   if (!originalDoc && (await fs.exists(docFinalPath))) {
-    throw new Error('Duplicated entry for key ' + doc[entityType.publicKey])
+    throw new Error('Duplicated entry for key ' + doc.name)
   }
 
-  const originalDocPrefix = originalDoc ? (originalDoc[entityType.publicKey] + '~') : ''
-  const docInconsistentPath = fs.path.join(rootDirectory, getDirectoryPath(fs, model, doc, documents), `~~${originalDocPrefix}${doc[entityType.publicKey]}`)
-  const docConsistentPath = fs.path.join(rootDirectory, getDirectoryPath(fs, model, doc, documents), `~${originalDocPrefix}${doc[entityType.publicKey]}`)
+  const originalDocPrefix = originalDoc ? (originalDoc.name + '~') : ''
+  const docInconsistentPath = fs.path.join(rootDirectory, getDirectoryPath(fs, model, doc, documents), `~~${originalDocPrefix}${doc.name}`)
+  const docConsistentPath = fs.path.join(rootDirectory, getDirectoryPath(fs, model, doc, documents), `~${originalDocPrefix}${doc.name}`)
 
   if (await fs.exists(docInconsistentPath)) {
     await fs.remove(docInconsistentPath)
@@ -181,7 +179,7 @@ async function persist (fs, resolveFileExtension, model, doc, originalDoc, docum
   deepDelete(docClone, 'folder')
 
   if (originalDoc && docClone.$entitySet === 'folders') {
-    const originalDocPath = fs.path.join(rootDirectory, getDirectoryPath(fs, model, originalDoc, documents), originalDoc[entityType.publicKey])
+    const originalDocPath = fs.path.join(rootDirectory, getDirectoryPath(fs, model, originalDoc, documents), originalDoc.name)
 
     await copy(fs, originalDocPath, docInconsistentPath)
   }
@@ -216,7 +214,7 @@ async function persist (fs, resolveFileExtension, model, doc, originalDoc, docum
   await retry(() => fs.rename(docInconsistentPath, docConsistentPath), 5)
 
   if (originalDoc) {
-    const originalDocPath = fs.path.join(rootDirectory, getDirectoryPath(fs, model, originalDoc, documents), originalDoc[entityType.publicKey])
+    const originalDocPath = fs.path.join(rootDirectory, getDirectoryPath(fs, model, originalDoc, documents), originalDoc.name)
 
     await fs.remove(originalDocPath)
   }
@@ -234,8 +232,7 @@ async function remove (fs, model, doc, documents, rootDirectory) {
     return fs.appendFile(docFinalPath, serialize(removal, false) + '\n')
   }
 
-  const entityType = model.entitySets[doc.$entitySet].entityType
-  const originalDocPath = fs.path.join(rootDirectory, getDirectoryPath(fs, model, doc, documents), doc[entityType.publicKey])
+  const originalDocPath = fs.path.join(rootDirectory, getDirectoryPath(fs, model, doc, documents), doc.name)
 
   await fs.remove(originalDocPath)
 }
@@ -326,8 +323,7 @@ module.exports = ({ fs, documentsModel, corruptAlertThreshold, resolveFileExtens
   remove: (doc, documents, rootDirectory = '') => remove(fs, documentsModel, doc, documents, rootDirectory),
   reload: async (doc, documents) => {
     const loadedDocuments = []
-    const entityType = documentsModel.entitySets[doc.$entitySet].entityType
-    const docPath = fs.path.join(getDirectoryPath(fs, documentsModel, doc, documents), doc[entityType.publicKey])
+    const docPath = fs.path.join(getDirectoryPath(fs, documentsModel, doc, documents), doc.name)
     await load(fs, docPath, documentsModel, loadedDocuments)
 
     return loadedDocuments.length !== 1 ? null : loadedDocuments[0]

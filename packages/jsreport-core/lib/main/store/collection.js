@@ -1,5 +1,5 @@
 const ListenerCollection = require('listener-collection')
-const { getType, resolvePropDefinition } = require('./typeUtils')
+const { resolvePropDefinition } = require('./typeUtils')
 const createError = require('../../shared/createError')
 const validateEntityName = require('../validateEntityName')
 
@@ -9,6 +9,8 @@ module.exports = (entitySet, provider, model, validator, encryption, transaction
   beforeUpdateListeners: new ListenerCollection(),
   beforeInsertListeners: new ListenerCollection(),
   beforeRemoveListeners: new ListenerCollection(),
+  beforeUpdateValidationListeners: new ListenerCollection(),
+  beforeInsertValidationListeners: new ListenerCollection(),
   entitySet,
 
   load: (...args) => {
@@ -77,14 +79,14 @@ module.exports = (entitySet, provider, model, validator, encryption, transaction
   },
 
   async insert (data, req) {
-    // internal entities are not in the model
-    const publicKey = model.entitySets[entitySet] ? model.entitySets[entitySet].entityTypePublicKey : null
+    await this.beforeInsertValidationListeners.fire(data, req)
 
-    if (publicKey) {
-      validateEntityName(data[publicKey])
+    // internal entities are not in the model
+    if (model.entitySets[entitySet] && model.entitySets[entitySet].entityTypeDef.name) {
+      validateEntityName(data.name)
     }
 
-    const entityType = model.entitySets[entitySet] ? getType(model, model.entityTypes, model.entitySets[entitySet].entityType, true) : null
+    const entityType = model.entitySets[entitySet] ? model.entitySets[entitySet].normalizedEntityTypeName : null
 
     if (entityType != null && validator.getSchema(entityType) != null) {
       const validationResult = validator.validate(entityType, data)
@@ -110,14 +112,14 @@ module.exports = (entitySet, provider, model, validator, encryption, transaction
       o = {}
     }
 
-    // internal entities are not in the model
-    const publicKey = model.entitySets[entitySet] ? model.entitySets[entitySet].entityTypePublicKey : null
+    await this.beforeUpdateValidationListeners.fire(q, u, o, req)
 
-    if (publicKey && u.$set[publicKey] !== undefined) {
-      validateEntityName(u.$set[publicKey])
+    // internal entities are not in the model
+    if (model.entitySets[entitySet] && model.entitySets[entitySet].entityTypeDef.name && u.$set.name !== undefined) {
+      validateEntityName(u.$set.name)
     }
 
-    const entityType = model.entitySets[entitySet] ? getType(model, model.entityTypes, model.entitySets[entitySet].entityType, true) : null
+    const entityType = model.entitySets[entitySet] ? model.entitySets[entitySet].normalizedEntityTypeName : null
 
     if (entityType != null && validator.getSchema(entityType) != null) {
       const validationResult = validator.validate(entityType, u.$set)
@@ -164,7 +166,7 @@ module.exports = (entitySet, provider, model, validator, encryption, transaction
 
     if (customTypeDef == null) {
       const entitySetInfo = model.entitySets[entitySet]
-      const entityType = getType(model, model.entityTypes, entitySetInfo.entityType)
+      const entityType = entitySetInfo.entityTypeDef
       typeDef = entityType
     } else {
       typeDef = customTypeDef
@@ -248,7 +250,7 @@ module.exports = (entitySet, provider, model, validator, encryption, transaction
         return []
       }
 
-      const entityType = getType(model, model.entityTypes, entitySetInfo.entityType)
+      const entityType = entitySetInfo.entityTypeDef
 
       if (!entityType) {
         return []

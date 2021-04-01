@@ -41,7 +41,7 @@ function common (prefix) {
     reporter.use(() => {
       reporter.documentStore.registerEntityType('TestType', {
         _id: { type: 'Edm.String', key: true },
-        name: { type: 'Edm.String', key: true, publicKey: true },
+        name: { type: 'Edm.String', key: true },
         content: { type: 'Edm.Binary', document: { extension: 'html', content: true } }
       })
 

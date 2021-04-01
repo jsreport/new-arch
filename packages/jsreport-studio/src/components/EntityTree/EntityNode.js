@@ -4,7 +4,7 @@ import composeRefs from '@seznam/compose-react-refs'
 import EntityTreeContext from './EntityTreeContext'
 import NodeSelect from './NodeSelect'
 import { NodeContextMenu } from './ContextMenu'
-import { renderEntityTreeItemComponents, resolveEntityTreeIconStyle, getEntityTypeNameAttr } from './utils'
+import { renderEntityTreeItemComponents, resolveEntityTreeIconStyle } from './utils'
 import { entitySets } from '../../lib/configuration'
 import styles from './EntityTree.css'
 
@@ -75,7 +75,7 @@ const EntityNode = ({ id, titleId, node, depth, isDragging, connectDragging }) =
         >
           <NodeSelect id={selectId} node={node} />
           <i key='entity-icon' className={iconClass} />
-          <a key='entity-name'>{getEntityTypeNameAttr(entity.__entitySet, entity) + (entity.__isDirty ? '*' : '')}</a>
+          <a key='entity-name'>{entity.name + (entity.__isDirty ? '*' : '')}</a>
           {renderEntityTreeItemComponents('right', { entity, entities: allEntities })}
         </div>,
         <NodeContextMenu

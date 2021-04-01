@@ -1,7 +1,7 @@
 import React from 'react'
 import groupEntitiesByHierarchyHelper from '../../helpers/groupEntitiesByHierarchy'
 import getVisibleEntitySetsInTree from '../../helpers/getVisibleEntitySetsInTree'
-import { entitySets, entityTreeOrder, entityTreeItemComponents, entityTreeIconResolvers } from '../../lib/configuration'
+import { entityTreeOrder, entityTreeItemComponents, entityTreeIconResolvers } from '../../lib/configuration'
 
 export function pointIsInsideContainer (containerDimensions, point) {
   const insideX = point.x >= containerDimensions.left && point.x <= (containerDimensions.left + containerDimensions.width)
@@ -17,22 +17,14 @@ export function groupEntitiesByType (entitySets, entitiesByType) {
     name: entitiesType,
     isEntitySet: true,
     items: entitiesByType[entitiesType].map((entity) => ({
-      name: getEntityTypeNameAttr(entity.__entitySet, entity),
+      name: entity.name,
       data: entity
     }))
   }))
 }
 
 export function groupEntitiesByHierarchy (entitySets, entitiesByType) {
-  return groupEntitiesByHierarchyHelper(Object.keys(entitySets), entitiesByType, getEntityTypeNameAttr)
-}
-
-export function getEntityTypeNameAttr (entitySetName, entity, returnNameAttr = false) {
-  if (returnNameAttr) {
-    return entitySets[entitySetName].nameAttribute
-  }
-
-  return entity[entitySets[entitySetName].nameAttribute]
+  return groupEntitiesByHierarchyHelper(Object.keys(entitySets), entitiesByType)
 }
 
 export function getSetsToRender (entitySets) {

@@ -2,11 +2,11 @@ const should = require('should')
 const Request = require('../../lib/shared/request')
 
 module.exports = (store, runTransactions = true) => {
-  describe('public collection', () => {
+  describe.only('public collection', () => {
     collectionTests(store, undefined, runTransactions)
   })
 
-  describe('internal collection', () => {
+  describe.skip('internal collection', () => {
     collectionTests(store, true, runTransactions)
   })
 }
@@ -1324,7 +1324,7 @@ function init (store) {
   })
 
   const templateType = {
-    name: { type: 'Edm.String', publicKey: true },
+    name: { type: 'Edm.String' },
     content: { type: 'Edm.String', document: { extension: 'html', engine: true } },
     recipe: { type: 'Edm.String' },
     engine: { type: 'Edm.String' },

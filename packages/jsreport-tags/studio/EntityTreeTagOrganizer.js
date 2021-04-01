@@ -2,6 +2,7 @@ import React, { Component } from 'react'
 import Studio from 'jsreport-studio'
 import emitter from './emitter'
 import findTagInSet from './findTagInSet'
+import { getAllEntitiesInHierarchy } from 'jsreport-studio/src/components/EntityTree/utils'
 
 const { noTagGroupName, tagsGroupName } = require('../shared/reservedTagNames')
 
@@ -42,13 +43,12 @@ class EntityTreeTagOrganizer extends Component {
     allTagEntities,
     currentTagEntities,
     entitiesByTagAndType,
-    entitiesByTypeWithoutTag,
-    getEntityTypeNameAttr
+    entitiesByTypeWithoutTag
   ) {
     const tagsWithNoEntities = []
 
     allTagEntities.forEach((tag) => {
-      const tagName = getEntityTypeNameAttr(tag.__entitySet, tag)
+      const tagName = tag.name
       const entitiesByType = entitiesByTagAndType[tagName]
       const typesInTag = Object.keys(entitiesByType)
 
@@ -99,7 +99,7 @@ class EntityTreeTagOrganizer extends Component {
 
         entities.forEach((entity) => {
           typeItem.items.push({
-            name: getEntityTypeNameAttr(entity.__entitySet, entity),
+            name: entity.name,
             data: entity
           })
         })
@@ -110,7 +110,7 @@ class EntityTreeTagOrganizer extends Component {
 
     tagsWithNoEntities.forEach((tag) => {
       const tagItem = {
-        name: getEntityTypeNameAttr(tag.__entitySet, tag),
+        name: tag.name,
         isGroup: true,
         data: tag,
         items: []
@@ -153,7 +153,7 @@ class EntityTreeTagOrganizer extends Component {
       if (entities) {
         entities.forEach((entity) => {
           item.items.push({
-            name: getEntityTypeNameAttr(entity.__entitySet, entity),
+            name: entity.name,
             data: entity
           })
         })
@@ -173,7 +173,7 @@ class EntityTreeTagOrganizer extends Component {
     if (currentTagEntities) {
       currentTagEntities.forEach((tag) => {
         tagsItem.items.push({
-          name: getEntityTypeNameAttr(tag.__entitySet, tag),
+          name: tag.name,
           data: tag
         })
       })
@@ -182,16 +182,16 @@ class EntityTreeTagOrganizer extends Component {
     newItems.push(tagsItem)
   }
 
-  groupEntityByTagAndType (collection, allTagEntities, entity, getEntityTypeNameAttr) {
+  groupEntityByTagAndType (collection, allTagEntities, entity) {
     if (entity.__entitySet === 'tags') {
-      const name = getEntityTypeNameAttr(entity.__entitySet, entity)
+      const name = entity.name
       collection[name] = collection[name] || {}
     } else if (entity.tags != null) {
       entity.tags.forEach((tag) => {
         const tagFound = findTagInSet(allTagEntities, tag.shortid)
 
         if (tagFound) {
-          const name = getEntityTypeNameAttr(tagFound.__entitySet, tagFound)
+          const name = tagFound.name
           collection[name] = collection[name] || []
           collection[name][entity.__entitySet] = collection[name][entity.__entitySet] || []
           collection[name][entity.__entitySet].push(entity)
@@ -200,7 +200,7 @@ class EntityTreeTagOrganizer extends Component {
     }
   }
 
-  groupEntitiesByTag (entitySetsNames, entities, getEntityTypeNameAttr) {
+  groupEntitiesByTag (entitySetsNames, entities) {
     const newItems = []
     let allTagEntities = Studio.getReferences().tags || []
     const entitiesByTagAndType = {}
@@ -208,7 +208,7 @@ class EntityTreeTagOrganizer extends Component {
 
     // initialize all tag groups based on all tag entities
     allTagEntities.forEach((entityTag) => {
-      this.groupEntityByTagAndType(entitiesByTagAndType, allTagEntities, entityTag, getEntityTypeNameAttr)
+      this.groupEntityByTagAndType(entitiesByTagAndType, allTagEntities, entityTag)
     })
 
     entitySetsNames.forEach((entitySetName) => {
@@ -228,7 +228,7 @@ class EntityTreeTagOrganizer extends Component {
         const entity = entitiesInSet[j]
 
         if (entity.tags != null) {
-          this.groupEntityByTagAndType(entitiesByTagAndType, allTagEntities, entity, getEntityTypeNameAttr)
+          this.groupEntityByTagAndType(entitiesByTagAndType, allTagEntities, entity)
         } else {
           entitiesByTypeWithoutTag[entity.__entitySet] = entitiesByTypeWithoutTag[entity.__entitySet] || []
           entitiesByTypeWithoutTag[entity.__entitySet].push(entity)
@@ -242,8 +242,7 @@ class EntityTreeTagOrganizer extends Component {
       allTagEntities,
       entities.tags,
       entitiesByTagAndType,
-      entitiesByTypeWithoutTag,
-      getEntityTypeNameAttr
+      entitiesByTypeWithoutTag
     )
 
     return newItems
@@ -262,7 +261,6 @@ class EntityTreeTagOrganizer extends Component {
           renderDefaultTree,
           renderTree,
           getSetsToRender,
-          getEntityTypeNameAttr,
           entitySets,
           entities
         }) => {
@@ -272,7 +270,7 @@ class EntityTreeTagOrganizer extends Component {
             return renderDefaultTree(entitySets, entities)
           }
 
-          return renderTree(this.groupEntitiesByTag(getSetsToRender(entitySets), entities, getEntityTypeNameAttr))
+          return renderTree(this.groupEntitiesByTag(getSetsToRender(entitySets), entities))
         })}
       </div>
     )

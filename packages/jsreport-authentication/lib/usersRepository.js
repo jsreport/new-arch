@@ -4,7 +4,8 @@ const maxFailedAttempts = 10
 
 module.exports = (reporter, admin) => {
   reporter.documentStore.registerEntityType('UserType', {
-    username: { type: 'Edm.String', publicKey: true },
+    username: { type: 'Edm.String' },
+    name: { type: 'Edm.String' },
     password: { type: 'Edm.String', visible: false },
     failedLoginAttemptsCount: { type: 'Edm.Int32', visible: false },
     failedLoginAttemptsStart: { type: 'Edm.DateTimeOffset', visible: false }
@@ -16,7 +17,21 @@ module.exports = (reporter, admin) => {
     splitIntoDirectories: true
   })
 
-  reporter.initializeListeners.add('repository', () => {
+  reporter.initializeListeners.add('repository', async () => {
+    const users = await reporter.documentStore.collection('users').find({ name: null })
+    if (users.length) {
+      reporter.logger.info('Store contains user entities with deprecated username, migrating to name...')
+    }
+    for (const user of users) {
+      await reporter.documentStore.collection('users').update({
+        _id: user._id
+      }, {
+        $set: {
+          name: user.username
+        }
+      })
+    }
+
     if (reporter.authorization) {
       const col = reporter.documentStore.collection('users')
 
@@ -44,21 +59,31 @@ module.exports = (reporter, admin) => {
       })
     }
 
+    reporter.documentStore.collection('users').beforeUpdateValidationListeners.add('users', async (q, u, o, req) => {
+      if (u.$set.username && !u.$set.name) {
+        reporter.logger.warn('Attribute username of entity user is deprecated, use name instead', req)
+        u.$set.name = u.$set.username
+      }
+
+      if (u.$set.name && !u.$set.username) {
+        u.$set.username = u.$set.name
+      }
+    })
+
+    reporter.documentStore.collection('users').beforeInsertValidationListeners.add('users', async (doc, req) => {
+      if (doc.username && !doc.name) {
+        reporter.logger.warn('Attribute username of entity user is deprecated, use name instead', req)
+        doc.name = doc.username
+      }
+
+      if (doc.name && !doc.username) {
+        doc.username = doc.name
+      }
+    })
+
     reporter.documentStore.collection('users').beforeInsertListeners.add('users', async (doc, req) => {
-      if (!doc.username) {
-        throw reporter.createError('username is required', {
-          statusCode: 400
-        })
-      }
-
-      if (typeof doc.username !== 'string') {
-        throw reporter.createError('username has an invalid value', {
-          statusCode: 400
-        })
-      }
-
       // normalizing username to prevent registering a repeated username with spaces
-      doc.username = doc.username.trim()
+      doc.name = doc.name.trim()
 
       if (!doc.password) {
         throw reporter.createError('password is required', {
@@ -78,7 +103,7 @@ module.exports = (reporter, admin) => {
         doc.password = passwordHash.generate(doc.password)
       }
 
-      const users = await reporter.documentStore.collection('users').find({ username: doc.username }, req)
+      const users = await reporter.documentStore.collection('users').find({ name: doc.name }, req)
 
       if (users.length > 0) {
         throw reporter.createError('User already exists', {
@@ -93,10 +118,10 @@ module.exports = (reporter, admin) => {
   return {
     async authenticate (username, password) {
       let user
-      if (admin.username === username) {
+      if (admin.name === username) {
         user = admin
       } else {
-        user = await reporter.documentStore.collection('users').findOne({ username: username })
+        user = await reporter.documentStore.collection('users').findOne({ name: username })
       }
 
       if (user == null) {
@@ -143,7 +168,7 @@ module.exports = (reporter, admin) => {
           user.failedLoginAttemptsStart = newFailedLoginAttemptsStart
         } else {
           await reporter.documentStore.collection('users').update({
-            username: user.username
+            name: user.name
           }, {
             $set: {
               failedLoginAttemptsCount: newFailedAttemptsCount,
@@ -164,7 +189,7 @@ module.exports = (reporter, admin) => {
     },
 
     async find (username) {
-      const users = await reporter.documentStore.collection('users').find({ username: username })
+      const users = await reporter.documentStore.collection('users').find({ name: username })
       if (users.length !== 1) {
         return null
       }

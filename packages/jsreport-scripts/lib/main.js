@@ -15,7 +15,7 @@ module.exports = function (reporter, definition) {
 
   reporter.documentStore.registerEntityType('ScriptType', {
     content: {type: 'Edm.String', document: {extension: 'js'}},
-    name: {type: 'Edm.String', publicKey: true},
+    name: {type: 'Edm.String'},
     isGlobal: {type: 'Edm.Boolean'}
   })
 

@@ -3,8 +3,7 @@ const resolveEntityPath = require('../../shared/folders/resolveEntityPath')
 
 async function findEntity (reporter, name, folder, req) {
   for (const c of Object.keys(reporter.documentStore.collections)) {
-    const publicKey = reporter.documentStore.model.entitySets[c].entityTypePublicKey
-    if (!publicKey) {
+    if (!reporter.documentStore.model.entitySets[c].entityTypeDef.name) {
       continue
     }
 
@@ -18,13 +17,13 @@ async function findEntity (reporter, name, folder, req) {
     const allEntities = await reporter.documentStore.collection(c).find({
       folder
     }, {
-      [publicKey]: 1
+      name: 1
     }, localReq)
 
     const existingEntity = allEntities.find((entity) => {
-      if (entity[publicKey]) {
+      if (entity.name) {
         // doing the check for case insensitive string (foo === FOO)
-        return entity[publicKey].toLowerCase() === name.toLowerCase()
+        return entity.name.toLowerCase() === name.toLowerCase()
       }
 
       return false
@@ -37,14 +36,13 @@ async function findEntity (reporter, name, folder, req) {
 }
 
 async function validateDuplicatedName (reporter, c, doc, originalIdValue, req) {
-  const publicKey = reporter.documentStore.model.entitySets[c].entityTypePublicKey
   const resolveEntityPathFn = resolveEntityPath(reporter)
 
-  if (!publicKey) {
+  if (!reporter.documentStore.model.entitySets[c].entityTypeDef.name) {
     return
   }
 
-  const name = doc[publicKey]
+  const name = doc.name
 
   if (!name) {
     return
@@ -57,7 +55,7 @@ async function validateDuplicatedName (reporter, c, doc, originalIdValue, req) {
       return
     }
 
-    let msg = `Entity with ${publicKey} "${name}" already exists`
+    let msg = `Entity with name "${name}" already exists`
     let folder
 
     if (doc.folder != null) {
@@ -76,12 +74,10 @@ async function validateDuplicatedName (reporter, c, doc, originalIdValue, req) {
       msg = `${msg} at the root level.`
     }
 
-    const existingEntityPublicKey = reporter.documentStore.model.entitySets[existingEntity.entitySet].entityTypePublicKey
-
     // prints existing name in message when name are different, this can happen because the name validation
     // is case insensitivity (uppercase and lowercase form are equivalent)
-    if (existingEntityPublicKey && existingEntity.entity[existingEntityPublicKey] !== name) {
-      msg = `${msg} existing: "${existingEntity.entity[existingEntityPublicKey]}".`
+    if (reporter.documentStore.model.entitySets[existingEntity.entitySet].entityTypeDef.name && existingEntity.entity.name !== name) {
+      msg = `${msg} existing: "${existingEntity.entity.name}".`
     }
 
     throw reporter.createError(msg, {

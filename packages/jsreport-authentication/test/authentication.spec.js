@@ -35,6 +35,46 @@ describe('authentication', () => {
 
   afterEach(() => reporter.close())
 
+  it('should alias username to name during insert', async () => {
+    await reporter.documentStore.collection('users').insert({
+      username: 'foo',
+      password: 'password'
+    })
+    const user = await reporter.documentStore.collection('users').findOne({ username: 'foo' })
+    user.name.should.be.eql('foo')
+  })
+
+  it('should alias username to name during update', async () => {
+    await reporter.documentStore.collection('users').insert({
+      username: 'foo',
+      password: 'password'
+    })
+    await reporter.documentStore.collection('users').update({ username: 'foo' }, { $set: { username: 'change' } })
+
+    const user = await reporter.documentStore.collection('users').findOne({ username: 'change' })
+    user.name.should.be.eql('change')
+  })
+
+  it('should alias name during insert', async () => {
+    await reporter.documentStore.collection('users').insert({
+      name: 'foo',
+      password: 'password'
+    })
+    const user = await reporter.documentStore.collection('users').findOne({ name: 'foo' })
+    user.username.should.be.eql('foo')
+  })
+
+  it('should alias name during update', async () => {
+    await reporter.documentStore.collection('users').insert({
+      name: 'foo',
+      password: 'password'
+    })
+    await reporter.documentStore.collection('users').update({ name: 'foo' }, { $set: { name: 'change' } })
+
+    const user = await reporter.documentStore.collection('users').findOne({ name: 'change' })
+    user.username.should.be.eql('change')
+  })
+
   it('should respond with login without cookie', () => {
     return request(reporter.express.app)
       .get('/')

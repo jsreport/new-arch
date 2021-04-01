@@ -93,7 +93,7 @@ export function openNewTab ({ entitySet, entity, name }) {
         _id: id,
         __entitySet: entitySet,
         shortid: shortid.generate(),
-        [entitySets[entitySet].nameAttribute]: name
+        name
       }
     } else {
       if (entity != null) {
@@ -104,7 +104,7 @@ export function openNewTab ({ entitySet, entity, name }) {
         _id: id,
         __entitySet: entitySet,
         shortid: shortid.generate(),
-        [entitySets[entitySet].nameAttribute]: name
+        name
       })
 
       if (entitySet === 'templates') {
@@ -213,19 +213,17 @@ export function hierarchyMove (source, target, shouldCopy = false, replace = fal
         if (replace === true) {
           if (Array.isArray(target.children)) {
             const sourceEntity = entities.selectors.getById(getState(), source.id, false)
-            const sourceEntitySetNameAttr = entitySets[sourceEntity.__entitySet].nameAttribute
 
             let childTargetId
             let childTargetChildren = []
 
             const allFoldersInsideTarget = target.children.reduce((acu, childId) => {
               const childEntity = entities.selectors.getById(getState(), childId, false)
-              const childEntitySetNameAttr = entitySets[childEntity.__entitySet].nameAttribute
 
               if (
                 ((target.shortid == null && childEntity.folder == null) ||
                 (target.shortid != null && childEntity.folder.shortid === target.shortid)) &&
-                childEntity[childEntitySetNameAttr] === sourceEntity[sourceEntitySetNameAttr]
+                childEntity.name === sourceEntity.name
               ) {
                 childTargetId = childEntity._id
               }

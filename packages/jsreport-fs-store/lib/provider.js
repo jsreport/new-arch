@@ -153,7 +153,7 @@ module.exports = ({
           return doc
         }
 
-        await this.journal.insert(clone)
+        await this.journal.insert(clone, opts)
         return doc
       })
     },
@@ -182,7 +182,7 @@ module.exports = ({
             return
           }
 
-          await this.journal.update(doc)
+          await this.journal.update(doc, opts)
         }
       })
 
@@ -209,7 +209,7 @@ module.exports = ({
         }
 
         for (const doc of toRemove) {
-          await this.journal.remove(doc)
+          await this.journal.remove(doc, opts)
         }
       })
     },

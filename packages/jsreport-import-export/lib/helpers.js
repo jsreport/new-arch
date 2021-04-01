@@ -205,13 +205,12 @@ module.exports.groupEntitiesByLevel = (entities, folderGroups) => {
 }
 
 module.exports.getEntityDisplay = (reporter, { entity, collectionName }) => {
-  const publicKey = reporter.documentStore.model.entitySets[collectionName].entityTypePublicKey
   let entityDisplay
   let entityDisplayProperty
 
-  if (publicKey) {
-    entityDisplayProperty = publicKey
-    entityDisplay = entity[publicKey]
+  if (entity.name) {
+    entityDisplayProperty = 'name'
+    entityDisplay = entity.name
   } else {
     entityDisplayProperty = '_id'
     entityDisplay = entity._id
@@ -227,9 +226,7 @@ module.exports.getEntityNameDisplay = async (reporter, { entity, allLocalEntitie
   let entityNameDisplay
   let entityNameDisplayProperty
 
-  const publicKey = reporter.documentStore.model.entitySets[collectionName].entityTypePublicKey
-
-  if (publicKey && entity[publicKey] != null) {
+  if (entity.name) {
     entityNameDisplayProperty = 'path'
 
     entityNameDisplay = await reporter.folders.resolveEntityPath(entity, collectionName, req, async (folderShortId) => {
@@ -244,9 +241,9 @@ module.exports.getEntityNameDisplay = async (reporter, { entity, allLocalEntitie
 
     if (importByEntitySet) {
       if (reporter.documentStore.model.entitySets[collectionName].splitIntoDirectories === true) {
-        entityNameDisplay = `/${collectionName}/${entity[publicKey]}`
+        entityNameDisplay = `/${collectionName}/${entity.name}`
       } else {
-        entityNameDisplay = `/${entity[publicKey]}`
+        entityNameDisplay = `/${entity.name}`
       }
     } else {
 
