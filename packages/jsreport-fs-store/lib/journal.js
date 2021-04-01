@@ -124,6 +124,8 @@ module.exports = ({
         doc
       }, false) + '\n')
 
+      await new Promise((resolve) => setTimeout(resolve, 1))
+
       this.lastSync = new Date()
     },
 

@@ -2,11 +2,11 @@ const should = require('should')
 const Request = require('../../lib/shared/request')
 
 module.exports = (store, runTransactions = true) => {
-  describe.only('public collection', () => {
+  describe('public collection', () => {
     collectionTests(store, undefined, runTransactions)
   })
 
-  describe.skip('internal collection', () => {
+  describe('internal collection', () => {
     collectionTests(store, true, runTransactions)
   })
 }
