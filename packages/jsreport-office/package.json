@@ -1,0 +1,40 @@
+{
+  "name": "jsreport-office",
+  "version": "1.2.0",
+  "description": "Some helpers for office based jsreport recipes",
+  "main": "index.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "test": "standard"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jsreport/jsreport-office.git"
+  },
+  "author": "Jan Blaha",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jsreport/jsreport-office/issues"
+  },
+  "homepage": "https://github.com/jsreport/jsreport-office#readme",
+  "dependencies": {
+    "archiver": "3.0.0",
+    "axios": "0.19.2",
+    "form-data": "2.5.0",
+    "get-stream": "5.1.0",
+    "node.extend.without.arrays": "1.1.6",
+    "pify": "4.0.1",
+    "stream-to-array": "2.3.0",
+    "yauzl": "2.10.0",
+    "zip": "1.2.0"
+  },
+  "devDependencies": {
+    "standard": "12.0.1"
+  },
+  "files": [
+    "lib",
+    "index.js"
+  ]
+}
