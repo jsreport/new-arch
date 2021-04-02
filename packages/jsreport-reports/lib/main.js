@@ -182,7 +182,7 @@ class Reports {
       recipe: { type: 'Edm.String' },
       blobName: { type: 'Edm.String' },
       contentType: { type: 'Edm.String' },
-      name: { type: 'Edm.String' },
+      reportName: { type: 'Edm.String' },
       fileExtension: { type: 'Edm.String' },
       public: { type: 'Edm.Boolean' },
       templateShortid: { type: 'Edm.String', referenceTo: 'templates' },
@@ -225,7 +225,7 @@ class Reports {
     }
 
     const r = await this.reporter.documentStore.collection('reports').insert({
-      name: response.meta.reportName,
+      reportName: response.meta.reportName,
       state: 'planned'
     }, request)
 

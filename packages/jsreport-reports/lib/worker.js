@@ -23,7 +23,7 @@ module.exports = (reporter, definition) => {
 
       const report = Object.assign({}, reportsOptions.mergeProperties || {}, {
         recipe: request.template.recipe,
-        name: response.meta.reportName,
+        reportName: response.meta.reportName,
         fileExtension: response.meta.fileExtension,
         templateShortid: request.template.shortid,
         creationDate: new Date(),
@@ -32,7 +32,7 @@ module.exports = (reporter, definition) => {
       })
 
       if (!response.meta.reportsOptions._id) {
-        report._id = await reporter.documentStore.collection('reports').insert({ name: response.meta.reportName }, request).then((r) => r._id)
+        report._id = await reporter.documentStore.collection('reports').insert({ reportName: response.meta.reportName }, request).then((r) => r._id)
       } else {
         report._id = response.meta.reportsOptions._id
       }

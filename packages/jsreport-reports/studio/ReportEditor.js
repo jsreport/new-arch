@@ -128,7 +128,7 @@ export default class ReportEditor extends Component {
         <td>
           <span className={`${style.state} ${style[stateClass]}`}>{state}</span>
         </td>
-        <td className='selection'>{report.name}</td>
+        <td className='selection'>{report.reportName}</td>
         <td>{report.creationDate.toLocaleString()}</td>
         <td>{report.recipe}</td>
       </tr>
