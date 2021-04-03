@@ -9,8 +9,8 @@ module.exports = async function scriptDiffProcessing ({ commitToDiff, versions, 
   const commitState = await applyPatches(versionsToPatch, documentModel, reporter, req)
 
   if (commitToDiff.changes == null) {
-    const changesContent = await reporter.blobStorage.readBuffer(commitToDiff.blobName, req)
-    commitToDiff.changes = JSON.parse(changesContent)
+    const changesContent = await reporter.blobStorage.read(commitToDiff.blobName, req)
+    commitToDiff.changes = JSON.parse(changesContent.toString())
   }
 
   // This custom implementation stores whole entity patch in single object

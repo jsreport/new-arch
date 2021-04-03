@@ -5,6 +5,8 @@ const jsreportPackages = [
   'jsreport-authentication',
   'jsreport-authorization',
   'jsreport-base',
+  'jsreport-child-templates',
+  'jsreport-chrome-pdf',
   'jsreport-core',
   'jsreport-data',
   'jsreport-docx',
@@ -13,10 +15,12 @@ const jsreportPackages = [
   'jsreport-fs-store',
   'jsreport-handlebars',
   'jsreport-html-to-xlsx',
-  'jsreport-child-templates',
-  'jsreport-chrome-pdf',
+  'jsreport-import-export',
   'jsreport-jsrender',
+  'jsreport-licensing',
+  'jsreport-mongodb-store',
   'jsreport-pdf-utils',
+  'jsreport-postgres-store',
   'jsreport-pptx',
   'jsreport-reports',
   'jsreport-scripts',
@@ -28,8 +32,18 @@ const jsreportPackages = [
   'jsreport-xlsx'
 ]
 
+const failedPackages = []
 for (const pd of jsreportPackages) {
-  execSync(`yarn workspace ${pd} test`, {
-    stdio: 'inherit'
-  })
+  try {
+    execSync(`yarn workspace ${pd} test`, {
+      stdio: 'inherit'
+    })
+  } catch (e) {
+    failedPackages.push(pd)
+  }
+}
+
+if (failedPackages.length) {
+  console.error('failed packages', failedPackages)
+  process.exit(1)
 }

@@ -9,7 +9,6 @@ module.exports = async function scriptCommitProcessing ({ commitMessage, version
 
   newCommit.changes = await Promise.reduce(lastState, async (res, s) => {
     const entity = currentEntities[s.entitySet].find((e) => e._id === s.entityId)
-    let entityPublicKey
 
     if (!entity) {
       // if not found we try to search by entity path, if we found it, it means that the id changed
@@ -34,15 +33,13 @@ module.exports = async function scriptCommitProcessing ({ commitMessage, version
         })
       }
 
-      entityPublicKey = documentModel.entitySets[s.entitySet].entityTypePublicKey
-
       // entity is not in the new state, it was removed
       return res.concat({
         operation: 'remove',
         entitySet: s.entitySet,
         entityId: s.entityId,
         __local: {
-          [entityPublicKey]: s.entity[entityPublicKey],
+          name: s.entity.name,
           folder: s.entity.folder
         }
       })

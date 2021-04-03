@@ -2,7 +2,6 @@ import React, { Component } from 'react'
 import Studio from 'jsreport-studio'
 import emitter from './emitter'
 import findTagInSet from './findTagInSet'
-import { getAllEntitiesInHierarchy } from 'jsreport-studio/src/components/EntityTree/utils'
 
 const { noTagGroupName, tagsGroupName } = require('../shared/reservedTagNames')
 

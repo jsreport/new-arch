@@ -26,7 +26,7 @@ async function applyPatches (versions, documentModel, reporter, req) {
   for (const v of versions) {
     let changes = v.changes
     if (changes == null) {
-      const changesContent = await reporter.blobStorage.readBuffer(v.blobName, req)
+      const changesContent = await reporter.blobStorage.read(v.blobName, req)
       changes = JSON.parse(changesContent.toString())
     }
 

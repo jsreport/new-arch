@@ -329,7 +329,7 @@ module.exports = (reporter, options) => {
         ...omit(newCommit, 'changes'),
         blobName: `versions/${newCommit.message.replace(/[^a-zA-Z0-9]/g, '')}${nanoid()}.json`
       }, req)
-      await reporter.blobStorage.write(version.blobName, JSON.stringify(newCommit.changes))
+      await reporter.blobStorage.write(version.blobName, Buffer.from(JSON.stringify(newCommit.changes)))
       version.changes = newCommit.changes
       return version
     },
