@@ -1,0 +1,28 @@
+{
+    "shortid": "rkJTnK2ce",
+    "recipe": "chrome-pdf",
+    "engine": "handlebars",
+    "data": {
+        "shortid": "Sy5S19ncg"
+    },
+    "$entitySet": "templates",
+    "name": "invoice-main",
+    "content": "<!-- \nInvoice dynamically rendered into html using handlebars and converted into pdf\nusing chrome-pdf recipe. The styles are extracted into separate asset for \nbetter readability and later reuse.\n\nData to this sample are mocked at the design time and should be filled on the \nincoming API request.\n!-->\n\n<html>\n    <head>\n        <meta content=\"text/html; charset=utf-8\" http-equiv=\"Content-Type\">\n        <style>\n            {#asset invoice-styles.css @encoding=utf8}\n        </style>        \n    </head>\n    <body>\n        <div class=\"invoice-box\">\n            <table cellpadding=\"0\" cellspacing=\"0\">\n                <tr class=\"top\">\n                    <td colspan=\"2\">\n                        <table>\n                            <tr>\n                                <td class=\"title\">\n                                    <img src=\"{#asset invoice-logo.png @encoding=dataURI}\" style=\"width:100%; max-width:300px;\" />\n                                </td>\n                                <td>\n                                    Invoice #: {{number}}\n                                    <br> Created: {{now}}\n                                    <br> Due: {{nowPlus20Days}}\n                                </td>\n                            </tr>\n                        </table>\n                    </td>\n                </tr>\n                <tr class=\"information \">\n                    <td colspan=\"2 \">\n                        <table>\n                            <tr>\n                                <td>\n                                    {{seller.name}}<br>\n                                    {{seller.road}}<br>\n                                    {{seller.country}}\n                                </td>\n                                <td>\n                                    {{buyer.name}}<br>\n                                    {{buyer.road}}<br>\n                                    {{buyer.country}}\n                                </td>\n                            </tr>\n                        </table>\n                    </td>\n                </tr>\n                <tr class=\"heading \">\n                    <td>\n                        Item\n                    </td>\n                    <td>\n                        Price\n                    </td>\n                </tr>\n                {{#each items}}\n                <tr class=\"item\">\n                    <td>\n                        {{name}}\n                    </td>\n                    <td>\n                        $ {{price}}\n                    </td>\n                </tr>\n                {{/each}}\n                <tr class=\"total \">\n                    <td></td>\n                    <td>\n                        Total: ${{total items}}\n                    </td>\n                </tr>\n            </table>\n        </div>\n    </body>\n</html>\n\n\n\n",
+    "helpers": "function now() {\n    return new Date().toLocaleDateString()\n}\n\nfunction nowPlus20Days() {\n    var date = new Date()\n    date.setDate(date.getDate() + 20);\n    return date.toLocaleDateString();\n}\n\nfunction total(items) {\n    var sum = 0\n    items.forEach(function (i) {\n        console.log('Calculating item ' + i.name + '; you should see this message in debug run')\n        sum += i.price\n    })\n    return sum\n}",
+    "folder": {
+      "shortid": "G3i2B3"
+    },
+    "modificationDate": {
+        "$$date": 1522011662902
+    },
+    "_id": "7xektV4PFTzCbEMm",
+    "chrome": {
+        "printBackground": true,
+        "marginTop": "1cm",
+        "marginRight": "1cm",
+        "marginBottom": "1cm",
+        "marginLeft": "1cm",
+        "headerTemplate": "",
+        "footerTemplate": ""
+    }
+}
