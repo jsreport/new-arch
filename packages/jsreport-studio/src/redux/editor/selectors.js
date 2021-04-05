@@ -2,7 +2,9 @@ import { selectors } from '../entities'
 import { editorComponents } from '../../lib/configuration.js'
 
 export const getTabWithEntities = (state) => state.editor.tabs.map((t) => ({
-  entity: t.type === 'entity' ? selectors.getById(state, t._id) : null,
+  entity: t.type === 'entity' ? selectors.getById(state, t._id) : (
+    typeof t.getEntity === 'function' ? t.getEntity() : null
+  ),
   tab: t
 }))
 
@@ -19,19 +21,23 @@ export const getActiveEntity = (state) => {
     return null
   }
 
-  return tab.type === 'entity' ? selectors.getById(state, tab._id, false) : null
+  return tab.type === 'entity' ? selectors.getById(state, tab._id, false) : (
+    typeof tab.getEntity === 'function' ? tab.getEntity() : null
+  )
 }
 
 export const getActiveTabWithEntity = (state) => {
   const tab = getActiveTab(state)
 
-  if (!tab || tab.type !== 'entity') {
-    return tab
+  if (!tab || (tab.type !== 'entity' && typeof tab.getEntity !== 'function')) {
+    return { tab }
   }
 
   return {
-    tab: tab,
-    entity: selectors.getById(state, tab._id)
+    tab,
+    entity: tab.type === 'entity' ? selectors.getById(state, tab._id) : (
+      typeof tab.getEntity === 'function' ? tab.getEntity() : null
+    )
   }
 }
 
@@ -44,6 +50,12 @@ export const getLastActiveTemplate = (state) => {
 }
 
 export const canRun = (state) => {
+  const activeTab = getActiveTab(state)
+
+  if (activeTab != null) {
+    return !!state.editor.lastActiveTemplateKey && activeTab.type === 'entity'
+  }
+
   return !!state.editor.lastActiveTemplateKey
 }
 
@@ -66,5 +78,5 @@ export const canSaveAll = (state) => {
 export const canReformat = (state) => {
   const tab = getActiveTab(state)
 
-  return (tab && editorComponents[tab.editorComponentKey || tab.entitySet].reformat) ? true : false
+  return (tab && editorComponents[tab.editorComponentKey || tab.entitySet].reformat != null)
 }

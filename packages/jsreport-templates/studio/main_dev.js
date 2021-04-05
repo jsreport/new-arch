@@ -10,7 +10,7 @@ const linkModal = (props) =>
   </div>
 
 Studio.addToolbarComponent((props) => {
-  if (!props.tab || !props.tab.entity || props.tab.entity.__entitySet !== 'templates') {
+  if (!props.tab || !props.tab.tab || props.tab.tab.type !== 'entity' || !props.tab.entity || props.tab.entity.__entitySet !== 'templates') {
     return <span />
   }
 

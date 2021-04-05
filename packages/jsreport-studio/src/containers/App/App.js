@@ -521,11 +521,28 @@ class App extends Component {
       stop,
       activateTab,
       activeTabKey,
+      activeTab,
       activeEntity,
       update,
       groupedUpdate,
       undockMode
     } = this.props
+
+    const updateBasedOnActiveTab = (...params) => {
+      if (activeTab && activeTab.readOnly) {
+        return
+      }
+
+      return update(...params)
+    }
+
+    const groupedUpdateBasedOnActiveTab = (...params) => {
+      if (activeTab && activeTab.readOnly) {
+        return
+      }
+
+      return groupedUpdate(...params)
+    }
 
     return (
       <DndProvider backend={HTML5Backend}>
@@ -542,7 +559,7 @@ class App extends Component {
                 onSaveAll={() => this.saveAll()}
                 isPending={isPending}
                 activeTab={activeTabWithEntity}
-                onUpdate={update}
+                onUpdate={updateBasedOnActiveTab}
                 onRun={(runType) => {
                   this.handleRun(this.createPreviewTarget(runType === 'download' ? 'download' : (undockMode || runType === 'window') ? `window-${this.getPreviewWindowOptions().id}` : undefined))
                 }}
@@ -562,7 +579,7 @@ class App extends Component {
                     <EntityTreeBox>
                       {this.renderEntityTree()}
                     </EntityTreeBox>
-                    <Properties entity={activeEntity} entities={entities} onChange={update} />
+                    <Properties entity={activeEntity} entities={entities} onChange={updateBasedOnActiveTab} />
                   </SplitPane>
 
                   <div className='block'>
@@ -586,7 +603,7 @@ class App extends Component {
                       resizerClassName='resizer'>
                       <EditorTabs
                         activeTabKey={activeTabKey}
-                        onUpdate={(v) => groupedUpdate(v)}
+                        onUpdate={(v) => groupedUpdateBasedOnActiveTab(v)}
                         tabs={tabsWithEntities}
                       />
                       <Preview ref={this.previewRef} main onLoad={stop} />
@@ -612,6 +629,7 @@ export default connect((state) => ({
   canSave: selectors.canSave(state),
   canSaveAll: selectors.canSaveAll(state),
   tabsWithEntities: selectors.getTabWithEntities(state),
+  activeTab: selectors.getActiveTab(state),
   activeEntity: selectors.getActiveEntity(state),
   lastActiveTemplate: selectors.getLastActiveTemplate(state),
   undockMode: state.editor.undockMode,

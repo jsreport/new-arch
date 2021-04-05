@@ -3,12 +3,13 @@ import React, { Fragment, Component } from 'react'
 import { connect } from 'react-redux'
 import classNames from 'classnames'
 import shortid from 'shortid'
-import { applyPatch } from 'diff'
 import PreviewDisplay from './PreviewDisplay'
 import ProfilerContent from './ProfilerContent'
+import ProfilerInspectModal from '../Modals/ProfilerInspectModal'
 import ProfilerErrorModal from '../Modals/ProfilerErrorModal'
 import { selectors as entitiesSelectors } from '../../redux/entities'
 import { actions as editorActions } from '../../redux/editor'
+import getStateAtOperation from './getStateAtOperation'
 import { findTextEditor, selectLine as selectLineInTextEditor } from '../../helpers/textEditorInstance'
 import {
   modalHandler,
@@ -38,6 +39,7 @@ class Preview extends Component {
       previewDisplayIframeKey: shortid.generate(),
       src: this.props.initialSrc,
       previewId: null,
+      previewTemplate: null,
       previewType: 'normal',
       disableTheming: false,
       activePreviewTab: 'profiler',
@@ -85,6 +87,7 @@ class Preview extends Component {
 
         if (opts.id !== this.state.previewId) {
           newState.previewId = opts.id
+          newState.previewTemplate = opts.template
           newState.previewType = opts.type
           newState.profilerOperations = []
           newState.profilerLogs = []
@@ -188,6 +191,52 @@ class Preview extends Component {
         this.setState({ profilerActiveElement: null })
         return
       }
+    } else {
+      modalHandler.open(ProfilerInspectModal, {
+        data: {
+          sourceId: meta.data.edge.source,
+          targetId: meta.data.edge.target,
+          template: this.state.previewTemplate,
+          getContent: () => {
+            const { outputId, inputId } = meta.data.edge.data
+            let basedOnCompletedState = false
+            let operationWithState
+            let result
+
+            if (outputId == null) {
+              operationWithState = getStateAtOperation(this.state.profilerOperations, inputId, false)
+            } else if (inputId == null) {
+              basedOnCompletedState = true
+              operationWithState = getStateAtOperation(this.state.profilerOperations, outputId, true)
+            } else {
+              operationWithState = getStateAtOperation(this.state.profilerOperations, inputId, true)
+            }
+
+            if (basedOnCompletedState) {
+              result = {
+                reqContent: operationWithState.completedReqState,
+                reqDiff: operationWithState.completedReq.diff,
+                resContent: operationWithState.completedResState,
+                resDiff: operationWithState.completedRes.content != null && operationWithState.completedRes.content.encoding === 'diff' ? operationWithState.completedRes.content.content : '',
+                resMetaContent: operationWithState.completedResMetaState
+              }
+            } else {
+              result = {
+                reqContent: operationWithState.reqState,
+                reqDiff: operationWithState.req.diff,
+                resContent: operationWithState.resState,
+                resDiff: operationWithState.res.content != null && operationWithState.res.content.encoding === 'diff' ? operationWithState.res.content.content : '',
+                resMetaContent: operationWithState.resMetaState
+              }
+            }
+
+            return result
+          }
+        },
+        onModalClose: () => {
+          this.setState({ profilerActiveElement: null })
+        }
+      })
     }
 
     this.setState((prevState) => {
@@ -250,7 +299,6 @@ class Preview extends Component {
 
       if (operation.type === 'operationEnd') {
         let foundIndex
-        let previousFoundIndex
 
         for (let i = prev.profilerOperations.length - 1; i >= 0; i--) {
           const targetOperation = prev.profilerOperations[i]
@@ -267,128 +315,27 @@ class Preview extends Component {
 
         const foundOperation = prev.profilerOperations[foundIndex]
 
-        for (let i = prev.profilerOperations.length - 1; i >= 0; i--) {
-          const targetOperation = prev.profilerOperations[i]
-
-          if (targetOperation.id === operation.previousOperationId) {
-            previousFoundIndex = i
-            break
-          }
-        }
-
-        if (previousFoundIndex == null) {
-          throw new Error(`Previous operation with id "${operation.previousOperationId}" not found`)
-        }
-
-        const previousOperation = prev.profilerOperations[previousFoundIndex]
-
-        let completedReqState
-        let completedResState
-        let completedResMetaState
-
-        completedReqState = applyPatch(
-          previousOperation.type === 'render' || operation.id === previousOperation.id ? (
-            previousOperation.reqState
-          ) : previousOperation.completed ? previousOperation.completedReqState : previousOperation.reqState,
-          operation.req.diff
-        )
-
-        if (operation.res.content != null) {
-          if (operation.res.content.encoding === 'diff') {
-            completedResState = applyPatch(
-              previousOperation.type === 'render' || operation.id === previousOperation.id ? (
-                previousOperation.resState
-              ) : previousOperation.completed ? previousOperation.completedResState : previousOperation.resState,
-              operation.res.content.content
-            )
-          } else {
-            completedResState = operation.res.content.content
-          }
-        } else {
-          completedResState = previousOperation.completed ? previousOperation.completedResState : previousOperation.resState
-        }
-
-        completedResMetaState = applyPatch(
-          previousOperation.type === 'render' || operation.id === previousOperation.id ? (
-            previousOperation.resMetaState
-          ) : previousOperation.completed ? previousOperation.completedResMetaState : previousOperation.resMetaState,
-          operation.res.meta.diff
-        )
-
         newOperations = [...prev.profilerOperations.slice(0, foundIndex), {
           ...foundOperation,
           completed: true,
           completedTimestamp: operation.timestamp,
           completedReq: operation.req,
-          completedReqState,
           completedRes: operation.res,
-          completedResState,
-          completedResMetaState,
           completedPreviousOperationId: operation.previousOperationId
         }, ...prev.profilerOperations.slice(foundIndex + 1)]
       } else {
-        let reqState
-        let resState
-        let resMetaState
-        let previousOperation
-
-        if (operation.previousOperationId != null) {
-          let foundIndex
-
-          for (let i = prev.profilerOperations.length - 1; i >= 0; i--) {
-            const targetOperation = prev.profilerOperations[i]
-
-            if (targetOperation.id === operation.previousOperationId) {
-              foundIndex = i
-              break
-            }
-          }
-
-          if (foundIndex == null) {
-            throw new Error(`Previous operation with id "${operation.previousOperationId}" not found`)
-          }
-
-          previousOperation = prev.profilerOperations[foundIndex]
-        }
-
-        reqState = applyPatch(previousOperation != null ? (
-          previousOperation.type === 'render' ? previousOperation.reqState : previousOperation.completedReqState
-        ) : '', operation.req.diff)
-
-        if (previousOperation != null) {
-          if (operation.res.content != null) {
-            if (operation.res.content.encoding === 'diff') {
-              resState = applyPatch(previousOperation.type === 'render' ? previousOperation.resState : previousOperation.completedResState, operation.res.content.content)
-            } else {
-              resState = operation.res.content.content
-            }
-          } else {
-            resState = previousOperation.type === 'render' ? previousOperation.resState : previousOperation.completedResState
-          }
-        } else {
-          resState = ''
-        }
-
-        resMetaState = applyPatch(previousOperation != null ? (
-          previousOperation.type === 'render' ? previousOperation.resMetaState : previousOperation.completedResMetaState
-        ) : '', operation.res.meta.diff)
-
         newOperations = [...prev.profilerOperations, {
           id: operation.id,
           type: operation.subtype,
           name: operation.name,
           timestamp: operation.timestamp,
           req: operation.req,
-          reqState,
           res: operation.res,
-          resState,
-          resMetaState,
           previousOperationId: operation.previousOperationId,
           completed: false,
           completedTimestamp: null,
           completedReq: null,
           completedRes: null,
-          completedResMetaState: null,
           completedPreviousOperationId: null
         }]
       }
@@ -472,6 +419,7 @@ class Preview extends Component {
       src: null,
       disableTheming: false,
       previewId: null,
+      previewTemplate: null,
       previewType: 'normal',
       activePreviewTab: 'profiler',
       profilerOperations: [],

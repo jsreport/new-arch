@@ -5,6 +5,7 @@ import dagre from 'dagre'
 import StartNode from './StartNode'
 import OperationNode from './OperationNode'
 import DefaultEdge from './DefaultEdge'
+import getStateAtOperation from './getStateAtOperation'
 import styles from './Preview.css'
 
 const nodeTypes = {
@@ -109,7 +110,12 @@ function getElementsFromOperations (operations, errors, activeElement) {
     let errorSource
 
     if (operation.previousOperationId != null) {
-      elements.push(createEdge(operation.previousOperationId, operation.id, activeElement))
+      elements.push(createEdge(operation.previousOperationId, operation.id, activeElement, {
+        data: {
+          outputId: operation.previousOperationId,
+          inputId: operation.id
+        }
+      }))
     }
 
     if (operation.type === 'render' && operation.completed === true) {
@@ -139,15 +145,7 @@ function getElementsFromOperations (operations, errors, activeElement) {
         time: operation.completed ? operation.completedTimestamp - operation.timestamp : null,
         timeCost: isMainCompleted ? getTimeCost(operation.completedTimestamp - operation.timestamp, mainOperation.completedTimestamp - mainOperation.timestamp) : null,
         operation,
-        error: errorSource,
-        reqResInfo: activeElement != null && activeElement.isEdge && activeElement.data.edge.target === operation.id ? {
-          reqState: operation.reqState,
-          reqDiff: operation.req.diff,
-          resState: operation.resState,
-          resMetaState: operation.resMetaState,
-          resDiff: operation.res.content != null && operation.res.content.encoding === 'diff' ? operation.res.content.content : '',
-          edge: activeElement.data.edge
-        } : undefined
+        error: errorSource
       },
       position: defaultPosition,
       type: 'operation',
@@ -157,7 +155,12 @@ function getElementsFromOperations (operations, errors, activeElement) {
     elements.push(node)
 
     if (i === 0) {
-      elements.push(createEdge('preview-start', operation.id, activeElement))
+      elements.push(createEdge('preview-start', operation.id, activeElement, {
+        data: {
+          outputId: null,
+          inputId: operation.id
+        }
+      }))
     }
   }
 
@@ -203,18 +206,16 @@ function getElementsFromOperations (operations, errors, activeElement) {
         time: operation.completedTimestamp - operation.timestamp,
         timeCost: isMainCompleted && mainOperation.id !== operation.id ? getTimeCost(operation.completedTimestamp - operation.timestamp, mainOperation.completedTimestamp - mainOperation.timestamp) : null,
         error: errorInRender,
-        reqResInfo: activeElement != null && activeElement.isEdge && activeElement.data.edge.target === endNodeId ? {
-          reqState: operation.completedReqState,
-          reqDiff: operation.completedReq.diff,
-          resState: operation.completedResState,
-          resMetaState: operation.completedResMetaState,
-          resDiff: operation.completedRes.content != null && operation.completedRes.content.encoding === 'diff' ? operation.completedRes.content.content : '',
-          edge: activeElement.data.edge
-        } : undefined,
-        output: errorInRender == null ? {
-          content: operation.completedResState,
-          contentEncoding: operation.completedRes.content.encoding === 'diff' ? 'plain' : operation.completedRes.content.encoding,
-          meta: operation.completedResMetaState
+        renderResult: errorInRender == null ? {
+          getContent: () => {
+            const state = getStateAtOperation(operations, operation.id, true)
+
+            return {
+              content: state.completedResState,
+              contentEncoding: operation.completedRes.content.encoding === 'diff' ? 'plain' : operation.completedRes.content.encoding,
+              meta: state.completedResMetaState
+            }
+          }
         } : undefined,
         end: true
       },
@@ -225,7 +226,12 @@ function getElementsFromOperations (operations, errors, activeElement) {
 
     elements.push(endNode)
 
-    elements.push(createEdge(operation.completedPreviousOperationId, endNodeId, activeElement))
+    elements.push(createEdge(operation.completedPreviousOperationId, endNodeId, activeElement, {
+      data: {
+        outputId: operation.id,
+        inputId: null
+      }
+    }))
   }
 
   const dagreGraph = new dagre.graphlib.Graph()
@@ -281,7 +287,8 @@ function createEdge (sourceId, targetId, activeElement, opts = {}) {
     target: targetId,
     type: 'customDefault',
     className: edgeClass,
-    arrowHeadType: 'arrowclosed'
+    arrowHeadType: 'arrowclosed',
+    ...opts
   }
 
   return edge

@@ -17,6 +17,7 @@ let lastTextEditorMounted = {
 
 class TextEditor extends Component {
   static propTypes = {
+    readOnly: PropTypes.bool,
     value: PropTypes.string,
     onUpdate: PropTypes.func.isRequired,
     mode: PropTypes.string.isRequired,
@@ -56,6 +57,12 @@ class TextEditor extends Component {
         editorTheme: newEditorTheme
       })
     })
+  }
+
+  componentDidUpdate (prevProps) {
+    if (prevProps.readOnly !== this.props.readOnly) {
+      this.monacoRef.current.editor.updateOptions({ readOnly: this.props.readOnly === true })
+    }
   }
 
   componentWillUnmount () {
@@ -143,6 +150,10 @@ class TextEditor extends Component {
     editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KEY_F, () => {
       editor.getAction('editor.action.formatDocument').run()
     })
+
+    if (this.props.readOnly) {
+      editor.updateOptions({ readOnly: true })
+    }
 
     const self = this
 

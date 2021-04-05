@@ -38,6 +38,8 @@ export default () => {
   configuration.editorComponents.startup = Startup
   configuration.editorComponents.profiler = Profiler
 
+  configuration.editorComponents.inspectJSON = require('./components/Editor/InspectJSONEditor.js')
+
   configuration.entitySets.templates = {
     name: 'templates',
     visibleName: 'template',

@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types'
 import React, { Fragment, Component } from 'react'
+import _omit from 'lodash/omit'
 import TabPane from './TabPane'
 import { editorComponents, entityEditorComponentKeyResolvers } from '../../lib/configuration.js'
 
@@ -66,11 +67,18 @@ export default class EditorTabs extends Component {
     }
 
     const editorProps = {
+      ...(typeof t.tab.getProps === 'function' ? t.tab.getProps() : {}),
       ...editorComponentResult.props,
       entity,
-      tab: t.tab,
+      tab: _omit(t.tab, ['getEntity', 'getProps', 'update']),
       ref: (el) => { this[`${t.tab.key}Ref`] = el },
-      onUpdate: (o) => onUpdate(o)
+      onUpdate: (o) => {
+        if (typeof t.tab.update === 'function') {
+          return t.tab.update(o, onUpdate)
+        } else {
+          return onUpdate(o)
+        }
+      }
     }
 
     return (
