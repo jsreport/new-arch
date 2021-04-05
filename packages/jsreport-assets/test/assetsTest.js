@@ -1086,6 +1086,46 @@ describe('assets', function () {
         e.message.includes('Invalid asset path').should.be.true()
       }
     })
+
+    it('should export proxy.asset.read', async () => {
+      await reporter.documentStore.collection('assets').insert({
+        name: 'foo.html',
+        content: 'hello'
+      })
+
+      const res = await reporter.render({
+        template: {
+          content: '{{:~helper()}}',
+          recipe: 'html',
+          engine: 'jsrender',
+          helpers: 'function helper() { return require(\'jsreport-proxy\').assets.read(\'foo.html\') }'
+        }
+      })
+      res.content.toString().should.be.eql('hello')
+    })
+
+    it('should export proxy.asset.require', async () => {
+      await reporter.documentStore.collection('assets').insert({
+        name: 'foo.js',
+        content: 'module.exports.fn = () => \'hello\''
+      })
+
+      const res = await reporter.render({
+        template: {
+          content: '{{:~helper()}}',
+          recipe: 'html',
+          engine: 'jsrender',
+          helpers: `
+            const jsreport = require('jsreport-proxy')
+            const foo = await jsreport.assets.require('foo.js')
+            function helper() { 
+              return foo.fn() 
+            }
+          `
+        }
+      })
+      res.content.toString().should.be.eql('hello')
+    })
   })
 })
 

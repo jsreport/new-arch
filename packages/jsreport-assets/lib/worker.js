@@ -119,6 +119,14 @@ module.exports = (reporter, definition) => {
       read: async (path, encoding) => {
         const r = await readAsset(reporter, definition, null, path, encoding, req)
         return r.content
+      },
+
+      require: async (path) => {
+        const r = await readAsset(reporter, definition, null, path, 'utf8', req)
+        const m = { exports: { } }
+        /* eslint-disable no-new-func */
+        new Function('module', r.content)(m)
+        return m.exports
       }
     }
   })
