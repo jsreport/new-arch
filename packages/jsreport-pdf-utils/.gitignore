@@ -64,6 +64,7 @@ prod.config.json
 jsreport.config.json
 
 data
+out.pdf
 
 # studio/main.js
 # studio/main.js.map
