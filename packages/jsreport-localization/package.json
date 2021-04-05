@@ -1,0 +1,54 @@
+{
+  "author": {
+    "name": "Jan Blaha",
+    "email": "jan.blaha@hotmail.com"
+  },
+  "bugs": {
+    "url": "https://github.com/jsreport/jsreport-localization/issues"
+  },
+  "contributos": [
+    "BJR Matos <bjrmatos@gmail.com> (https://github.com/bjrmatos)"
+  ],
+  "dependencies": {},
+  "description": "jsreport exension adding localize helper",
+  "devDependencies": {
+    "handlebars": "4.7.7",
+    "jsreport-assets": "1.7.0",
+    "jsreport-core": "2.10.1",
+    "jsreport-handlebars": "2.1.0",
+    "jsreport-templates": "2.4.0",
+    "mocha": "8.3.2",
+    "should": "13.2.3",
+    "standard": "16.0.3"
+  },
+  "engines": {
+    "node": ">=14"
+  },
+  "files": [
+    "lib",
+    "studio",
+    "index.js",
+    "jsreport.config.js",
+    "static"
+  ],
+  "homepage": "https://github.com/jsreport/jsreport-localization",
+  "keywords": [
+    "jsreport",
+    "localization"
+  ],
+  "license": "MIT",
+  "name": "jsreport-localization",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/jsreport/jsreport-localization.git"
+  },
+  "scripts": {
+    "test": "mocha test --timeout 8000 && standard"
+  },
+  "standard": {
+    "env": {
+      "mocha": true
+    }
+  },
+  "version": "0.1.0"
+}

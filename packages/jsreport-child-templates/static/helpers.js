@@ -11,7 +11,7 @@ function childTemplateParseData (dataStr) {
 }
 
 async function childTemplate (templateNameOrObject, data, options, opts) {
-  let jsreport = require('jsreport-proxy')
+  const jsreport = require('jsreport-proxy')
   const res = await jsreport.render({
     template: typeof templateNameOrObject === 'string' ? {
       name: templateNameOrObject

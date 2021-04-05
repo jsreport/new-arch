@@ -39,7 +39,7 @@ function init (options) {
 
       reporter.documentStore.registerEntitySet('reports', { entityType: 'jsreport.ReportType' })
     }
-  })
+  }).use(core.tests.listeners())
 
   return reporter.init()
 }
@@ -776,6 +776,35 @@ describe('folders', function () {
         shortid: 'A',
         content: 'a'
       }).should.be.rejected()
+    })
+
+    it('resolveEntityFromPath should work also in proxy', async () => {
+      await reporter.documentStore.collection('folders').insert({
+        name: 'a',
+        shortid: 'a'
+      })
+      await reporter.documentStore.collection('folders').insert({
+        name: 'b',
+        shortid: 'b',
+        folder: {
+          shortid: 'a'
+        }
+      })
+
+      reporter.tests.beforeRenderEval(async (req, res, { reporter }) => {
+        const proxy = reporter.createProxy({ req })
+        const { entity } = await proxy.folders.resolveEntityFromPath('/a/b', 'folders')
+        req.template.content = entity.name
+      })
+
+      const res = await reporter.render({
+        template: {
+          content: 'hello',
+          engine: 'none',
+          recipe: 'html'
+        }
+      })
+      res.content.toString().should.be.eql('b')
     })
   })
 

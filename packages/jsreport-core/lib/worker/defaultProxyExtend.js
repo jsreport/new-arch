@@ -1,5 +1,7 @@
 
 module.exports = (reporter) => (proxy, req) => {
+  proxy.req = req
+
   proxy.render = async (renderRequest) => {
     const res = await reporter.render({
       ...renderRequest,
@@ -31,5 +33,11 @@ module.exports = (reporter) => (proxy, req) => {
         return res
       }
     })
+  }
+
+  proxy.folders = {
+    resolveEntityFromPath: (path, es) => {
+      return reporter.folders.resolveEntityFromPath(path, es, req)
+    }
   }
 }
