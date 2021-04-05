@@ -20,7 +20,8 @@ module.exports = async function response ({
   previewOptions: { publicUri, enabled },
   officeDocumentType,
   stream,
-  buffer
+  buffer,
+  logger
 }, req, res) {
   if (buffer) {
     res.content = buffer
@@ -59,17 +60,19 @@ module.exports = async function response ({
       maxContentLength: Infinity
     })
   } catch (e) {
-    const originalMsg = e.message
-
-    e.message = `${officeDocumentType} file upload to ${targetPublicUri} failed`
+    let message = `${officeDocumentType} file upload to ${targetPublicUri} failed.`
 
     if (e.response && e.response.status && e.response.status === 413) {
-      e.message = `. file is too big and it pass the upload limits of server`
+      message += ` File is too big and it pass the upload limits of server.`
     }
+    message += ' Returning plain document for download.'
+    message += ` (full error: ${e.message})`
+    logger.error(message, req)
 
-    e.message += `. ${originalMsg}`
-
-    throw e
+    res.meta.fileExtension = officeDocumentType
+    res.meta.contentType = officeDocuments[officeDocumentType].contentType
+    res.meta.officeDocumentType = officeDocumentType
+    return
   }
 
   const iframe = '<iframe style="height:100%;width:100%" src="https://view.officeapps.live.com/op/view.aspx?src=' +

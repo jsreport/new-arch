@@ -50,6 +50,7 @@ module.exports = (reporter, definition) => async (req, res) => {
   await response({
     previewOptions: definition.options.preview,
     officeDocumentType: 'docx',
-    stream: res.stream
+    stream: res.stream,
+    logger: reporter.logger
   }, req, res)
 }

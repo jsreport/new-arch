@@ -7,7 +7,7 @@
     "lib": "lib"
   },
   "scripts": {
-    "test": "standard"
+    "test": "mocha test --timeout 8000 && standard"
   },
   "repository": {
     "type": "git",
@@ -31,10 +31,17 @@
     "zip": "1.2.0"
   },
   "devDependencies": {
-    "standard": "12.0.1"
+    "standard": "12.0.1",
+    "mocha": "8.3.2",
+    "should": "13.2.3"
   },
   "files": [
     "lib",
     "index.js"
-  ]
+  ],
+  "standard": {
+    "env": {
+      "mocha": true
+    }
+  }
 }

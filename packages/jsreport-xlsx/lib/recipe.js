@@ -90,6 +90,7 @@ module.exports = async (reporter, definition, req, res) => {
   return response({
     previewOptions: definition.options.preview,
     officeDocumentType: 'xlsx',
-    stream: res.stream
+    stream: res.stream,
+    logger: reporter.logger
   }, req, res)
 }
