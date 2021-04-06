@@ -1,0 +1,46 @@
+{
+  "name": "jsreport-docker-workers",
+  "version": "1.5.1",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "docker pull jsreport/jsreport-worker&&set DEBUG=jsreport&&mocha test --exit --timeout=50000 && standard",
+    "lint": "standard"
+  },
+  "author": "Jan Blaha",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "0.19.2",
+    "bluebird": "3.5.3",
+    "fs-extra": "7.0.1",
+    "ip": "1.1.5",
+    "listener-collection": "1.2.0",
+    "lodash.get": "4.4.2",
+    "lodash.omit": "4.5.0",
+    "node.extend": "2.0.2",
+    "serializator": "1.0.2",
+    "uuid": "3.3.2"
+  },
+  "devDependencies": {
+    "eslint": "5.5.0",
+    "handlebars": "4.7.6",
+    "jsreport-authentication": "2.6.1",
+    "jsreport-chrome-pdf": "1.10.0",
+    "jsreport-core": "2.10.1",
+    "jsreport-express": "2.8.1",
+    "jsreport-fs-store": "2.9.1",
+    "jsreport-handlebars": "2.1.0",
+    "jsreport-scripts": "2.6.0",
+    "mocha": "5.2.0",
+    "parse-pdf": "1.0.0",
+    "puppeteer": "2.0.0",
+    "should": "13.2.3",
+    "standard": "12.0.1"
+  },
+  "standard": {
+    "env": {
+      "mocha": true,
+      "node": true
+    }
+  }
+}
