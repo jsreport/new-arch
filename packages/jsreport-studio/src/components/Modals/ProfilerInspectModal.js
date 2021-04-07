@@ -70,7 +70,7 @@ class ProfilerInspectModal extends Component {
         getProps: () => ({
           jsonId: key,
           jsonName: `${this.props.options.data.template.name} (data)`,
-          jsonContent: JSON.stringify(reqContent.data)
+          jsonContent: JSON.stringify(reqContent.data, null, 2)
         })
       })
     }
