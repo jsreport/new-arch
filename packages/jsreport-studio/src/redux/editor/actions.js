@@ -145,10 +145,12 @@ export function activateTab (id) {
 
 export function updateHistory () {
   return (dispatch, getState) => {
-    const entity = selectors.getActiveEntity(getState())
+    const { tab, entity } = selectors.getActiveTabWithEntity(getState())
     let path
 
-    if (entity && entity.shortid) {
+    if (tab && tab.customUrl) {
+      path = tab.customUrl
+    } else if (entity && entity.shortid) {
       path = resolveUrl(`/studio/${entity.__entitySet}/${entity.shortid}`)
     } else {
       path = resolveUrl('/')
@@ -402,7 +404,16 @@ export function run (target) {
 
     dispatch({ type: ActionTypes.RUN })
 
-    await previewConfigurationHandler({ ...previewConfig, src: null, id: target.previewId, type: 'report' })
+    await previewConfigurationHandler({
+      ...previewConfig,
+      src: null,
+      id: target.previewId,
+      template: {
+        name: template.name,
+        shortid: template.shortid
+      },
+      type: 'report'
+    })
 
     await preview(request, target)
   }

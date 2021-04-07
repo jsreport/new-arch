@@ -207,7 +207,7 @@ class TabTitles extends Component {
     const { contextMenuKey } = this.state
     let complementTitle
 
-    if (t.entity) {
+    if (t.tab.type === 'entity' && t.entity) {
       const currentName = getEntityName(t.entity)
       const duplicated = tabs.some((targetT) => {
         if (targetT.entity != null && targetT.entity._id !== t.entity._id) {

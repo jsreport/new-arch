@@ -1,8 +1,7 @@
-import { Fragment, useRef, useMemo, useCallback } from 'react'
+import { Fragment, useCallback } from 'react'
 import { Handle } from 'react-flow-renderer'
 import fileSaver from 'filesaver.js-npm'
-import ProfilerInspectReqResModal from '../Modals/ProfilerInspectReqResModal'
-import { modalHandler } from '../../lib/configuration'
+import b64toBlob from './b64toBlob'
 import styles from './Preview.css'
 
 const OperationNode = (props) => {
@@ -14,64 +13,39 @@ const OperationNode = (props) => {
     sourcePosition = 'bottom'
   } = props
 
-  const { time, timeCost, operation, reqResInfo, error, output, end } = data
+  const { time, timeCost, operation, error, renderResult, end } = data
   const showExecutionTime = end ? time != null : (operation.type !== 'render' && time != null)
   const showTimeCost = end ? timeCost != null : (operation.type !== 'render' && timeCost != null)
-  const nodeContentRef = useRef(null)
 
-  const targetEdgeId = reqResInfo != null ? reqResInfo.edge.id : undefined
-
-  const reqResInfoPosition = useMemo(() => {
-    if (nodeContentRef.current == null || targetEdgeId == null) {
+  const handleDownloadRenderResultClick = useCallback(async () => {
+    if (renderResult == null) {
       return
     }
 
-    const targetEdgeEl = document.getElementById(targetEdgeId)
-    const targetEdgeDimensions = targetEdgeEl.getBoundingClientRect()
-
-    return {
-      top: 'calc(-100% - 10px)',
-      left: `${(nodeContentRef.current.parentElement.getBoundingClientRect().x - targetEdgeDimensions.x) * -1}px`,
-      transform: 'translateX(calc(-50% + 10px))'
-    }
-  }, [targetEdgeId])
-
-  const handleReqClick = useCallback(() => {
-    modalHandler.open(ProfilerInspectReqResModal, { title: 'Request', content: reqResInfo.reqState, diff: reqResInfo.reqDiff })
-  }, [reqResInfo])
-
-  const handleResClick = useCallback(() => {
-    modalHandler.open(ProfilerInspectReqResModal, { title: 'Response', content: reqResInfo.resState, diff: reqResInfo.resDiff })
-  }, [reqResInfo])
-
-  const handleDownloadOutputClick = useCallback(async () => {
-    if (output == null) {
-      return
-    }
-
-    const parsedMeta = JSON.parse(output.meta)
+    const renderResultInfo = renderResult.getContent()
+    const parsedMeta = JSON.parse(renderResultInfo.meta)
     let blob
 
-    if (output.contentEncoding === 'base64') {
-      blob = b64toBlob(output.content, parsedMeta.contentType)
-    } else if (output.contentEncoding === 'plain') {
-      blob = new Blob([output.content], { type: parsedMeta.contentType })
+    if (renderResultInfo.contentEncoding === 'base64') {
+      blob = b64toBlob(renderResultInfo.content, parsedMeta.contentType)
+    } else if (renderResultInfo.contentEncoding === 'plain') {
+      blob = new Blob([renderResultInfo.content], { type: parsedMeta.contentType })
     }
 
     if (blob != null) {
       fileSaver.saveAs(blob, `${parsedMeta.reportName}.${parsedMeta.fileExtension}`)
     }
-  }, [output])
+  }, [renderResult])
 
   return (
     <Fragment>
       <Handle type='target' position={targetPosition} isConnectable={isConnectable} />
-      <div id={id} ref={nodeContentRef}>
-        {output != null ? (
+      <div id={id}>
+        {renderResult != null ? (
           <button
             className={styles.profilerButtonAction}
-            title='download output'
-            onClick={handleDownloadOutputClick}
+            title='download render result'
+            onClick={handleDownloadRenderResultClick}
           >
             <i className='fa fa-download' />
           </button>
@@ -80,23 +54,6 @@ const OperationNode = (props) => {
         )}
       </div>
       <Handle type='source' position={sourcePosition} isConnectable={isConnectable} />
-      {reqResInfo != null && (
-        <div className={styles.profilerReqResButtons} style={{ ...reqResInfoPosition }} onClick={(ev) => ev.stopPropagation()}>
-          <button
-            className={styles.profilerButtonAction}
-            style={{ marginRight: '0.5rem' }}
-            onClick={handleReqClick}
-          >
-            req
-          </button>
-          <button
-            className={styles.profilerButtonAction}
-            onClick={handleResClick}
-          >
-            res
-          </button>
-        </div>
-      )}
       {showTimeCost && (
         <div
           className={`${styles.profilerExecutionTimeCost} ${getTimeCostCategoryClass(timeCost * 100)}`}
@@ -127,26 +84,6 @@ function getTimeCostCategoryClass (percentageCost) {
   } else {
     return styles.high
   }
-}
-
-function b64toBlob (b64Data, contentType = '', sliceSize = 512) {
-  const byteCharacters = atob(b64Data)
-  const byteArrays = []
-
-  for (let offset = 0; offset < byteCharacters.length; offset += sliceSize) {
-    const slice = byteCharacters.slice(offset, offset + sliceSize)
-
-    const byteNumbers = new Array(slice.length)
-    for (let i = 0; i < slice.length; i++) {
-      byteNumbers[i] = slice.charCodeAt(i)
-    }
-
-    const byteArray = new Uint8Array(byteNumbers)
-    byteArrays.push(byteArray)
-  }
-
-  const blob = new Blob(byteArrays, { type: contentType })
-  return blob
 }
 
 export default OperationNode
