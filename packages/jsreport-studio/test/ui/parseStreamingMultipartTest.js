@@ -378,7 +378,8 @@ function createResponseMock (boundary, chunks) {
             }
 
             return result
-          }
+          },
+          cancel: async () => {}
         }
       }
     }

@@ -554,6 +554,8 @@ class Preview extends Component {
   }
 }
 
+export { Preview }
+
 export default connect(
   (state) => ({
     getEntityByShortid: (shortid, ...params) => entitiesSelectors.getByShortid(state, shortid, ...params)
