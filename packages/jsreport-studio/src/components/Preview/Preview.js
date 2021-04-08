@@ -209,7 +209,7 @@ class Preview extends Component {
               basedOnCompletedState = true
               operationWithState = getStateAtOperation(this.state.profilerOperations, outputId, true)
             } else {
-              operationWithState = getStateAtOperation(this.state.profilerOperations, inputId, true)
+              operationWithState = getStateAtOperation(this.state.profilerOperations, inputId, false)
             }
 
             if (basedOnCompletedState) {
@@ -553,6 +553,8 @@ class Preview extends Component {
     )
   }
 }
+
+export { Preview }
 
 export default connect(
   (state) => ({

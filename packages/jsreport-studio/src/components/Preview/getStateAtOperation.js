@@ -1,6 +1,6 @@
 import { applyPatch } from 'diff'
 
-function getStateAtOperation (operations, operationId, completed = false) {
+function getStateAtOperation (operations, operationId, completed = false, cache = {}) {
   let state
 
   const operation = operations.find((op) => op.id === operationId)
@@ -22,7 +22,16 @@ function getStateAtOperation (operations, operationId, completed = false) {
   let previousOperationWithState
 
   if (previousOperation != null) {
-    previousOperationWithState = getStateAtOperation(operations, previousOperation.id, previousOperation.type !== 'render')
+    const cacheItem = cache[previousOperation.id]
+
+    if (
+      cacheItem == null ||
+      (previousOperation.type !== 'render' && cacheItem.completedReqState == null)
+    ) {
+      previousOperationWithState = getStateAtOperation(operations, previousOperation.id, previousOperation.type !== 'render', cache)
+    } else {
+      previousOperationWithState = cacheItem
+    }
   }
 
   const reqState = applyPatch(previousOperationWithState != null ? (
@@ -56,6 +65,8 @@ function getStateAtOperation (operations, operationId, completed = false) {
     resMetaState
   }
 
+  cache[operation.id] = state
+
   if (completed) {
     const completedPreviousOperation = operations.find((op) => op.id === operation.completedPreviousOperationId)
 
@@ -64,7 +75,24 @@ function getStateAtOperation (operations, operationId, completed = false) {
     }
 
     const isRenderOrSame = completedPreviousOperation.type === 'render' || operation.id === completedPreviousOperation.id
-    const completedPreviousOperationWithState = getStateAtOperation(operations, completedPreviousOperation.id, !isRenderOrSame)
+    let completedPreviousOperationWithState
+
+    if (operation.id === completedPreviousOperation.id) {
+      completedPreviousOperationWithState = state
+    } else if (completedPreviousOperation.type === 'render') {
+      completedPreviousOperationWithState = cache[completedPreviousOperation.id] != null ? cache[completedPreviousOperation.id] : getStateAtOperation(operations, completedPreviousOperation.id, false, cache)
+    } else {
+      const cacheItem = cache[completedPreviousOperation.id]
+
+      if (
+        cacheItem == null ||
+        (!isRenderOrSame && cacheItem.completedReqState == null)
+      ) {
+        completedPreviousOperationWithState = getStateAtOperation(operations, completedPreviousOperation.id, true, cache)
+      } else {
+        completedPreviousOperationWithState = cacheItem
+      }
+    }
 
     const completedReqState = applyPatch(
       isRenderOrSame ? (
@@ -103,6 +131,8 @@ function getStateAtOperation (operations, operationId, completed = false) {
       completedResState,
       completedResMetaState
     }
+
+    cache[operation.id] = state
   }
 
   return state
