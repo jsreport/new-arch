@@ -147,14 +147,15 @@ module.exports = (reporter) => {
       await beforeRender(reporter, request, response)
       await invokeRender(reporter, request, response)
       await afterRender(reporter, request, response)
+
+      reporter.logger.info(`Rendering request ${request.context.reportCounter} finished in ${(new Date().getTime() - request.context.startTimestamp)} ms`, request)
+
       response.meta.logs = request.context.logs
 
       if (parentReq) {
         parentReq.context.logs = parentReq.context.logs.concat(request.context.logs)
         parentReq.context.shared = extend(true, parentReq.context.shared, request.context.shared)
       }
-
-      reporter.logger.info(`Rendering request ${request.context.reportCounter} finished in ${(new Date().getTime() - request.context.startTimestamp)} ms`, request)
 
       await reporter.profiler.renderEnd(request, response)
 
