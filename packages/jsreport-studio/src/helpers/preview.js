@@ -27,7 +27,7 @@ async function streamRender (request, target) {
 
   let url = templateName ? resolveUrl(`/api/report/${encodeURIComponent(templateName)}`) : resolveUrl('/api/report')
 
-  url = `${url}?logsStreaming=true`
+  url = `${url}?profilerDebug=true`
 
   try {
     target.focus()

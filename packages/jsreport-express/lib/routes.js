@@ -130,7 +130,7 @@ module.exports = (app, reporter, exposedOptions) => {
 
     let doRender
 
-    if (req.query.logsStreaming === 'true') {
+    if (req.query.profilerDebug === 'true') {
       doRender = reporter.express.streamRender
     } else {
       doRender = reporter.express.render

@@ -1,12 +1,11 @@
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
+import { Line } from 'react-chartjs-2'
 import { actions } from '../../redux/editor'
 import { selectors as entitiesSelectors } from '../../redux/entities'
 import api from '../../helpers/api.js'
-import { previewFrameChangeHandler } from '../../lib/configuration.js'
-import { Line } from 'react-chartjs-2'
-import { modalHandler } from '../../lib/configuration'
 import NewTemplateModal from '../../components/Modals/NewTemplateModal'
+import { modalHandler, previewFrameChangeHandler } from '../../lib/configuration'
 
 function randomColor () {
   const hue = Math.floor(Math.random() * 360)
@@ -174,34 +173,36 @@ class Startup extends Component {
   }
 
   renderRequestsDurationsChart (profiles) {
-    return <Line
-      data={{
-        datasets: [{
-          label: 'duration in seconds',
-          borderColor: 'green',
-          data: profiles.map(p => ({
-            x: p.timestamp,
-            y: (p.finishedOn - p.timestamp) / 1000,
-            name: p.template.name
-          }))
-        }]
-      }}
-      options={{
-        scales: {
-          xAxes: [{
-            type: 'time'
+    return (
+      <Line
+        data={{
+          datasets: [{
+            label: 'duration in seconds',
+            borderColor: 'green',
+            data: profiles.map(p => ({
+              x: p.timestamp,
+              y: (p.finishedOn - p.timestamp) / 1000,
+              name: p.template.name
+            }))
           }]
-        },
-        tooltips: {
-          callbacks: {
-            label: (item, data) => {
-              const v = data.datasets[item.datasetIndex].data[item.index]
-              return `Template ${v.name}: ${v.y}s`
+        }}
+        options={{
+          scales: {
+            xAxes: [{
+              type: 'time'
+            }]
+          },
+          tooltips: {
+            callbacks: {
+              label: (item, data) => {
+                const v = data.datasets[item.datasetIndex].data[item.index]
+                return `Template ${v.name}: ${v.y}s`
+              }
             }
           }
-        }
-      }}
-    />
+        }}
+      />
+    )
   }
 
   renderCPUChart (monitoring) {
