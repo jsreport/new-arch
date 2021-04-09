@@ -83,6 +83,8 @@ class Profiler {
         state: 'running',
         blobName
       }, req)
+
+      req.context.profileBlobId = profile._id
       req.context.profileBlobName = profile.blobName
 
       if (!req.context.isProfilerAttached) {
@@ -127,9 +129,10 @@ class Profiler {
     }, req, res)
 
     await this.reporter.documentStore.collection('profiles').update({
-      blobName: req.context.profileBlobName
+      _id: req.context.profileBlobId
     }, {
       $set: {
+        blobName: req.context.profileBlobName,
         templateShortid: req.template.shortid,
         state: err ? 'error' : 'success',
         error: err ? err.stack : null,
