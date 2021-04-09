@@ -67,7 +67,9 @@ async function streamRender (request, target) {
         filesProcessingExecution.reject = reject
       })
 
-      window.requestAnimationFrame(function processFile () {
+      const processFileInterval = 16
+
+      setTimeout(function processFile () {
         let shouldContinue = parsing || files.length > 0
 
         if (files.length > 0) {
@@ -96,6 +98,19 @@ async function streamRender (request, target) {
             } while (!stop)
           }
 
+          if (!parsing) {
+            // if parsing is done then we process all pending files
+            let pendingFile
+
+            do {
+              pendingFile = files.shift()
+
+              if (pendingFile != null) {
+                toProcess.push(pendingFile)
+              }
+            } while (pendingFile != null)
+          }
+
           for (const fileInfo of toProcess) {
             try {
               target.processFile(fileInfo, target.previewId, target.previewName)
@@ -108,11 +123,11 @@ async function streamRender (request, target) {
         shouldContinue = parsing || files.length > 0
 
         if (shouldContinue) {
-          window.requestAnimationFrame(processFile)
+          setTimeout(processFile, processFileInterval)
         } else {
           filesProcessingExecution.resolve()
         }
-      })
+      }, processFileInterval)
 
       let parseErr
 
@@ -141,7 +156,7 @@ async function streamRender (request, target) {
         content = await response.text()
       }
 
-      const notOkError = new Error('Got not ok response')
+      const notOkError = new Error(`Got not ok response, status: ${response.status}`)
 
       notOkError.data = content
 

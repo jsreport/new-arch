@@ -3,9 +3,11 @@ import { connect } from 'react-redux'
 import { Line } from 'react-chartjs-2'
 import { actions } from '../../redux/editor'
 import { selectors as entitiesSelectors } from '../../redux/entities'
-import api from '../../helpers/api.js'
+import uid from '../../helpers/uid'
+import api from '../../helpers/api'
+import resolveUrl from '../../helpers/resolveUrl'
 import NewTemplateModal from '../../components/Modals/NewTemplateModal'
-import { modalHandler, previewFrameChangeHandler } from '../../lib/configuration'
+import { modalHandler, previewConfigurationHandler } from '../../lib/configuration'
 
 function randomColor () {
   const hue = Math.floor(Math.random() * 360)
@@ -15,7 +17,8 @@ function randomColor () {
 class Startup extends Component {
   constructor () {
     super()
-    this.state = { templates: [], profiles: [], monitoring: [] }
+    this.state = { templates: [], profiles: [], monitoring: [], loadingProfile: false }
+    this.openProfile = this.openProfile.bind(this)
   }
 
   async onTabActive () {
@@ -52,7 +55,7 @@ class Startup extends Component {
         let template = this.props.getByShortid(p.templateShortid, false)
 
         if (!template) {
-          template = { name: 'anonymous', path: 'anonymous' }
+          template = { name: 'anonymous', shortid: null, path: 'anonymous' }
         } else {
           template = { ...template, path: this.props.resolveEntityPath(template) }
         }
@@ -88,18 +91,107 @@ class Startup extends Component {
   }
 
   async openProfile (p) {
-    const ab = await api.get(`/api/profile/${p._id}/content`, { responseType: 'arraybuffer' })
-    const str = String.fromCharCode.apply(null, new Uint8Array(ab))
+    const { addProfilerOperation, addProfilerLog, addProfilerError } = this.props
 
-    return previewFrameChangeHandler('data:text/html;charset=utf-8,' + encodeURI(str))
+    this.setState({
+      loadingProfile: true
+    })
+
+    await previewConfigurationHandler({
+      src: null,
+      id: uid(),
+      template: {
+        name: p.template.name,
+        shortid: p.template.shortid
+      },
+      type: 'profiler'
+    })
+
+    try {
+      const getBlobUrl = resolveUrl(`/api/profile/${p._id}/content`)
+
+      const response = await window.fetch(getBlobUrl, {
+        method: 'GET',
+        cache: 'no-cache'
+      })
+
+      if (response.status !== 200) {
+        throw new Error(`Got not ok response, status: ${response.status}`)
+      }
+
+      const reader = response.body.getReader()
+      const textDecoder = new TextDecoder()
+      let pending = ''
+
+      const handleMessage = (rawMessage) => {
+        let message
+
+        try {
+          message = JSON.parse(rawMessage)
+        } catch (e) {
+          console.error(`Unable to parse profiler message. raw: ${rawMessage}`)
+          return
+        }
+
+        if (message.type === 'log') {
+          addProfilerLog(message)
+        } else if (message.type === 'operationStart' || message.type === 'operationEnd') {
+          addProfilerOperation(message)
+        } else if (message.type === 'error') {
+          addProfilerError(message)
+        }
+      }
+
+      await reader.read().then(function sendNext ({ value, done }) {
+        if (done) {
+          if (pending !== '') {
+            handleMessage(pending)
+          }
+
+          return
+        }
+
+        let chunkStr = textDecoder.decode(value)
+
+        if (pending !== '') {
+          chunkStr = pending + chunkStr
+        }
+
+        let messages = chunkStr.split('\n')
+
+        if (messages.length > 1 && messages[messages.length - 1] !== '') {
+          pending = messages.pop()
+        }
+
+        messages = messages.filter((m) => m !== '')
+
+        for (const m of messages) {
+          handleMessage(m)
+        }
+
+        return reader.read().then(sendNext)
+      })
+    } catch (e) {
+      const newError = new Error(`Open profile "${p._id}" failed. ${e.message}`)
+
+      newError.stack = e.stack
+      Object.assign(newError, e)
+
+      throw newError
+    } finally {
+      this.setState({
+        loadingProfile: false
+      })
+    }
   }
 
   renderProfiles (profiles) {
+    const { loadingProfile } = this.state
     const { openTab } = this.props
 
     return (
       <div>
-        <h2>Last requests' profiles</h2>
+        <h2>Last requests' profiles <i className='fa fa-circle-o-notch fa-spin' style={{ display: loadingProfile ? 'inline-block' : 'none' }} /></h2>
 
         <div>
           <table className='table'>

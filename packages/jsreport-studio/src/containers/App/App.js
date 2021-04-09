@@ -325,7 +325,16 @@ class App extends Component {
     }
 
     if (shouldOpenStartupPage) {
-      this.props.openTab({ key: 'StartupPage', editorComponentKey: 'startup', title: 'Startup' })
+      this.props.openTab({
+        key: 'StartupPage',
+        editorComponentKey: 'startup',
+        title: 'Startup',
+        getProps: () => ({
+          addProfilerOperation: this.previewRef.current.addProfilerOperation,
+          addProfilerLog: this.previewRef.current.addProfilerLog,
+          addProfilerError: this.previewRef.current.addProfilerError
+        })
+      })
     }
   }
 

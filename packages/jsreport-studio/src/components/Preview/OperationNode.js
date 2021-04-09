@@ -18,7 +18,7 @@ const OperationNode = (props) => {
   const showTimeCost = end ? timeCost != null : (operation.type !== 'render' && timeCost != null)
 
   const handleDownloadRenderResultClick = useCallback(async () => {
-    if (renderResult == null) {
+    if (renderResult == null || renderResult.getContent == null) {
       return
     }
 
@@ -43,8 +43,9 @@ const OperationNode = (props) => {
       <div id={id}>
         {renderResult != null ? (
           <button
-            className={styles.profilerButtonAction}
-            title='download render result'
+            className={`${styles.profilerButtonAction} ${renderResult.getContent == null ? 'disabled' : ''}`}
+            title={renderResult.getContent == null ? 'render result not available' : 'download render result'}
+            disabled={renderResult.getContent == null}
             onClick={handleDownloadRenderResultClick}
           >
             <i className='fa fa-download' />

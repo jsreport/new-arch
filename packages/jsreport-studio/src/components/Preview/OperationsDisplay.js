@@ -207,7 +207,7 @@ function getElementsFromOperations (operations, errors, activeElement) {
         timeCost: isMainCompleted && mainOperation.id !== operation.id ? getTimeCost(operation.completedTimestamp - operation.timestamp, mainOperation.completedTimestamp - mainOperation.timestamp) : null,
         error: errorInRender,
         renderResult: errorInRender == null ? {
-          getContent: () => {
+          getContent: (operations[0].req == null || operations[0].res == null) ? undefined : () => {
             const state = getStateAtOperation(operations, operation.id, true)
 
             return {

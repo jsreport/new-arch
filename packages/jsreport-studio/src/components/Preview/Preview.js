@@ -55,6 +55,7 @@ class Preview extends Component {
     this.applyStylesToIframe = this.applyStylesToIframe.bind(this)
     this.addProfilerOperation = this.addProfilerOperation.bind(this)
     this.addProfilerLog = this.addProfilerLog.bind(this)
+    this.addProfilerError = this.addProfilerError.bind(this)
     this.changeSrc = this.changeSrc.bind(this)
     this.changeActiveTab = this.changeActiveTab.bind(this)
   }
@@ -192,6 +193,11 @@ class Preview extends Component {
         return
       }
     } else {
+      // don't open inspect modal for profile with no req/res information saved
+      if (this.state.profilerOperations[0].req == null || this.state.profilerOperations[0].res == null) {
+        return
+      }
+
       modalHandler.open(ProfilerInspectModal, {
         data: {
           sourceId: meta.data.edge.source,
@@ -464,24 +470,30 @@ class Preview extends Component {
     const { main } = this.props
     let previewContent
 
-    if (previewType === 'report') {
-      const tabs = [{
-        name: 'report',
-        title: 'report',
-        renderContent: () => {
-          return (
-            <PreviewDisplay
-              main={main}
-              iframeKey={previewDisplayIframeKey}
-              src={src}
-              containerRef={this.previewDisplayContainerRef}
-              overlayRef={this.previewDisplayOverlayRef}
-              iframeRef={this.previewDisplayIframeRef}
-              onLoad={this.handleOnPreviewDisplayLoad}
-            />
-          )
-        }
-      }, {
+    if (previewType === 'report' || previewType === 'profiler') {
+      const tabs = []
+
+      if (previewType === 'report') {
+        tabs.push({
+          name: 'report',
+          title: 'report',
+          renderContent: () => {
+            return (
+              <PreviewDisplay
+                main={main}
+                iframeKey={previewDisplayIframeKey}
+                src={src}
+                containerRef={this.previewDisplayContainerRef}
+                overlayRef={this.previewDisplayOverlayRef}
+                iframeRef={this.previewDisplayIframeRef}
+                onLoad={this.handleOnPreviewDisplayLoad}
+              />
+            )
+          }
+        })
+      }
+
+      tabs.push({
         name: 'profiler',
         title: 'profiler',
         renderContent: () => {
@@ -496,7 +508,7 @@ class Preview extends Component {
             />
           )
         }
-      }]
+      })
 
       previewContent = (
         <Fragment>

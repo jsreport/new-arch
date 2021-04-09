@@ -1,4 +1,4 @@
-const { pipeline } = require('stream')
+const { Readable, pipeline } = require('stream')
 const omit = require('lodash.omit')
 const serveStatic = require('serve-static')
 const handleError = require('./handleError')
@@ -184,14 +184,23 @@ module.exports = (app, reporter, exposedOptions) => {
   app.get('/api/profile/:id/content', async (req, res, next) => {
     try {
       const profile = await reporter.documentStore.collection('profiles').findOne({ _id: req.params.id }, req)
+
       if (!profile) {
         throw this.reporter.createError(`Profile ${req.params.id} not found`, {
           statusCode: 404
         })
       }
 
-      const stream = await reporter.blobStorage.read(profile.blobName)
-      stream.pipe(res)
+      const blobContentBuf = await reporter.blobStorage.read(profile.blobName)
+      const blobReadable = Readable.from(blobContentBuf)
+
+      res.type('text/plain')
+
+      pipeline(blobReadable, res, (pipeErr) => {
+        if (pipeErr) {
+          next(pipeErr)
+        }
+      })
     } catch (e) {
       next(e)
     }

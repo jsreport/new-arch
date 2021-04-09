@@ -57,7 +57,7 @@ class ProfilerInspectModal extends Component {
       this.props.openTab({
         key: `profiler-inspect-request-template-${stepId}`,
         title: `Profiler inspect - ${this.props.options.data.template.name} (template)`,
-        customUrl: resolveUrl(`/studio/templates/${this.props.options.data.template.shortid}`),
+        customUrl: this.props.options.data.template.shortid != null ? resolveUrl(`/studio/templates/${this.props.options.data.template.shortid}`) : undefined,
         getEntity: () => Object.assign({}, reqContent.template, {
           _id: uid(),
           shortid: shortid.generate(),
@@ -77,7 +77,7 @@ class ProfilerInspectModal extends Component {
     this.props.openTab({
       key,
       title: `Profiler inspect - ${this.props.options.data.template.name} (data)`,
-      customUrl: resolveUrl(`/studio/templates/${this.props.options.data.template.shortid}`),
+      customUrl: this.props.options.data.template.shortid != null ? resolveUrl(`/studio/templates/${this.props.options.data.template.shortid}`) : undefined,
       editorComponentKey: 'inspectJSON',
       readOnly: true,
       getProps: () => ({
@@ -97,7 +97,7 @@ class ProfilerInspectModal extends Component {
     this.props.openTab({
       key,
       title: `Profiler inspect - ${this.props.options.data.template.name} (request)`,
-      customUrl: resolveUrl(`/studio/templates/${this.props.options.data.template.shortid}`),
+      customUrl: this.props.options.data.template.shortid != null ? resolveUrl(`/studio/templates/${this.props.options.data.template.shortid}`) : undefined,
       editorComponentKey: 'inspectJSON',
       readOnly: true,
       getProps: () => ({
