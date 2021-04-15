@@ -9,12 +9,12 @@ module.exports = ({
   container,
   busyQueueWaitingTimeout,
   logger,
-  predefinedContainersPool,
   tempDirectory,
-  containerParallelRequestsLimit
+  containerParallelRequestsLimit,
+  customContainersPoolFactory
 }) => {
   const warmupPolicy = container.warmupPolicy
-  const containersPool = predefinedContainersPool || createContainersPool({
+  const containersPool = (customContainersPoolFactory || createContainersPool)({
     hostIp,
     network,
     subnet,
@@ -43,7 +43,7 @@ module.exports = ({
       logger.debug(`Docker container's restart was ok ${container.id} (${container.url}) (discriminator: ${tenant})`)
     } catch (e) {
       logger.error(`Docker container's restart failed ${container.id} (${container.url}) (discriminator: ${tenant}): ${e.stack}`)
-      throw new Error(`Could not get a healthy container for this operation (container restart failed), please try again`)
+      throw new Error('Could not get a healthy container for this operation (container restart failed), please try again')
     }
   }
 
@@ -193,7 +193,7 @@ module.exports = ({
   }
 
   return {
-    containers: containersPool.containers,
+    containersPool,
     busyQueue: busyQueue,
     async start () {
       await containersPool.start()

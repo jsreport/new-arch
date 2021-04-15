@@ -1,16 +1,16 @@
 
 module.exports = {
-  'name': 'docker-workers',
-  'main': 'lib/main.js',
-  'dependencies': ['express'],
-  'optionsSchema': {
+  name: 'docker-workers',
+  main: 'lib/main.js',
+  dependencies: ['express'],
+  optionsSchema: {
     ip: { type: 'string' },
     stack: { type: 'string', default: 'default' },
     extensions: {
       'docker-workers': {
         type: 'object',
         properties: {
-          discriminatorPath: { type: 'string', default: 'context.reportCounter' },
+          discriminatorPath: { type: 'string', default: 'context.rootId' },
           containerParallelRequestsLimit: { type: 'number' },
           pingServersInterval: { type: 'number', default: 5000 },
           pingHealthyInterval: { type: 'number', default: 20000 },

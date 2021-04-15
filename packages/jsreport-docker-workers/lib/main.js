@@ -1,9 +1,8 @@
 const createDockerManager = require('./dockerManager')
-const createRemoteRequestHandler = require('./remoteRequestHandler')
+const serializator = require('serializator')
+const express = require('express')
 
 module.exports = (reporter, definition) => {
-  reporter.dockerManager = createDockerManager(reporter, definition.options)
-
   reporter.documentStore.registerEntityType('ServerType', {
     ip: { type: 'Edm.String', key: true, publicKey: true },
     stack: { type: 'Edm.String' },
@@ -32,39 +31,40 @@ module.exports = (reporter, definition) => {
   })
 
   reporter.on('after-authentication-express-routes', () => {
-    return reporter.express.app.post('/api/worker-docker-manager', createRemoteRequestHandler(
-      reporter.dockerManager.executeScript,
-      reporter.dockerManager.executeRecipe
-    ))
+    reporter.express.app.post('/api/worker-docker-manager', reporter.dockerManager.executeWorker.bind(reporter.dockerManager))
   })
 
   reporter.on('after-express-static-configure', () => {
     if (!reporter.authentication) {
-      return reporter.express.app.post('/api/worker-docker-manager', createRemoteRequestHandler(
-        reporter.dockerManager.executeScript,
-        reporter.dockerManager.executeRecipe
-      ))
+      return reporter.express.app.post('/api/worker-docker-manager', express.text(), async (req, res, next) => {
+        try {
+          const actionData = serializator.parse(req.body)
+          const result = await reporter.dockerManager.executeWorker(actionData, {
+            executeMain: async (data) => {
+              return reporter._invokeMainAction(data, actionData.req)
+            }
+          })
+          res.status(201).send(serializator.serialize(result))
+        } catch (e) {
+          next(e)
+        }
+      })
     }
   })
 
-  reporter.executeScript = reporter.dockerManager.executeScript
+  reporter.registerWorkersManagerFactory((options, systemOptions) => {
+    reporter.dockerManager = createDockerManager(reporter, definition.options, options, systemOptions)
+    reporter.closeListeners.add('docker-workers', reporter.dockerManager.close)
+    return reporter.dockerManager
+  })
 
   reporter.initializeListeners.insert({ before: 'express' }, 'docker-workers', async () => {
-    reporter.extensionsManager.recipes = reporter.extensionsManager.recipes.map((r) => ({
-      name: r.name,
-      execute: (req, res) => {
-        return reporter.dockerManager.executeRecipe(r.name, req, res)
-      }
-    }))
-
     await reporter.dockerManager.init()
 
     // adding the temp paths of containers for cleanup after starting all containers
     // to ensure that the path exists
-    reporter.dockerManager.containersManager.containers.forEach((container) => {
+    reporter.dockerManager.containersManager.containersPool.containers.forEach((container) => {
       reporter.addPathToWatchForAutoCleanup(container.tempAutoCleanupLocalDirectoryPath)
     })
   })
-
-  reporter.closeListeners.add('docker-workers', reporter.dockerManager.close)
 }

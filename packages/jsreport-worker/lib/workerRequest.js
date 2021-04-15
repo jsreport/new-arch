@@ -1,6 +1,4 @@
-const Promise = require('bluebird')
-
-module.exports = (uuid, { data }, { onSuccess, onError, callbackTimeout }) => {
+module.exports = ({ httpReq, data, uuid }, { onSuccess, onError, callbackTimeout }) => {
   return {
     data,
     callback (resp) {
@@ -43,7 +41,6 @@ module.exports = (uuid, { data }, { onSuccess, onError, callbackTimeout }) => {
       return new Promise((resolve, reject) => {
         timeoutId = setTimeout(() => {
           const timeoutError = new Error(`Timeout while waiting for request callback response after ${callbackTimeout}ms`)
-
           onError({
             uuid,
             httpReq: this._currentHttpReq,

@@ -1,6 +1,8 @@
-const Container = require('../lib/docker/container.js')
+const Container = require('../../lib/docker/container.js')
 const reporter = require('jsreport-core')()
 const axios = require('axios')
+const os = require('os')
+const path = require('path')
 
 describe('container', () => {
   let container
@@ -9,11 +11,29 @@ describe('container', () => {
     container = new Container({
       exposedPort: 2000,
       port: 2000,
-      image: 'jsreport/jsreport-worker',
       startTimeout: 2000,
       logger: reporter.logger,
+      id: 'jsreport_worker_1',
+      tempDirectory: path.join(os.tmpdir(), 'jsreport'),
       network: 'nw_jsreport_docker_workers',
-      id: `jsreport_worker_1`
+      hostIp: 'localhost',
+      container: {
+        image: 'jsreport/jsreport-worker',
+        namePrefix: 'jsreport_worker',
+        exposedPort: 2000,
+        basePublishPort: 2001,
+        baseDebugPort: 9230,
+        startTimeout: 10000,
+        restartPolicy: true,
+        warmupPolicy: true,
+        delegateTimeout: 50000,
+        debuggingSession: false,
+        memorySwap: '512m',
+        memory: '420m',
+        cpus: '0.5',
+        logDriver: 'json-file',
+        tempVolumeTarget: '/tmp'
+      }
     })
   })
 

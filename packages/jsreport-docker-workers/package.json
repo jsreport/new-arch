@@ -4,26 +4,26 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "docker pull jsreport/jsreport-worker&&set DEBUG=jsreport&&mocha test --exit --timeout=50000 && standard",
+    "test": "set DEBUG=jsreport&&mocha --recursive test --exit --timeout=50000 && standard",
     "lint": "standard"
   },
   "author": "Jan Blaha",
   "license": "MIT",
   "dependencies": {
-    "axios": "0.19.2",
-    "bluebird": "3.5.3",
-    "fs-extra": "7.0.1",
+    "axios": "0.21.1",
+    "bluebird": "3.7.2",
+    "express": "4.17.1",
+    "fs-extra": "9.1.0",
     "ip": "1.1.5",
     "listener-collection": "1.2.0",
     "lodash.get": "4.4.2",
     "lodash.omit": "4.5.0",
     "node.extend": "2.0.2",
     "serializator": "1.0.2",
-    "uuid": "3.3.2"
+    "uuid": "8.3.2"
   },
   "devDependencies": {
-    "eslint": "5.5.0",
-    "handlebars": "4.7.6",
+    "handlebars": "4.7.7",
     "jsreport-authentication": "2.6.1",
     "jsreport-chrome-pdf": "1.10.0",
     "jsreport-core": "2.10.1",
@@ -31,11 +31,11 @@
     "jsreport-fs-store": "2.9.1",
     "jsreport-handlebars": "2.1.0",
     "jsreport-scripts": "2.6.0",
-    "mocha": "5.2.0",
+    "mocha": "8.3.2",
     "parse-pdf": "1.0.0",
-    "puppeteer": "2.0.0",
+    "puppeteer": "8.0.0",
     "should": "13.2.3",
-    "standard": "12.0.1"
+    "standard": "16.0.3"
   },
   "standard": {
     "env": {

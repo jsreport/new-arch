@@ -10,11 +10,11 @@ describe('containers manager', () => {
         warmupPolicy: true
       },
       containerParallelRequestsLimit: 50,
-      predefinedContainersPool: {
+      customContainersPoolFactory: () => ({
         containers: [{ id: 'a' }, { id: 'b' }],
         start: () => {},
         remove: () => {}
-      },
+      }),
       logger: reporter.logger
     })
 
@@ -34,8 +34,8 @@ describe('containers manager', () => {
   })
 
   it('allocate should reuse assigned container and increase number of requests', async () => {
-    containersManager.containers[0].tenant = 'a'
-    containersManager.containers[0].numberOfRequests = 1
+    containersManager.containersPool.containers[0].tenant = 'a'
+    containersManager.containersPool.containers[0].numberOfRequests = 1
     const container = await containersManager.allocate({
       tenant: 'a'
     })
@@ -44,10 +44,10 @@ describe('containers manager', () => {
   })
 
   it('allocate should find container LRU and restart', async () => {
-    containersManager.containers[0].lastUsed = new Date()
-    containersManager.containers[0].tenant = 'a'
-    containersManager.containers[1].lastUsed = new Date(new Date().getTime() - 1000)
-    containersManager.containers[1].tenant = 'b'
+    containersManager.containersPool.containers[0].lastUsed = new Date()
+    containersManager.containersPool.containers[0].tenant = 'a'
+    containersManager.containersPool.containers[1].lastUsed = new Date(new Date().getTime() - 1000)
+    containersManager.containersPool.containers[1].tenant = 'b'
 
     let recycled = false
     containersManager.onRecycle(() => (recycled = true))
@@ -56,16 +56,16 @@ describe('containers manager', () => {
       tenant: 'c'
     })
 
-    container.should.be.eql(containersManager.containers[1])
+    container.should.be.eql(containersManager.containersPool.containers[1])
     container.numberOfRestarts.should.be.eql(1)
     recycled.should.be.true()
   })
 
   it('allocate should queue if all containers are busy', (done) => {
-    containersManager.containers[0].tenant = 'a'
-    containersManager.containers[0].numberOfRequests = 1
-    containersManager.containers[1].tenant = 'b'
-    containersManager.containers[1].numberOfRequests = 1
+    containersManager.containersPool.containers[0].tenant = 'a'
+    containersManager.containersPool.containers[0].numberOfRequests = 1
+    containersManager.containersPool.containers[1].tenant = 'b'
+    containersManager.containersPool.containers[1].numberOfRequests = 1
     containersManager.busyQueue.push = () => done()
 
     containersManager.allocate({
@@ -74,7 +74,7 @@ describe('containers manager', () => {
   })
 
   it('recycle should restart container', async () => {
-    const container = containersManager.containers[0]
+    const container = containersManager.containersPool.containers[0]
     container.numberOfRequests = 1
     await containersManager.recycle({ container })
     container.numberOfRestarts.should.be.eql(1)
@@ -82,7 +82,7 @@ describe('containers manager', () => {
   })
 
   it('release should decrease number of requests', async () => {
-    const container = containersManager.containers[0]
+    const container = containersManager.containersPool.containers[0]
     container.numberOfRequests = 1
     await containersManager.release(container)
     container.numberOfRestarts.should.be.eql(0)
@@ -91,15 +91,15 @@ describe('containers manager', () => {
 
   it('release should flush queue', (done) => {
     containersManager.busyQueue.flush = () => done()
-    const container = containersManager.containers[0]
+    const container = containersManager.containersPool.containers[0]
     container.numberOfRequests = 1
     containersManager.release(container)
   })
 
   it('release should warmup last used container', (done) => {
-    containersManager.containers[1].tenant = 'x'
-    containersManager.containers[1].restart = done
-    const container = containersManager.containers[0]
+    containersManager.containersPool.containers[1].tenant = 'x'
+    containersManager.containersPool.containers[1].restart = done
+    const container = containersManager.containersPool.containers[0]
     container.numberOfRequests = 1
     containersManager.release(container)
   })

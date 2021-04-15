@@ -200,7 +200,7 @@ class MainReporter extends Reporter {
 
       const extensionsForWorkers = this.extensionsManager.extensions.filter(e => e.worker)
 
-      this._workersManager = new WorkersManager({
+      const workersManagerOptions = {
         ...this.options.sandbox,
         options: { ...this.options },
         // we do map and copy to unproxy the value
@@ -213,10 +213,15 @@ class MainReporter extends Reporter {
           },
           collections: Object.keys(this.documentStore.collections)
         }
-      }, {
+      }
+      const workersManagerSystemOptions = {
         numberOfWorkers: 1,
         workerModule: path.join(__dirname, '../worker', 'workerHandler.js')
-      }, this.logger)
+      }
+
+      this._workersManager = this._workersManagerFactory
+        ? this._workersManagerFactory(workersManagerOptions, workersManagerSystemOptions)
+        : new WorkersManager(workersManagerOptions, workersManagerSystemOptions, this.logger)
 
       const workersStart = new Date().getTime()
 
@@ -345,6 +350,10 @@ class MainReporter extends Reporter {
     }
 
     return response
+  }
+
+  registerWorkersManagerFactory (workersManagerFactory) {
+    this._workersManagerFactory = workersManagerFactory
   }
 
   /**

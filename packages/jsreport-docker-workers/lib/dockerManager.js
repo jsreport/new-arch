@@ -1,9 +1,9 @@
-const ListenerCollection = require('listener-collection')
 const createContainersManager = require('./containersManager')
 const createServersChecker = require('./serversChecker')
-const createDelegate = require('./delegate')
 const createExecuteInWorker = require('./executeInWorker')
+const sendToWorker = require('./sendToWorker')
 const ip = require('ip')
+const serializator = require('serializator')
 
 module.exports = (reporter, {
   discriminatorPath,
@@ -13,13 +13,16 @@ module.exports = (reporter, {
   subnet,
   network,
   numberOfWorkers,
-  containerParallelRequestsLimit
-}) => {
-  const containerDelegateErrorListeners = new ListenerCollection()
-  const containerDelegateRequestFilterListeners = new ListenerCollection()
-  const containerDelegateResponseFilterListeners = new ListenerCollection()
-
+  containerParallelRequestsLimit,
+  customContainersPoolFactory
+}, workerOptions, workerSystemOptions) => {
   reporter.options.ip = reporter.options.ip || ip.address()
+
+  container.customEnv = {
+    ...container.customEnv,
+    workerOptions: JSON.stringify(workerOptions),
+    workerSystemOptions: JSON.stringify(workerSystemOptions)
+  }
 
   const serversChecker = createServersChecker(reporter, {
     ip: reporter.options.ip,
@@ -36,36 +39,12 @@ module.exports = (reporter, {
     numberOfWorkers,
     logger: reporter.logger,
     tempDirectory: reporter.options.tempDirectory,
-    containerParallelRequestsLimit
+    containerParallelRequestsLimit,
+    customContainersPoolFactory
   })
 
   const executeInWorker = createExecuteInWorker({
     reporter, containersManager, ip: reporter.options.ip, stack: reporter.options.stack, serversChecker, discriminatorPath
-  })
-
-  const delegate = createDelegate(reporter, {
-    delegateTimeout: container.delegateTimeout,
-    onRequestFilter: async (requestInfo) => {
-      const pipe = {
-        ...requestInfo
-      }
-
-      await containerDelegateRequestFilterListeners.fire(pipe)
-
-      return pipe.reqData
-    },
-    onResponseFilter: async (responseInfo) => {
-      const pipe = {
-        ...responseInfo
-      }
-
-      await containerDelegateResponseFilterListeners.fire(pipe)
-
-      return pipe.resData
-    },
-    onContainerError: async (params) => {
-      return containerDelegateErrorListeners.fire(params)
-    }
   })
 
   function onSIGTERM () {
@@ -83,48 +62,30 @@ module.exports = (reporter, {
 
   process.on('SIGTERM', onSIGTERM)
 
-  async function executeScript (inputs, options, req, fromRemote) {
-    return executeInWorker(req, (worker) => delegate.delegateScript(worker.url, worker.remote, inputs, options, req, fromRemote))
-  }
-
-  async function executeRecipe (recipe, req, res, fromRemote) {
-    return executeInWorker(req, (worker) => delegate.delegateRecipe(worker.url, worker.remote, recipe, req, res, fromRemote))
+  async function executeWorker ({
+    actionName,
+    data,
+    req
+  }, {
+    executeMain
+  }) {
+    return executeInWorker(req, (worker) => sendToWorker(worker.url, {
+      actionName,
+      data,
+      req
+    }, executeMain))
   }
 
   return {
     serversChecker,
     containersManager,
-    executeScript,
-    executeRecipe,
-    addContainerDelegateRequestFilterListener (name, fn) {
-      containerDelegateRequestFilterListeners.add(name, async (info) => {
-        // logic to filter request data shape through listeners
-        const customData = await fn({ ...info })
-
-        if (customData != null) {
-          info.reqData = customData
-        }
-      })
-    },
-    removeContainerDelegateRequestFilterListener (...args) { containerDelegateRequestFilterListeners.remove(...args) },
-    addContainerDelegateResponseFilterListener (name, fn) {
-      containerDelegateResponseFilterListeners.add(name, async (info) => {
-        // logic to filter response data shape through listeners
-        const customData = await fn({ ...info })
-
-        if (customData != null) {
-          info.resData = customData
-        }
-      })
-    },
-    removeContainerDelegateResponseFilterListener (...args) { containerDelegateResponseFilterListeners.remove(...args) },
-    addContainerDelegateErrorListener (...args) { containerDelegateErrorListeners.add(...args) },
-    removeContainerDelegateErrorListener (...args) { containerDelegateErrorListeners.remove(...args) },
+    executeWorker,
+    convertUint8ArrayToBuffer: () => {},
     async init () {
       await serversChecker.startPingInterval()
       await serversChecker.startStatusInterval()
       await containersManager.start()
-      reporter.logger.debug(`docker manager initialized correctly`)
+      reporter.logger.debug('docker manager initialized correctly')
     },
     async close () {
       try {
@@ -135,6 +96,8 @@ module.exports = (reporter, {
       } catch (e) {
         reporter.logger.error(`Error while trying to remove containers: ${e.message}`)
       }
-    }
+    },
+    workerOptions,
+    workerSystemOptions
   }
 }

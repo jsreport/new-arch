@@ -121,52 +121,48 @@ module.exports = class Container {
       await execAsync(`docker rm -f ${this.id}`)
     } catch (e) {}
 
-    try {
-      let runCMD = `docker run -d -p ${this.port}:${this.exposedPort}`
+    let runCMD = `docker run -d -p ${this.port}:${this.exposedPort}`
 
-      if (this.debuggingSession) {
-        runCMD += ` --expose 9229 -p ${this.debugPort}:9229`
-      }
-
-      runCMD += ` --network=${this.network} -v ${this.tempVolumeHostPath}:${this.tempVolumeTargetPath} --name ${this.id} --read-only`
-
-      runCMD += ` --memory="${this.memory}" --memory-swap="${this.memorySwap}" --cpus="${this.cpus}"`
-
-      runCMD += ` --log-driver=${this.logDriver} `
-      runCMD += Object.entries(this.logOpt).map(e => `--log-opt ${e[0]}=${e[1]}`).join(' ')
-
-      if (Array.isArray(this.customEnv) && this.customEnv.length > 0) {
-        this.customEnv.forEach((envDef) => {
-          runCMD += ` --env ${envDef}`
-        })
-      }
-
-      runCMD += ` --env workerTempDirectory="${this.tempVolumeTargetPath}"`
-      runCMD += ` --env workerTempAutoCleanupDirectory="${this.tempAutoCleanupDirectoryPathInContainer}"`
-
-      if (this.debuggingSession) {
-        runCMD += ` --env workerDebuggingSession=true`
-      }
-
-      runCMD += ` ${this.image}`
-
-      if (this.debuggingSession) {
-        this.logger.debug(`docker run cmd: ${runCMD} debug port: ${this.debugPort}`)
-      } else {
-        this.logger.debug(`docker run cmd: ${runCMD}`)
-      }
-
-      await execAsync(runCMD)
-
-      await this.waitForPing()
-    } catch (e) {
-      throw e
+    if (this.debuggingSession) {
+      runCMD += ` --expose 9229 -p ${this.debugPort}:9229`
     }
+
+    runCMD += ` --network=${this.network} -v ${this.tempVolumeHostPath}:${this.tempVolumeTargetPath} --name ${this.id} --read-only`
+
+    runCMD += ` --memory="${this.memory}" --memory-swap="${this.memorySwap}" --cpus="${this.cpus}"`
+
+    runCMD += ` --log-driver=${this.logDriver} `
+    runCMD += Object.entries(this.logOpt).map(e => `--log-opt ${e[0]}=${e[1]}`).join(' ')
+
+    if (Array.isArray(this.customEnv) && this.customEnv.length > 0) {
+      this.customEnv.forEach((envDef) => {
+        runCMD += ` --env ${envDef}`
+      })
+    }
+
+    runCMD += ` --env workerTempDirectory="${this.tempVolumeTargetPath}"`
+    runCMD += ` --env workerTempAutoCleanupDirectory="${this.tempAutoCleanupDirectoryPathInContainer}"`
+
+    if (this.debuggingSession) {
+      runCMD += ' --env workerDebuggingSession=true'
+    }
+
+    runCMD += ` ${this.image}`
+
+    if (this.debuggingSession) {
+      this.logger.debug(`docker run cmd: ${runCMD} debug port: ${this.debugPort}`)
+    } else {
+      this.logger.debug(`docker run cmd: ${runCMD}`)
+    }
+
+    await execAsync(runCMD)
+
+    await this.waitForPing()
   }
 
   async waitForPing () {
     let finished = false
-    let start = new Date().getTime()
+    const start = new Date().getTime()
 
     while (!finished) {
       try {
@@ -184,7 +180,7 @@ module.exports = class Container {
 
   async restart () {
     if (this.restartPolicy === false) {
-      this.logger.debug(`Restarting docker container was skipped because container restart policy is set to false`)
+      this.logger.debug('Restarting docker container was skipped because container restart policy is set to false')
       return Promise.resolve(this)
     }
 

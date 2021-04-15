@@ -14,9 +14,9 @@ module.exports = ({ reporter, containersManager, ip, stack, serversChecker, disc
     req
   }) {
     reporter.logger.debug(`Processing render with discriminator: ${discriminator}`)
-    const serverPort = reporter.express.server.address().port
+    const serverPort = reporter.express ? reporter.express.server.address().port : null
 
-    let currentTenantWorker = await reporter.documentStore.internalCollection('tenantWorkers').findOne({
+    const currentTenantWorker = await reporter.documentStore.internalCollection('tenantWorkers').findOne({
       stack,
       tenant: discriminator
     })
