@@ -339,15 +339,15 @@ _jsreportStudio2.default.readyListeners.push(_asyncToGenerator( /*#__PURE__*/reg
               {
                 className: 'toolbar-button', onClick: function onClick() {
                   return licenseInfoModal();
-                } },
+                }
+              },
               React.createElement(
                 'div',
                 { style: { textTransform: 'capitalize' } },
                 React.createElement('i', { className: 'fa fa-gavel' }),
-                ' ',
                 licensingInfo.license,
                 ' ',
-                React.createElement('i', { className: 'fa fa-info-circle' })
+                React.createElement('i', { className: 'fa fa-info-circle', style: { marginRight: 0 } })
               )
             );
           }, 'settings');

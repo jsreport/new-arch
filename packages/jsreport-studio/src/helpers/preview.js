@@ -1,6 +1,6 @@
 import isObject from 'lodash/isObject'
 import parseStreamingMultipart from './parseStreamingMultipart'
-import getPreviewWindowName from '../helpers/getPreviewWindowName'
+import { getPreviewWindowName } from '../helpers/previewWindow'
 import resolveUrl from '../helpers/resolveUrl.js'
 import { extensions } from '../lib/configuration.js'
 

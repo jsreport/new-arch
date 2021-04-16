@@ -101,7 +101,7 @@ module.exports = Studio.libraries['react'];
 /***/ (function(module, exports, __webpack_require__) {
 
 // extracted by mini-css-extract-plugin
-module.exports = {"runCaret":"x-version-control-VersionControl-runCaret","runPopup":"x-version-control-VersionControl-runPopup","listContainer":"x-version-control-VersionControl-listContainer"};
+module.exports = {"runCaret":"x-version-control-VersionControl-runCaret","listContainer":"x-version-control-VersionControl-listContainer"};
 
 /***/ }),
 /* 3 */
@@ -347,7 +347,7 @@ _jsreportStudio2.default.initializeListeners.push(_asyncToGenerator( /*#__PURE__
                     } }),
                   _react2.default.createElement(
                     'div',
-                    { className: _VersionControl2.default.runPopup, style: { display: this.state.expandedToolbar ? 'block' : 'none' } },
+                    { className: 'popup-settings', style: { display: this.state.expandedToolbar ? 'block' : 'none' } },
                     _react2.default.createElement(
                       'div',
                       { title: 'History', className: 'toolbar-button', onClick: function onClick(e) {

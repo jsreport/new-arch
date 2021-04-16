@@ -5,7 +5,7 @@ import dagre from 'dagre'
 import StartNode from './StartNode'
 import OperationNode from './OperationNode'
 import DefaultEdge from './DefaultEdge'
-import getStateAtOperation from './getStateAtOperation'
+import getStateAtOperation from '../../helpers/getStateAtProfilerOperation'
 import styles from './Preview.css'
 
 const nodeTypes = {

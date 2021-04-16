@@ -126,7 +126,7 @@ _jsreportStudio2.default.addToolbarComponent(function (props) {
         return _jsreportStudio2.default.openModal(_ExportModal2.default);
       } },
     React.createElement('i', { className: 'fa fa-download' }),
-    ' Export'
+    'Export'
   );
 }, 'settings');
 
@@ -137,7 +137,7 @@ _jsreportStudio2.default.addToolbarComponent(function (props) {
         return _jsreportStudio2.default.openModal(_ImportModal2.default);
       } },
     React.createElement('i', { className: 'fa fa-upload' }),
-    ' Import'
+    'Import'
   );
 }, 'settings');
 

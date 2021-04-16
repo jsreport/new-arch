@@ -5,7 +5,7 @@ import fileSaver from 'filesaver.js-npm'
 import { actions as editorActions } from '../../redux/editor'
 import uid from '../../helpers/uid.js'
 import resolveUrl from '../../helpers/resolveUrl.js'
-import b64toBlob from '../Preview/b64toBlob'
+import b64toBlob from '../../helpers/b64toBlob'
 
 class ProfilerInspectModal extends Component {
   constructor (props) {
@@ -57,7 +57,7 @@ class ProfilerInspectModal extends Component {
       this.props.openTab({
         key: `profiler-inspect-request-template-${stepId}`,
         title: `Profiler inspect - ${this.props.options.data.template.name} (template)`,
-        customUrl: this.props.options.data.template.shortid != null ? resolveUrl(`/studio/templates/${this.props.options.data.template.shortid}`) : undefined,
+        customUrl: this.props.options.data.template.shortid != null ? resolveUrl(`/studio/templates/${this.props.options.data.template.shortid}`) : '/',
         getEntity: () => Object.assign({}, reqContent.template, {
           _id: uid(),
           shortid: shortid.generate(),
@@ -77,7 +77,7 @@ class ProfilerInspectModal extends Component {
     this.props.openTab({
       key,
       title: `Profiler inspect - ${this.props.options.data.template.name} (data)`,
-      customUrl: this.props.options.data.template.shortid != null ? resolveUrl(`/studio/templates/${this.props.options.data.template.shortid}`) : undefined,
+      customUrl: this.props.options.data.template.shortid != null ? resolveUrl(`/studio/templates/${this.props.options.data.template.shortid}`) : '/',
       editorComponentKey: 'inspectJSON',
       readOnly: true,
       getProps: () => ({
@@ -97,7 +97,7 @@ class ProfilerInspectModal extends Component {
     this.props.openTab({
       key,
       title: `Profiler inspect - ${this.props.options.data.template.name} (request)`,
-      customUrl: this.props.options.data.template.shortid != null ? resolveUrl(`/studio/templates/${this.props.options.data.template.shortid}`) : undefined,
+      customUrl: this.props.options.data.template.shortid != null ? resolveUrl(`/studio/templates/${this.props.options.data.template.shortid}`) : '/',
       editorComponentKey: 'inspectJSON',
       readOnly: true,
       getProps: () => ({

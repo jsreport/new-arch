@@ -11,9 +11,11 @@ class DeleteButton extends Component {
       return <div />
     }
 
-    return <div className='toolbar-button' onClick={() => this.getReportEditorInstance().remove()}>
-      <i className='fa fa-trash' />Delete
-    </div>
+    return (
+      <div className='toolbar-button' onClick={() => this.getReportEditorInstance().remove()}>
+        <i className='fa fa-trash' />Delete
+      </div>
+    )
   }
 }
 

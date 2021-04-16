@@ -7,9 +7,11 @@ class ReportsButton extends Component {
   }
 
   render () {
-    return <div onClick={() => this.openReports()}>
-      <i className='fa fa-folder-open-o' /> Reports
-    </div>
+    return (
+      <div onClick={() => this.openReports()}>
+        <i className='fa fa-folder-open-o' />Reports
+      </div>
+    )
   }
 }
 

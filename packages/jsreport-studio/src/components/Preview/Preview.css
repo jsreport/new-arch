@@ -83,13 +83,16 @@
   color: #ff0000;
 }
 
-.profilerOperationsControlsOverlay {
+.profilerOperationsControls {
   position: absolute;
-  z-index: 6;
+  top: 10px;
+  right: 10px;
+  z-index: 5;
 }
 
 .profilerButtonAction {
   cursor: pointer;
+  font-size: 0.8rem;
   padding-left: 0.6rem;
   padding-right: 0.6rem;
 }

@@ -1,15 +1,13 @@
 import Promise from 'bluebird'
 import PropTypes from 'prop-types'
 import React, { Component } from 'react'
-import assign from 'lodash/assign'
 import Pane from './Pane'
 import Resizer from './Resizer'
+import { openPreviewWindow } from '../../../helpers/previewWindow'
 
 class SplitPane extends Component {
   constructor (props) {
     super(props)
-
-    this.windows = {}
 
     this.splitPaneRef = React.createRef()
     this.resizerRef = React.createRef()
@@ -22,7 +20,6 @@ class SplitPane extends Component {
     }
 
     this.collapse = this.collapse.bind(this)
-    this.cancel = this.cancel.bind(this)
     this.onMouseDown = this.onMouseDown.bind(this)
     this.onMouseMove = this.onMouseMove.bind(this)
     this.onMouseUp = this.onMouseUp.bind(this)
@@ -66,8 +63,6 @@ class SplitPane extends Component {
     })
 
     document.addEventListener('mouseup', this.onMouseUp)
-
-    this.windows = {}
   }
 
   setSize (props, state, cb) {
@@ -85,7 +80,6 @@ class SplitPane extends Component {
 
   componentWillUnmount () {
     document.removeEventListener('mouseup', this.onMouseUp)
-    this.windows = {}
   }
 
   onMouseDown (event) {
@@ -177,70 +171,6 @@ class SplitPane extends Component {
     }
   }
 
-  openWindow (opts) {
-    let defaultWindowOpts = {
-      directories: false,
-      toolbar: false,
-      titlebar: false,
-      location: false,
-      copyhistory: false,
-      status: false,
-      menubar: false,
-      scrollbars: true,
-      resizable: true
-    }
-
-    let windowOptsStr
-
-    if (this.windows[opts.id] != null) {
-      if (this.windows[opts.id].closed === true) {
-        delete this.windows[opts.id]
-      } else {
-        return this.windows[opts.id]
-      }
-    }
-
-    if (!opts.tab) {
-      let windowOpts = assign({}, defaultWindowOpts, opts.windowOpts)
-
-      let dualScreenLeft = window.screenLeft != null ? window.screenLeft : window.screen.left
-      let dualScreenTop = window.screenTop != null ? window.screenTop : window.screen.top
-
-      let width = window.innerWidth ? window.innerWidth : document.documentElement.clientWidth ? document.documentElement.clientWidth : window.screen.width
-      let height = window.innerHeight ? window.innerHeight : document.documentElement.clientHeight ? document.documentElement.clientHeight : window.screen.height
-      let windowWidth = width / 2
-      let windowHeight = height / 1.3
-
-      let left = ((width / 2) - (windowWidth / 2)) + dualScreenLeft
-      let top = ((height / 2) - (windowHeight / 2)) + dualScreenTop
-
-      windowOpts.top = top
-      windowOpts.left = left
-      windowOpts.width = windowWidth
-      windowOpts.height = windowHeight
-
-      windowOptsStr = (
-        Object.keys(windowOpts)
-          .map((opt) => `${opt}=${typeof windowOpts[opt] === 'boolean' ? (windowOpts[opt] ? 'yes' : 'no') : windowOpts[opt]}`)
-          .join(',')
-      )
-    }
-
-    let nWindow = window.open(
-      opts.url || '',
-      opts.name || '_blank',
-      opts.tab ? undefined : windowOptsStr
-    )
-
-    this.windows[opts.id] = nWindow
-
-    if (nWindow.focus) {
-      nWindow.focus()
-    }
-
-    return nWindow
-  }
-
   collapse (v, undockeable, undocked) {
     let shouldCollapseAsync
 
@@ -323,7 +253,7 @@ class SplitPane extends Component {
           this.setState(stateToUpdate, () => {
             // opening the window when setState is done..
             // giving it the chance to clear the previous iframe
-            const nWindow = this.openWindow(windowOpts)
+            const nWindow = openPreviewWindow(windowOpts)
 
             this.props.onUndocked && this.props.onUndocked(windowOpts.id, nWindow)
 
@@ -354,12 +284,6 @@ class SplitPane extends Component {
     })
   }
 
-  cancel () {
-    if (this.props.onCancel) {
-      this.props.onCancel()
-    }
-  }
-
   renderPane (type, undockeable, pane) {
     const { collapsable } = this.props
     const { undocked } = this.state
@@ -386,8 +310,7 @@ class SplitPane extends Component {
       resizerClassName,
       collapsedText,
       collapsable,
-      undockeable,
-      cancellable
+      undockeable
     } = this.props
 
     const { collapsed, undocked } = this.state
@@ -418,7 +341,6 @@ class SplitPane extends Component {
     const children = this.props.children
     const classes = ['SplitPane', this.props.className, split, disabledClass]
     const undockSupported = (typeof undockeable === 'function' ? undockeable() : undockeable)
-    const cancelSupported = (typeof cancellable === 'function' ? cancellable() : cancellable)
 
     return (
       <div className={classes.join(' ')} style={style} ref={this.splitPaneRef}>
@@ -438,8 +360,6 @@ class SplitPane extends Component {
           split={split}
           collapse={this.collapse}
           undockeable={undockSupported}
-          cancellable={cancelSupported}
-          cancel={this.cancel}
           undocked={undocked}
         />
         {this.renderPane(

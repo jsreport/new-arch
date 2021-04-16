@@ -14,7 +14,7 @@ class ChangePasswordButton extends Component {
           className='toolbar-button'
           onClick={(e) => Studio.openModal(ChangePasswordModal, { entity: this.props.tab.entity })}
         >
-          <i className='fa fa-key' /> Change Password
+          <i className='fa fa-key' />Change Password
         </div>
       </div>
     )

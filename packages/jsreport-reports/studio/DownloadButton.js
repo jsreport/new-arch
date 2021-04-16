@@ -20,9 +20,11 @@ class DownloadButton extends Component {
       return <div />
     }
 
-    return <div className='toolbar-button' onClick={() => this.download()}>
-      <i className='fa fa-download' />Download
-    </div>
+    return (
+      <div className='toolbar-button' onClick={() => this.download()}>
+        <i className='fa fa-download' />Download
+      </div>
+    )
   }
 }
 

@@ -118,8 +118,13 @@ Studio.readyListeners.push(async () => {
     }, 10000)
   }
 
-  Studio.addToolbarComponent((props) => <div
-    className='toolbar-button' onClick={() => licenseInfoModal()}>
-    <div style={{textTransform: 'capitalize'}}><i className='fa fa-gavel' /> {licensingInfo.license} <i className='fa fa-info-circle' /></div>
-  </div>, 'settings')
+  Studio.addToolbarComponent((props) => (
+    <div
+      className='toolbar-button' onClick={() => licenseInfoModal()}
+    >
+      <div style={{textTransform: 'capitalize'}}>
+        <i className='fa fa-gavel' />{licensingInfo.license} <i className='fa fa-info-circle' style={{ marginRight: 0 }} />
+      </div>
+    </div>
+  ), 'settings')
 })

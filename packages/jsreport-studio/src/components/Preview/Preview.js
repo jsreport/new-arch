@@ -3,13 +3,20 @@ import React, { Fragment, Component } from 'react'
 import { connect } from 'react-redux'
 import classNames from 'classnames'
 import shortid from 'shortid'
+import fileSaver from 'filesaver.js-npm'
+import FileInput from '../common/FileInput/FileInput'
+import PreviewActionsMenu from './PreviewActionsMenu'
 import PreviewDisplay from './PreviewDisplay'
 import ProfilerContent from './ProfilerContent'
 import ProfilerInspectModal from '../Modals/ProfilerInspectModal'
 import ProfilerErrorModal from '../Modals/ProfilerErrorModal'
 import { selectors as entitiesSelectors } from '../../redux/entities'
-import { actions as editorActions } from '../../redux/editor'
-import getStateAtOperation from './getStateAtOperation'
+import { selectors as editorSelectors, actions as editorActions } from '../../redux/editor'
+import parseProfile from '../../helpers/parseProfile'
+import getStateAtOperation from '../../helpers/getStateAtProfilerOperation'
+// import { openPreviewWindow, getPreviewWindowOptions } from '../../helpers/previewWindow'
+import resolveUrl from '../../helpers/resolveUrl'
+import uid from '../../helpers/uid'
 import { findTextEditor, selectLine as selectLineInTextEditor } from '../../helpers/textEditorInstance'
 import {
   modalHandler,
@@ -34,6 +41,9 @@ class Preview extends Component {
     this.previewDisplayContainerRef = React.createRef()
     this.previewDisplayOverlayRef = React.createRef()
     this.previewDisplayIframeRef = React.createRef()
+    this.actionsMenuTriggerRef = React.createRef()
+    this.actionsMenuContainerRef = React.createRef()
+    this.uploadProfileInputRef = React.createRef()
 
     this.state = {
       previewDisplayIframeKey: shortid.generate(),
@@ -43,6 +53,7 @@ class Preview extends Component {
       previewType: 'normal',
       disableTheming: false,
       activePreviewTab: 'profiler',
+      expandedActionsMenu: false,
       profilerOperations: [],
       profilerLogs: [],
       profilerActiveElement: null,
@@ -52,12 +63,14 @@ class Preview extends Component {
     this.handleOnPreviewDisplayLoad = this.handleOnPreviewDisplayLoad.bind(this)
     this.handleOnProfilerCanvasClick = this.handleOnProfilerCanvasClick.bind(this)
     this.handleOnProfilerElementClick = this.handleOnProfilerElementClick.bind(this)
+    this.handleOnActionMenuClick = this.handleOnActionMenuClick.bind(this)
     this.applyStylesToIframe = this.applyStylesToIframe.bind(this)
     this.addProfilerOperation = this.addProfilerOperation.bind(this)
     this.addProfilerLog = this.addProfilerLog.bind(this)
     this.addProfilerError = this.addProfilerError.bind(this)
     this.changeSrc = this.changeSrc.bind(this)
     this.changeActiveTab = this.changeActiveTab.bind(this)
+    this.clear = this.clear.bind(this)
   }
 
   componentDidMount () {
@@ -254,6 +267,96 @@ class Preview extends Component {
     })
   }
 
+  handleOnActionMenuClick (action, data) {
+    if (action === 'download') {
+      const blob = new Blob([data.reportFile.rawData.buffer], { type: data.reportFile.contentType })
+      fileSaver.saveAs(blob, data.reportFile.filename)
+    } else if (action === 'downloadProfile') {
+      const downloadEl = document.createElement('a')
+
+      downloadEl.style.display = 'none'
+      downloadEl.href = `${window.location.origin}${resolveUrl(`/api/profile/${data.profileId}/content`)}`
+      downloadEl.download = `${data.profileId}.jsrprofile`
+
+      this.actionsMenuContainerRef.current.appendChild(downloadEl)
+
+      const evt = new window.MouseEvent('click', {
+        bubbles: false,
+        cancelable: false,
+        view: window
+      })
+
+      downloadEl.dispatchEvent(evt)
+
+      downloadEl.parentNode.removeChild(downloadEl)
+    } else if (action === 'uploadProfile') {
+      const profileName = data.file.name
+
+      previewConfigurationHandler({
+        src: null,
+        id: uid(),
+        template: {
+          name: 'anonymous',
+          shortid: null
+        },
+        type: 'profiler'
+      }).then(() => {
+        return parseProfile(data.file.stream().getReader(), (message) => {
+          if (message.type === 'log') {
+            this.addProfilerLog(message)
+          } else if (message.type === 'operationStart' || message.type === 'operationEnd') {
+            this.addProfilerOperation(message)
+          } else if (message.type === 'error') {
+            this.addProfilerError(message)
+          }
+        })
+      }).catch((err) => {
+        console.error(`Unable to upload profile "${profileName}"`, err)
+      })
+    } else if (action === 'openNewTab') {
+      const previewId = this.state.previewId
+
+      const file = new window.File([data.reportFile.rawData.buffer], data.reportFile.filename, {
+        type: data.reportFile.contentType
+      })
+
+      const fileURLBlob = URL.createObjectURL(file)
+
+      const previewURL = window.URL.createObjectURL(new Blob([`
+        <html>
+          <head>
+            <title>Preview - ${data.templateName}</title>
+            <style>
+              html, body {
+                margin: 0px;
+                width: 100%;
+                height: 100%;
+              }
+            </style>
+          </head>
+          <body>
+            <iframe src="${fileURLBlob}" frameborder="0" width="100%" height="100%" />
+          </body>
+        </html>
+      `], { type: 'text/html' }))
+
+      const newWindow = window.open(
+        previewURL,
+        `preview-report-${previewId}`
+      )
+
+      const timerRef = setInterval(() => {
+        if (newWindow.closed) {
+          window.URL.revokeObjectURL(fileURLBlob)
+          window.URL.revokeObjectURL(previewURL)
+          clearInterval(timerRef)
+        }
+      }, 1000)
+    } else if (action === 'clear') {
+      this.clear()
+    }
+  }
+
   applyStylesToIframe () {
     if (!this.previewDisplayContainerRef.current || !this.previewDisplayIframeRef.current) {
       return
@@ -335,6 +438,7 @@ class Preview extends Component {
           type: operation.subtype,
           name: operation.name,
           timestamp: operation.timestamp,
+          profileId: operation.profileId,
           req: operation.req,
           res: operation.res,
           previousOperationId: operation.previousOperationId,
@@ -345,6 +449,23 @@ class Preview extends Component {
           completedPreviousOperationId: null
         }]
       }
+
+      return {
+        profilerOperations: newOperations
+      }
+    })
+  }
+
+  addProfilerReport (reportFileInfo) {
+    this.setState((prev) => {
+      if (prev.profilerOperations.length === 0) {
+        return
+      }
+
+      const newOperations = [{
+        ...prev.profilerOperations[0],
+        reportFile: reportFileInfo
+      }, ...prev.profilerOperations.slice(1)]
 
       return {
         profilerOperations: newOperations
@@ -460,6 +581,7 @@ class Preview extends Component {
       previewDisplayIframeKey,
       src,
       activePreviewTab,
+      expandedActionsMenu,
       previewType,
       profilerOperations,
       profilerLogs,
@@ -468,11 +590,12 @@ class Preview extends Component {
     } = this.state
 
     const { main } = this.props
-    let previewContent
+    const mainOperation = profilerOperations.find((op) => op.type === 'render')
+    const isMainCompleted = mainOperation != null ? mainOperation.completed === true : false
+    const shouldUseTabs = previewType === 'report' || previewType === 'profiler'
+    const tabs = []
 
-    if (previewType === 'report' || previewType === 'profiler') {
-      const tabs = []
-
+    if (shouldUseTabs) {
       if (previewType === 'report') {
         tabs.push({
           name: 'report',
@@ -509,11 +632,130 @@ class Preview extends Component {
           )
         }
       })
+    }
 
-      previewContent = (
+    const actionsMenuComponents = []
+
+    if (previewType === 'report') {
+      actionsMenuComponents.push(({ onMenuAction, closeMenu }) => {
+        const enabled = isMainCompleted && mainOperation.reportFile != null
+
+        return (
+          <div className={enabled ? '' : 'disabled'} title='Download report output' onClick={() => {
+            if (!enabled) {
+              return
+            }
+
+            onMenuAction('download', { reportFile: mainOperation.reportFile })
+            closeMenu()
+          }}>
+            <i className='fa fa-download' /><span>Download</span>
+          </div>
+        )
+      })
+
+      actionsMenuComponents.push(({ onMenuAction, closeMenu }) => {
+        const enabled = isMainCompleted && (profilerErrors == null || profilerErrors.global == null)
+
+        return (
+          <div className={enabled ? '' : 'disabled'} onClick={() => {
+            if (!enabled) {
+              return
+            }
+
+            onMenuAction('downloadProfile', { profileId: mainOperation.profileId })
+            closeMenu()
+          }}>
+            <i className='fa fa-download' /><span>Download Profile</span>
+          </div>
+        )
+      })
+
+      actionsMenuComponents.push(({ onMenuAction, closeMenu }) => {
+        const enabled = isMainCompleted
+
+        return (
+          <div className={enabled ? '' : 'disabled'} onClick={() => {
+            if (!enabled) {
+              return
+            }
+
+            if (this.uploadProfileInputRef.current) {
+              this.uploadProfileInputRef.current.openSelection()
+            }
+          }}>
+            <i className='fa fa-upload' /><span>Upload Profile</span>
+            <div style={{ display: 'none' }}>
+              <FileInput ref={this.uploadProfileInputRef} onFileSelect={(file) => {
+                onMenuAction('uploadProfile', { file })
+                closeMenu()
+              }} />
+            </div>
+          </div>
+        )
+      })
+
+      actionsMenuComponents.push(({ onMenuAction, closeMenu }) => {
+        const enabled = isMainCompleted && mainOperation.reportFile != null
+
+        return (
+          <div className={enabled ? '' : 'disabled'} onClick={() => {
+            if (!enabled) {
+              return
+            }
+
+            onMenuAction('openNewTab', { templateName: mainOperation.name, reportFile: mainOperation.reportFile })
+            closeMenu()
+          }}>
+            <i className='fa fa-external-link' /><span>Open in new tab</span>
+          </div>
+        )
+      })
+    }
+
+    // TODO: undock action is still not supported because it is too complex to refactor it,
+    // we should add this after we have done the preview refactor
+    /*
+    if (
+      activeTabWithEntity &&
+      activeTabWithEntity.tab &&
+      activeTabWithEntity.tab.type === 'entity' &&
+      activeTabWithEntity.entity &&
+      activeTabWithEntity.entity.__entitySet === 'templates'
+    ) {
+      actionsMenuComponents.push(({ onMenuAction, closeMenu }) => {
+        const enabled = mainOperation == null || isMainCompleted
+
+        return (
+          <div className={enabled ? '' : 'disabled'} title='Undock preview pane into extra browser tab' onClick={() => {
+            if (!enabled) {
+              return
+            }
+
+            onMenuAction('undock')
+            closeMenu()
+          }}>
+            <i className='fa fa-window-restore' /><span>Undock to new tab</span>
+          </div>
+        )
+      })
+    }
+    */
+
+    actionsMenuComponents.push(({ onMenuAction, closeMenu }) => (
+      <div onClick={() => {
+        onMenuAction('clear')
+        closeMenu()
+      }}>
+        <i className='fa fa-times' /><span>Clear</span>
+      </div>
+    ))
+
+    return (
+      <div className={styles.previewContainer}>
         <Fragment>
           <div className={styles.previewTitles}>
-            {tabs.map((t) => {
+            {shouldUseTabs && tabs.map((t) => {
               const isActive = activePreviewTab === t.name
 
               const previewTabClass = classNames(styles.previewTitle, {
@@ -528,9 +770,33 @@ class Preview extends Component {
                 </div>
               )
             })}
+            <div
+              key='preview-actions'
+              ref={this.actionsMenuTriggerRef}
+              className={styles.previewTitle}
+              onClick={(e) => {
+                e.stopPropagation()
+
+                if (
+                  this.actionsMenuTriggerRef.current.contains(e.target) &&
+                  !this.actionsMenuContainerRef.current.contains(e.target)
+                ) {
+                  this.setState((prevState) => ({ expandedActionsMenu: !prevState.expandedActionsMenu }))
+                }
+              }}
+            >
+              <span title='Preview actions menu'>...</span>
+              <PreviewActionsMenu
+                ref={this.actionsMenuContainerRef}
+                open={expandedActionsMenu}
+                actionsComponents={actionsMenuComponents}
+                onMenuAction={this.handleOnActionMenuClick}
+                onRequestClose={() => this.setState({ expandedActionsMenu: false })}
+              />
+            </div>
           </div>
           <div className='block'>
-            {tabs.map((t) => {
+            {shouldUseTabs ? tabs.map((t) => {
               const isActive = activePreviewTab === t.name
 
               return (
@@ -538,29 +804,19 @@ class Preview extends Component {
                   {t.renderContent()}
                 </div>
               )
-            })}
+            }) : (
+              <PreviewDisplay
+                main={main}
+                iframeKey={previewDisplayIframeKey}
+                src={src}
+                containerRef={this.previewDisplayContainerRef}
+                overlayRef={this.previewDisplayOverlayRef}
+                iframeRef={this.previewDisplayIframeRef}
+                onLoad={this.handleOnPreviewDisplayLoad}
+              />
+            )}
           </div>
         </Fragment>
-      )
-    } else {
-      previewContent = (
-        <div className='block'>
-          <PreviewDisplay
-            main={main}
-            iframeKey={previewDisplayIframeKey}
-            src={src}
-            containerRef={this.previewDisplayContainerRef}
-            overlayRef={this.previewDisplayOverlayRef}
-            iframeRef={this.previewDisplayIframeRef}
-            onLoad={this.handleOnPreviewDisplayLoad}
-          />
-        </div>
-      )
-    }
-
-    return (
-      <div className={styles.previewContainer}>
-        {previewContent}
       </div>
     )
   }
@@ -570,6 +826,8 @@ export { Preview }
 
 export default connect(
   (state) => ({
+    activeTabWithEntity: editorSelectors.getActiveTabWithEntity(state),
+    lastActiveTemplate: editorSelectors.getLastActiveTemplate(state),
     getEntityByShortid: (shortid, ...params) => entitiesSelectors.getByShortid(state, shortid, ...params)
   }),
   { ...editorActions },

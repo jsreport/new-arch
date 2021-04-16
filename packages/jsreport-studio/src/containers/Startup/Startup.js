@@ -6,6 +6,7 @@ import { selectors as entitiesSelectors } from '../../redux/entities'
 import uid from '../../helpers/uid'
 import api from '../../helpers/api'
 import resolveUrl from '../../helpers/resolveUrl'
+import parseProfile from '../../helpers/parseProfile'
 import NewTemplateModal from '../../components/Modals/NewTemplateModal'
 import { modalHandler, previewConfigurationHandler } from '../../lib/configuration'
 
@@ -120,19 +121,8 @@ class Startup extends Component {
       }
 
       const reader = response.body.getReader()
-      const textDecoder = new TextDecoder()
-      let pending = ''
 
-      const handleMessage = (rawMessage) => {
-        let message
-
-        try {
-          message = JSON.parse(rawMessage)
-        } catch (e) {
-          console.error(`Unable to parse profiler message. raw: ${rawMessage}`)
-          return
-        }
-
+      await parseProfile(reader, (message) => {
         if (message.type === 'log') {
           addProfilerLog(message)
         } else if (message.type === 'operationStart' || message.type === 'operationEnd') {
@@ -140,36 +130,6 @@ class Startup extends Component {
         } else if (message.type === 'error') {
           addProfilerError(message)
         }
-      }
-
-      await reader.read().then(function sendNext ({ value, done }) {
-        if (done) {
-          if (pending !== '') {
-            handleMessage(pending)
-          }
-
-          return
-        }
-
-        let chunkStr = textDecoder.decode(value)
-
-        if (pending !== '') {
-          chunkStr = pending + chunkStr
-        }
-
-        let messages = chunkStr.split('\n')
-
-        if (messages.length > 1 && messages[messages.length - 1] !== '') {
-          pending = messages.pop()
-        }
-
-        messages = messages.filter((m) => m !== '')
-
-        for (const m of messages) {
-          handleMessage(m)
-        }
-
-        return reader.read().then(sendNext)
       })
     } catch (e) {
       const newError = new Error(`Open profile "${p._id}" failed. ${e.message}`)

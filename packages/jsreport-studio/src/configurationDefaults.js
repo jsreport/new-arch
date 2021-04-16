@@ -278,7 +278,7 @@ export default () => {
     return (
       <div
         onClick={() => props.openTab({ key: 'StartupPage', editorComponentKey: 'startup', title: 'Startup' })}>
-        <i className='fa fa-home' /> Startup page
+        <i className='fa fa-home' />Startup page
       </div>
     )
   }))
@@ -293,7 +293,7 @@ export default () => {
         recipes: configuration.recipes,
         extensions: configuration.extensions
       })}>
-      <i className='fa fa-info-circle' /> About
+      <i className='fa fa-info-circle' />About
     </div>
   ))
 
@@ -304,14 +304,14 @@ export default () => {
         availableEditorThemes: configuration.extensions.studio.options.availableEditorThemes
       })}
     >
-      <i className='fa fa-paint-brush' /> Theme
+      <i className='fa fa-paint-brush' />Theme
     </div>
   ))
 
   configuration.toolbarComponents.settings.push(() => (
     <div
       onClick={() => configuration.modalHandler.open(ApiModal, { apiSpecs: configuration.apiSpecs })}>
-      <i className='fa fa-plug' /> API
+      <i className='fa fa-plug' />API
     </div>
   ))
 

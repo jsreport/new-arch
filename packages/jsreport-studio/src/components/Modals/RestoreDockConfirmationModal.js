@@ -1,7 +1,6 @@
 import PropTypes from 'prop-types'
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
-import { actions } from '../../redux/editor'
 
 class RestoreDockConfirmationModal extends Component {
   static propTypes = {
@@ -21,7 +20,6 @@ class RestoreDockConfirmationModal extends Component {
 
   dock () {
     this.props.close(true)
-    this.props.desactivateUndockMode()
   }
 
   cancel () {
@@ -54,7 +52,7 @@ class RestoreDockConfirmationModal extends Component {
 
 export default connect(
   undefined,
-  { ...actions },
+  undefined,
   (stateProps, dispatchProps, ownProps) => ({
     ...ownProps,
     ...stateProps,

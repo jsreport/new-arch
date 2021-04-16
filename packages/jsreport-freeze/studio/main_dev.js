@@ -54,11 +54,23 @@ Studio.initializeListeners.push(() => {
     return
   }
 
-  Studio.addToolbarComponent(() => Studio.getSettingValueByKey('freeze', false) ? <span /> : <div
-    className={'toolbar-button'} onClick={freeze}>
-    <i className='fa fa-lock' />Freeze edits</div>, 'settings')
+  Studio.addToolbarComponent(() => (
+    Studio.getSettingValueByKey('freeze', false) ? <span /> : (
+      <div
+        className='toolbar-button' onClick={freeze}
+      >
+        <i className='fa fa-lock' />Freeze edits
+      </div>
+    )
+  ), 'settings')
 
-  Studio.addToolbarComponent(() => Studio.getSettingValueByKey('freeze', false) ? <div
-    className={'toolbar-button'} onClick={release}>
-    <i className='fa fa-unlock' />Release freeze</div> : <span />, 'settings')
+  Studio.addToolbarComponent(() => (
+    Studio.getSettingValueByKey('freeze', false) ? (
+      <div
+        className={'toolbar-button'} onClick={release}
+      >
+        <i className='fa fa-unlock' />Release freeze
+      </div>
+    ) : <span />
+  ), 'settings')
 })

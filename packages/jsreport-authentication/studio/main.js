@@ -340,7 +340,6 @@ _jsreportStudio2.default.initializeListeners.unshift(_asyncToGenerator( /*#__PUR
               name: 'users',
               faIcon: 'fa-user',
               visibleName: 'user',
-              nameAttribute: 'username',
               onNew: function onNew(options) {
                 return _jsreportStudio2.default.openModal(_NewUserModal2.default, options);
               },
@@ -351,6 +350,7 @@ _jsreportStudio2.default.initializeListeners.unshift(_asyncToGenerator( /*#__PUR
           }
 
           _jsreportStudio2.default.addToolbarComponent(_ChangePasswordSettingsButton2.default, 'settings');
+
           _jsreportStudio2.default.addToolbarComponent(function () {
             return React.createElement(
               'div',
@@ -359,11 +359,11 @@ _jsreportStudio2.default.initializeListeners.unshift(_asyncToGenerator( /*#__PUR
                 'span',
                 null,
                 React.createElement('i', { className: 'fa fa-user' }),
-                ' ',
-                _jsreportStudio2.default.authentication.user.username
+                _jsreportStudio2.default.authentication.user.name
               )
             );
           }, 'settingsBottom');
+
           _jsreportStudio2.default.addToolbarComponent(_LogoutSettingsButton2.default, 'settingsBottom');
 
         case 10:
@@ -439,7 +439,7 @@ var UserEditor = function (_Component) {
           null,
           _react2.default.createElement('i', { className: 'fa fa-user' }),
           ' ',
-          entity.username
+          entity.name
         ),
         _react2.default.createElement(
           'div',
@@ -523,7 +523,7 @@ var LogoutSettingsButton = function (_Component) {
             _react2.default.createElement('input', { ref: this.logoutRef, type: 'submit', id: 'logoutBtn', style: { display: 'none' } })
           ),
           _react2.default.createElement('i', { className: 'fa fa-power-off' }),
-          ' Logout'
+          'Logout'
         )
       );
     }
@@ -556,10 +556,13 @@ var _jsreportStudio2 = _interopRequireDefault(_jsreportStudio);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 exports.default = function (props) {
-  return _jsreportStudio2.default.authentication.user.isAdmin ? React.createElement('span', null) : React.createElement(
+  if (_jsreportStudio2.default.authentication.user.isAdmin) {
+    return React.createElement('span', null);
+  }
+
+  return React.createElement(
     'div',
     null,
-    ' ',
     React.createElement(
       'a',
       { id: 'changePassword', onClick: function onClick() {
@@ -567,7 +570,7 @@ exports.default = function (props) {
         }, style: { cursor: 'pointer' } },
       ' ',
       React.createElement('i', { className: 'fa fa-key' }),
-      ' Change password'
+      'Change password'
     )
   );
 };
@@ -635,7 +638,7 @@ var ChangePasswordButton = function (_Component) {
             }
           },
           _react2.default.createElement('i', { className: 'fa fa-key' }),
-          ' Change Password'
+          'Change Password'
         )
       );
     }
@@ -742,7 +745,7 @@ var NewUserModal = function (_Component) {
 
               case 6:
 
-                entity.username = this.usernameRef.current.value;
+                entity.name = this.usernameRef.current.value;
                 entity.password = this.password1Ref.current.value;
 
                 _context.prev = 8;

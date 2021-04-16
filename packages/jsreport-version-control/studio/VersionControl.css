@@ -13,14 +13,6 @@
   content: "\f0d7 "
 }
 
-.runPopup {
-  background-color: $toolbar-popup-backgroundColor;
-  top: 2.4rem;
-  position: absolute;
-  padding: 0.5rem;
-  z-index: 200;
-}
-
 .listContainer {
   overflow: auto;
   position: relative;

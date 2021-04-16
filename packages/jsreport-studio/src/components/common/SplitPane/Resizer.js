@@ -19,11 +19,9 @@ class Resizer extends Component {
       className,
       collapsed,
       collapse,
-      cancel,
       collapsedText,
       collapsable,
       undocked,
-      cancellable,
       undockeable
     } = this.props
 
@@ -59,16 +57,6 @@ class Resizer extends Component {
             onClick={(e) => collapse(true, undockeable, true)}
           >
             <i className={'fa fa-window-restore'} />
-          </div>
-        )}
-        {!collapsed && cancellable && (
-          <div
-            title='Clear pane'
-            className={'docker ' + (collapsable === 'first' ? 'left' : '')}
-            style={{ top: !collapsed && undockeable ? '70px' : '35px' }}
-            onClick={(e) => cancel()}
-          >
-            <i className={'fa fa-times'} />
           </div>
         )}
       </div>

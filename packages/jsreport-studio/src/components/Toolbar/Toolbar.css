@@ -14,8 +14,8 @@
   user-select: none;
 }
 
-:global .toolbar-button > i:nth-child(1) {
-   margin-right: 0.3rem;
+:global .toolbar-button .fa {
+  margin-right: 0.4em;
 }
 
 :global .toolbar-button.disabled {
@@ -69,21 +69,26 @@
   height: 2.5rem;
 }
 
-.popup {
+:global .popup-settings {
   background-color: $toolbar-popup-backgroundColor;
+  color: $toolbar-color;
   position: absolute;
-  right: 0;
   padding: 0.5rem;
   top: 2.4rem;
   z-index: 2000
 }
 
-.popup > div  {
+:global .popup-settings > div  {
   padding: 0.5rem;
 }
 
-.popup > div:hover {
+:global .popup-settings > div:hover {
   background-color: $toolbar-popup-hover-backgroundColor;
+}
+
+:global .popup-settings .fa {
+  width: 1.1rem;
+  margin-right: 0.3rem;
 }
 
 .runCaret {

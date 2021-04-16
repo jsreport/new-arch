@@ -230,7 +230,8 @@ _jsreportStudio2.default.initializeListeners.push(function () {
     return _jsreportStudio2.default.getSettingValueByKey('freeze', false) ? React.createElement('span', null) : React.createElement(
       'div',
       {
-        className: 'toolbar-button', onClick: freeze },
+        className: 'toolbar-button', onClick: freeze
+      },
       React.createElement('i', { className: 'fa fa-lock' }),
       'Freeze edits'
     );
@@ -240,7 +241,8 @@ _jsreportStudio2.default.initializeListeners.push(function () {
     return _jsreportStudio2.default.getSettingValueByKey('freeze', false) ? React.createElement(
       'div',
       {
-        className: 'toolbar-button', onClick: release },
+        className: 'toolbar-button', onClick: release
+      },
       React.createElement('i', { className: 'fa fa-unlock' }),
       'Release freeze'
     ) : React.createElement('span', null);

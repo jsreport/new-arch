@@ -373,7 +373,7 @@ var ReportEditor = function (_Component) {
         _react2.default.createElement(
           'td',
           { className: 'selection' },
-          report.name
+          report.reportName
         ),
         _react2.default.createElement(
           'td',
@@ -575,7 +575,7 @@ var ReportsButton = function (_Component) {
             return _this2.openReports();
           } },
         _react2.default.createElement('i', { className: 'fa fa-folder-open-o' }),
-        ' Reports'
+        'Reports'
       );
     }
   }]);

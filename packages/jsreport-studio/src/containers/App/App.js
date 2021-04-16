@@ -4,8 +4,10 @@ import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import { DndProvider } from 'react-dnd'
 import { HTML5Backend } from 'react-dnd-html5-backend'
-import { actions, selectors } from 'redux/editor'
-import * as entities from 'redux/entities'
+import fileSaver from 'filesaver.js-npm'
+import cookies from 'js-cookie'
+import { actions, selectors } from '../../redux/editor'
+import * as entities from '../../redux/entities'
 import Preview from '../../components/Preview/Preview.js'
 import EntityTreeBox from '../../components/EntityTree/EntityTreeBox.js'
 import EntityTree from '../../components/EntityTree/EntityTree.js'
@@ -24,10 +26,8 @@ import RenameModal from '../../components/Modals/RenameModal.js'
 import RestoreDockConfirmationModal from '../../components/Modals/RestoreDockConfirmationModal.js'
 import * as progress from '../../redux/progress'
 import getCloneName from '../../../shared/getCloneName'
-import fileSaver from 'filesaver.js-npm'
-import cookies from 'js-cookie'
 import uid from '../../helpers/uid.js'
-import getPreviewWindowName from '../../helpers/getPreviewWindowName'
+import { previewWindows, openPreviewWindow, getPreviewWindowOptions } from '../../helpers/previewWindow'
 import {
   extensions,
   triggerSplitResize,
@@ -71,7 +71,6 @@ class App extends Component {
     this.handlePreviewUndocking = this.handlePreviewUndocking.bind(this)
     this.handlePreviewUndocked = this.handlePreviewUndocked.bind(this)
     this.handlePreviewCollapseChange = this.handlePreviewCollapseChange.bind(this)
-    this.handlePreviewCancel = this.handlePreviewCancel.bind(this)
     this.isPreviewUndockeable = this.isPreviewUndockeable.bind(this)
   }
 
@@ -88,7 +87,7 @@ class App extends Component {
       if (this.props.undockMode) {
         target = 'previewFrame_GENERAL'
 
-        this.previewPaneRef.current.openWindow({
+        openPreviewWindow({
           id: target,
           name: target,
           tab: true
@@ -100,7 +99,13 @@ class App extends Component {
 
     registerPreviewHandler((src) => {
       if (!src) {
-        this.handleRun(this.createPreviewTarget(this.props.undockMode ? `window-${this.getPreviewWindowOptions().id}` : undefined))
+        this.handleRun(
+          this.createPreviewTarget(
+            this.props.undockMode ? (
+              `window-${getPreviewWindowOptions(this.props.lastActiveTemplate != null ? this.props.lastActiveTemplate.shortid : undefined).id}`
+            ) : undefined
+          )
+        )
       }
     })
 
@@ -113,7 +118,7 @@ class App extends Component {
     })
 
     previewListeners.push((request, entities, target) => {
-      const { undockMode } = this.props
+      const { lastActiveTemplate, undockMode } = this.props
 
       // we need to try to open the window again to get a reference to any existing window
       // created with the id, this is necessary because the window can be closed by the user
@@ -127,8 +132,8 @@ class App extends Component {
         target.type &&
         target.type.indexOf(request.template.shortid) !== -1
       ) {
-        let previewWinOpts = this.getPreviewWindowOptions()
-        this.previewPaneRef.current.openWindow(previewWinOpts)
+        let previewWinOpts = getPreviewWindowOptions(lastActiveTemplate != null ? lastActiveTemplate.shortid : undefined)
+        openPreviewWindow(previewWinOpts)
       }
     })
 
@@ -154,10 +159,15 @@ class App extends Component {
   createPreviewTarget (type) {
     const normalizedType = type == null ? 'preview' : type
     const windowPrefix = 'window-'
+    const isWindowType = normalizedType.indexOf(windowPrefix) === 0
     let processFile
     let focus
 
     const handleLog = (fileInfo) => {
+      if (isWindowType) {
+        return
+      }
+
       try {
         const log = JSON.parse(new TextDecoder().decode(fileInfo.rawData))
         this.previewRef.current.addProfilerLog(log)
@@ -167,6 +177,10 @@ class App extends Component {
     }
 
     const handleOperation = (fileInfo) => {
+      if (isWindowType) {
+        return
+      }
+
       try {
         const operation = JSON.parse(new TextDecoder().decode(fileInfo.rawData))
         this.previewRef.current.addProfilerOperation(operation)
@@ -176,6 +190,10 @@ class App extends Component {
     }
 
     const handleError = (fileInfo) => {
+      if (isWindowType) {
+        return
+      }
+
       try {
         // we get here when there was an error during the render, usually the error
         // here is something general so it should show as part of the general error state
@@ -188,8 +206,6 @@ class App extends Component {
     }
 
     if (normalizedType === 'preview' || normalizedType.indexOf(windowPrefix) === 0) {
-      const isWindowType = normalizedType.indexOf(windowPrefix) === 0
-
       processFile = (fileInfo, previewId, previewName) => {
         if (fileInfo.name === 'report') {
           const file = new window.File([fileInfo.rawData.buffer], fileInfo.filename, {
@@ -199,12 +215,12 @@ class App extends Component {
           const newURLBlob = URL.createObjectURL(file)
 
           if (isWindowType) {
-            const previews = this.previewPaneRef.current.windows
             const windowId = normalizedType.slice(windowPrefix.length)
-            const windowRef = previews[windowId]
+            const windowRef = previewWindows[windowId]
             windowRef.location.href = newURLBlob
           } else {
             this.previewRef.current.changeSrc(newURLBlob, { id: previewId })
+            this.previewRef.current.addProfilerReport(fileInfo)
           }
         } else if (fileInfo.name === 'log') {
           handleLog(fileInfo)
@@ -213,15 +229,21 @@ class App extends Component {
         } else if (fileInfo.name === 'error') {
           const error = handleError(fileInfo)
           const newURLBlob = URL.createObjectURL(new Blob([`Report${previewName != null ? ` "${previewName}"` : ''} render failed.\n\n${error.message}\n${error.stack}`], { type: 'text/plain' }))
-          this.previewRef.current.changeSrc(newURLBlob, { id: previewId })
+
+          if (isWindowType) {
+            const windowId = normalizedType.slice(windowPrefix.length)
+            const windowRef = previewWindows[windowId]
+            windowRef.location.href = newURLBlob
+          } else {
+            this.previewRef.current.changeSrc(newURLBlob, { id: previewId })
+          }
         }
       }
 
       focus = () => {
         if (isWindowType) {
-          const previews = this.previewPaneRef.current.windows
           const windowId = normalizedType.slice(windowPrefix.length)
-          const windowRef = previews[windowId]
+          const windowRef = previewWindows[windowId]
           windowRef.focus()
         }
       }
@@ -270,36 +292,35 @@ class App extends Component {
 
     target.previewId = previewId
 
+    const windowPrefix = 'window-'
+    const isWindowType = target.type.indexOf(windowPrefix) === 0
+
     try {
       await this.props.run(target)
+      console.log('run finished...')
     } catch (error) {
-      this.previewRef.current.addProfilerError({
-        type: 'globalError',
-        message: error.message,
-        stack: error.stack
-      })
+      if (!isWindowType) {
+        this.previewRef.current.addProfilerError({
+          type: 'globalError',
+          message: error.message,
+          stack: error.stack
+        })
+      }
 
       const newURLBlob = URL.createObjectURL(new Blob([`${error.message}\n\n${error.stack}`], { type: 'text/plain' }))
-      this.previewRef.current.changeSrc(newURLBlob, { id: previewId })
+
+      if (isWindowType) {
+        const windowId = target.type.slice(windowPrefix.length)
+        const windowRef = previewWindows[windowId]
+        windowRef.location.href = newURLBlob
+      } else {
+        this.previewRef.current.changeSrc(newURLBlob, { id: previewId })
+      }
     }
   }
 
   openModal (componentOrText, options) {
     this.refOpenModal(componentOrText, options)
-  }
-
-  getPreviewWindowOptions () {
-    const { lastActiveTemplate } = this.props
-
-    if (!lastActiveTemplate) {
-      return {}
-    }
-
-    return {
-      id: lastActiveTemplate.shortid,
-      name: getPreviewWindowName(lastActiveTemplate.shortid),
-      tab: true
-    }
   }
 
   save () {
@@ -405,18 +426,21 @@ class App extends Component {
   }
 
   handlePreviewDocking () {
-    const previews = this.previewPaneRef.current.windows
-
     // close all preview windows when docking
-    if (Object.keys(previews).length) {
-      Object.keys(previews).forEach((id) => previews[id] && previews[id].close())
+    if (Object.keys(previewWindows).length) {
+      Object.keys(previewWindows).forEach((id) => {
+        if (previewWindows[id] != null) {
+          previewWindows[id].close()
+          delete previewWindows[id]
+        }
+      })
     }
 
-    this.previewPaneRef.current.windows = {}
+    this.props.desactivateUndockMode()
   }
 
   handlePreviewUndocking () {
-    const { activeTabWithEntity } = this.props
+    const { lastActiveTemplate, activeTabWithEntity } = this.props
 
     if (
       activeTabWithEntity &&
@@ -425,22 +449,15 @@ class App extends Component {
     ) {
       this.props.activateUndockMode()
 
-      return this.getPreviewWindowOptions()
+      return getPreviewWindowOptions(lastActiveTemplate != null ? lastActiveTemplate.shortid : undefined)
     }
 
     return false
   }
 
   handlePreviewUndocked (id, previewWindow) {
-    const previews = this.previewPaneRef.current.windows
-    previews[id] = previewWindow
+    previewWindows[id] = previewWindow
     this.handleRun(this.createPreviewTarget(`window-${id}`))
-  }
-
-  handlePreviewCancel () {
-    if (this.previewRef.current) {
-      this.previewRef.current.clear()
-    }
   }
 
   renderEntityTree () {
@@ -526,6 +543,7 @@ class App extends Component {
       canSave,
       canSaveAll,
       activeTabWithEntity,
+      lastActiveTemplate,
       entities,
       stop,
       activateTab,
@@ -570,7 +588,17 @@ class App extends Component {
                 activeTab={activeTabWithEntity}
                 onUpdate={updateBasedOnActiveTab}
                 onRun={(runType) => {
-                  this.handleRun(this.createPreviewTarget(runType === 'download' ? 'download' : (undockMode || runType === 'window') ? `window-${this.getPreviewWindowOptions().id}` : undefined))
+                  this.handleRun(
+                    this.createPreviewTarget(
+                      runType === 'download' ? (
+                        'download'
+                      ) : (
+                        (undockMode || runType === 'window') ? (
+                          `window-${getPreviewWindowOptions(lastActiveTemplate != null ? lastActiveTemplate.shortid : undefined).id}`
+                        ) : undefined
+                      )
+                    )
+                  )
                 }}
                 undockPreview={this.undockPreview}
                 openStartup={() => this.openStartup()}
@@ -600,14 +628,12 @@ class App extends Component {
                       collapsedText='preview'
                       collapsable='second'
                       undockeable={this.isPreviewUndockeable}
-                      cancellable
                       onChange={() => this.handleSplitChanged()}
                       onCollapsing={this.handlePreviewCollapsing}
                       onCollapseChange={this.handlePreviewCollapseChange}
                       onDocking={this.handlePreviewDocking}
                       onUndocking={this.handlePreviewUndocking}
                       onUndocked={this.handlePreviewUndocked}
-                      onCancel={this.handlePreviewCancel}
                       onDragFinished={() => this.handleSplitDragFinished()}
                       resizerClassName='resizer'>
                       <EditorTabs

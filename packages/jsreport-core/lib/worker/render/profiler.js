@@ -84,7 +84,7 @@ class Profiler {
         blobName
       }, req)
 
-      req.context.profileBlobId = profile._id
+      req.context.profileId = profile._id
       req.context.profileBlobName = profile.blobName
 
       if (!req.context.isProfilerAttached) {
@@ -103,12 +103,18 @@ class Profiler {
       templateName = req.template.name
     }
 
-    req.context.renderProfileId = this.emit({
+    const profilerMessage = {
       type: 'operationStart',
       subtype: 'render',
       name: templateName,
       previousOperationId: parentReq ? parentReq.context.profilerLastOperationId : null
-    }, req, res)
+    }
+
+    if (!req.context.isChildRequest) {
+      profilerMessage.profileId = req.context.profileId
+    }
+
+    req.context.renderProfileOperationId = this.emit(profilerMessage, req, res)
   }
 
   async renderEnd (req, res, err) {
@@ -118,18 +124,18 @@ class Profiler {
         ...err,
         stack: err.stack,
         message: err.message,
-        id: req.context.renderProfileId
+        id: req.context.renderProfileOperationId
       }, req, res)
       err.profileBlobName = req.context.profileBlobName
     }
 
     this.emit({
       type: 'operationEnd',
-      id: req.context.renderProfileId
+      id: req.context.renderProfileOperationId
     }, req, res)
 
     await this.reporter.documentStore.collection('profiles').update({
-      _id: req.context.profileBlobId
+      _id: req.context.profileId
     }, {
       $set: {
         blobName: req.context.profileBlobName,

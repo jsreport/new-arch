@@ -17,7 +17,7 @@ class LogoutSettingsButton extends Component {
           <form method='POST' action={Studio.resolveUrl('/logout')}>
             <input ref={this.logoutRef} type='submit' id='logoutBtn' style={{ display: 'none' }} />
           </form>
-          <i className='fa fa-power-off' /> Logout
+          <i className='fa fa-power-off' />Logout
         </div>
       </div>
     )

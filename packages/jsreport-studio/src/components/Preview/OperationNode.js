@@ -1,7 +1,7 @@
 import { Fragment, useCallback } from 'react'
 import { Handle } from 'react-flow-renderer'
 import fileSaver from 'filesaver.js-npm'
-import b64toBlob from './b64toBlob'
+import b64toBlob from '../../helpers/b64toBlob'
 import styles from './Preview.css'
 
 const OperationNode = (props) => {

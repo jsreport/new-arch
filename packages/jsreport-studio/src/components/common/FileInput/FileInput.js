@@ -10,7 +10,7 @@ class FileInput extends Component {
     this.state = {}
   }
 
-  handleOpen () {
+  openSelection () {
     this.inputFileRef.current.dispatchEvent(new window.MouseEvent('click', {
       'view': window,
       'bubbles': false,
@@ -31,7 +31,7 @@ class FileInput extends Component {
 
     return (
       <div
-        className={styles.selectInput} onClick={() => !disabled && this.handleOpen()}
+        className={styles.selectInput} onClick={() => !disabled && this.openSelection()}
         style={{ opacity: disabled ? 0.7 : 1 }}
       >
         <i className='fa fa-upload' />
@@ -43,7 +43,7 @@ class FileInput extends Component {
             e.stopPropagation()
 
             if (!disabled) {
-              this.handleOpen()
+              this.openSelection()
             }
           }}
         >

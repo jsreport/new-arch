@@ -8,7 +8,7 @@ import logo from './js-logo.png'
 
 const isMac = () => window.navigator.platform.toUpperCase().indexOf('MAC') >= 0
 
-export default class Toolbar extends Component {
+class Toolbar extends Component {
   static propTypes = {
     openStartup: PropTypes.func.isRequired,
     onUpdate: PropTypes.func.isRequired,
@@ -140,16 +140,19 @@ export default class Toolbar extends Component {
   renderRun () {
     const { onRun, canRun, undockPreview } = this.props
 
-    return <div
-      title='Preview report in the right pane (F8)' className={'toolbar-button ' + (canRun ? '' : 'disabled')}
-      onClick={canRun ? () => onRun() : () => {}}>
-      <i className='fa fa-play' /> Run <span className={style.runCaret} onClick={(e) => { e.stopPropagation(); this.setState({ expandedRun: !this.state.expandedRun }) }} />
-      <div className={style.runPopup} style={{ display: this.state.expandedRun ? 'block' : 'none' }}>
-        {this.renderButton((e) => { e.stopPropagation(); this.tryHide(); onRun('window') }, canRun, 'Run to new tab', 'fa fa-tablet', 'Preview in new tab')}
-        {this.renderButton((e) => { e.stopPropagation(); this.tryHide(); undockPreview() }, canRun, 'Run and undock preview', 'fa fa-window-restore', 'Undock and Preview in new tab')}
-        {this.renderButton((e) => { e.stopPropagation(); this.tryHide(); onRun('download') }, canRun, 'Download', 'fa fa-download', 'Download output')}
+    return (
+      <div
+        title='Preview report in the right pane (F8)' className={'toolbar-button ' + (canRun ? '' : 'disabled')}
+        onClick={canRun ? () => onRun() : () => {}}
+      >
+        <i className='fa fa-play' />Run <span className={style.runCaret} onClick={(e) => { e.stopPropagation(); this.setState({ expandedRun: !this.state.expandedRun }) }} />
+        <div className='popup-settings' style={{ display: this.state.expandedRun ? 'block' : 'none' }}>
+          {this.renderButton((e) => { e.stopPropagation(); this.tryHide(); onRun('window') }, canRun, 'Run to new tab', 'fa fa-tablet', 'Preview in new tab')}
+          {this.renderButton((e) => { e.stopPropagation(); this.tryHide(); undockPreview() }, canRun, 'Run and undock preview', 'fa fa-window-restore', 'Undock and Preview in new tab')}
+          {this.renderButton((e) => { e.stopPropagation(); this.tryHide(); onRun('download') }, canRun, 'Download', 'fa fa-download', 'Download output')}
+        </div>
       </div>
-    </div>
+    )
   }
 
   renderToolbarComponents (position) {
@@ -167,17 +170,19 @@ export default class Toolbar extends Component {
       return false
     }
 
-    return <div
-      className='toolbar-button'
-      onClick={(e) => { e.stopPropagation(); this.setState({ expandedSettings: !this.state.expandedSettings }) }}>
-      <i className='fa fa-cog' />
-
-      <div className={style.popup} style={{ display: this.state.expandedSettings ? 'block' : 'none' }}>
-        {this.renderToolbarComponents('settings')}
-        {toolbarComponents.settingsBottom.length ? <hr /> : ''}
-        {this.renderToolbarComponents('settingsBottom')}
+    return (
+      <div
+        className='toolbar-button'
+        onClick={(e) => { e.stopPropagation(); this.setState({ expandedSettings: !this.state.expandedSettings }) }}
+      >
+        <i className='fa fa-cog' />
+        <div className='popup-settings' style={{ display: this.state.expandedSettings ? 'block' : 'none', right: '0' }}>
+          {this.renderToolbarComponents('settings')}
+          {toolbarComponents.settingsBottom.length ? <hr /> : ''}
+          {this.renderToolbarComponents('settingsBottom')}
+        </div>
       </div>
-    </div>
+    )
   }
 
   render () {
@@ -205,3 +210,5 @@ export default class Toolbar extends Component {
     )
   }
 }
+
+export default Toolbar

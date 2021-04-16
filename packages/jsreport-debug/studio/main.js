@@ -113,9 +113,10 @@ _jsreportStudio2.default.addToolbarComponent(function (props) {
     {
       className: 'toolbar-button ' + (!props.canRun ? 'disabled' : ''), onClick: function onClick() {
         return preview();
-      } },
+      }
+    },
     React.createElement('i', { className: 'fa fa-bug' }),
-    ' Debug'
+    'Debug'
   );
 });
 
