@@ -155,7 +155,7 @@ describe('profiler', () => {
 
     const content = await reporter.blobStorage.read(profile.blobName)
 
-    const messages = content.toString().split('\n').map(JSON.parse)
+    const messages = content.toString().split('\n').filter(l => l).map(JSON.parse)
     for (const m of messages) {
       should(m.req).not.be.ok()
     }
@@ -184,7 +184,7 @@ describe('profiler', () => {
     profile.state.should.be.eql('error')
 
     const content = await reporter.blobStorage.read(profile.blobName)
-    const messages = content.toString().split('\n').map(JSON.parse)
+    const messages = content.toString().split('\n').filter(l => l).map(JSON.parse)
     const errorMesage = messages.find(m => m.type === 'error')
     should(errorMesage).be.ok()
   })
@@ -210,7 +210,7 @@ describe('profiler', () => {
     profile.state.should.be.eql('error')
 
     const content = await reporter.blobStorage.read(profile.blobName)
-    const messages = content.toString().split('\n').map(JSON.parse)
+    const messages = content.toString().split('\n').filter(l => l).map(JSON.parse)
     const errorMesage = messages.find(m => m.type === 'error')
     should(errorMesage).be.ok()
   })
@@ -236,9 +236,49 @@ describe('profiler', () => {
     const profile = await reporter.documentStore.collection('profiles').findOne({})
     const content = await reporter.blobStorage.read(profile.blobName)
 
-    const messages = content.toString().split('\n').map(JSON.parse)
+    const messages = content.toString().split('\n').filter(l => l).map(JSON.parse)
     for (const m of messages.filter(m => m.type !== 'log')) {
       should(m.req).be.ok()
     }
+  })
+})
+
+describe('profiler with timeout', () => {
+  let reporter
+
+  beforeEach(() => {
+    reporter = jsreport({
+      reportTimeout: 100
+    })
+    reporter.use(jsreport.tests.listeners())
+    return reporter.init()
+  })
+
+  afterEach(() => reporter.close())
+
+  it('should persist profile when request timesout', async () => {
+    reporter.tests.afterRenderEval = (fn) => {
+      return new Promise((resolve) => setTimeout(resolve, 200))
+    }
+
+    try {
+      await reporter.render({
+        template: {
+          engine: 'none',
+          recipe: 'html',
+          content: 'Hello'
+        }
+      })
+    } catch (e) {
+
+    }
+
+    const profile = await reporter.documentStore.collection('profiles').findOne({})
+    profile.state.should.be.eql('error')
+
+    const content = await reporter.blobStorage.read(profile.blobName)
+    const messages = content.toString().split('\n').filter(l => l).map(JSON.parse)
+    const errorMesage = messages.find(m => m.type === 'error')
+    should(errorMesage).be.ok()
   })
 })

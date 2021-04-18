@@ -18,13 +18,21 @@ module.exports = (reporter) => {
 
   const profilersMap = new Map()
 
-  function emitProfile (m, req) {
-    if (m.type === 'log') {
+  async function emitProfile (m, req, writeToLogger = true) {
+    // we need this just for errors not handled in worker
+    if (m.type === 'operationStart') {
+      req.context.profilerLastOperationId = m.id
+    }
+
+    if (m.type === 'log' && writeToLogger) {
       reporter.logger[m.level](m.message, { ...req, ...m.meta, timestamp: m.timestamp })
     }
+
     if (profilersMap.has(req.context.rootId)) {
       profilersMap.get(req.context.rootId).emit('profile', m)
     }
+
+    await reporter.blobStorage.append(req.context.profiling.entity.blobName, Buffer.from(JSON.stringify(m) + '\n'), req)
   }
 
   reporter.registerMainAction('profile', emitProfile)
@@ -32,39 +40,81 @@ module.exports = (reporter) => {
   reporter.attachProfiler = (req) => {
     req.context = req.context || {}
     req.context.rootId = generateRequestId()
-    req.context.isProfilerAttached = true
+    req.context.profiling = {
+      isAttached: true
+    }
 
     const profiler = new EventEmitter()
     profilersMap.set(req.context.rootId, profiler)
     return profiler
   }
 
-  reporter.afterRenderListeners.add('profiler', (req, res) => {
+  reporter.beforeRenderListeners.add('profiler', async (req, res) => {
+    req.context.profiling = req.context.profiling || {}
+    const blobName = `profiles/${req.context.rootId}.log`
+
+    const profile = await reporter.documentStore.collection('profiles').insert({
+      templateShortid: 'foo',
+      timestamp: new Date(),
+      state: 'running',
+      blobName
+    }, req)
+
+    req.context.profiling.entity = profile
+
+    if (!req.context.profiling.isAttached) {
+      const setting = await reporter.documentStore.collection('settings').findOne({ key: 'fullProfilerRunning' }, req)
+      if (setting && JSON.parse(setting.value)) {
+        req.context.profiling.isAttached = true
+      }
+    }
+  })
+
+  reporter.afterRenderListeners.add('profiler', async (req, res) => {
     profilersMap.delete(req.context.rootId)
+
+    await reporter.documentStore.collection('profiles').update({
+      _id: req.context.profiling.entity._id
+    }, {
+      $set: {
+        state: 'success',
+        finishedOn: new Date()
+      }
+    }, req)
   })
 
   reporter.renderErrorListeners.add('profiler', async (req, res, e) => {
-    profilersMap.delete(req.context.rootId)
+    try {
+      await reporter.documentStore.collection('profiles').update({
+        _id: req.context.profiling.entity._id
+      }, {
+        $set: {
+          state: 'error',
+          finishedOn: new Date(),
+          error: e.toString()
+        }
+      }, req)
 
-    // error alreadly appended to the profile
-    if (e.profileBlobName) {
-      return
+      await emitProfile({
+        type: 'log',
+        timestamp: new Date().getTime(),
+        id: generateRequestId(),
+        level: 'error',
+        message: e.stack,
+        previousOperationId: req.context.profilerLastOperationId
+      }, req, false)
+
+      await emitProfile({
+        type: 'error',
+        timestamp: new Date().getTime(),
+        ...e,
+        id: generateRequestId(),
+        stack: e.stack,
+        message: e.message,
+        previousOperationId: req.context.profilerLastOperationId
+      }, req)
+    } finally {
+      profilersMap.delete(req.context.rootId)
     }
-
-    // a hard error, the request doesn't reach the worker or worker failed badly
-    const blobName = `${req.context.rootId}.log`
-    await reporter.documentStore.collection('profiles').insert({
-      templateShortid: req.template.shortid,
-      timestamp: new Date(),
-      finishedOn: new Date(),
-      state: 'error',
-      blobName: blobName
-    }, req)
-
-    await reporter.blobStorage.write(blobName, JSON.stringify({
-      type: 'error',
-      message: e.message,
-      stack: e.stack
-    }), req)
   })
 }

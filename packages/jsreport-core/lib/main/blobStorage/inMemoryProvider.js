@@ -15,6 +15,11 @@ module.exports = (options) => {
       delete storage[blobName]
     },
 
+    append (blobName, buffer) {
+      storage[blobName] = storage[blobName] || Buffer.from('')
+      storage[blobName] = Buffer.concat([storage[blobName], buffer])
+    },
+
     init () {
 
     }

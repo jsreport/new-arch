@@ -131,10 +131,9 @@ class WorkersManager {
         executionController.abortEmitter.emit('abort')
 
         const timeoutError = new Error()
-
         timeoutError.weak = true
-        timeoutError.message = options.timeoutErrorMessage || 'Timeout error during executing script'
-        timeoutError.message += ` (Timeout: ${timeoutValue})`
+        timeoutError.message = options.timeoutErrorMessage || 'Timeout during executing in worker'
+        timeoutError.message += ` (timeout: ${timeoutValue})`
 
         execution.reject(timeoutError)
       }, timeoutValue)

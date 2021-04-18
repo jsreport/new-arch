@@ -20,8 +20,10 @@ async function init () {
     managerPort.on('message', ({ userData, systemData }) => {
       switch (systemData.action) {
         case 'callback-response': {
-          callbackRequests[rid].responseHandler({ userData, systemData })
-          break
+          if (callbackRequests[rid]) {
+            callbackRequests[rid].responseHandler({ userData, systemData })
+            break
+          }
         }
       }
     })

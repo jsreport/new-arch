@@ -68,4 +68,29 @@ describe('advanced workers', () => {
 
     wasResolved.should.be.true()
   })
+
+  it('should restart thread on timeout', async () => {
+    workers = new Workers({
+    }, {
+      workerModule: path.join(__dirname, 'workers', 'waitForTimeout.js'),
+      numberOfWorkers: 1
+    })
+
+    await workers.init()
+
+    await workers.executeWorker({
+      delay: 200
+    }, {
+      executeMain: (data) => (data),
+      timeout: 100
+    }).should.be.rejectedWith(/Timeout during executing in worker/)
+
+    const sequence = await workers.executeWorker({
+      delay: 50
+    }, {
+      executeMain: (data) => (data),
+      timeout: 300
+    })
+    sequence.should.be.eql(1)
+  })
 })

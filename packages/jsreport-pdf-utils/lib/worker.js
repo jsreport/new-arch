@@ -295,31 +295,26 @@ module.exports = (reporter, definition) => {
 
     reporter.logger.info('pdf-utils is starting pdf processing', req)
 
-    const result = await pdfProcessing(
-      {
-        pdfContent: res.content.toString('base64'),
-        operations: req.template.pdfOperations || [],
-        outlines: req.context.pdfUtilsOutlines,
-        pdfMeta,
-        pdfPassword,
-        pdfSign,
-        removeHiddenMarks: !req.options.pdfUtils || req.options.pdfUtils.removeHiddenMarks !== false
-      },
-      reporter,
-      req
-    )
-
-    if (result.error) {
-      const error = new Error(result.error.message)
-      error.stack = result.error.stack
-
+    try {
+      res.content = await pdfProcessing(
+        {
+          pdfContent: res.content.toString('base64'),
+          operations: req.template.pdfOperations || [],
+          outlines: req.context.pdfUtilsOutlines,
+          pdfMeta,
+          pdfPassword,
+          pdfSign,
+          removeHiddenMarks: !req.options.pdfUtils || req.options.pdfUtils.removeHiddenMarks !== false
+        },
+        reporter,
+        req
+      )
+    } catch (e) {
       throw reporter.createError('Error while executing pdf-utils operations', {
-        original: error,
+        original: e,
         weak: true
       })
     }
-
-    res.content = Buffer.from(result.pdfContent, 'base64')
 
     reporter.logger.info('pdf-utils pdf processing was finished', req)
   })

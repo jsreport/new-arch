@@ -7,14 +7,8 @@ class Profiler {
   constructor (reporter) {
     this.reporter = reporter
     this.reporter.beforeMainActionListeners.add('profiler', (actionName, data, req) => {
-      if (actionName === 'log' && req.context.shared.profilerMessages) {
-        data.previousOperationId = req.context.profilerLastOperationId
-        req.context.shared.profilerMessages.push({
-          type: 'log',
-          message: data.message,
-          level: data.level,
-          timestamp: data.timestamp
-        })
+      if (actionName === 'log' && req.context.profiling) {
+        data.previousOperationId = req.context.profiling.lastOperationId
       }
     })
   }
@@ -22,21 +16,21 @@ class Profiler {
   emit (m, req, res) {
     m.timestamp = m.timpestamp || new Date().getTime()
 
-    if (m.type === 'log' && !req.context.shared && !req.context.shared.profilerMessages) {
+    if (m.type === 'log' && !req.context.profiling) {
       return this.reporter.executeMainAction('log', m, req)
     }
 
     m.id = m.id || generateRequestId()
 
-    if (m.previousOperationId == null && req.context.profilerLastOperationId) {
-      m.previousOperationId = req.context.profilerLastOperationId
+    if (m.previousOperationId == null && req.context.profiling.lastOperationId) {
+      m.previousOperationId = req.context.profiling.lastOperationId
     }
 
     if (m.type === 'operationStart') {
-      req.context.profilerLastOperationId = m.id
+      req.context.profiling.lastOperationId = m.id
     }
 
-    if (req.context.isProfilerAttached && (m.type === 'operationStart' || m.type === 'operationEnd')) {
+    if (req.context.profiling.isAttached && (m.type === 'operationStart' || m.type === 'operationEnd')) {
       let content = res.content
 
       if (content != null) {
@@ -47,7 +41,7 @@ class Profiler {
           }
         } else {
           content = {
-            content: createPatch('res', req.context.profilerResLastVal ? req.context.profilerResLastVal.toString() : '', res.content.toString(), 0),
+            content: createPatch('res', req.context.profiling.resLastVal ? req.context.profiling.resLastVal.toString() : '', res.content.toString(), 0),
             encoding: 'diff'
           }
         }
@@ -55,46 +49,26 @@ class Profiler {
 
       const stringifiedResMeta = JSON.stringify(omit(res.meta, ['logs']))
 
-      m.res = { content, meta: { diff: createPatch('resMeta', req.context.profilerResMetaLastVal || '', stringifiedResMeta, 0) } }
+      m.res = { content, meta: { diff: createPatch('resMeta', req.context.profiling.resMetaLastVal || '', stringifiedResMeta, 0) } }
 
       const stringifiedReq = JSON.stringify({ template: req.template, data: req.data }, null, 2)
-      m.req = { diff: createPatch('req', req.context.profilerReqLastVal || '', stringifiedReq, 0) }
+      m.req = { diff: createPatch('req', req.context.profiling.reqLastVal || '', stringifiedReq, 0) }
 
-      req.context.profilerResLastVal = res.content
-      req.context.profilerResMetaLastVal = stringifiedResMeta
-      req.context.profilerReqLastVal = stringifiedReq
+      req.context.profiling.resLastVal = res.content
+      req.context.profiling.resMetaLastVal = stringifiedResMeta
+      req.context.profiling.reqLastVal = stringifiedReq
     }
 
-    req.context.shared.profilerMessages.push(m)
+    const emitPromise = this.reporter.executeMainAction('profile', m, req).catch((e) => this.reporter.logger.error(e, req))
 
-    this.reporter.executeMainAction('profile', m, req).catch((e) => this.reporter.logger.error(e, req))
+    if (m.type === 'error' || (m.type === 'operationEnd' && m.subtype === 'render' && !req.context.isChildRequest)) {
+      // we wait for the last operation to be sent
+      return emitPromise.then(() => m.id)
+    }
     return m.id
   }
 
   async renderStart (req, parentReq, res) {
-    req.context.shared.profilerMessages = req.context.shared.profilerMessages || []
-
-    if (!req.context.isChildRequest) {
-      const blobName = `profiles/${req.context.rootId}.log`
-
-      const profile = await this.reporter.documentStore.collection('profiles').insert({
-        templateShortid: 'foo',
-        timestamp: new Date(),
-        state: 'running',
-        blobName
-      }, req)
-
-      req.context.profileId = profile._id
-      req.context.profileBlobName = profile.blobName
-
-      if (!req.context.isProfilerAttached) {
-        const setting = await this.reporter.documentStore.collection('settings').findOne({ key: 'fullProfilerRunning' }, req)
-        if (setting && JSON.parse(setting.value)) {
-          req.context.isProfilerAttached = true
-        }
-      }
-    }
-
     // TODO: for now we just take the template name if it is there in the request
     // later we are going to decide how to fetch correctly in all cases
     let templateName = 'anonymous'
@@ -107,47 +81,24 @@ class Profiler {
       type: 'operationStart',
       subtype: 'render',
       name: templateName,
-      previousOperationId: parentReq ? parentReq.context.profilerLastOperationId : null
+      previousOperationId: parentReq ? parentReq.context.profiling.lastOperationId : null
     }
 
     if (!req.context.isChildRequest) {
-      profilerMessage.profileId = req.context.profileId
+      profilerMessage.profileId = req.context.profiling.entity._id
     }
 
-    req.context.renderProfileOperationId = this.emit(profilerMessage, req, res)
+    req.context.profiling.renderOperationId = await this.emit(profilerMessage, req, res)
   }
 
   async renderEnd (req, res, err) {
-    if (err) {
-      this.emit({
-        type: 'error',
-        ...err,
-        stack: err.stack,
-        message: err.message,
-        id: req.context.renderProfileOperationId
+    if (!err) {
+      await this.emit({
+        type: 'operationEnd',
+        subtype: 'render',
+        id: req.context.profiling.renderOperationId
       }, req, res)
-      err.profileBlobName = req.context.profileBlobName
     }
-
-    this.emit({
-      type: 'operationEnd',
-      id: req.context.renderProfileOperationId
-    }, req, res)
-
-    await this.reporter.documentStore.collection('profiles').update({
-      _id: req.context.profileId
-    }, {
-      $set: {
-        blobName: req.context.profileBlobName,
-        templateShortid: req.template.shortid,
-        state: err ? 'error' : 'success',
-        error: err ? err.stack : null,
-        finishedOn: new Date()
-      }
-    }, req)
-
-    const content = req.context.shared.profilerMessages.map(m => JSON.stringify(m)).join('\n')
-    await this.reporter.blobStorage.write(req.context.profileBlobName, content, req)
   }
 }
 

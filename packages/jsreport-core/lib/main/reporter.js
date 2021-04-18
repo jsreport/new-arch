@@ -345,6 +345,9 @@ class MainReporter extends Reporter {
       await this.afterRenderListeners.fire(request, response)
       response.stream = Readable.from(response.content)
     } catch (err) {
+      if (!err.logged) {
+        this.logger.error(`Report render failed: ${err.message}${err.stack != null ? ' ' + err.stack : ''}`, request)
+      }
       await this.renderErrorListeners.fire(request, response, err)
       throw err
     }

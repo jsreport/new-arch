@@ -20,6 +20,13 @@ module.exports = (executeMainAction) => {
       }, req)
     },
 
+    append (blobName, content, req) {
+      return executeMainAction('blobStorage.append', {
+        blobName,
+        content: Buffer.from(content).toString('base64')
+      }, req)
+    },
+
     init () {
 
     }

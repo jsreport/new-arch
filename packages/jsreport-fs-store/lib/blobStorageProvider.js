@@ -29,6 +29,16 @@ module.exports = (options) => {
       return fs.promises.unlink(path.join(storageDirectory, blobName))
     },
 
+    async append (blobName, buffer) {
+      checkPathIsInsideDirectory(options, storageDirectory, blobName)
+
+      const targetPath = path.join(storageDirectory, blobName)
+      await fs.promises.mkdir(path.dirname(targetPath), { recursive: true })
+
+      await fs.promises.appendFile(targetPath, buffer)
+      return blobName
+    },
+
     init () {
 
     }

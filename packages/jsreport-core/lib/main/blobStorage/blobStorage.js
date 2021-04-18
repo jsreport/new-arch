@@ -20,6 +20,19 @@ module.exports = (reporter, options) => {
       return provider.remove(blobName)
     },
 
+    async append (blobName, buffer, req) {
+      if (!provider.append) {
+        let existingBuf = Buffer.from(0)
+        try {
+          existingBuf = await provider.read(blobName, req)
+        } catch (e) {
+
+        }
+        return provider.write(blobName, Buffer.concat([existingBuf, buffer]), req)
+      }
+      return provider.append(blobName, buffer, req)
+    },
+
     async init () {
       if (provider.init) {
         return provider.init()
