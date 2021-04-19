@@ -8,7 +8,6 @@ const serveStatic = require('serve-static')
 const favicon = require('serve-favicon')
 const { Diff2Html } = require('diff2html')
 const compression = require('compression')
-const requestLog = require('./requestLog')
 const ThemeManager = require('./themeManager')
 const distPath = path.join(__dirname, '../static/dist')
 
@@ -19,7 +18,6 @@ module.exports = (reporter, definition) => {
   const themeManager = ThemeManager(reporter.options.mode !== 'jsreport-development', reporter.logger.warn)
 
   reporter.studio = {
-    normalizeLogs: requestLog.normalizeLogs,
     getAllThemes: themeManager.getAllThemes,
     getAllEditorThemes: themeManager.getAllEditorThemes,
     getAvailableThemeVariables: themeManager.getAvailableThemeVariables,
@@ -37,13 +35,6 @@ module.exports = (reporter, definition) => {
     previewColor: '#F6F6F6',
     editorTheme: 'chrome'
   })
-
-  if (definition.options.requestLogEnabled !== false) {
-    reporter.logger.debug(`studio request logs are enabled (flush interval: ${definition.options.flushLogsInterval})`)
-    requestLog(reporter, definition)
-  } else {
-    reporter.logger.debug('studio request logs are disabled')
-  }
 
   const titleTemplateSettings = {
     variable: 'jsreport',
@@ -503,7 +494,6 @@ module.exports = (reporter, definition) => {
         }, {}),
         serverStartupHash,
         startupPage: definition.options.startupPage,
-        requestLogEnabled: definition.options.requestLogEnabled,
         entityTreeOrder: definition.options.entityTreeOrder
       })
     }
