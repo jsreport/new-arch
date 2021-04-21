@@ -177,46 +177,13 @@ class Preview extends Component {
   }
 
   handleOnProfilerElementClick (meta) {
-    if (!meta.isEdge) {
-      if (meta.data.error != null && meta.data.operation == null) {
-        modalHandler.open(ProfilerErrorModal, { error: meta.data.error })
-      } else if (meta.data.error != null && meta.data.operation != null) {
-        if (
-          meta.data.error.entity != null &&
-          (meta.data.error.property === 'content' || meta.data.error.property === 'helpers') &&
-          meta.data.error.lineNumber != null
-        ) {
-          this.props.openTab({ shortid: meta.data.error.entity.shortid }).then(() => {
-            setTimeout(() => {
-              const entity = this.props.getEntityByShortid(meta.data.error.entity.shortid)
-              const contentIsTheSame = entity.content === meta.data.error.entity.content
-              const entityEditor = findTextEditor(meta.data.error.property === 'content' ? entity._id : `${entity._id}_helpers`)
-
-              if (entityEditor != null && contentIsTheSame) {
-                selectLineInTextEditor(entityEditor, { lineNumber: meta.data.error.lineNumber })
-              }
-            }, 300)
-          })
-        }
-      }
-
-      if (meta.data.operation == null) {
-        this.setState({ profilerActiveElement: null })
-        return
-      }
-    } else {
-      // don't open inspect modal for profile with no req/res information saved
-      if (this.state.profilerOperations[0].req == null || this.state.profilerOperations[0].res == null) {
-        return
-      }
-
+    const openInspectModal = ({ sourceId, targetId, inputId, outputId }) => {
       modalHandler.open(ProfilerInspectModal, {
         data: {
-          sourceId: meta.data.edge.source,
-          targetId: meta.data.edge.target,
+          sourceId,
+          targetId,
           template: this.state.previewTemplate,
           getContent: () => {
-            const { outputId, inputId } = meta.data.edge.data
             let basedOnCompletedState = false
             let operationWithState
             let result
@@ -254,6 +221,57 @@ class Preview extends Component {
         onModalClose: () => {
           this.setState({ profilerActiveElement: null })
         }
+      })
+    }
+
+    if (!meta.isEdge) {
+      if (meta.data.error != null && meta.data.operation == null) {
+        modalHandler.open(ProfilerErrorModal, { error: meta.data.error })
+      } else if (meta.data.error != null && meta.data.operation != null) {
+        if (
+          meta.data.error.entity != null &&
+          (meta.data.error.property === 'content' || meta.data.error.property === 'helpers') &&
+          meta.data.error.lineNumber != null
+        ) {
+          this.props.openTab({ shortid: meta.data.error.entity.shortid }).then(() => {
+            setTimeout(() => {
+              const entity = this.props.getEntityByShortid(meta.data.error.entity.shortid)
+              const contentIsTheSame = entity.content === meta.data.error.entity.content
+              const entityEditor = findTextEditor(meta.data.error.property === 'content' ? entity._id : `${entity._id}_helpers`)
+
+              if (entityEditor != null && contentIsTheSame) {
+                selectLineInTextEditor(entityEditor, { lineNumber: meta.data.error.lineNumber })
+              }
+            }, 300)
+          })
+        }
+      }
+
+      // click on start node should open inspector
+      if (meta.id === 'preview-start') {
+        openInspectModal({
+          sourceId: meta.data.id,
+          targetId: 'none',
+          inputId: this.state.profilerOperations[0].id,
+          outputId: null
+        })
+      }
+
+      if (meta.data.operation == null) {
+        this.setState({ profilerActiveElement: null })
+        return
+      }
+    } else {
+      // don't open inspect modal for profile with no req/res information saved
+      if (this.state.profilerOperations[0].req == null || this.state.profilerOperations[0].res == null) {
+        return
+      }
+
+      openInspectModal({
+        sourceId: meta.data.edge.source,
+        targetId: meta.data.edge.target,
+        inputId: meta.data.edge.data.inputId,
+        outputId: meta.data.edge.data.outputId
       })
     }
 
