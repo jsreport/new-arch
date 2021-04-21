@@ -73,7 +73,6 @@ async function streamRender (request, target) {
         let shouldContinue = parsing || files.length > 0
 
         if (files.length > 0) {
-
           const toProcess = []
 
           // if the report is already available we process it inmediatly

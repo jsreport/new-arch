@@ -279,15 +279,6 @@ class App extends Component {
   async handleRun (target) {
     this.props.start()
 
-    cookies.set('render-complete', false)
-
-    const interval = setInterval(() => {
-      if (cookies.get('render-complete') === 'true') {
-        clearInterval(interval)
-        this.props.stop()
-      }
-    }, 1000)
-
     const previewId = uid()
 
     target.previewId = previewId
@@ -297,7 +288,6 @@ class App extends Component {
 
     try {
       await this.props.run(target)
-      console.log('run finished...')
     } catch (error) {
       if (!isWindowType) {
         this.previewRef.current.addProfilerError({
@@ -316,6 +306,8 @@ class App extends Component {
       } else {
         this.previewRef.current.changeSrc(newURLBlob, { id: previewId })
       }
+    } finally {
+      this.props.stop()
     }
   }
 
@@ -641,7 +633,7 @@ class App extends Component {
                         onUpdate={(v) => groupedUpdateBasedOnActiveTab(v)}
                         tabs={tabsWithEntities}
                       />
-                      <Preview ref={this.previewRef} main onLoad={stop} />
+                      <Preview ref={this.previewRef} main />
                     </SplitPane>
                   </div>
                 </SplitPane>

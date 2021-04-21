@@ -176,7 +176,7 @@ class AssetEditor extends Component {
             We need to upload your office asset to our publicly hosted server to be able to use
             Office Online Service for previewing here in the studio. You can disable it in the configuration, see
             <a
-              href='https://jsreport.net/learn/xlsx#preview-in-studio' target='_blank' rel='noreferrer'
+              href='https://jsreport.net/learn/xlsx#preview-in-studio' target='_blank' rel='noopener noreferrer'
             >
               the docs for details
             </a>.
@@ -256,18 +256,16 @@ class AssetEditor extends Component {
             <div>
               <i className={`fa ${icon}`} />
               &nbsp;
-              {entity != null
-                ? (
-                  <a
-                    href='#'
-                    onClick={(ev) => {
-                      ev.preventDefault()
-                      Studio.openTab({ _id: entity._id })
-                    }}
-                  >{visibleName}
-                  </a>
-                  )
-                : visibleName}
+              {entity != null ? (
+                <a
+                  href='#'
+                  onClick={(ev) => {
+                    ev.preventDefault()
+                    Studio.openTab({ _id: entity._id })
+                  }}
+                >{visibleName}
+                </a>
+              ) : visibleName}
             </div>
           </h3>
           {embeddingCode !== '' && (
