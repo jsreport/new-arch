@@ -244,6 +244,8 @@ class Preview extends Component {
               }
             }, 300)
           })
+        } else {
+          modalHandler.open(ProfilerErrorModal, { error: meta.data.error })
         }
       }
 

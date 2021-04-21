@@ -32,6 +32,14 @@ async function streamRender (request, target) {
   try {
     target.focus()
 
+    const template = Object.keys(request.template).reduce((acu, templateProp) => {
+      if (templateProp.indexOf('__') !== 0) {
+        acu[templateProp] = request.template[templateProp]
+      }
+
+      return acu
+    }, {})
+
     const response = await window.fetch(url, {
       method: 'POST',
       cache: 'no-cache',
@@ -39,7 +47,7 @@ async function streamRender (request, target) {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        template: request.template,
+        template,
         options: request.options,
         data: request.data
       })
