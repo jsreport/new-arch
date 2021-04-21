@@ -8,8 +8,7 @@
   "bundleDependencies": false,
   "dependencies": {
     "lodash.omit": "4.5.0",
-    "node.extend.without.arrays": "1.1.6",
-    "parse-duration": "0.1.2"
+    "node.extend.without.arrays": "1.1.6"
   },
   "deprecated": false,
   "description": "jsreport extension adding support for storing rendering outputs for later use",

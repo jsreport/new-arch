@@ -21,9 +21,17 @@ module.exports = {
         properties: {
           dataDirectory: { type: 'string' },
           compactionEnabled: { type: 'boolean', default: true },
-          compactionInterval: { type: 'number', default: 60000 },
+          compactionInterval: {
+            type: ['string', 'number'],
+            '$jsreport-acceptsDuration': true,
+            default: 60000
+          },
           corruptAlertThreshold: { type: 'number', default: 0.1 },
-          persistenceQueueWaitingTimeout: { type: 'number', default: 60000 },
+          persistenceQueueWaitingTimeout: {
+            type: ['string', 'number'],
+            '$jsreport-acceptsDuration': true,
+            default: 60000
+          },
           externalModificationsSync: { type: 'boolean', default: false },
           persistence: {
             type: 'object',
@@ -33,9 +41,17 @@ module.exports = {
               lock: {
                 type: 'object',
                 properties: {
-                  stale: { type: 'number', default: 5000 },
+                  stale: {
+                    type: ['string', 'number'],
+                    '$jsreport-acceptsDuration': true,
+                    default: 5000
+                  },
                   retries: { type: 'number', default: 100 },
-                  retryWait: { type: 'number', default: 100 }
+                  retryWait: {
+                    type: ['string', 'number'],
+                    '$jsreport-acceptsDuration': true,
+                    default: 100
+                  }
                 }
               }
             }

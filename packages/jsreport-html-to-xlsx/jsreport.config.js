@@ -15,7 +15,6 @@ module.exports = {
           chrome: {
             type: 'object',
             properties: {
-              timeout: { type: 'number' },
               launchOptions: {
                 type: 'object',
                 properties: {

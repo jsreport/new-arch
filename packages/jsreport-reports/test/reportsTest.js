@@ -307,7 +307,7 @@ describe('with reports extension', () => {
         scripts: [{
           content: `
           function afterRender(req, res) {
-            res.content = Buffer.from('changed')            
+            res.content = Buffer.from('changed')
           }
           `
         }],
@@ -329,7 +329,7 @@ describe('with reports extension and clean enabled', () => {
     reporter = jsreport()
     reporter.use(require('../')({
       cleanInterval: '100ms',
-      cleanTreshold: '1ms'
+      cleanThreshold: '1ms'
     }))
 
     return reporter.init()
@@ -352,7 +352,7 @@ describe('with reports extension and clean enabled but long treshold', () => {
     reporter = jsreport()
     reporter.use(require('../')({
       cleanInterval: '100ms',
-      cleanTreshold: '1d'
+      cleanThreshold: '1d'
     }))
 
     return reporter.init()

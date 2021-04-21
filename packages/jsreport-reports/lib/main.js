@@ -5,7 +5,6 @@
  */
 
 const url = require('url')
-const parseDuration = require('parse-duration')
 const extend = require('node.extend.without.arrays')
 const _omit = require('lodash.omit')
 
@@ -50,12 +49,9 @@ class Reports {
       })
     })
 
-    if (definition.options.cleanInterval && definition.options.cleanTreshold) {
-      this.reporter.logger.info(`reports extension has enabled old reports cleanup with interval ${definition.options.cleanInterval} and treshold ${definition.options.cleanTreshold}`)
-      this.cleanTresholdMS = parseDuration(definition.options.cleanTreshold + '')
-      this.cleanIntervalMS = parseDuration(definition.options.cleanInterval + '')
-
-      this.cleanInterval = setInterval(() => this.clean(), this.cleanIntervalMS)
+    if (definition.options.cleanInterval && definition.options.cleanThreshold) {
+      this.reporter.logger.info(`reports extension has enabled old reports cleanup with interval ${definition.options.cleanInterval}ms and treshold ${definition.options.cleanThreshold}ms`)
+      this.cleanInterval = setInterval(() => this.clean(), definition.options.cleanInterval)
       this.cleanInterval.unref()
       this.reporter.closeListeners.add('reports', () => clearInterval(this.cleanInterval))
     }
@@ -168,7 +164,7 @@ class Reports {
   async clean () {
     try {
       this.reporter.logger.debug('Cleaning up old reports')
-      const removeOlderDate = new Date(Date.now() - this.cleanTresholdMS)
+      const removeOlderDate = new Date(Date.now() - this.definition.options.cleanThreshold)
       const reportsToRemove = await this.reporter.documentStore.collection('reports').find({ creationDate: { $lt: removeOlderDate } })
       this.reporter.logger.debug(`Cleaning old reports with remove ${reportsToRemove.length} reports`)
       await Promise.all(reportsToRemove.map((r) => this.reporter.documentStore.collection('reports').remove({ _id: r._id })))

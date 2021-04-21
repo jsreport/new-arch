@@ -24,8 +24,14 @@ module.exports = {
           lock: {
             type: 'object',
             properties: {
-              retry: { type: 'number' },
-              leaseDuration: { type: 'number' },
+              retry: {
+                type: ['string', 'number'],
+                '$jsreport-acceptsDuration': true
+              },
+              leaseDuration: {
+                type: ['string', 'number'],
+                '$jsreport-acceptsDuration': true
+              },
               enabled: { type: 'boolean' }
             }
           }

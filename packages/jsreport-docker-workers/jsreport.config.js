@@ -12,8 +12,16 @@ module.exports = {
         properties: {
           discriminatorPath: { type: 'string', default: 'context.rootId' },
           containerParallelRequestsLimit: { type: 'number' },
-          pingServersInterval: { type: 'number', default: 5000 },
-          pingHealthyInterval: { type: 'number', default: 20000 },
+          pingServersInterval: {
+            type: ['string', 'number'],
+            '$jsreport-acceptsDuration': true,
+            default: 5000
+          },
+          pingHealthyInterval: {
+            type: ['string', 'number'],
+            '$jsreport-acceptsDuration': true,
+            default: 20000
+          },
           container: {
             type: 'object',
             default: {
@@ -48,11 +56,23 @@ module.exports = {
                   items: { type: 'string' }
                 }]
               },
-              startTimeout: { type: 'number', default: 10000 },
+              startTimeout: {
+                type: ['string', 'number'],
+                '$jsreport-acceptsDuration': true,
+                default: 10000
+              },
               restartPolicy: { type: 'boolean', default: true },
               warmupPolicy: { type: 'boolean', default: true },
-              restartTimeout: { type: 'number', default: 5000 },
-              delegateTimeout: { type: 'number', default: 50000 },
+              restartTimeout: {
+                type: ['string', 'number'],
+                '$jsreport-acceptsDuration': true,
+                default: 5000
+              },
+              delegateTimeout: {
+                type: ['string', 'number'],
+                '$jsreport-acceptsDuration': true,
+                default: 50000
+              },
               debuggingSession: { type: 'boolean', default: false },
               memorySwap: { type: 'string', default: '512m' },
               memory: { type: 'string', default: '420m' },
@@ -65,7 +85,11 @@ module.exports = {
           },
           subnet: { type: 'string', default: '172.30.0.0/24' },
           network: { type: 'string', default: 'nw_jsreport_docker_workers' },
-          busyQueueWaitingTimeout: { type: 'number', default: 10000 },
+          busyQueueWaitingTimeout: {
+            type: ['string', 'number'],
+            '$jsreport-acceptsDuration': true,
+            default: 10000
+          },
           numberOfWorkers: { type: 'number', minimum: 1, default: 4 }
         }
       }

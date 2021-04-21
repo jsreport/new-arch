@@ -7,12 +7,27 @@ module.exports = {
         type: 'object',
         properties: {
           autoStart: { type: 'boolean' },
-          interval: { type: 'number' },
-          minScheduleInterval: { type: 'number' },
-          misfireThreshold: { type: 'number' },
+          interval: {
+            type: ['string', 'number'],
+            '$jsreport-acceptsDuration': true,
+          },
+          minScheduleInterval: {
+            type: ['string', 'number'],
+            '$jsreport-acceptsDuration': true,
+          },
+          misfireThreshold: {
+            type: ['string', 'number'],
+            '$jsreport-acceptsDuration': true,
+          },
           maxParallelJobs: { type: 'number' },
-          taskPingTimeout: { type: 'number' },
-          cleanScheduleHistoryInterval: { type: 'number' },
+          taskPingTimeout: {
+            type: ['string', 'number'],
+            '$jsreport-acceptsDuration': true
+          },
+          cleanScheduleHistoryInterval: {
+            type: ['string', 'number'],
+            '$jsreport-acceptsDuration': true
+          },
           maxHistoryPerSchedule: { type: 'number' }
         }
       }
