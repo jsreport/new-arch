@@ -412,7 +412,7 @@ export function run (target) {
         name: template.name,
         shortid: template.shortid
       },
-      type: 'report'
+      type: target.previewType
     })
 
     await preview(request, target)

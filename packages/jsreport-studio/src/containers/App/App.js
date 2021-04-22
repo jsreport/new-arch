@@ -65,7 +65,6 @@ class App extends Component {
 
     this.openModal = this.openModal.bind(this)
     this.createPreviewTarget = this.createPreviewTarget.bind(this)
-    this.undockPreview = this.undockPreview.bind(this)
     this.handlePreviewCollapsing = this.handlePreviewCollapsing.bind(this)
     this.handlePreviewDocking = this.handlePreviewDocking.bind(this)
     this.handlePreviewUndocking = this.handlePreviewUndocking.bind(this)
@@ -156,7 +155,7 @@ class App extends Component {
     this.props.updateHistory()
   }
 
-  createPreviewTarget (type) {
+  createPreviewTarget (type, profiling = true) {
     const normalizedType = type == null ? 'preview' : type
     const windowPrefix = 'window-'
     const isWindowType = normalizedType.indexOf(windowPrefix) === 0
@@ -164,7 +163,7 @@ class App extends Component {
     let focus
 
     const handleLog = (fileInfo) => {
-      if (isWindowType) {
+      if (isWindowType || !profiling) {
         return
       }
 
@@ -177,7 +176,7 @@ class App extends Component {
     }
 
     const handleOperation = (fileInfo) => {
-      if (isWindowType) {
+      if (isWindowType || !profiling) {
         return
       }
 
@@ -190,15 +189,15 @@ class App extends Component {
     }
 
     const handleError = (fileInfo) => {
-      if (isWindowType) {
-        return
-      }
-
       try {
         // we get here when there was an error during the render, usually the error
         // here is something general so it should show as part of the general error state
         const error = JSON.parse(new TextDecoder().decode(fileInfo.rawData))
-        this.previewRef.current.addProfilerError(error)
+
+        if (!isWindowType && profiling) {
+          this.previewRef.current.addProfilerError(error)
+        }
+
         return error
       } catch (e) {
         console.warn(`Unable to parse error. Error: ${e.message}`)
@@ -220,7 +219,7 @@ class App extends Component {
             windowRef.location.href = newURLBlob
           } else {
             this.previewRef.current.changeSrc(newURLBlob, { id: previewId })
-            this.previewRef.current.addProfilerReport(fileInfo)
+            this.previewRef.current.addReport(fileInfo)
           }
         } else if (fileInfo.name === 'log') {
           handleLog(fileInfo)
@@ -247,22 +246,6 @@ class App extends Component {
           windowRef.focus()
         }
       }
-    } else if (normalizedType === 'download') {
-      processFile = (fileInfo) => {
-        if (fileInfo.name === 'report') {
-          fileSaver.saveAs(new Blob([fileInfo.rawData.buffer], {
-            type: fileInfo.contentType
-          }), fileInfo.filename)
-        } else if (fileInfo.name === 'log') {
-          handleLog(fileInfo)
-        } else if (fileInfo.name === 'operationStart' || fileInfo.name === 'operationEnd') {
-          handleOperation(fileInfo)
-        } else if (fileInfo.name === 'error') {
-          handleError(fileInfo)
-        }
-      }
-
-      focus = () => {}
     }
 
     if (processFile == null) {
@@ -271,12 +254,13 @@ class App extends Component {
 
     return {
       type: normalizedType,
+      previewType: profiling ? 'report-profiler' : 'report',
       processFile,
       focus
     }
   }
 
-  async handleRun (target) {
+  async handleRun (target, profiling = true) {
     this.props.start()
 
     const previewId = uid()
@@ -289,7 +273,7 @@ class App extends Component {
     try {
       await this.props.run(target)
     } catch (error) {
-      if (!isWindowType) {
+      if (!isWindowType && profiling) {
         this.previewRef.current.addProfilerError({
           type: 'globalError',
           message: error.message,
@@ -359,20 +343,6 @@ class App extends Component {
       return this.props.closeTab(key)
     }
     this.openModal(CloseConfirmationModal, { _id: key })
-  }
-
-  undockPreview () {
-    if (!this.previewPaneRef.current) {
-      return
-    }
-
-    const { lastActiveTemplate } = this.props
-
-    if (!lastActiveTemplate) {
-      return
-    }
-
-    this.previewPaneRef.current.collapse(true, true, true)
   }
 
   handleSplitDragFinished () {
@@ -579,20 +549,14 @@ class App extends Component {
                 isPending={isPending}
                 activeTab={activeTabWithEntity}
                 onUpdate={updateBasedOnActiveTab}
-                onRun={(runType) => {
+                onRun={(profiling = true) => {
                   this.handleRun(
-                    this.createPreviewTarget(
-                      runType === 'download' ? (
-                        'download'
-                      ) : (
-                        (undockMode || runType === 'window') ? (
-                          `window-${getPreviewWindowOptions(lastActiveTemplate != null ? lastActiveTemplate.shortid : undefined).id}`
-                        ) : undefined
-                      )
-                    )
+                    this.createPreviewTarget(undockMode ? (
+                      `window-${getPreviewWindowOptions(lastActiveTemplate != null ? lastActiveTemplate.shortid : undefined).id}`
+                    ) : undefined, profiling),
+                    profiling
                   )
                 }}
-                undockPreview={this.undockPreview}
                 openStartup={() => this.openStartup()}
               />
 

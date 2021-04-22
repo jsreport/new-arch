@@ -138,7 +138,7 @@ class Toolbar extends Component {
   }
 
   renderRun () {
-    const { onRun, canRun, undockPreview } = this.props
+    const { onRun, canRun } = this.props
 
     return (
       <div
@@ -147,9 +147,7 @@ class Toolbar extends Component {
       >
         <i className='fa fa-play' />Run <span className={style.runCaret} onClick={(e) => { e.stopPropagation(); this.setState({ expandedRun: !this.state.expandedRun }) }} />
         <div className='popup-settings' style={{ display: this.state.expandedRun ? 'block' : 'none' }}>
-          {this.renderButton((e) => { e.stopPropagation(); this.tryHide(); onRun('window') }, canRun, 'Run to new tab', 'fa fa-tablet', 'Preview in new tab')}
-          {this.renderButton((e) => { e.stopPropagation(); this.tryHide(); undockPreview() }, canRun, 'Run and undock preview', 'fa fa-window-restore', 'Undock and Preview in new tab')}
-          {this.renderButton((e) => { e.stopPropagation(); this.tryHide(); onRun('download') }, canRun, 'Download', 'fa fa-download', 'Download output')}
+          {this.renderButton((e) => { e.stopPropagation(); this.tryHide(); onRun(false) }, canRun, 'Run without profiling', 'fa fa-play-circle', 'Preview in new tab')}
         </div>
       </div>
     )

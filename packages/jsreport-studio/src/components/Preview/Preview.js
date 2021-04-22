@@ -50,6 +50,7 @@ class Preview extends Component {
       previewId: null,
       previewTemplate: null,
       previewType: 'normal',
+      previewReportFile: null,
       disableTheming: false,
       activePreviewTab: 'profiler',
       expandedActionsMenu: false,
@@ -102,9 +103,15 @@ class Preview extends Component {
           newState.previewId = opts.id
           newState.previewTemplate = opts.template
           newState.previewType = opts.type
+          newState.previewReportFile = null
           newState.profilerOperations = []
           newState.profilerLogs = []
           newState.profilerActiveElement = null
+
+          if (opts.type === 'report') {
+            newState.activePreviewTab = 'report'
+          }
+
           newState.profilerErrors = { global: null, general: null, operations: {} }
         }
 
@@ -421,6 +428,12 @@ class Preview extends Component {
     }
   }
 
+  addReport (reportFileInfo) {
+    this.setState({
+      previewReportFile: reportFileInfo
+    })
+  }
+
   addProfilerOperation (operation) {
     this.setState((prev) => {
       let newOperations = prev.profilerOperations
@@ -468,23 +481,6 @@ class Preview extends Component {
           completedPreviousOperationId: null
         }]
       }
-
-      return {
-        profilerOperations: newOperations
-      }
-    })
-  }
-
-  addProfilerReport (reportFileInfo) {
-    this.setState((prev) => {
-      if (prev.profilerOperations.length === 0) {
-        return
-      }
-
-      const newOperations = [{
-        ...prev.profilerOperations[0],
-        reportFile: reportFileInfo
-      }, ...prev.profilerOperations.slice(1)]
 
       return {
         profilerOperations: newOperations
@@ -567,6 +563,7 @@ class Preview extends Component {
       previewId: null,
       previewTemplate: null,
       previewType: 'normal',
+      previewReportFile: null,
       activePreviewTab: 'profiler',
       profilerOperations: [],
       profilerLogs: [],
@@ -602,6 +599,8 @@ class Preview extends Component {
       activePreviewTab,
       expandedActionsMenu,
       previewType,
+      previewReportFile,
+      previewTemplate,
       profilerOperations,
       profilerLogs,
       profilerErrors,
@@ -610,12 +609,12 @@ class Preview extends Component {
 
     const { main } = this.props
     const mainOperation = profilerOperations.find((op) => op.type === 'render')
-    const isMainCompleted = mainOperation != null ? mainOperation.completed === true : false
-    const shouldUseTabs = previewType === 'report' || previewType === 'profiler'
+    const isMainCompleted = previewType === 'report' ? previewReportFile != null : mainOperation != null ? mainOperation.completed === true : false
+    const shouldUseTabs = previewType === 'report' || previewType === 'report-profiler' || previewType === 'profiler'
     const tabs = []
 
     if (shouldUseTabs) {
-      if (previewType === 'report') {
+      if (previewType === 'report' || previewType === 'report-profiler') {
         tabs.push({
           name: 'report',
           title: 'report',
@@ -635,29 +634,31 @@ class Preview extends Component {
         })
       }
 
-      tabs.push({
-        name: 'profiler',
-        title: 'profiler',
-        renderContent: () => {
-          return (
-            <ProfilerContent
-              activeElement={profilerActiveElement}
-              operations={profilerOperations}
-              logs={profilerLogs}
-              errors={profilerErrors}
-              onCanvasClick={this.handleOnProfilerCanvasClick}
-              onElementClick={this.handleOnProfilerElementClick}
-            />
-          )
-        }
-      })
+      if (previewType === 'report-profiler' || previewType === 'profiler') {
+        tabs.push({
+          name: 'profiler',
+          title: 'profiler',
+          renderContent: () => {
+            return (
+              <ProfilerContent
+                activeElement={profilerActiveElement}
+                operations={profilerOperations}
+                logs={profilerLogs}
+                errors={profilerErrors}
+                onCanvasClick={this.handleOnProfilerCanvasClick}
+                onElementClick={this.handleOnProfilerElementClick}
+              />
+            )
+          }
+        })
+      }
     }
 
     const actionsMenuComponents = []
 
-    if (previewType === 'report') {
+    if (previewType === 'report' || previewType === 'report-profiler') {
       actionsMenuComponents.push(({ onMenuAction, closeMenu }) => {
-        const enabled = isMainCompleted && mainOperation.reportFile != null
+        const enabled = isMainCompleted && previewReportFile != null
 
         return (
           <div className={enabled ? '' : 'disabled'} title='Download report output' onClick={() => {
@@ -665,7 +666,7 @@ class Preview extends Component {
               return
             }
 
-            onMenuAction('download', { reportFile: mainOperation.reportFile })
+            onMenuAction('download', { reportFile: previewReportFile })
             closeMenu()
           }}>
             <i className='fa fa-download' /><span>Download</span>
@@ -673,22 +674,24 @@ class Preview extends Component {
         )
       })
 
-      actionsMenuComponents.push(({ onMenuAction, closeMenu }) => {
-        const enabled = isMainCompleted && (profilerErrors == null || profilerErrors.global == null)
+      if (previewType === 'report-profiler') {
+        actionsMenuComponents.push(({ onMenuAction, closeMenu }) => {
+          const enabled = isMainCompleted && (profilerErrors == null || profilerErrors.global == null)
 
-        return (
-          <div className={enabled ? '' : 'disabled'} onClick={() => {
-            if (!enabled) {
-              return
-            }
+          return (
+            <div className={enabled ? '' : 'disabled'} onClick={() => {
+              if (!enabled) {
+                return
+              }
 
-            onMenuAction('downloadProfile', { profileId: mainOperation.profileId })
-            closeMenu()
-          }}>
-            <i className='fa fa-download' /><span>Download Profile</span>
-          </div>
-        )
-      })
+              onMenuAction('downloadProfile', { profileId: mainOperation.profileId })
+              closeMenu()
+            }}>
+              <i className='fa fa-download' /><span>Download Profile</span>
+            </div>
+          )
+        })
+      }
 
       actionsMenuComponents.push(({ onMenuAction, closeMenu }) => {
         const enabled = isMainCompleted
@@ -715,7 +718,7 @@ class Preview extends Component {
       })
 
       actionsMenuComponents.push(({ onMenuAction, closeMenu }) => {
-        const enabled = isMainCompleted && mainOperation.reportFile != null
+        const enabled = isMainCompleted && previewReportFile != null
 
         return (
           <div className={enabled ? '' : 'disabled'} onClick={() => {
@@ -723,7 +726,7 @@ class Preview extends Component {
               return
             }
 
-            onMenuAction('openNewTab', { templateName: mainOperation.name, reportFile: mainOperation.reportFile })
+            onMenuAction('openNewTab', { templateName: previewTemplate.name, reportFile: previewReportFile })
             closeMenu()
           }}>
             <i className='fa fa-external-link' /><span>Open in new tab</span>
