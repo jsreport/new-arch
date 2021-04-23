@@ -143,6 +143,40 @@ class Preview extends Component {
     ) {
       window.URL.revokeObjectURL(prevState.src)
     }
+
+    // NOTE: we need this special handling with reload and dataset.firstPaint
+    // because it seems that when we load something like a PDF in an iframe and such
+    // content is not visible on screen then the pdf viewer just loads as being empty.
+    // this happens when you render and the tab is active on profiler, when the render finish
+    // and you go to report tab you see the pdf viewer empty, this handling fix that behaviour
+    // by reloading the iframe when we activate the report tab for the first time after it completed
+    if (prevState.previewId !== this.state.previewId) {
+      const previewIframe = document.getElementById('preview')
+
+      if (!previewIframe) {
+        return
+      }
+
+      delete previewIframe.dataset.firstPaint
+    }
+
+    if (this.isPreviewCompleted()) {
+      const previewIframe = document.getElementById('preview')
+
+      if (!previewIframe) {
+        return
+      }
+
+      const firstPaint = previewIframe.dataset.firstPaint === '1'
+
+      if (prevState.activePreviewTab === 'profiler' && this.state.activePreviewTab === 'report' && !firstPaint) {
+        previewIframe.dataset.firstPaint = '1'
+        previewIframe.contentWindow.location.reload()
+      } else if (this.state.activePreviewTab === 'report' && !firstPaint) {
+        previewIframe.dataset.firstPaint = '1'
+      }
+    }
+    // end
   }
 
   componentWillUnmount () {
@@ -549,6 +583,13 @@ class Preview extends Component {
     previewFrameChangeHandler(newSrc, opts)
   }
 
+  isPreviewCompleted () {
+    const { previewType, previewReportFile, profilerOperations } = this.state
+    const mainOperation = profilerOperations.find((op) => op.type === 'render')
+    const isCompleted = previewType === 'report' ? previewReportFile != null : mainOperation != null ? mainOperation.completed === true : false
+    return isCompleted
+  }
+
   changeActiveTab (tabName) {
     this.setState({
       activePreviewTab: tabName
@@ -609,7 +650,7 @@ class Preview extends Component {
 
     const { main } = this.props
     const mainOperation = profilerOperations.find((op) => op.type === 'render')
-    const isMainCompleted = previewType === 'report' ? previewReportFile != null : mainOperation != null ? mainOperation.completed === true : false
+    const isCompleted = this.isPreviewCompleted()
     const shouldUseTabs = previewType === 'report' || previewType === 'report-profiler' || previewType === 'profiler'
     const tabs = []
 
@@ -658,7 +699,7 @@ class Preview extends Component {
 
     if (previewType === 'report' || previewType === 'report-profiler') {
       actionsMenuComponents.push(({ onMenuAction, closeMenu }) => {
-        const enabled = isMainCompleted && previewReportFile != null
+        const enabled = isCompleted && previewReportFile != null
 
         return (
           <div className={enabled ? '' : 'disabled'} title='Download report output' onClick={() => {
@@ -676,7 +717,7 @@ class Preview extends Component {
 
       if (previewType === 'report-profiler') {
         actionsMenuComponents.push(({ onMenuAction, closeMenu }) => {
-          const enabled = isMainCompleted && (profilerErrors == null || profilerErrors.global == null)
+          const enabled = isCompleted && (profilerErrors == null || profilerErrors.global == null)
 
           return (
             <div className={enabled ? '' : 'disabled'} onClick={() => {
@@ -694,7 +735,7 @@ class Preview extends Component {
       }
 
       actionsMenuComponents.push(({ onMenuAction, closeMenu }) => {
-        const enabled = isMainCompleted
+        const enabled = isCompleted
 
         return (
           <div className={enabled ? '' : 'disabled'} onClick={() => {
@@ -718,7 +759,7 @@ class Preview extends Component {
       })
 
       actionsMenuComponents.push(({ onMenuAction, closeMenu }) => {
-        const enabled = isMainCompleted && previewReportFile != null
+        const enabled = isCompleted && previewReportFile != null
 
         return (
           <div className={enabled ? '' : 'disabled'} onClick={() => {
@@ -746,7 +787,7 @@ class Preview extends Component {
       activeTabWithEntity.entity.__entitySet === 'templates'
     ) {
       actionsMenuComponents.push(({ onMenuAction, closeMenu }) => {
-        const enabled = mainOperation == null || isMainCompleted
+        const enabled = mainOperation == null || isCompleted
 
         return (
           <div className={enabled ? '' : 'disabled'} title='Undock preview pane into extra browser tab' onClick={() => {
