@@ -1,6 +1,8 @@
-function now() {
-    return new Date().toLocaleDateString()
-}
+const jsreport = require('jsreport-proxy')
+const Handlebars = require('handlebars')
+const commonHelpers = await jsreport.assets.require('../shared/common helpers.js')
+
+commonHelpers(Handlebars)
 
 function nowPlus20Days() {
     var date = new Date()
