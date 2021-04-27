@@ -4,8 +4,6 @@ import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import { DndProvider } from 'react-dnd'
 import { HTML5Backend } from 'react-dnd-html5-backend'
-import fileSaver from 'filesaver.js-npm'
-import cookies from 'js-cookie'
 import { actions, selectors } from '../../redux/editor'
 import * as entities from '../../redux/entities'
 import Preview from '../../components/Preview/Preview.js'
@@ -507,7 +505,6 @@ class App extends Component {
       activeTabWithEntity,
       lastActiveTemplate,
       entities,
-      stop,
       activateTab,
       activeTabKey,
       activeTab,

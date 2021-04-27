@@ -3,7 +3,7 @@ import OperationsDisplay from './OperationsDisplay'
 import LogsDisplay from './LogsDisplay'
 
 const ProfilerContent = (props) => {
-  const { operations, logs, errors, activeElement, onCanvasClick, onElementClick } = props
+  const { operations, logs, errors, activeElement, onCanvasClick, onElementClick, renderErrorModal } = props
 
   let activeOperation
 
@@ -23,6 +23,7 @@ const ProfilerContent = (props) => {
         errors={errors}
         onCanvasClick={onCanvasClick}
         onElementClick={onElementClick}
+        renderErrorModal={renderErrorModal}
       />
       <LogsDisplay
         activeOperation={activeOperation}

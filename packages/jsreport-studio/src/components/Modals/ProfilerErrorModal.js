@@ -4,12 +4,12 @@ import styles from './ProfilerErrorModal.css'
 class ProfilerErrorModal extends Component {
   render () {
     const { close, options } = this.props
-    const { error } = options
+    const { title, error, containerStyle, renderCustomButtons } = options
 
     return (
       <div>
-        <h3>Error details</h3>
-        <div className={`form-group ${styles.errorContainer}`}>
+        <h3>{title != null ? title : 'Error details'}</h3>
+        <div className={`form-group ${styles.errorContainer}`} style={containerStyle}>
           <pre className={styles.errorMessage}>
             {error.message}
           </pre>
@@ -19,6 +19,7 @@ class ProfilerErrorModal extends Component {
         </div>
         <div className='button-bar'>
           <button className='button confirmation' onClick={() => close()}>Ok</button>
+          {renderCustomButtons && renderCustomButtons()}
         </div>
       </div>
     )

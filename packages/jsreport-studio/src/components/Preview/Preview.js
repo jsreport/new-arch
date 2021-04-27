@@ -57,7 +57,8 @@ class Preview extends Component {
       profilerOperations: [],
       profilerLogs: [],
       profilerActiveElement: null,
-      profilerErrors: { global: null, general: null, operations: {} }
+      profilerErrors: { global: null, general: null, operations: {} },
+      showProfilerErrorModal: true
     }
 
     this.handleOnPreviewDisplayLoad = this.handleOnPreviewDisplayLoad.bind(this)
@@ -71,6 +72,8 @@ class Preview extends Component {
     this.changeSrc = this.changeSrc.bind(this)
     this.changeActiveTab = this.changeActiveTab.bind(this)
     this.clear = this.clear.bind(this)
+    this.openErrorLine = this.openErrorLine.bind(this)
+    this.renderErrorModal = this.renderErrorModal.bind(this)
   }
 
   componentDidMount () {
@@ -113,6 +116,7 @@ class Preview extends Component {
           }
 
           newState.profilerErrors = { global: null, general: null, operations: {} }
+          newState.showProfilerErrorModal = true
         }
 
         if (
@@ -274,17 +278,7 @@ class Preview extends Component {
           (meta.data.error.property === 'content' || meta.data.error.property === 'helpers') &&
           meta.data.error.lineNumber != null
         ) {
-          this.props.openTab({ shortid: meta.data.error.entity.shortid }).then(() => {
-            setTimeout(() => {
-              const entity = this.props.getEntityByShortid(meta.data.error.entity.shortid)
-              const contentIsTheSame = entity.content === meta.data.error.entity.content
-              const entityEditor = findTextEditor(meta.data.error.property === 'content' ? entity._id : `${entity._id}_helpers`)
-
-              if (entityEditor != null && contentIsTheSame) {
-                selectLineInTextEditor(entityEditor, { lineNumber: meta.data.error.lineNumber })
-              }
-            }, 300)
-          })
+          this.openErrorLine(meta.data.error)
         } else {
           modalHandler.open(ProfilerErrorModal, { error: meta.data.error })
         }
@@ -609,7 +603,8 @@ class Preview extends Component {
       profilerOperations: [],
       profilerLogs: [],
       profilerActiveElement: null,
-      profilerErrors: { global: null, general: null, operations: {} }
+      profilerErrors: { global: null, general: null, operations: {} },
+      showProfilerErrorModal: true
     })
   }
 
@@ -633,6 +628,52 @@ class Preview extends Component {
     }
   }
 
+  openErrorLine (error) {
+    this.props.openTab({ shortid: error.entity.shortid }).then(() => {
+      setTimeout(() => {
+        const entity = this.props.getEntityByShortid(error.entity.shortid)
+        const contentIsTheSame = entity.content === error.entity.content
+        const entityEditor = findTextEditor(error.property === 'content' ? entity._id : `${entity._id}_helpers`)
+
+        if (entityEditor != null && contentIsTheSame) {
+          selectLineInTextEditor(entityEditor, { lineNumber: error.lineNumber })
+        }
+      }, 300)
+    })
+  }
+
+  renderErrorModal (error) {
+    const showGoToLineButton = (
+      error.entity != null &&
+      (error.property === 'content' || error.property === 'helpers') &&
+      error.lineNumber != null
+    )
+
+    return (
+      <ProfilerErrorModal
+        close={() => this.setState({ showProfilerErrorModal: false })}
+        options={{
+          title: 'preview error',
+          error,
+          containerStyle: { maxWidth: 'none', maxHeight: '320px' },
+          renderCustomButtons: showGoToLineButton ? () => {
+            return (
+              <button
+                className='button confirmation'
+                onClick={() => {
+                  this.openErrorLine(error)
+                  this.setState({ showProfilerErrorModal: false })
+                }}
+              >
+                Go to error line
+              </button>
+            )
+          } : undefined
+        }}
+      />
+    )
+  }
+
   render () {
     const {
       previewDisplayIframeKey,
@@ -645,7 +686,8 @@ class Preview extends Component {
       profilerOperations,
       profilerLogs,
       profilerErrors,
-      profilerActiveElement
+      profilerActiveElement,
+      showProfilerErrorModal
     } = this.state
 
     const { main } = this.props
@@ -688,6 +730,7 @@ class Preview extends Component {
                 errors={profilerErrors}
                 onCanvasClick={this.handleOnProfilerCanvasClick}
                 onElementClick={this.handleOnProfilerElementClick}
+                renderErrorModal={showProfilerErrorModal ? this.renderErrorModal : undefined}
               />
             )
           }

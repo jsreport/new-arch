@@ -18,7 +18,7 @@ const edgeTypes = {
 }
 
 const OperationsDisplay = (props) => {
-  const { activeElement, operations, errors, onCanvasClick, onElementClick } = props
+  const { activeElement, operations, errors, onCanvasClick, onElementClick, renderErrorModal } = props
   const graphInstanceRef = useRef(null)
 
   const handleLoad = useCallback((reactFlowInstance) => {
@@ -53,10 +53,17 @@ const OperationsDisplay = (props) => {
     }, 200)
   }, [isMainCompleted])
 
-  const operationsClass = classNames(styles.profilerOperations, { [styles.globalError]: errors != null && errors.global != null })
+  const mainError = isMainCompleted ? getMainError(errors) : undefined
 
   return (
-    <div className={operationsClass}>
+    <div className={styles.profilerOperations}>
+      {mainError && renderErrorModal != null && (
+        <div className={styles.profilerOperationsErrorModal}>
+          <div className={styles.profilerOperationsErrorModalContent}>
+            {renderErrorModal(mainError)}
+          </div>
+        </div>
+      )}
       <ReactFlow
         elements={elements}
         nodesDraggable={false}
@@ -76,11 +83,6 @@ const OperationsDisplay = (props) => {
         edgeTypes={edgeTypes}
       >
         <Controls showInteractive={false} />
-        {errors != null && errors.global != null && (
-          <div className={styles.profilerOperationsGlobalError}>
-            {errors.global.message}
-          </div>
-        )}
       </ReactFlow>
     </div>
   )
@@ -272,6 +274,28 @@ function getElementsFromOperations (operations, errors, activeElement) {
 
     return el
   })
+}
+
+function getMainError (errors) {
+  if (errors == null) {
+    return
+  }
+
+  if (errors.global != null) {
+    return errors.global
+  }
+
+  if (errors.general != null) {
+    return errors.general
+  }
+
+  if (errors.operations != null) {
+    const lastKey = Object.keys(errors.operations).pop()
+
+    if (lastKey != null) {
+      return errors.operations[lastKey]
+    }
+  }
 }
 
 function createEdge (sourceId, targetId, activeElement, opts = {}) {
