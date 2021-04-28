@@ -9,15 +9,15 @@ module.exports = {
           autoStart: { type: 'boolean' },
           interval: {
             type: ['string', 'number'],
-            '$jsreport-acceptsDuration': true,
+            '$jsreport-acceptsDuration': true
           },
           minScheduleInterval: {
             type: ['string', 'number'],
-            '$jsreport-acceptsDuration': true,
+            '$jsreport-acceptsDuration': true
           },
           misfireThreshold: {
             type: ['string', 'number'],
-            '$jsreport-acceptsDuration': true,
+            '$jsreport-acceptsDuration': true
           },
           maxParallelJobs: { type: 'number' },
           taskPingTimeout: {

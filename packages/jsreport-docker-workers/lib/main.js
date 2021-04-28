@@ -4,7 +4,7 @@ const express = require('express')
 
 module.exports = (reporter, definition) => {
   reporter.documentStore.registerEntityType('ServerType', {
-    ip: { type: 'Edm.String', key: true, publicKey: true },
+    ip: { type: 'Edm.String', key: true },
     stack: { type: 'Edm.String' },
     ping: { type: 'Edm.DateTimeOffset' }
   })
@@ -16,7 +16,7 @@ module.exports = (reporter, definition) => {
   })
 
   reporter.documentStore.registerEntityType('TenantWorkers', {
-    _id: { type: 'Edm.String', key: true, publicKey: true },
+    _id: { type: 'Edm.String', key: true },
     ip: { type: 'Edm.String' },
     port: { type: 'Edm.Int32' },
     stack: { type: 'Edm.String' },

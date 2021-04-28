@@ -61,7 +61,7 @@ describe('document store', () => {
 
     it('should register internal collection', async () => {
       const type = {
-        name: { type: 'Edm.String', publicKey: true }
+        name: { type: 'Edm.String' }
       }
 
       store.registerEntityType('internalType', type)
@@ -79,7 +79,7 @@ describe('document store', () => {
 
     it('should throw error when getting into duplicate with public and internal collection', async () => {
       const type = {
-        name: { type: 'Edm.String', publicKey: true }
+        name: { type: 'Edm.String' }
       }
 
       store.registerEntityType('someType', type)
@@ -390,7 +390,7 @@ describe('document store', () => {
         beforeEach(() => {
           store.registerEntityType('DemoType', {
             _id: { type: 'Edm.String' },
-            name: { type: 'Edm.String', publicKey: true },
+            name: { type: 'Edm.String' },
             active: { type: 'Edm.Boolean' },
             timeout: { type: 'Edm.Int32' },
             rawContent: { type: 'Edm.Binary' },
@@ -399,7 +399,7 @@ describe('document store', () => {
 
           store.registerEntityType('ComplexTemplateType', {
             _id: { type: 'Edm.String' },
-            name: { type: 'Edm.String', publicKey: true },
+            name: { type: 'Edm.String' },
             content: { type: 'Edm.String', document: { extension: 'html', engine: true } },
             recipe: { type: 'Edm.String' },
             phantom: { type: 'jsreport.PhantomType' },
@@ -593,7 +593,7 @@ function init (options, customExt) {
       name: 'templates',
       main: (reporter, definition) => {
         Object.assign(reporter.documentStore.model.entityTypes.TemplateType, {
-          name: { type: 'Edm.String', publicKey: true }
+          name: { type: 'Edm.String' }
         })
 
         reporter.documentStore.registerEntitySet('templates', {
@@ -610,7 +610,7 @@ function init (options, customExt) {
         })
 
         reporter.documentStore.registerEntityType('ReportType', {
-          name: { type: 'Edm.String', publicKey: true },
+          name: { type: 'Edm.String' },
           templateShortid: { type: 'Edm.String', referenceTo: 'templates' },
           templateObj: { type: 'jsreport.TemplateReportRefType' },
           tags: { type: 'Collection(jsreport.TagRefType)' },
@@ -620,7 +620,7 @@ function init (options, customExt) {
         })
 
         reporter.documentStore.registerEntityType('ValidationTestType', {
-          name: { type: 'Edm.String', publicKey: true },
+          name: { type: 'Edm.String' },
           alias: { type: 'Edm.String' },
           followers: { type: 'Edm.Int32' },
           owner: { type: 'Edm.Boolean' },
@@ -630,7 +630,7 @@ function init (options, customExt) {
         })
 
         reporter.documentStore.registerEntityType('FooType', {
-          name: { type: 'Edm.String', publicKey: true }
+          name: { type: 'Edm.String' }
         })
 
         reporter.documentStore.registerEntitySet('reports', {

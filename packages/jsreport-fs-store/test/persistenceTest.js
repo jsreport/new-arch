@@ -23,17 +23,17 @@ const model = {
   entityTypes: {
     TemplateType: {
       _id: { type: 'Edm.String', key: true },
-      name: { type: 'Edm.String', publicKey: true },
+      name: { type: 'Edm.String' },
       shortid: { type: 'Edm.String' },
       folder: { type: 'jsreport.FolderRefType' }
     },
     ReportType: {
       _id: { type: 'Edm.String', key: true },
-      name: { type: 'Edm.String', publicKey: true }
+      name: { type: 'Edm.String' }
     },
     FolderType: {
       _id: { type: 'Edm.String', key: true },
-      name: { type: 'Edm.String', publicKey: true },
+      name: { type: 'Edm.String' },
       shortid: { type: 'Edm.String' }
     }
   },

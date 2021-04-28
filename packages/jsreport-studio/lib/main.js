@@ -342,13 +342,11 @@ module.exports = (reporter, definition) => {
         const errorRes = { message: e.message }
 
         if (e.code === 'DUPLICATED_ENTITY') {
-          const publicKeyOfDuplicate = reporter.documentStore.model.entitySets[e.existingEntityEntitySet].entityTypePublicKey
-
           errorRes.code = e.code
 
           errorRes.existingEntity = {
             _id: e.existingEntity._id,
-            name: e.existingEntity[publicKeyOfDuplicate]
+            name: e.existingEntity.name
           }
 
           errorRes.existingEntityEntitySet = e.existingEntityEntitySet
@@ -379,12 +377,12 @@ module.exports = (reporter, definition) => {
           throw new Error('entitySet was not specified in request body')
         }
 
-        const publicKey = reporter.documentStore.model.entitySets[entitySet].entityTypePublicKey
+        const hasNameDef = reporter.documentStore.model.entitySets[entitySet].entityTypeDef.name != null
 
-        if (publicKey) {
+        if (hasNameDef) {
           await reporter.checkValidEntityName(entitySet, {
             _id: entityId,
-            [publicKey]: entityName,
+            name: entityName,
             folder: folderShortid != null ? {
               shortid: folderShortid
             } : null

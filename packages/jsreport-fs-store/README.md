@@ -29,17 +29,18 @@ this.documentStore.registerEntitySet("templates", {entityType: "jsreport.Templat
 
 Not every jsreport entity should be spitted into the tree structure. It is especially not desired for the entities where you expect thousands of entries.  In this case just remove the `splitIntoDirectories` attribute.
 
-The second required step is to extend the entity type with `publicKey` which is marking the attribute used for the row directory name. And also adding the `document` for the attributes you want to extract into dedicated files.
+The second required step is to extend the entity type with `name` attribute which defines the attribute used for the row directory name. And also adding the `document` for the attributes you want to extract into dedicated files.
 
 ```js
 var templateAttributes = {
 	...
-    shortid: {type: "Edm.String"},
-    name: {type: "Edm.String", publicKey: true},
-    content: {type: "Edm.String",
+    shortid: { type: "Edm.String" },
+    name: { type: "Edm.String" },
+    content: {
+        type: "Edm.String",
 	    document: { extension: "html", engine: true }
 	}
-    ...      
+    ...
 };
 ```
 
@@ -53,4 +54,4 @@ reporter.documentStore.addFileExtensionResolver(function(doc, entitySetName, ent
             return "handlebars";
         };
     });
-```    
+```

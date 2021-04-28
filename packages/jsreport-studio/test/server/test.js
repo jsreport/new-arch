@@ -4,7 +4,6 @@ const should = require('should')
 const request = require('supertest')
 const jsreport = require('jsreport-core')
 const studio = require('../../')
-const Promise = require('bluebird')
 
 describe('studio', () => {
   let reporter
@@ -48,29 +47,6 @@ describe('studio', () => {
     const title = regexp.exec(html)[1]
 
     should(title).be.eql(`version: ${reporter.version}, mode: ${reporter.options.mode}`)
-  })
-
-  it('render templates should persist logs to settings based on flushLogsInterval', async () => {
-    await prepareReporter({
-      flushLogsInterval: 10
-    })
-
-    await reporter.render({
-      template: {
-        content: 'foo',
-        engine: 'none',
-        recipe: 'html'
-      }
-    })
-
-    let requestsLog = await reporter.settings.findValue('requestsLog')
-    should(requestsLog).be.null()
-
-    await Promise.delay(20)
-
-    requestsLog = await reporter.settings.findValue('requestsLog')
-    requestsLog.should.have.length(1)
-    requestsLog[0].logs.length.should.be.greaterThan(0)
   })
 
   describe('theme', () => {

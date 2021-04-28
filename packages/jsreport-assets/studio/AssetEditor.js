@@ -256,16 +256,7 @@ class AssetEditor extends Component {
             <div>
               <i className={`fa ${icon}`} />
               &nbsp;
-              {entity != null ? (
-                <a
-                  href='#'
-                  onClick={(ev) => {
-                    ev.preventDefault()
-                    Studio.openTab({ _id: entity._id })
-                  }}
-                >{visibleName}
-                </a>
-              ) : visibleName}
+              {entity != null ? <a href='#' onClick={(ev) => { ev.preventDefault(); Studio.openTab({ _id: entity._id }) }}>{visibleName}</a> : visibleName}
             </div>
           </h3>
           {embeddingCode !== '' && (

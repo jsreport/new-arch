@@ -10,7 +10,7 @@ async function init (options) {
     name: 'templates',
     main: (reporter, definition) => {
       Object.assign(reporter.documentStore.model.entityTypes.TemplateType, {
-        name: { type: 'Edm.String', publicKey: true }
+        name: { type: 'Edm.String' }
       })
 
       reporter.documentStore.registerEntitySet('templates', {

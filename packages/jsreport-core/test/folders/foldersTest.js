@@ -9,7 +9,7 @@ function init (options) {
     name: 'templates',
     main: (reporter, definition) => {
       Object.assign(reporter.documentStore.model.entityTypes.TemplateType, {
-        name: { type: 'Edm.String', publicKey: true }
+        name: { type: 'Edm.String' }
       })
 
       reporter.documentStore.registerEntitySet('templates', {
@@ -18,7 +18,7 @@ function init (options) {
       })
 
       reporter.documentStore.registerEntityType('DataType', {
-        name: { type: 'Edm.String', publicKey: true },
+        name: { type: 'Edm.String' },
         dataJson: { type: 'Edm.String', document: { extension: 'json' } }
       })
 
@@ -34,7 +34,7 @@ function init (options) {
       }
 
       reporter.documentStore.registerEntityType('ReportType', {
-        name: { type: 'Edm.String', publicKey: true }
+        name: { type: 'Edm.String' }
       })
 
       reporter.documentStore.registerEntitySet('reports', { entityType: 'jsreport.ReportType' })

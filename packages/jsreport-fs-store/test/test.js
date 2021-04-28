@@ -16,7 +16,7 @@ const { serialize, parse } = require('../lib/customUtils')
 
 const AssetType = {
   _id: { type: 'Edm.String', key: true },
-  name: { type: 'Edm.String', publicKey: true },
+  name: { type: 'Edm.String' },
   content: { type: 'Edm.Binary', document: { extension: 'html', content: true } },
   folder: { type: 'jsreport.FolderRefType' }
 }
@@ -872,14 +872,14 @@ describe('cluster', () => {
 function addCommonTypes (store) {
   store.registerEntityType('FolderType', {
     _id: { type: 'Edm.String', key: true },
-    name: { type: 'Edm.String', publicKey: true },
+    name: { type: 'Edm.String' },
     shortid: { type: 'Edm.String' },
     creationDate: { type: 'Edm.DateTimeOffset' },
     modificationDate: { type: 'Edm.DateTimeOffset' }
   })
 
   store.registerComplexType('ScriptType', {
-    name: { type: 'Edm.String', publicKey: true }
+    name: { type: 'Edm.String' }
   })
 
   store.registerComplexType('FolderRefType', {
@@ -893,7 +893,7 @@ function addCommonTypes (store) {
 
   store.registerEntityType('TemplateType', {
     _id: { type: 'Edm.String', key: true },
-    name: { type: 'Edm.String', publicKey: true },
+    name: { type: 'Edm.String' },
     content: { type: 'Edm.String', document: { extension: 'html', engine: true } },
     recipe: { type: 'Edm.String' },
     modificationDate: { type: 'Edm.DateTimeOffset' },

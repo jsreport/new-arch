@@ -1228,7 +1228,7 @@ describe('pdf utils', () => {
     const result = await jsreport.render({
       template: {
         content: `<h1>Hello from Page 1</h1>
-        <div style='page-break-before: always;'></div>        
+        <div style='page-break-before: always;'></div>
         <h1>Hello from Page 2</h1>`,
         engine: 'none',
         recipe: 'chrome-pdf',
@@ -1262,27 +1262,27 @@ describe('pdf utils', () => {
           content: `
             const jsreport = require('jsreport-proxy')
 
-            async function afterRender (req, res) {              
+            async function afterRender (req, res) {
               const appendRest = await jsreport.render({
                 template: {
-                  content: '{{{pdfAddPageItem "foo"}}}',          
+                  content: '{{{pdfAddPageItem "foo"}}}',
                   engine: 'handlebars',
                   recipe: 'chrome-pdf'
                 }
-              })               
-              
-              const $pdf = await jsreport.pdfUtils.parse(appendRest.content)              
-            
+              })
+
+              const $pdf = await jsreport.pdfUtils.parse(appendRest.content)
+
               const mergeRes = await jsreport.render({
                 template: {
-                  content: '{{{$pdf.pages.[0].items.[0]}}}',                
+                  content: '{{{$pdf.pages.[0].items.[0]}}}',
                   engine: 'handlebars',
                   recipe: 'chrome-pdf'
                 },
                 data: {
                   $pdf
                 }
-              })               
+              })
 
               res.content = await jsreport.pdfUtils.merge(appendRest.content, mergeRes.content)
             }
@@ -1303,8 +1303,10 @@ describe('pdf utils', () => {
     const result = await jsreport.render({
       template: {
         content: `<h1>Hello from Page 1</h1>
-        <div style='page-break-before: always;'></div>        
-        <h1>Hello from Page 2</h1>`,
+        <div style='page-break-before: always;'></div>
+        <h1>Hello from Page 2</h1>
+        <div style='page-break-before: always;'></div>
+        <h1>Hello from Page 3</h1>`,
         engine: 'none',
         recipe: 'chrome-pdf',
         scripts: [{
@@ -1323,7 +1325,7 @@ describe('pdf utils', () => {
       includeText: true
     })
 
-    parsedPdf.pages.should.have.length(0)
+    parsedPdf.pages.should.have.length(1)
   })
 
   it('pdfPassword should encrypt output pdf', async () => {
