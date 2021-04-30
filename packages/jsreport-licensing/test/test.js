@@ -39,8 +39,7 @@ describe('licensing', () => {
       fs.unlinkSync(path.join(__dirname, '../', 'license-key.txt'))
     }
 
-    jsreport = JsReport()
-      .use(require('jsreport-templates')())
+    jsreport = JsReport({ rootDirectory: path.join(__dirname, '../') })
       .use(require('../')({
         licensingServerUrl: 'http://localhost:6000'
       }))

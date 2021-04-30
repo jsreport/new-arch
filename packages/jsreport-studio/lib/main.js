@@ -492,7 +492,8 @@ module.exports = (reporter, definition) => {
         }, {}),
         serverStartupHash,
         startupPage: definition.options.startupPage,
-        entityTreeOrder: definition.options.entityTreeOrder
+        entityTreeOrder: definition.options.entityTreeOrder,
+        linkButtonVisibility: definition.options.linkButtonVisibility
       })
     }
   })

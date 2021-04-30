@@ -33,6 +33,6 @@ module.exports = {
       }
     }
   },
-  'dependencies': ['templates', 'reports'],
+  'dependencies': ['reports'],
   'skipInExeRender': true
 }

@@ -83,7 +83,6 @@ describe.skip('worker with small timeout', () => {
 
   beforeEach(async () => {
     reporter = await jsreport()
-      .use(require('jsreport-templates')())
       .use(require('jsreport-handlebars')())
       .use(require('jsreport-chrome-pdf')())
       .use(require('jsreport-docker-workers')({

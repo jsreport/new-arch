@@ -23,7 +23,12 @@ function collectionTests (store, isInternal, runTransactions) {
   it('insert and query', async () => {
     const colName = !isInternal ? 'templates' : 'internalTemplates'
 
-    await getCollection(colName).insert({ name: 'test' })
+    await getCollection(colName).insert({
+      name: 'test',
+      engine: 'none',
+      recipe: 'html'
+    })
+
     const res = await getCollection(colName).find({ name: 'test' })
     res.length.should.be.eql(1)
   })
@@ -31,7 +36,12 @@ function collectionTests (store, isInternal, runTransactions) {
   it('insert and query with condition', async () => {
     const colName = !isInternal ? 'templates' : 'internalTemplates'
 
-    await getCollection(colName).insert({ name: 'test' })
+    await getCollection(colName).insert({
+      name: 'test',
+      engine: 'none',
+      recipe: 'html'
+    })
+
     const res = await getCollection(colName).find({ name: 'diferent' })
     res.length.should.be.eql(0)
   })
@@ -39,7 +49,12 @@ function collectionTests (store, isInternal, runTransactions) {
   it('insert, update, query', async () => {
     const colName = !isInternal ? 'templates' : 'internalTemplates'
 
-    await getCollection(colName).insert({ name: 'test' })
+    await getCollection(colName).insert({
+      name: 'test',
+      engine: 'none',
+      recipe: 'html'
+    })
+
     await getCollection(colName).update({ name: 'test' }, { $set: { recipe: 'foo' } })
     const res = await getCollection(colName).find({ name: 'test' })
     res.length.should.be.eql(1)
@@ -49,7 +64,12 @@ function collectionTests (store, isInternal, runTransactions) {
   it('insert remove query', async () => {
     const colName = !isInternal ? 'templates' : 'internalTemplates'
 
-    await getCollection(colName).insert({ name: 'test' })
+    await getCollection(colName).insert({
+      name: 'test',
+      engine: 'none',
+      recipe: 'html'
+    })
+
     await getCollection(colName).remove({ name: 'test' })
     const res = await getCollection(colName).find({ name: 'test' })
     res.length.should.be.eql(0)
@@ -58,7 +78,12 @@ function collectionTests (store, isInternal, runTransactions) {
   it('insert should return an object with _id set', async () => {
     const colName = !isInternal ? 'templates' : 'internalTemplates'
 
-    const doc = await getCollection(colName).insert({ name: 'test' })
+    const doc = await getCollection(colName).insert({
+      name: 'test',
+      engine: 'none',
+      recipe: 'html'
+    })
+
     doc.should.have.property('_id')
     doc._id.should.be.ok()
   })
@@ -66,7 +91,13 @@ function collectionTests (store, isInternal, runTransactions) {
   it('update with upsert', async () => {
     const colName = !isInternal ? 'templates' : 'internalTemplates'
 
-    await getCollection(colName).update({ name: 'test' }, { $set: { name: 'test2' } }, { upsert: true })
+    await getCollection(colName).update({ name: 'test' }, {
+      $set: {
+        name: 'test2',
+        engine: 'none',
+        recipe: 'html'
+      }
+    }, { upsert: true })
     const res = await getCollection(colName).find({ name: 'test2' })
     res.length.should.be.eql(1)
   })
@@ -74,7 +105,14 @@ function collectionTests (store, isInternal, runTransactions) {
   it('find should return clones', async () => {
     const colName = !isInternal ? 'templates' : 'internalTemplates'
 
-    await getCollection(colName).insert({ name: 'test', content: 'original', phantom: { header: 'original' } })
+    await getCollection(colName).insert({
+      name: 'test',
+      engine: 'none',
+      recipe: 'html',
+      content: 'original',
+      phantom: { header: 'original' }
+    })
+
     const res = await getCollection(colName).find({})
     res[0].content = 'modified'
     res[0].phantom.header = 'modified'
@@ -86,8 +124,16 @@ function collectionTests (store, isInternal, runTransactions) {
   it('insert should use clones', async () => {
     const colName = !isInternal ? 'templates' : 'internalTemplates'
 
-    const doc = { name: 'test', content: 'original', phantom: { header: 'original' } }
+    const doc = {
+      name: 'test',
+      engine: 'none',
+      recipe: 'html',
+      content: 'original',
+      phantom: { header: 'original' }
+    }
+
     await getCollection(colName).insert(doc)
+
     doc.content = 'modified'
     doc.phantom.header = 'modified'
     const res = await getCollection(colName).find({})
@@ -98,9 +144,23 @@ function collectionTests (store, isInternal, runTransactions) {
   it('skip and limit', async () => {
     const colName = !isInternal ? 'templates' : 'internalTemplates'
 
-    await getCollection(colName).insert({ name: '1' })
-    await getCollection(colName).insert({ name: '3' })
-    await getCollection(colName).insert({ name: '2' })
+    await getCollection(colName).insert({
+      name: '1',
+      engine: 'none',
+      recipe: 'html'
+    })
+
+    await getCollection(colName).insert({
+      name: '3',
+      engine: 'none',
+      recipe: 'html'
+    })
+
+    await getCollection(colName).insert({
+      name: '2',
+      engine: 'none',
+      recipe: 'html'
+    })
 
     const res = await getCollection(colName).find({}).sort({ name: 1 }).skip(1).limit(1).toArray()
     res.length.should.be.eql(1)
@@ -110,9 +170,9 @@ function collectionTests (store, isInternal, runTransactions) {
   it('$and', async () => {
     const colName = !isInternal ? 'templates' : 'internalTemplates'
 
-    await getCollection(colName).insert({ name: '1', recipe: 'a' })
-    await getCollection(colName).insert({ name: '2', recipe: 'b' })
-    await getCollection(colName).insert({ name: '3', recipe: 'b' })
+    await getCollection(colName).insert({ name: '1', engine: 'none', recipe: 'a' })
+    await getCollection(colName).insert({ name: '2', engine: 'none', recipe: 'b' })
+    await getCollection(colName).insert({ name: '3', engine: 'none', recipe: 'b' })
 
     const res = await getCollection(colName).find({ $and: [{ name: '2' }, { recipe: 'b' }] }).toArray()
     res.length.should.be.eql(1)
@@ -123,7 +183,7 @@ function collectionTests (store, isInternal, runTransactions) {
   it('projection', async () => {
     const colName = !isInternal ? 'templates' : 'internalTemplates'
 
-    await getCollection(colName).insert({ name: '1', recipe: 'a' })
+    await getCollection(colName).insert({ name: '1', engine: 'none', recipe: 'a' })
 
     const res = await getCollection(colName).find({}, { recipe: 1 })
     res.length.should.be.eql(1)
@@ -134,7 +194,7 @@ function collectionTests (store, isInternal, runTransactions) {
   it('count', async () => {
     const colName = !isInternal ? 'templates' : 'internalTemplates'
 
-    await getCollection(colName).insert({ name: '1', recipe: 'a' })
+    await getCollection(colName).insert({ name: '1', engine: 'none', recipe: 'a' })
 
     const res = await getCollection(colName).find({}).count()
     res.should.be.eql(1)
@@ -143,7 +203,7 @@ function collectionTests (store, isInternal, runTransactions) {
   it('count without cursor', async () => {
     const colName = !isInternal ? 'templates' : 'internalTemplates'
 
-    await getCollection(colName).insert({ name: '1', recipe: 'a' })
+    await getCollection(colName).insert({ name: '1', engine: 'none', recipe: 'a' })
 
     const res = await getCollection(colName).count({})
     res.should.be.eql(1)
@@ -152,7 +212,7 @@ function collectionTests (store, isInternal, runTransactions) {
   it('projection should not be applied when second param is request', async () => {
     const colName = !isInternal ? 'templates' : 'internalTemplates'
 
-    await getCollection(colName).insert({ name: 'test' })
+    await getCollection(colName).insert({ name: 'test', engine: 'none', recipe: 'html' })
     const res = await getCollection(colName).find({ name: 'test' }, Request({ template: {} }))
     res[0].name.should.be.eql('test')
   })
@@ -160,15 +220,15 @@ function collectionTests (store, isInternal, runTransactions) {
   it('update should return 1 if upsert', async () => {
     const colName = !isInternal ? 'templates' : 'internalTemplates'
 
-    const res = await getCollection(colName).update({ name: 'test' }, { $set: { name: 'test2' } }, { upsert: true })
+    const res = await getCollection(colName).update({ name: 'test' }, { $set: { name: 'test2', engine: 'none', recipe: 'html' } }, { upsert: true })
     res.should.be.eql(1)
   })
 
   it('update should return number of updated items', async () => {
     const colName = !isInternal ? 'templates' : 'internalTemplates'
 
-    await getCollection(colName).insert({ name: '1', recipe: 'a' })
-    await getCollection(colName).insert({ name: '2', recipe: 'a' })
+    await getCollection(colName).insert({ name: '1', engine: 'none', recipe: 'a' })
+    await getCollection(colName).insert({ name: '2', engine: 'none', recipe: 'a' })
     const res = await getCollection(colName).update({ recipe: 'a' }, { $set: { engine: 'test2' } })
     res.should.be.eql(2)
   })
@@ -192,11 +252,15 @@ function collectionTests (store, isInternal, runTransactions) {
 
   it('should validate duplicated _id on update', async () => {
     const a = await store().collection('templates').insert({
-      name: 'a'
+      name: 'a',
+      engine: 'none',
+      recipe: 'html'
     })
 
     const b = await store().collection('templates').insert({
-      name: 'b'
+      name: 'b',
+      engine: 'none',
+      recipe: 'html'
     })
 
     return should(store().collection('templates').update({
@@ -210,7 +274,9 @@ function collectionTests (store, isInternal, runTransactions) {
 
   it('should validate duplicated shortid on upsert', async () => {
     const a = await store().collection('templates').insert({
-      name: 'a'
+      name: 'a',
+      engine: 'none',
+      recipe: 'html'
     })
 
     return should(store().collection('templates').update({
@@ -226,24 +292,32 @@ function collectionTests (store, isInternal, runTransactions) {
   it('should validate duplicated shortid on insert', async () => {
     await store().collection('templates').insert({
       name: 'a',
-      shortid: 'a'
+      shortid: 'a',
+      engine: 'none',
+      recipe: 'html'
     })
 
     return should(store().collection('templates').insert({
       name: 'b',
-      shortid: 'a'
+      shortid: 'a',
+      engine: 'none',
+      recipe: 'html'
     })).be.rejected()
   })
 
   it('should validate duplicated shortid on update', async () => {
     const a = await store().collection('templates').insert({
       name: 'a',
-      shortid: 'a'
+      shortid: 'a',
+      engine: 'none',
+      recipe: 'html'
     })
 
     await store().collection('templates').insert({
       name: 'b',
-      shortid: 'b'
+      shortid: 'b',
+      engine: 'none',
+      recipe: 'html'
     })
 
     return should(store().collection('templates').update({
@@ -258,7 +332,9 @@ function collectionTests (store, isInternal, runTransactions) {
   it('should validate duplicated shortid on upsert', async () => {
     await store().collection('templates').insert({
       name: 'a',
-      shortid: 'a'
+      shortid: 'a',
+      engine: 'none',
+      recipe: 'html'
     })
 
     return should(store().collection('templates').update({

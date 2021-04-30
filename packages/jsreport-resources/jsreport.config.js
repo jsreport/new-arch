@@ -2,5 +2,5 @@
 module.exports = {
   'name': 'resources',
   'main': 'lib/resources.js',
-  'dependencies': ['data', 'templates', 'scripts']
+  'dependencies': ['data', 'scripts']
 }

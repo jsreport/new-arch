@@ -7,7 +7,6 @@ describe('freeze', () => {
   beforeEach(() => {
     reporter = jsreport()
     reporter.use(require('../')())
-    reporter.use(require('jsreport-templates')())
     return reporter.init()
   })
 
@@ -49,7 +48,6 @@ describe('freeze with hardFreeze', () => {
   beforeEach(() => {
     reporter = jsreport()
     reporter.use(require('../')({ hardFreeze: true }))
-    reporter.use(require('jsreport-templates')())
     return reporter.init()
   })
 

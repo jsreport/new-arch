@@ -21,6 +21,6 @@ module.exports = {
       }
     }
   },
-  dependencies: ['templates', 'data'],
+  dependencies: ['data'],
   embeddedSupport: true
 }

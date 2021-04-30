@@ -968,7 +968,7 @@ var AssetEditor = function (_Component) {
               _react2.default.createElement(
                 'a',
                 {
-                  href: 'https://jsreport.net/learn/xlsx#preview-in-studio', target: '_blank', rel: 'noreferrer'
+                  href: 'https://jsreport.net/learn/xlsx#preview-in-studio', target: '_blank', rel: 'noopener noreferrer'
                 },
                 'the docs for details'
               ),
@@ -1095,13 +1095,9 @@ var AssetEditor = function (_Component) {
               '\xA0',
               entity != null ? _react2.default.createElement(
                 'a',
-                {
-                  href: '#',
-                  onClick: function onClick(ev) {
-                    ev.preventDefault();
-                    _jsreportStudio2.default.openTab({ _id: entity._id });
-                  }
-                },
+                { href: '#', onClick: function onClick(ev) {
+                    ev.preventDefault();_jsreportStudio2.default.openTab({ _id: entity._id });
+                  } },
                 visibleName
               ) : visibleName
             )

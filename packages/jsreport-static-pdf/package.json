@@ -33,7 +33,6 @@
     "jsreport-chrome-pdf": "1.8.0",
     "jsreport-core": "2.9.0",
     "jsreport-studio-dev": "1.6.0",
-    "jsreport-templates": "2.4.0",
     "mocha": "6.1.4",
     "puppeteer": "1.19.0",
     "should": "13.2.3",

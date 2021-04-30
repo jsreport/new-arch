@@ -9,7 +9,6 @@ describe('express', () => {
     jsreport = JsReport()
       .use(require('../')())
       .use(require('jsreport-jsrender')())
-      .use(require('jsreport-templates')())
       .use(require('jsreport-scripts')())
       .use(JsReport.tests.listeners())
       .use(require('./testExtension')({
@@ -194,7 +193,6 @@ describe('express with appPath and mountOnAppPath config', () => {
     jsreport = JsReport({ appPath: '/test', mountOnAppPath: true })
       .use(require('../')())
       .use(require('jsreport-jsrender')())
-      .use(require('jsreport-templates')())
 
     return jsreport.init()
   })

@@ -84,6 +84,10 @@ module.exports = {
             type: 'array',
             items: { type: 'string' }
           },
+          linkButtonVisibility: {
+            type: 'boolean',
+            default: true
+          },
           webpackStatsInDevMode: {
             type: 'object'
           },

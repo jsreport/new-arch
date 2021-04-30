@@ -61,7 +61,6 @@ describe('docker manager', () => {
         customContainersPoolFactory: () => pool,
         discriminatorPath: 'context.tenant'
       }))
-      .use(require('jsreport-templates')())
       .use(require('jsreport-express')())
       .use(jsreport.tests.listeners())
 
@@ -338,7 +337,6 @@ describe('docker manager', () => {
           customContainersPoolFactory: () => pool,
           discriminatorPath: 'context.tenant'
         }))
-        .use(require('jsreport-templates')())
         .use(require('jsreport-express')())
         .use(jsreport.tests.listeners())
 

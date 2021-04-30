@@ -50,7 +50,6 @@
     "jsreport-core": "2.10.1",
     "jsreport-handlebars": "2.1.0",
     "jsreport-studio-dev": "1.6.0",
-    "jsreport-templates": "2.4.0",
     "mocha": "6.1.4",
     "should": "13.2.3",
     "standard": "12.0.1",

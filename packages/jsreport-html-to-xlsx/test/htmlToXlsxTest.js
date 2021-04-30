@@ -10,7 +10,7 @@ describe('html to xlsx', () => {
   let reporter
 
   beforeEach(() => {
-    reporter = jsreport().use(require('../')()).use(require('jsreport-templates')()).use(require('jsreport-handlebars')())
+    reporter = jsreport().use(require('../')()).use(require('jsreport-handlebars')())
     return reporter.init()
   })
 

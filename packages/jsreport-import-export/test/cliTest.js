@@ -7,7 +7,6 @@ const { getTempDir, setup, init, exec } = require('jsreport-cli/test/testUtils')
   rootDirectory: path.join(__dirname, '../'),
   defaultExtensions: [
     'jsreport-fs-store',
-    'jsreport-templates',
     'jsreport-data',
     'jsreport-express',
     path.join(__dirname, '../')

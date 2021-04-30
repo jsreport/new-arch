@@ -25,7 +25,6 @@ describe('authentication', () => {
       }
     })
     reporter.use(require('../')())
-    reporter.use(require('jsreport-templates')())
     reporter.use(require('jsreport-express')())
 
     await reporter.init()
@@ -878,7 +877,6 @@ describe('authentication with external authorization server', () => {
       reporter = jsreport(jsreportConfig)
 
       reporter.use(require('../')())
-      reporter.use(require('jsreport-templates')())
       reporter.use(require('jsreport-express')())
 
       await reporter.init()
@@ -895,7 +893,6 @@ describe('authentication with external authorization server', () => {
     reporter = jsreport(jsreportConfig)
 
     reporter.use(require('../')())
-    reporter.use(require('jsreport-templates')())
     reporter.use(require('jsreport-express')())
 
     await reporter.init()

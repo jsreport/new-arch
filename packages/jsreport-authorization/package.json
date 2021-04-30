@@ -21,7 +21,6 @@
     "jsreport-core": "2.10.1",
     "jsreport-fs-store": "2.9.1",
     "jsreport-studio-dev": "1.6.0",
-    "jsreport-templates": "2.4.0",
     "mocha": "5.2.0",
     "ncp": "2.0.0",
     "rimraf": "2.6.3",

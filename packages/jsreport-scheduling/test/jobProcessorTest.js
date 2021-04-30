@@ -16,7 +16,6 @@ describe('for jobProcessor', () => {
     })
 
     reporter.use(require('../')())
-    reporter.use(require('jsreport-templates')())
     reporter.use(require('jsreport-reports')())
 
     await reporter.init()
@@ -346,7 +345,6 @@ describe('for jobProcessor with auth enabled', () => {
     })
 
     reporter.use(require('../')())
-    reporter.use(require('jsreport-templates')())
     reporter.use(require('jsreport-authentication')({
       admin: {
         username: 'admin',

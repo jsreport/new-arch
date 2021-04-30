@@ -7,7 +7,6 @@ describe('authorization', () => {
   beforeEach(() => {
     reporter = jsreport()
     reporter.use(require('../')())
-    reporter.use(require('jsreport-templates')())
     reporter.use((reporter, definition) => {
       // auth fake
       reporter.authentication = {}
@@ -811,7 +810,6 @@ describe('authorization migration', () => {
       }
     })
     reporter.use(require('../')())
-    reporter.use(require('jsreport-templates')())
     reporter.use(require('jsreport-fs-store')({ dataDirectory: path.join(__dirname, 'datatmp') }))
     reporter.use((reporter, definition) => {
       // auth fake

@@ -11,7 +11,6 @@ describe('assets', function () {
       rootDirectory: process.cwd()
     })
       .use(require('jsreport-express')())
-      .use(require('jsreport-templates')())
       .use(require('jsreport-jsrender')())
       .use(require('jsreport-scripts')())
       .use(require('../')())
@@ -1118,8 +1117,8 @@ describe('assets', function () {
           helpers: `
             const jsreport = require('jsreport-proxy')
             const foo = await jsreport.assets.require('foo.js')
-            function helper() { 
-              return foo.fn() 
+            function helper() {
+              return foo.fn()
             }
           `
         }

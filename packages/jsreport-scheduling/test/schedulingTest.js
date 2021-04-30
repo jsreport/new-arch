@@ -13,7 +13,6 @@ describe('with scheduling extension', function () {
         }
       }
     })
-    reporter.use(require('jsreport-templates')())
     reporter.use(require('jsreport-reports')())
     reporter.use(require('../')())
 
@@ -190,7 +189,6 @@ describe('with scheduling extension and minimal schedule interval limit', () => 
       }
     })
     reporter.use(require('../')())
-    reporter.use(require('jsreport-templates')())
     reporter.use(require('jsreport-reports')())
 
     await reporter.init()
@@ -242,7 +240,6 @@ describe('with scheduling extension and history clean enabled', () => {
     })
 
     reporter.use(require('../')())
-    reporter.use(require('jsreport-templates')())
     reporter.use(require('jsreport-reports')())
 
     await reporter.init()

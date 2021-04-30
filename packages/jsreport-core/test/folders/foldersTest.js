@@ -3,20 +3,11 @@ const core = require('../../index')
 const RenderRequest = core.Request
 
 function init (options) {
-  const reporter = core({ migrateEntitySetsToFolders: false, ...options })
+  const reporter = core({ discover: false, migrateEntitySetsToFolders: false, ...options })
 
   reporter.use({
-    name: 'templates',
+    name: 'testing',
     main: (reporter, definition) => {
-      Object.assign(reporter.documentStore.model.entityTypes.TemplateType, {
-        name: { type: 'Edm.String' }
-      })
-
-      reporter.documentStore.registerEntitySet('templates', {
-        entityType: 'jsreport.TemplateType',
-        splitIntoDirectories: true
-      })
-
       reporter.documentStore.registerEntityType('DataType', {
         name: { type: 'Edm.String' },
         dataJson: { type: 'Edm.String', document: { extension: 'json' } }
@@ -77,6 +68,8 @@ describe('folders', function () {
       await reporter.documentStore.collection('templates').insert({
         name: 'c',
         shortid: 'c',
+        engine: 'none',
+        recipe: 'html',
         folder: {
           shortid: 'b'
         }
@@ -85,6 +78,8 @@ describe('folders', function () {
       await reporter.documentStore.collection('templates').insert({
         name: 'd',
         shortid: 'd',
+        engine: 'none',
+        recipe: 'html',
         folder: {
           shortid: 'b'
         }
@@ -117,13 +112,17 @@ describe('folders', function () {
 
       await reporter.documentStore.collection('templates').insert({
         name: 't1',
+        engine: 'none',
+        recipe: 'html',
         folder: {
           shortid: f1.shortid
         }
       })
 
       await reporter.documentStore.collection('templates').insert({
-        name: 't2'
+        name: 't2',
+        engine: 'none',
+        recipe: 'html'
       })
 
       const f2 = await reporter.documentStore.collection('folders').insert({
@@ -136,6 +135,8 @@ describe('folders', function () {
 
       await reporter.documentStore.collection('templates').insert({
         name: 't3',
+        engine: 'none',
+        recipe: 'html',
         folder: {
           shortid: f2.shortid
         }
@@ -166,13 +167,17 @@ describe('folders', function () {
 
       await reporter.documentStore.collection('templates').insert({
         name: 't1',
+        engine: 'none',
+        recipe: 'html',
         folder: {
           shortid: f1.shortid
         }
       })
 
       await reporter.documentStore.collection('templates').insert({
-        name: 't2'
+        name: 't2',
+        engine: 'none',
+        recipe: 'html'
       })
 
       const f2 = await reporter.documentStore.collection('folders').insert({
@@ -185,6 +190,8 @@ describe('folders', function () {
 
       await reporter.documentStore.collection('templates').insert({
         name: 't3',
+        engine: 'none',
+        recipe: 'html',
         folder: {
           shortid: f2.shortid
         }
@@ -208,6 +215,8 @@ describe('folders', function () {
 
       await reporter.documentStore.collection('templates').insert({
         name: 't4',
+        engine: 'none',
+        recipe: 'html',
         folder: {
           shortid: f4.shortid
         }
@@ -242,6 +251,8 @@ describe('folders', function () {
       const t = await reporter.documentStore.collection('templates').insert({
         name: 'c',
         shortid: 'c',
+        engine: 'none',
+        recipe: 'html',
         folder: {
           shortid: 'b'
         }
@@ -260,6 +271,8 @@ describe('folders', function () {
       const t = await reporter.documentStore.collection('templates').insert({
         name: 'b',
         shortid: 'b',
+        engine: 'none',
+        recipe: 'html',
         folder: {
           shortid: 'none'
         }
@@ -276,6 +289,8 @@ describe('folders', function () {
       await reporter.documentStore.collection('templates').insert({
         name: 'b',
         shortid: 'b',
+        engine: 'none',
+        recipe: 'html',
         folder: {
           shortid: 'a'
         }
@@ -310,6 +325,8 @@ describe('folders', function () {
       await reporter.documentStore.collection('templates').insert({
         name: 'b',
         shortid: 'b',
+        engine: 'none',
+        recipe: 'html',
         folder: {
           shortid: 'a'
         }
@@ -322,7 +339,9 @@ describe('folders', function () {
     it('resolveFolderFromPath should return null for root objects', async () => {
       await reporter.documentStore.collection('templates').insert({
         name: 'b',
-        shortid: 'b'
+        shortid: 'b',
+        engine: 'none',
+        recipe: 'html'
       })
 
       const folder = await reporter.folders.resolveFolderFromPath('/a/b')
@@ -381,6 +400,8 @@ describe('folders', function () {
       await reporter.documentStore.collection('templates').insert({
         name: 'b',
         shortid: 'b',
+        engine: 'none',
+        recipe: 'html',
         folder: {
           shortid: 'a'
         }
@@ -399,6 +420,8 @@ describe('folders', function () {
       await reporter.documentStore.collection('templates').insert({
         name: 'b',
         shortid: 'b',
+        engine: 'none',
+        recipe: 'html',
         folder: {
           shortid: 'a'
         }
@@ -417,6 +440,8 @@ describe('folders', function () {
       await reporter.documentStore.collection('templates').insert({
         name: 'b',
         shortid: 'b',
+        engine: 'none',
+        recipe: 'html',
         folder: {
           shortid: 'a'
         }
@@ -435,6 +460,8 @@ describe('folders', function () {
       await reporter.documentStore.collection('templates').insert({
         name: 'b',
         shortid: 'b',
+        engine: 'none',
+        recipe: 'html',
         folder: {
           shortid: 'a'
         }
@@ -448,7 +475,9 @@ describe('folders', function () {
     it('resolveEntityFromPath should return empty for not found', async () => {
       await reporter.documentStore.collection('templates').insert({
         name: 'b',
-        shortid: 'b'
+        shortid: 'b',
+        engine: 'none',
+        recipe: 'html'
       })
 
       const result = await reporter.folders.resolveEntityFromPath('/c')
@@ -458,7 +487,9 @@ describe('folders', function () {
     it('resolveEntityFromPath should return empty for not found (target entitySet)', async () => {
       await reporter.documentStore.collection('templates').insert({
         name: 'b',
-        shortid: 'b'
+        shortid: 'b',
+        engine: 'none',
+        recipe: 'html'
       })
 
       const result = await reporter.folders.resolveEntityFromPath('/c', 'templates')
@@ -630,7 +661,9 @@ describe('folders', function () {
       })
 
       return reporter.documentStore.collection('templates').insert({
-        name: 'duplicate'
+        name: 'duplicate',
+        engine: 'none',
+        recipe: 'html'
       }).should.be.rejectedWith({ code: 'DUPLICATED_ENTITY' })
     })
 
@@ -664,11 +697,15 @@ describe('folders', function () {
       await reporter.documentStore.collection('templates').insert({
         name: 'duplicate',
         shortid: 'c',
+        engine: 'none',
+        recipe: 'html',
         folder: { shortid: 'a' }
       })
       await reporter.documentStore.collection('templates').insert({
         name: 'duplicate',
         shortid: 'd',
+        engine: 'none',
+        recipe: 'html',
         folder: { shortid: 'b' }
       })
     })
@@ -685,6 +722,8 @@ describe('folders', function () {
       await reporter.documentStore.collection('templates').insert({
         name: 'duplicate',
         shortid: 'c',
+        engine: 'none',
+        recipe: 'html',
         folder: { shortid: 'a' }
       })
       await reporter.documentStore.collection('templates').update({
@@ -709,12 +748,16 @@ describe('folders', function () {
       await reporter.documentStore.collection('templates').insert({
         name: 'duplicate',
         shortid: 'b',
+        engine: 'none',
+        recipe: 'html',
         folder: { shortid: 'a' }
       })
 
       return reporter.documentStore.collection('templates').insert({
         name: 'duplicate',
         shortid: 'c',
+        engine: 'none',
+        recipe: 'html',
         folder: { shortid: 'a' }
       }).should.be.rejected()
     })
@@ -728,6 +771,8 @@ describe('folders', function () {
       await reporter.documentStore.collection('templates').insert({
         name: 'duplicate',
         shortid: 'b',
+        engine: 'none',
+        recipe: 'html',
         folder: { shortid: 'a' }
       })
 
@@ -748,6 +793,8 @@ describe('folders', function () {
       await reporter.documentStore.collection('templates').insert({
         name: 'a',
         shortid: 'a',
+        engine: 'none',
+        recipe: 'html',
         content: 'a'
       })
 
@@ -768,12 +815,16 @@ describe('folders', function () {
       await reporter.documentStore.collection('templates').insert({
         name: 'a',
         shortid: 'a',
+        engine: 'none',
+        recipe: 'html',
         content: 'a'
       })
 
       reporter.documentStore.collection('templates').insert({
         name: 'A',
         shortid: 'A',
+        engine: 'none',
+        recipe: 'html',
         content: 'a'
       }).should.be.rejected()
     })
@@ -823,12 +874,16 @@ describe('folders', function () {
       await reporter.documentStore.collection('templates').insert({
         name: 'a',
         shortid: 'aa',
+        engine: 'none',
+        recipe: 'html',
         folder: { shortid: 'a' }
       })
 
       await reporter.documentStore.collection('templates').insert({
         name: 'a',
         shortid: 'ab',
+        engine: 'none',
+        recipe: 'html',
         folder: { shortid: 'b' }
       })
 
@@ -845,12 +900,16 @@ describe('folders', function () {
       await reporter.documentStore.collection('templates').insert({
         name: 'a',
         shortid: 'aa',
+        engine: 'none',
+        recipe: 'html',
         folder: { shortid: 'a' }
       })
 
       await reporter.documentStore.collection('templates').insert({
         name: 'a',
-        shortid: 'ar'
+        shortid: 'ar',
+        engine: 'none',
+        recipe: 'html'
       })
 
       return reporter.documentStore.collection('templates').update(
@@ -872,18 +931,24 @@ describe('folders', function () {
       const a = await reporter.documentStore.collection('templates').insert({
         name: 'a',
         shortid: 'a',
+        engine: 'none',
+        recipe: 'html',
         folder: { shortid: folder1.shortid }
       })
 
       await reporter.documentStore.collection('templates').insert({
         name: 'b',
         shortid: 'b',
+        engine: 'none',
+        recipe: 'html',
         folder: { shortid: folder1.shortid }
       })
 
       await reporter.documentStore.collection('templates').insert({
         name: 'c',
         shortid: 'c',
+        engine: 'none',
+        recipe: 'html',
         folder: { shortid: folder2.shortid }
       })
 
@@ -920,18 +985,24 @@ describe('folders', function () {
       await reporter.documentStore.collection('templates').insert({
         name: 'a',
         shortid: 'a',
+        engine: 'none',
+        recipe: 'html',
         folder: { shortid: folder1.shortid }
       })
 
       await reporter.documentStore.collection('templates').insert({
         name: 'b',
         shortid: 'b',
+        engine: 'none',
+        recipe: 'html',
         folder: { shortid: folder1.shortid }
       })
 
       await reporter.documentStore.collection('templates').insert({
         name: 'c',
         shortid: 'c',
+        engine: 'none',
+        recipe: 'html',
         folder: { shortid: folder2.shortid }
       })
 
@@ -982,18 +1053,24 @@ describe('folders', function () {
       const a = await reporter.documentStore.collection('templates').insert({
         name: 'a',
         shortid: 'a',
+        engine: 'none',
+        recipe: 'html',
         folder: { shortid: folder1.shortid }
       })
 
       await reporter.documentStore.collection('templates').insert({
         name: 'b',
         shortid: 'b',
+        engine: 'none',
+        recipe: 'html',
         folder: { shortid: folder1.shortid }
       })
 
       await reporter.documentStore.collection('templates').insert({
         name: 'c',
         shortid: 'c',
+        engine: 'none',
+        recipe: 'html',
         folder: { shortid: folder2.shortid }
       })
 
@@ -1038,18 +1115,24 @@ describe('folders', function () {
       await reporter.documentStore.collection('templates').insert({
         name: 'a',
         shortid: 'a',
+        engine: 'none',
+        recipe: 'html',
         folder: { shortid: folder1.shortid }
       })
 
       await reporter.documentStore.collection('templates').insert({
         name: 'b',
         shortid: 'b',
+        engine: 'none',
+        recipe: 'html',
         folder: { shortid: folder1.shortid }
       })
 
       const c = await reporter.documentStore.collection('templates').insert({
         name: 'c',
         shortid: 'c',
+        engine: 'none',
+        recipe: 'html',
         folder: { shortid: folder2.shortid }
       })
 
@@ -1094,6 +1177,8 @@ describe('folders', function () {
       await reporter.documentStore.collection('templates').insert({
         name: 'a',
         shortid: 'a',
+        engine: 'none',
+        recipe: 'html',
         folder: { shortid: folder1.shortid }
       })
 
@@ -1106,6 +1191,8 @@ describe('folders', function () {
       const b = await reporter.documentStore.collection('templates').insert({
         name: 'b',
         shortid: 'b',
+        engine: 'none',
+        recipe: 'html',
         data: {
           shortid: data.shortid
         },
@@ -1157,6 +1244,8 @@ describe('folders', function () {
       await reporter.documentStore.collection('templates').insert({
         name: 'a',
         shortid: 'a',
+        engine: 'none',
+        recipe: 'html',
         folder: { shortid: folder1.shortid }
       })
 
@@ -1164,6 +1253,8 @@ describe('folders', function () {
         name: 'b',
         shortid: 'b',
         content: 'b',
+        engine: 'none',
+        recipe: 'html',
         folder: { shortid: folder1.shortid }
       })
 
@@ -1171,6 +1262,8 @@ describe('folders', function () {
         name: 'b',
         shortid: 'b2',
         content: 'b2',
+        engine: 'none',
+        recipe: 'html',
         folder: { shortid: folder2.shortid }
       })
 
@@ -1215,18 +1308,24 @@ describe('folders', function () {
 
       await reporter.documentStore.collection('templates').insert({
         name: 'a',
+        engine: 'none',
+        recipe: 'html',
         folder: { shortid: folder1.shortid }
       })
 
       await reporter.documentStore.collection('templates').insert({
         name: 'b',
         content: 'b',
+        engine: 'none',
+        recipe: 'html',
         folder: { shortid: folder1.shortid }
       })
 
       const bInFolder2 = await reporter.documentStore.collection('templates').insert({
         name: 'b',
         content: 'b2',
+        engine: 'none',
+        recipe: 'html',
         folder: { shortid: folder2.shortid }
       })
 
@@ -1277,21 +1376,29 @@ describe('folders', function () {
 
       await reporter.documentStore.collection('templates').insert({
         name: 'a',
+        engine: 'none',
+        recipe: 'html',
         folder: { shortid: folder1.shortid }
       })
 
       await reporter.documentStore.collection('templates').insert({
         name: 'b',
+        engine: 'none',
+        recipe: 'html',
         folder: { shortid: folder1.shortid }
       })
 
       const c = await reporter.documentStore.collection('templates').insert({
         name: 'c',
+        engine: 'none',
+        recipe: 'html',
         folder: { shortid: folder2.shortid }
       })
 
       await reporter.documentStore.collection('templates').insert({
         name: 'd',
+        engine: 'none',
+        recipe: 'html',
         folder: { shortid: folder3.shortid }
       })
 
@@ -1353,16 +1460,22 @@ describe('folders', function () {
 
       await reporter.documentStore.collection('templates').insert({
         name: 'a',
+        engine: 'none',
+        recipe: 'html',
         folder: { shortid: folder1.shortid }
       })
 
       await reporter.documentStore.collection('templates').insert({
         name: 'b',
+        engine: 'none',
+        recipe: 'html',
         folder: { shortid: folder1.shortid }
       })
 
       const c = await reporter.documentStore.collection('templates').insert({
         name: 'c',
+        engine: 'none',
+        recipe: 'html',
         folder: { shortid: folder2.shortid }
       })
 
@@ -1422,26 +1535,36 @@ describe('folders', function () {
 
       await reporter.documentStore.collection('templates').insert({
         name: 'a',
+        engine: 'none',
+        recipe: 'html',
         folder: { shortid: folder1.shortid }
       })
 
       await reporter.documentStore.collection('templates').insert({
         name: 'b',
+        engine: 'none',
+        recipe: 'html',
         folder: { shortid: folder1.shortid }
       })
 
       await reporter.documentStore.collection('templates').insert({
         name: 'c',
+        engine: 'none',
+        recipe: 'html',
         folder: { shortid: folder2.shortid }
       })
 
       await reporter.documentStore.collection('templates').insert({
         name: 'd',
+        engine: 'none',
+        recipe: 'html',
         folder: { shortid: folder3.shortid }
       })
 
       await reporter.documentStore.collection('templates').insert({
         name: 'e',
+        engine: 'none',
+        recipe: 'html',
         folder: { shortid: folder5.shortid }
       })
 
@@ -1510,26 +1633,36 @@ describe('folders', function () {
 
       await reporter.documentStore.collection('templates').insert({
         name: 'a',
+        engine: 'none',
+        recipe: 'html',
         folder: { shortid: folder1.shortid }
       })
 
       await reporter.documentStore.collection('templates').insert({
         name: 'b',
+        engine: 'none',
+        recipe: 'html',
         folder: { shortid: folder1.shortid }
       })
 
       await reporter.documentStore.collection('templates').insert({
         name: 'c',
+        engine: 'none',
+        recipe: 'html',
         folder: { shortid: folder2.shortid }
       })
 
       await reporter.documentStore.collection('templates').insert({
         name: 'd',
+        engine: 'none',
+        recipe: 'html',
         folder: { shortid: folder3.shortid }
       })
 
       await reporter.documentStore.collection('templates').insert({
         name: 'e',
+        engine: 'none',
+        recipe: 'html',
         folder: { shortid: folder4.shortid }
       })
 
@@ -1583,6 +1716,8 @@ describe('folders', function () {
       const a = await reporter.documentStore.collection('templates').insert({
         name: 'foo',
         shortid: 'foo',
+        engine: 'none',
+        recipe: 'html',
         folder: {
           shortid: 'foo-folder'
         }
@@ -1608,6 +1743,8 @@ describe('folders', function () {
       const a = await reporter.documentStore.collection('templates').insert({
         name: 'foo',
         shortid: 'foo',
+        engine: 'none',
+        recipe: 'html',
         folder: {
           shortid: 'foo-folder'
         }
@@ -1634,6 +1771,8 @@ describe('folders', function () {
       const a = await reporter.documentStore.collection('templates').insert({
         name: 'foo',
         shortid: 'foo',
+        engine: 'none',
+        recipe: 'html',
         folder: {
           shortid: 'foo-folder'
         }
@@ -1660,6 +1799,8 @@ describe('folders', function () {
       const a = await reporter.documentStore.collection('templates').insert({
         name: 'foo',
         shortid: 'foo',
+        engine: 'none',
+        recipe: 'html',
         folder: {
           shortid: 'foo-folder'
         }

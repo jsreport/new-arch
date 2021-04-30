@@ -4,21 +4,7 @@ const core = require('../../index')
 const SECRET_KEY = 'demo123456789278'
 
 async function init (options) {
-  const reporter = core({ migrateEntitySetsToFolders: false, ...options })
-
-  reporter.use({
-    name: 'templates',
-    main: (reporter, definition) => {
-      Object.assign(reporter.documentStore.model.entityTypes.TemplateType, {
-        name: { type: 'Edm.String' }
-      })
-
-      reporter.documentStore.registerEntitySet('templates', {
-        entityType: 'jsreport.TemplateType',
-        splitIntoDirectories: true
-      })
-    }
-  })
+  const reporter = core({ discover: false, migrateEntitySetsToFolders: false, ...options })
 
   await reporter.init()
 

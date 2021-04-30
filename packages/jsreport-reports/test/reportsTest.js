@@ -10,7 +10,6 @@ describe('with reports extension', () => {
     reporter.use(require('../')())
     reporter.use(require('jsreport-express')())
     reporter.use(require('jsreport-scripts')())
-    reporter.use(require('jsreport-templates')())
     reporter.use(jsreport.tests.listeners())
 
     return reporter.init()

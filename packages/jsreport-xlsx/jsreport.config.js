@@ -22,5 +22,5 @@ module.exports = {
       xlsx: { ...schema }
     }
   }),
-  dependencies: ['templates', 'data']
+  dependencies: ['data']
 }

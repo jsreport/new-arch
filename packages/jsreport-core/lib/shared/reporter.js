@@ -1,6 +1,7 @@
 const EventEmitter = require('events')
 const ListenerCollection = require('listener-collection')
 const Request = require('./request')
+const Templates = require('./templates')
 const Folders = require('./folders')
 const createOrExtendError = require('./createError')
 const tempFilesHandler = require('./tempFilesHandler')
@@ -110,6 +111,7 @@ class Reporter extends EventEmitter {
   }
 
   async init () {
+    this.templates = Templates(this)
     this.folders = Folders(this)
     this.encryption = encryption(this)
   }

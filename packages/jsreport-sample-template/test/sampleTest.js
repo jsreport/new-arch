@@ -1,6 +1,5 @@
 const samples = require('../')
 const fsStore = require('jsreport-fs-store')
-const templates = require('jsreport-templates')
 const xlsx = require('jsreport-xlsx')
 const htmlToXlsx = require('jsreport-html-to-xlsx')
 const data = require('jsreport-data')
@@ -24,7 +23,6 @@ describe('sample', function () {
       templatingEngines: { strategy: 'in-process' }
     })
 
-    reporter.use(templates())
     reporter.use(data())
     reporter.use(xlsx())
     reporter.use(htmlToXlsx())

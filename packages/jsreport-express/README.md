@@ -6,19 +6,17 @@
 
 `jsreport-express` is the main extension you need when you want to add jsreport studio or API. Many other extensions works in conjunction with `jsreport-express` and extends studio ui or API. Just to name some of them:
 
-- [jsreport-templates](https://github.com/jsreport/jsreport-templates)
 - [jsreport-data](https://github.com/jsreport/jsreport-data)
 - [jsreport-scripts](https://github.com/jsreport/jsreport-scripts)
 - [jsreport-statistics](https://github.com/jsreport/jsreport-statistics)
 - [jsreport-authentication](https://github.com/jsreport/jsreport-authentication)
 
-And many others. Where some of them are working also without `jsreport-express` and some of them doesn't.  This extension is designed to be just a wrapper for ui and it doesn't work standalone. The minimal configuration requires at least [jsreport-templates](https://github.com/jsreport/jsreport-templates) to be installed.
+And many others. Where some of them are working also without `jsreport-express` and some of them doesn't.  This extension is designed to be just a wrapper for ui and it doesn't work standalone.
 
 ## jsreport-core
 The following example shows how to start jsreport studio through express extension.
 ```js
 var jsreport = require('jsreport-core')();
-jsreport.use(require('jsreport-templates')());
 jsreport.use(require('jsreport-express')({ httpPort: 2000}));
 
 jsreport.init();
@@ -39,11 +37,10 @@ var reportingApp = express();
 app.use('/reporting', reportingApp);
 
 var jsreport = require('jsreport-core')();
-jsreport.use(require('jsreport-templates')());
 jsreport.use(require('jsreport-express')({ app: reportingApp }));
 
 jsreport.init();
-app.listen(3000);  
+app.listen(3000);
 ```
 
 ## jsreport

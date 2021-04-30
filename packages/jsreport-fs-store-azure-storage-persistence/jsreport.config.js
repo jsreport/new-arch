@@ -1,7 +1,7 @@
 module.exports = {
   'name': 'fs-store-azure-storage-persistence',
   'main': 'lib/main.js',
-  'dependencies': ['templates', 'fs-store'],
+  'dependencies': ['fs-store'],
   'optionsSchema': {
     extensions: {
       'fs-store': {

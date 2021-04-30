@@ -35,6 +35,6 @@ module.exports = {
       }
     }
   }),
-  dependencies: ['templates', 'xlsx'],
+  dependencies: ['xlsx'],
   hasPublicPart: false
 }

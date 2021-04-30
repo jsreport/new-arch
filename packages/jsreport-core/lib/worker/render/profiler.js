@@ -6,6 +6,9 @@ const generateRequestId = require('../../shared/generateRequestId')
 class Profiler {
   constructor (reporter) {
     this.reporter = reporter
+
+    this.reporter.addRequestContextMetaConfig('resolvedTemplate', { sandboxHidden: true })
+
     this.reporter.beforeMainActionListeners.add('profiler', (actionName, data, req) => {
       if (actionName === 'log' && req.context.profiling) {
         data.previousOperationId = req.context.profiling.lastOperationId
@@ -69,12 +72,18 @@ class Profiler {
   }
 
   async renderStart (req, parentReq, res) {
-    // TODO: for now we just take the template name if it is there in the request
-    // later we are going to decide how to fetch correctly in all cases
     let templateName = 'anonymous'
+    let template = req.context.resolvedTemplate
 
-    if (req.template != null && req.template.name != null) {
-      templateName = req.template.name
+    if (parentReq) {
+      template = await this.reporter.templates.resolveTemplate(req.template || {}, req)
+      req.context.resolvedTemplate = template
+    } else {
+      template = req.context.resolvedTemplate
+    }
+
+    if (template != null && template.name != null) {
+      templateName = template.name
     }
 
     const profilerMessage = {

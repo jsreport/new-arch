@@ -13,6 +13,6 @@ module.exports = {
       }
     }
   },
-  'dependencies': ['templates'],
+  'dependencies': [],
   'hasPublicPart': false
 }

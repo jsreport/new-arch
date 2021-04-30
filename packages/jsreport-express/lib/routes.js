@@ -115,6 +115,11 @@ module.exports = (app, reporter, exposedOptions) => {
   }
 
   /**
+   * Route for rendering template by shortid
+   */
+  app.get('/templates/:shortid', (req, res, next) => reporter.express.render({ template: { shortid: req.params.shortid } }, req, res, next))
+
+  /**
    * Main entry point for invoking report rendering
    */
   app.post('/api/report/:name?', (req, res, next) => {

@@ -23,8 +23,9 @@ import * as editor from './redux/editor'
 import * as entities from './redux/entities'
 import * as progress from './redux/progress'
 import * as settings from './redux/settings'
-import * as configuration from './lib/configuration.js'
-import resolveUrl from './helpers/resolveUrl.js'
+import * as configuration from './lib/configuration'
+import rootUrl from './helpers/rootUrl'
+import resolveUrl from './helpers/resolveUrl'
 import { findTextEditor } from './helpers/textEditorInstance'
 import babelRuntime from './lib/babelRuntime.js'
 import customPreview from './helpers/customPreview.js'
@@ -652,17 +653,7 @@ class Studio {
    * @returns {string}
    */
   get rootUrl () {
-    let url
-
-    if (window.location.href.indexOf('/studio') !== -1) {
-      url = window.location.href.substring(0, window.location.href.indexOf('/studio'))
-    } else {
-      url = window.location.href
-    }
-
-    url = url.slice(-1) === '/' ? url.slice(0, -1) : url
-
-    return url
+    return rootUrl()
   }
 
   /** /runtime helpers **/

@@ -6,7 +6,6 @@ const fs = require('fs')
 const _ = require('lodash')
 const jsreportConfig = require('../jsreport.config')
 const assets = require('jsreport-assets')
-const templates = require('jsreport-templates')
 const handlebars = require('jsreport-handlebars')
 const xlsxRecipe = require('../index')
 const jsonToXml = require('../lib/jsonToXml')
@@ -19,7 +18,6 @@ describe.only('excel recipe', () => {
   beforeEach(() => {
     reporter = jsreport()
 
-    reporter.use(templates())
     reporter.use(handlebars())
     reporter.use(assets())
     reporter.use(xlsxRecipe())
@@ -234,7 +232,6 @@ describe('excel recipe with previewInExcelOnline false', () => {
       }
     })
 
-    reporter.use(templates())
     reporter.use(handlebars())
     reporter.use(xlsxRecipe())
 
@@ -282,7 +279,6 @@ describe('excel recipe with office.preview.enabled=false and extensions.xlsx.pre
       }
     })
 
-    reporter.use(templates())
     reporter.use(handlebars())
     reporter.use(xlsxRecipe())
 
@@ -328,7 +324,6 @@ describe('excel recipe with office.preview.enabled=false and extensions.xlsx.pre
       }
     })
 
-    reporter.use(templates())
     reporter.use(handlebars())
     reporter.use(xlsxRecipe())
 
@@ -372,7 +367,6 @@ describe('excel recipe with office.preview.enabled=false and xlsx.previewInExcel
       }
     })
 
-    reporter.use(templates())
     reporter.use(handlebars())
     reporter.use(xlsxRecipe())
 
@@ -534,7 +528,6 @@ describe('excel recipe should not be broken by assets running after', () => {
   beforeEach(() => {
     reporter = jsreport()
 
-    reporter.use(templates())
     reporter.use(handlebars())
     reporter.use(xlsxRecipe())
     reporter.use(assets())

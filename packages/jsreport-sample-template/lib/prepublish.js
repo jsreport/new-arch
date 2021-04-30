@@ -6,7 +6,6 @@ const path = require('path')
 const omit = require('lodash.omit')
 const writeFileAsync = util.promisify(require('fs').writeFile)
 
-const templates = require('jsreport-templates')
 const xlsx = require('jsreport-xlsx')
 const data = require('jsreport-data')
 const pdfUtils = require('jsreport-pdf-utils')
@@ -18,7 +17,6 @@ const fsStore = require('jsreport-fs-store')
 
 const reporter = jsreport({ migrateEntitySetsToFolders: false, store: { provider: 'fs' } })
 
-reporter.use(templates())
 reporter.use(data())
 reporter.use(xlsx())
 reporter.use(scripts({ allowedModules: '*' }))

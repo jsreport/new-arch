@@ -53,13 +53,13 @@ jsreport.init().then(() => {
         engine: "handlebars",
         //[required] recipe used for printing previously assembled document
         recipe: "chrome-pdf",
-        //[required] template for the engine		
+        //[required] template for the engine
         content: "<h1>{{foo}}</h1>",
         //javascript helper functions used by templating engines
         helpers: "function foo() { ...} " +
                 "function foo2() { ... }"
-        //any other settings used by recipes		 
-        ...		 
+        //any other settings used by recipes
+        ...
     },
     //dynamic data inputs used by templating engines
     data: { foo: "hello world"}
@@ -70,9 +70,9 @@ jsreport.init().then(() => {
 In case you have the template stored in the [jsreport templates store](https://github.com/jsreport/jsreport-core#template-store), you can reference the template using name or path.
 
 ```js
-{	
+{
     template: {
-        name: '/myfolder/mytemplate' 
+        name: '/myfolder/mytemplate'
     },
     data: { foo: "hello world"}
     ...
@@ -177,7 +177,7 @@ require('jsreport-core')({
 	},
 	// options for templating engines and other scripts execution
 	// see the https://github.com/pofider/node-script-manager for more information
-	sandbox: {		
+	sandbox: {
 		cache: {
 			max: 100, //LRU cache with max 100 entries, see npm lru-cache for other options
 			enabled: true //disable cache
@@ -319,7 +319,6 @@ jsreport.documentStore.collection('templates')
 ### Misc
 
 - [jsreport-express (studio)](https://github.com/jsreport/jsreport-express)
-- [jsreport-templates](https://github.com/jsreport/jsreport-templates)
 - [jsreport-data](https://github.com/jsreport/jsreport-data)
 - [jsreport-scripts](https://github.com/jsreport/jsreport-scripts)
 - [jsreport-reports](https://github.com/jsreport/jsreport-reports)

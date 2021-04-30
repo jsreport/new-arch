@@ -1,6 +1,5 @@
 require('should')
 const data = require('../')
-const templates = require('jsreport-templates')
 const handlebars = require('jsreport-handlebars')
 const jsreport = require('jsreport-core')
 const Request = jsreport.Request
@@ -12,7 +11,6 @@ describe('data', () => {
     reporter = jsreport({
       allowLocalFilesAccess: true
     })
-    reporter.use(templates())
     reporter.use(handlebars())
     reporter.use(data())
     reporter.use(jsreport.tests.listeners())

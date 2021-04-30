@@ -6,7 +6,7 @@ describe('handlebars', () => {
 
   beforeEach(() => {
     jsreport = JsReport()
-    jsreport.use(require('../')()).use(require('jsreport-templates')())
+    jsreport.use(require('../')())
     return jsreport.init()
   })
 
@@ -154,7 +154,7 @@ describe('handlebars', () => {
 
   it('should throw error with lineNumber information when handlebars syntax error', async () => {
     await jsreport.documentStore.collection('templates').insert({
-      content: `empty line      
+      content: `empty line
       {{#if}}`,
       engine: 'handlebars',
       recipe: 'html',

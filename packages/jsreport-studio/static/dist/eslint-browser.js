@@ -6582,6 +6582,7 @@ var ClassScope = Scope.ClassScope;
 var SwitchScope = Scope.SwitchScope;
 var FunctionScope = Scope.FunctionScope;
 var ForScope = Scope.ForScope;
+var TDZScope = Scope.TDZScope;
 var FunctionExpressionNameScope = Scope.FunctionExpressionNameScope;
 var BlockScope = Scope.BlockScope;
 
@@ -6681,6 +6682,9 @@ var ScopeManager = function () {
              */
             function predicate(testScope) {
                 if (testScope.type === "function" && testScope.functionExpressionScope) {
+                    return false;
+                }
+                if (testScope.type === "TDZ") {
                     return false;
                 }
                 return true;
@@ -6819,6 +6823,11 @@ var ScopeManager = function () {
             return this.__nestScope(new ModuleScope(this, this.__currentScope, node));
         }
     }, {
+        key: "__nestTDZScope",
+        value: function __nestTDZScope(node) {
+            return this.__nestScope(new TDZScope(this, this.__currentScope, node));
+        }
+    }, {
         key: "__nestFunctionExpressionNameScope",
         value: function __nestFunctionExpressionNameScope(node) {
             return this.__nestScope(new FunctionExpressionNameScope(this, this.__currentScope, node));
@@ -6922,6 +6931,11 @@ function isStrictScope(scope, block, isMethodDefinition, useDirective) {
         return true;
     }
 
+    // ArrowFunctionExpression's scope is always strict scope.
+    if (block.type === Syntax.ArrowFunctionExpression) {
+        return true;
+    }
+
     if (isMethodDefinition) {
         return true;
     }
@@ -6935,10 +6949,6 @@ function isStrictScope(scope, block, isMethodDefinition, useDirective) {
     }
 
     if (scope.type === "function") {
-        if (block.type === Syntax.ArrowFunctionExpression && block.body.type !== Syntax.BlockStatement) {
-            return false;
-        }
-
         if (block.type === Syntax.Program) {
             body = block;
         } else {
@@ -7029,7 +7039,7 @@ var Scope = function () {
 
 
         /**
-         * One of 'module', 'block', 'switch', 'function', 'catch', 'with', 'function', 'class', 'global'.
+         * One of 'TDZ', 'module', 'block', 'switch', 'function', 'catch', 'with', 'function', 'class', 'global'.
          * @member {String} Scope#type
          */
         this.type = type;
@@ -7218,38 +7228,24 @@ var Scope = function () {
 
             return this.upper;
         }
-
-        // To override by function scopes.
-        // References in default parameters isn't resolved to variables which are in their function body.
-
-    }, {
-        key: "__isValidResolution",
-        value: function __isValidResolution(ref, variable) {
-            // eslint-disable-line class-methods-use-this, no-unused-vars
-            return true;
-        }
     }, {
         key: "__resolve",
         value: function __resolve(ref) {
             var name = ref.identifier.name;
 
-            if (!this.set.has(name)) {
-                return false;
-            }
-            var variable = this.set.get(name);
+            if (this.set.has(name)) {
+                var variable = this.set.get(name);
 
-            if (!this.__isValidResolution(ref, variable)) {
-                return false;
+                variable.references.push(ref);
+                variable.stack = variable.stack && ref.from.variableScope === this.variableScope;
+                if (ref.tainted) {
+                    variable.tainted = true;
+                    this.taints.set(variable.name, true);
+                }
+                ref.resolved = variable;
+                return true;
             }
-            variable.references.push(ref);
-            variable.stack = variable.stack && ref.from.variableScope === this.variableScope;
-            if (ref.tainted) {
-                variable.tainted = true;
-                this.taints.set(variable.name, true);
-            }
-            ref.resolved = variable;
-
-            return true;
+            return false;
         }
     }, {
         key: "__delegateToUpperScope",
@@ -7290,8 +7286,10 @@ var Scope = function () {
 
             if (def) {
                 variable.defs.push(def);
-                this.__addDeclaredVariablesOfNode(variable, def.node);
-                this.__addDeclaredVariablesOfNode(variable, def.parent);
+                if (def.type !== Variable.TDZ) {
+                    this.__addDeclaredVariablesOfNode(variable, def.node);
+                    this.__addDeclaredVariablesOfNode(variable, def.parent);
+                }
             }
             if (node) {
                 variable.identifiers.push(node);
@@ -7548,8 +7546,19 @@ var WithScope = function (_Scope5) {
     return WithScope;
 }(Scope);
 
-var BlockScope = function (_Scope6) {
-    (0, _inherits3.default)(BlockScope, _Scope6);
+var TDZScope = function (_Scope6) {
+    (0, _inherits3.default)(TDZScope, _Scope6);
+
+    function TDZScope(scopeManager, upperScope, block) {
+        (0, _classCallCheck3.default)(this, TDZScope);
+        return (0, _possibleConstructorReturn3.default)(this, (TDZScope.__proto__ || (0, _getPrototypeOf2.default)(TDZScope)).call(this, scopeManager, "TDZ", upperScope, block, false));
+    }
+
+    return TDZScope;
+}(Scope);
+
+var BlockScope = function (_Scope7) {
+    (0, _inherits3.default)(BlockScope, _Scope7);
 
     function BlockScope(scopeManager, upperScope, block) {
         (0, _classCallCheck3.default)(this, BlockScope);
@@ -7559,8 +7568,8 @@ var BlockScope = function (_Scope6) {
     return BlockScope;
 }(Scope);
 
-var SwitchScope = function (_Scope7) {
-    (0, _inherits3.default)(SwitchScope, _Scope7);
+var SwitchScope = function (_Scope8) {
+    (0, _inherits3.default)(SwitchScope, _Scope8);
 
     function SwitchScope(scopeManager, upperScope, block) {
         (0, _classCallCheck3.default)(this, SwitchScope);
@@ -7570,20 +7579,20 @@ var SwitchScope = function (_Scope7) {
     return SwitchScope;
 }(Scope);
 
-var FunctionScope = function (_Scope8) {
-    (0, _inherits3.default)(FunctionScope, _Scope8);
+var FunctionScope = function (_Scope9) {
+    (0, _inherits3.default)(FunctionScope, _Scope9);
 
     function FunctionScope(scopeManager, upperScope, block, isMethodDefinition) {
         (0, _classCallCheck3.default)(this, FunctionScope);
 
         // section 9.2.13, FunctionDeclarationInstantiation.
         // NOTE Arrow functions never have an arguments objects.
-        var _this8 = (0, _possibleConstructorReturn3.default)(this, (FunctionScope.__proto__ || (0, _getPrototypeOf2.default)(FunctionScope)).call(this, scopeManager, "function", upperScope, block, isMethodDefinition));
+        var _this9 = (0, _possibleConstructorReturn3.default)(this, (FunctionScope.__proto__ || (0, _getPrototypeOf2.default)(FunctionScope)).call(this, scopeManager, "function", upperScope, block, isMethodDefinition));
 
-        if (_this8.block.type !== Syntax.ArrowFunctionExpression) {
-            _this8.__defineArguments();
+        if (_this9.block.type !== Syntax.ArrowFunctionExpression) {
+            _this9.__defineArguments();
         }
-        return _this8;
+        return _this9;
     }
 
     (0, _createClass3.default)(FunctionScope, [{
@@ -7625,38 +7634,12 @@ var FunctionScope = function (_Scope8) {
             this.__defineGeneric("arguments", this.set, this.variables, null, null);
             this.taints.set("arguments", true);
         }
-
-        // References in default parameters isn't resolved to variables which are in their function body.
-        //     const x = 1
-        //     function f(a = x) { // This `x` is resolved to the `x` in the outer scope.
-        //         const x = 2
-        //         console.log(a)
-        //     }
-
-    }, {
-        key: "__isValidResolution",
-        value: function __isValidResolution(ref, variable) {
-
-            // If `options.nodejsScope` is true, `this.block` becomes a Program node.
-            if (this.block.type === "Program") {
-                return true;
-            }
-
-            var bodyStart = this.block.body.range[0];
-
-            // It's invalid resolution in the following case:
-            return !(variable.scope === this && ref.identifier.range[0] < bodyStart && // the reference is in the parameter part.
-            variable.defs.every(function (d) {
-                return d.name.range[0] >= bodyStart;
-            }) // the variable is in the body.
-            );
-        }
     }]);
     return FunctionScope;
 }(Scope);
 
-var ForScope = function (_Scope9) {
-    (0, _inherits3.default)(ForScope, _Scope9);
+var ForScope = function (_Scope10) {
+    (0, _inherits3.default)(ForScope, _Scope10);
 
     function ForScope(scopeManager, upperScope, block) {
         (0, _classCallCheck3.default)(this, ForScope);
@@ -7666,8 +7649,8 @@ var ForScope = function (_Scope9) {
     return ForScope;
 }(Scope);
 
-var ClassScope = function (_Scope10) {
-    (0, _inherits3.default)(ClassScope, _Scope10);
+var ClassScope = function (_Scope11) {
+    (0, _inherits3.default)(ClassScope, _Scope11);
 
     function ClassScope(scopeManager, upperScope, block) {
         (0, _classCallCheck3.default)(this, ClassScope);
@@ -7684,6 +7667,7 @@ module.exports = {
     FunctionExpressionNameScope: FunctionExpressionNameScope,
     CatchScope: CatchScope,
     WithScope: WithScope,
+    TDZScope: TDZScope,
     BlockScope: BlockScope,
     SwitchScope: SwitchScope,
     FunctionScope: FunctionScope,
@@ -8894,6 +8878,7 @@ Variable.FunctionName = "FunctionName";
 Variable.ClassName = "ClassName";
 Variable.Variable = "Variable";
 Variable.ImportBinding = "ImportBinding";
+Variable.TDZ = "TDZ";
 Variable.ImplicitGlobalVariable = "ImplicitGlobalVariable";
 
 module.exports = Variable;
@@ -9210,6 +9195,29 @@ var Referencer = function (_esrecurse$Visitor2) {
             this.isInnerMethodDefinition = isInnerMethodDefinition;
         }
     }, {
+        key: "materializeTDZScope",
+        value: function materializeTDZScope(node, iterationNode) {
+
+            // http://people.mozilla.org/~jorendorff/es6-draft.html#sec-runtime-semantics-forin-div-ofexpressionevaluation-abstract-operation
+            // TDZ scope hides the declaration's names.
+            this.scopeManager.__nestTDZScope(node, iterationNode);
+            this.visitVariableDeclaration(this.currentScope(), Variable.TDZ, iterationNode.left, 0, true);
+        }
+    }, {
+        key: "materializeIterationScope",
+        value: function materializeIterationScope(node) {
+            var _this4 = this;
+
+            // Generate iteration scope for upper ForIn/ForOf Statements.
+            var letOrConstDecl = node.left;
+
+            this.scopeManager.__nestForScope(node);
+            this.visitVariableDeclaration(this.currentScope(), Variable.Variable, letOrConstDecl, 0);
+            this.visitPattern(letOrConstDecl.declarations[0].id, function (pattern) {
+                _this4.currentScope().__referencing(pattern, Reference.WRITE, node.right, null, true, true);
+            });
+        }
+    }, {
         key: "referencingDefaultValue",
         value: function referencingDefaultValue(pattern, assignments, maybeImplicitGlobal, init) {
             var scope = this.currentScope();
@@ -9230,7 +9238,7 @@ var Referencer = function (_esrecurse$Visitor2) {
     }, {
         key: "visitFunction",
         value: function visitFunction(node) {
-            var _this4 = this;
+            var _this5 = this;
 
             var i = void 0,
                 iz = void 0;
@@ -9281,7 +9289,7 @@ var Referencer = function (_esrecurse$Visitor2) {
                     type: "RestElement",
                     argument: node.rest
                 }, function (pattern) {
-                    _this4.currentScope().__define(pattern, new ParameterDefinition(pattern, node, node.params.length, true));
+                    _this5.currentScope().__define(pattern, new ParameterDefinition(pattern, node, node.params.length, true));
                 });
             }
 
@@ -9306,6 +9314,7 @@ var Referencer = function (_esrecurse$Visitor2) {
                 this.currentScope().__define(node.id, new Definition(Variable.ClassName, node.id, node, null, null, null));
             }
 
+            // FIXME: Maybe consider TDZ.
             this.visit(node.superClass);
 
             this.scopeManager.__nestClassScope(node);
@@ -9339,71 +9348,78 @@ var Referencer = function (_esrecurse$Visitor2) {
     }, {
         key: "visitForIn",
         value: function visitForIn(node) {
-            var _this5 = this;
+            var _this6 = this;
 
             if (node.left.type === Syntax.VariableDeclaration && node.left.kind !== "var") {
-                this.scopeManager.__nestForScope(node);
-            }
+                this.materializeTDZScope(node.right, node);
+                this.visit(node.right);
+                this.close(node.right);
 
-            if (node.left.type === Syntax.VariableDeclaration) {
-                this.visit(node.left);
-                this.visitPattern(node.left.declarations[0].id, function (pattern) {
-                    _this5.currentScope().__referencing(pattern, Reference.WRITE, node.right, null, true, true);
-                });
+                this.materializeIterationScope(node);
+                this.visit(node.body);
+                this.close(node);
             } else {
-                this.visitPattern(node.left, { processRightHandNodes: true }, function (pattern, info) {
-                    var maybeImplicitGlobal = null;
+                if (node.left.type === Syntax.VariableDeclaration) {
+                    this.visit(node.left);
+                    this.visitPattern(node.left.declarations[0].id, function (pattern) {
+                        _this6.currentScope().__referencing(pattern, Reference.WRITE, node.right, null, true, true);
+                    });
+                } else {
+                    this.visitPattern(node.left, { processRightHandNodes: true }, function (pattern, info) {
+                        var maybeImplicitGlobal = null;
 
-                    if (!_this5.currentScope().isStrict) {
-                        maybeImplicitGlobal = {
-                            pattern: pattern,
-                            node: node
-                        };
-                    }
-                    _this5.referencingDefaultValue(pattern, info.assignments, maybeImplicitGlobal, false);
-                    _this5.currentScope().__referencing(pattern, Reference.WRITE, node.right, maybeImplicitGlobal, true, false);
-                });
+                        if (!_this6.currentScope().isStrict) {
+                            maybeImplicitGlobal = {
+                                pattern: pattern,
+                                node: node
+                            };
+                        }
+                        _this6.referencingDefaultValue(pattern, info.assignments, maybeImplicitGlobal, false);
+                        _this6.currentScope().__referencing(pattern, Reference.WRITE, node.right, maybeImplicitGlobal, true, false);
+                    });
+                }
+                this.visit(node.right);
+                this.visit(node.body);
             }
-            this.visit(node.right);
-            this.visit(node.body);
-
-            this.close(node);
         }
     }, {
         key: "visitVariableDeclaration",
-        value: function visitVariableDeclaration(variableTargetScope, type, node, index) {
-            var _this6 = this;
+        value: function visitVariableDeclaration(variableTargetScope, type, node, index, fromTDZ) {
+            var _this7 = this;
 
+            // If this was called to initialize a TDZ scope, this needs to make definitions, but doesn't make references.
             var decl = node.declarations[index];
             var init = decl.init;
 
-            this.visitPattern(decl.id, { processRightHandNodes: true }, function (pattern, info) {
+            this.visitPattern(decl.id, { processRightHandNodes: !fromTDZ }, function (pattern, info) {
                 variableTargetScope.__define(pattern, new Definition(type, pattern, decl, node, index, node.kind));
 
-                _this6.referencingDefaultValue(pattern, info.assignments, null, true);
+                if (!fromTDZ) {
+                    _this7.referencingDefaultValue(pattern, info.assignments, null, true);
+                }
                 if (init) {
-                    _this6.currentScope().__referencing(pattern, Reference.WRITE, init, null, !info.topLevel, true);
+                    _this7.currentScope().__referencing(pattern, Reference.WRITE, init, null, !info.topLevel, true);
                 }
             });
         }
     }, {
         key: "AssignmentExpression",
         value: function AssignmentExpression(node) {
-            var _this7 = this;
+            var _this8 = this;
 
             if (PatternVisitor.isPattern(node.left)) {
                 if (node.operator === "=") {
                     this.visitPattern(node.left, { processRightHandNodes: true }, function (pattern, info) {
                         var maybeImplicitGlobal = null;
 
-                        if (!_this7.currentScope().isStrict) {
+                        if (!_this8.currentScope().isStrict) {
                             maybeImplicitGlobal = {
                                 pattern: pattern,
                                 node: node
                             };
                         }
-                        _this7.referencingDefaultValue(pattern, info.assignments, maybeImplicitGlobal, false);
-                        _this7.currentScope().__referencing(pattern, Reference.WRITE, node.right, maybeImplicitGlobal, !info.topLevel, false);
+                        _this8.referencingDefaultValue(pattern, info.assignments, maybeImplicitGlobal, false);
+                        _this8.currentScope().__referencing(pattern, Reference.WRITE, node.right, maybeImplicitGlobal, !info.topLevel, false);
                     });
                 } else {
                     this.currentScope().__referencing(node.left, Reference.RW, node.right);
@@ -9416,13 +9432,13 @@ var Referencer = function (_esrecurse$Visitor2) {
     }, {
         key: "CatchClause",
         value: function CatchClause(node) {
-            var _this8 = this;
+            var _this9 = this;
 
             this.scopeManager.__nestCatchScope(node);
 
             this.visitPattern(node.param, { processRightHandNodes: true }, function (pattern, info) {
-                _this8.currentScope().__define(pattern, new Definition(Variable.CatchClause, node.param, node, null, null, null));
-                _this8.referencingDefaultValue(pattern, info.assignments, null, true);
+                _this9.currentScope().__define(pattern, new Definition(Variable.CatchClause, node.param, node, null, null, null));
+                _this9.referencingDefaultValue(pattern, info.assignments, null, true);
             });
             this.visit(node.body);
 
@@ -10820,7 +10836,7 @@ module.exports = PatternVisitor;
 /* 185 */
 /***/ (function(module) {
 
-module.exports = {"name":"eslint-scope","description":"ECMAScript scope analyzer for ESLint","homepage":"http://github.com/eslint/eslint-scope","main":"lib/index.js","version":"4.0.3","engines":{"node":">=4.0.0"},"repository":"eslint/eslint-scope","bugs":{"url":"https://github.com/eslint/eslint-scope/issues"},"license":"BSD-2-Clause","scripts":{"test":"node Makefile.js test","lint":"node Makefile.js lint","generate-release":"eslint-generate-release","generate-alpharelease":"eslint-generate-prerelease alpha","generate-betarelease":"eslint-generate-prerelease beta","generate-rcrelease":"eslint-generate-prerelease rc","publish-release":"eslint-publish-release"},"files":["LICENSE","README.md","lib"],"dependencies":{"esrecurse":"^4.1.0","estraverse":"^4.1.1"},"devDependencies":{"chai":"^3.4.1","eslint":"^3.15.0","eslint-config-eslint":"^4.0.0","eslint-release":"^1.0.0","espree":"^3.1.1","istanbul":"^0.4.5","mocha":"^3.2.0","npm-license":"^0.3.3","shelljs":"^0.7.6","typescript":"~2.0.10","typescript-eslint-parser":"^1.0.0"}};
+module.exports = {"name":"eslint-scope","description":"ECMAScript scope analyzer for ESLint","homepage":"http://github.com/eslint/eslint-scope","main":"lib/index.js","version":"3.7.3","engines":{"node":">=4.0.0"},"repository":"eslint/eslint-scope","bugs":{"url":"https://github.com/eslint/eslint-scope/issues"},"license":"BSD-2-Clause","scripts":{"test":"node Makefile.js test","lint":"node Makefile.js lint","release":"eslint-release","ci-release":"eslint-ci-release","gh-release":"eslint-gh-release","alpharelease":"eslint-prerelease alpha","betarelease":"eslint-prerelease beta"},"files":["LICENSE","README.md","lib"],"dependencies":{"esrecurse":"^4.1.0","estraverse":"^4.1.1"},"devDependencies":{"chai":"^3.4.1","eslint":"^3.15.0","eslint-config-eslint":"^4.0.0","eslint-release":"^0.10.1","espree":"^3.1.1","istanbul":"^0.4.5","mocha":"^3.2.0","npm-license":"^0.3.3","shelljs":"^0.7.6","typescript":"~2.0.10","typescript-eslint-parser":"^1.0.0"}};
 
 /***/ }),
 /* 186 */

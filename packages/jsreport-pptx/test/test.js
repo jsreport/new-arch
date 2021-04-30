@@ -11,7 +11,6 @@ describe('pptx', () => {
   beforeEach(() => {
     reporter = jsreport().use(require('../')())
       .use(require('jsreport-handlebars')())
-      .use(require('jsreport-templates')())
       .use(require('jsreport-assets')())
     return reporter.init()
   })

@@ -1,5 +1,6 @@
 const ExtensionsManager = require('./extensionsManager')
 const DocumentStore = require('./documentStore')
+const Templates = require('./templates')
 const createLogger = require('./logger')
 const runInSandbox = require('./sandbox/runInSandbox')
 const createNoneEngine = require('./render/noneEngine')
@@ -40,6 +41,8 @@ class WorkerReporter extends Reporter {
     }
 
     super.init()
+
+    Templates(this)
 
     this.profiler = Profiler(this)
     this.logger = createLogger(this.profiler)

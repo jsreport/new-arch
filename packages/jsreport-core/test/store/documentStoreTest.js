@@ -336,35 +336,35 @@ describe('document store', () => {
     })
 
     it('insert should fail with invalid name', async () => {
-      return store.collection('templates').insert({ name: '<test' }).should.be.rejected()
+      return store.collection('templates').insert({ name: '<test', engine: 'none', recipe: 'html' }).should.be.rejected()
     })
 
     it('insert should fail with invalid name (dot)', async () => {
-      return store.collection('templates').insert({ name: '.' }).should.be.rejected()
+      return store.collection('templates').insert({ name: '.', engine: 'none', recipe: 'html' }).should.be.rejected()
     })
 
     it('insert should fail with invalid name (two dot)', async () => {
-      return store.collection('templates').insert({ name: '..' }).should.be.rejected()
+      return store.collection('templates').insert({ name: '..', engine: 'none', recipe: 'html' }).should.be.rejected()
     })
 
     it('insert should fail with empty string in name', async () => {
-      return store.collection('templates').insert({ name: '' }).should.be.rejected()
+      return store.collection('templates').insert({ name: '', engine: 'none', recipe: 'html' }).should.be.rejected()
     })
 
     it('update should fail with invalid name', async () => {
-      await store.collection('templates').insert({ name: 'test' })
+      await store.collection('templates').insert({ name: 'test', engine: 'none', recipe: 'html' })
 
       return store.collection('templates').update({ name: 'test' }, { $set: { name: '/foo/other' } }).should.be.rejected()
     })
 
     it('findOne should return first item', async () => {
-      await store.collection('templates').insert({ name: 'test' })
+      await store.collection('templates').insert({ name: 'test', engine: 'none', recipe: 'html' })
       const t = await store.collection('templates').findOne({ name: 'test' })
       t.name.should.be.eql('test')
     })
 
     it('findOne should return null if no result found', async () => {
-      await store.collection('templates').insert({ name: 'test' })
+      await store.collection('templates').insert({ name: 'test', engine: 'none', recipe: 'html' })
       const t = await store.collection('templates').findOne({ name: 'invalid' })
       should(t).be.null()
     })
@@ -379,7 +379,9 @@ describe('document store', () => {
 
       await reporter.documentStore.collection('templates').insert({
         name: 'a',
-        shortid: 'a'
+        shortid: 'a',
+        engine: 'none',
+        recipe: 'html'
       }, req)
 
       req.context.user.name.should.be.eql('person')
@@ -582,6 +584,7 @@ describe('document store', () => {
 
 function init (options, customExt) {
   const reporter = core({
+    discover: false,
     migrateEntitySetsToFolders: false,
     ...options
   })
@@ -590,17 +593,8 @@ function init (options, customExt) {
     reporter.use(customExt)
   } else {
     reporter.use({
-      name: 'templates',
+      name: 'testing',
       main: (reporter, definition) => {
-        Object.assign(reporter.documentStore.model.entityTypes.TemplateType, {
-          name: { type: 'Edm.String' }
-        })
-
-        reporter.documentStore.registerEntitySet('templates', {
-          entityType: 'jsreport.TemplateType',
-          splitIntoDirectories: true
-        })
-
         reporter.documentStore.registerComplexType('TagRefType', {
           value: { type: 'Edm.String' }
         })

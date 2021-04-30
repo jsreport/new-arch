@@ -3,7 +3,6 @@ import '../../jsreport-freeze/studio/main_dev.js'
 
 import '../../jsreport-import-export/studio/main_dev.js'
 
-import '../../jsreport-templates/studio/main_dev.js'
 
 
 import '../../jsreport-chrome-pdf/studio/main_dev.js'

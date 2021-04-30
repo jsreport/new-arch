@@ -8,7 +8,6 @@ describe('childTemplates', () => {
   beforeEach(() => {
     reporter = jsreport()
     reporter.use(require('../')())
-    reporter.use(require('jsreport-templates')())
     reporter.use(require('jsreport-jsrender')())
     reporter.use(require('jsreport-handlebars')())
 

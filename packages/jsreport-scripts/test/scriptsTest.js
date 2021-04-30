@@ -11,7 +11,6 @@ describe('scripts', () => {
         allowedModules: ['bluebird', 'helperA']
       }
     })
-      .use(require('jsreport-templates')())
       .use(require('jsreport-assets')())
       .use(require('jsreport-jsrender')())
       .use(require('../')())
@@ -824,7 +823,7 @@ describe('scripts', () => {
         sandbox: {
           allowedModules: '*'
         }
-      }).use(require('jsreport-templates')()).use(require('jsreport-jsrender')()).use(require('../')())
+      }).use(require('jsreport-jsrender')()).use(require('../')())
 
       await reporter.init()
       const res = await reporter.render({

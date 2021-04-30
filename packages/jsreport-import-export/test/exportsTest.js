@@ -42,7 +42,6 @@ describe('rest api', () => {
       workers: { numberOfWorkers: 1 }
     })
       .use(require('../')())
-      .use(require('jsreport-templates')())
       .use(require('jsreport-express')())
 
     return reporter.init()
@@ -120,7 +119,6 @@ describe('import-export', () => {
           workers: { numberOfWorkers: 1 },
           ...options
         })
-          .use(require('jsreport-templates')())
           .use(require('jsreport-data')())
           .use(require('jsreport-assets')())
           .use((reporter) => {
@@ -726,14 +724,12 @@ describe('exports across stores', function () {
 
     beforeEach(function () {
       reporter1 = new Reporter(options)
-        .use(require('jsreport-templates')())
         .use(Object.assign({}, require('jsreport-fs-store')()))
         .use(Object.assign({}, require('jsreport-mongodb-store')()))
         .use(Object.assign({}, require('jsreport-postgres-store')()))
         .use(require('../')())
 
       reporter2 = new Reporter(options2)
-        .use(require('jsreport-templates')())
         .use(Object.assign({}, require('jsreport-fs-store')()))
         .use(Object.assign({}, require('jsreport-mongodb-store')()))
         .use(Object.assign({}, require('jsreport-postgres-store')()))
@@ -753,7 +749,7 @@ describe('exports across stores', function () {
     })
 
     it('should export import', function () {
-      return reporter1.documentStore.collection('templates').insert({ name: 'foo' }).then(function () {
+      return reporter1.documentStore.collection('templates').insert({ name: 'foo', engine: 'none', recipe: 'html' }).then(function () {
         return reporter1.export().then(function (stream) {
           return saveExportStream(reporter, stream).then(function (exportPath) {
             return reporter2.import(exportPath)

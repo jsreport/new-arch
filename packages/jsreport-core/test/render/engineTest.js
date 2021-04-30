@@ -70,9 +70,9 @@ describe('engine', () => {
       template: {
         content: 'content',
         helpers: `
-        const val = await new Promise((resolve) => resolve('foo')) 
-        function a() { 
-            return val; 
+        const val = await new Promise((resolve) => resolve('foo'))
+        function a() {
+            return val;
         }`,
         engine: 'helpers',
         recipe: 'html'
@@ -525,9 +525,9 @@ describe('engine', () => {
   it('should throw error with proper line numbers', async () => {
     const template = {
       content: 'content',
-      helpers: `function a() { 
+      helpers: `function a() {
         //another line
-        throw new Error('error'); 
+        throw new Error('error');
       }`,
       engine: 'helpers',
       recipe: 'html'
@@ -542,14 +542,14 @@ describe('engine', () => {
     const res = await reporter.render({
       template: {
         content: 'content',
-        helpers: `async function a() { 
+        helpers: `async function a() {
           const jsreport = require('jsreport-proxy')
           const res = await jsreport.render({
             template: {
               content: 'foo',
               engine: 'none',
               recipe: 'html'
-            }            
+            }
           })
           return res.content.toString()
         }`,

@@ -14,7 +14,7 @@ module.exports = {
       }
     }
   },
-  dependencies: ['templates', 'data', 'chrome-pdf'],
+  dependencies: ['data', 'chrome-pdf'],
   hasPublicPart: false,
   skipInExeRender: true
 }

@@ -51,10 +51,19 @@ module.exports = (reporter) => {
 
   reporter.beforeRenderListeners.add('profiler', async (req, res) => {
     req.context.profiling = req.context.profiling || {}
-    const blobName = `profiles/${req.context.rootId}.log`
+
+    let blobName = `profiles/${req.context.rootId}.log`
+
+    const template = await reporter.templates.resolveTemplate(req.template || {}, req)
+
+    if (template && template._id) {
+      const templatePath = await reporter.folders.resolveEntityPath(template, 'templates', req)
+      blobName = `profiles/${templatePath.substring(1)}/${req.context.rootId}.log`
+      req.context.resolvedTemplate = template
+    }
 
     const profile = await reporter.documentStore.collection('profiles').insert({
-      templateShortid: 'foo',
+      templateShortid: template != null ? template.shortid : null,
       timestamp: new Date(),
       state: 'running',
       blobName
@@ -85,34 +94,36 @@ module.exports = (reporter) => {
 
   reporter.renderErrorListeners.add('profiler', async (req, res, e) => {
     try {
-      await reporter.documentStore.collection('profiles').update({
-        _id: req.context.profiling.entity._id
-      }, {
-        $set: {
-          state: 'error',
-          finishedOn: new Date(),
-          error: e.toString()
-        }
-      }, req)
+      if (req.context.profiling.entity != null) {
+        await reporter.documentStore.collection('profiles').update({
+          _id: req.context.profiling.entity._id
+        }, {
+          $set: {
+            state: 'error',
+            finishedOn: new Date(),
+            error: e.toString()
+          }
+        }, req)
 
-      await emitProfile({
-        type: 'log',
-        timestamp: new Date().getTime(),
-        id: generateRequestId(),
-        level: 'error',
-        message: e.stack,
-        previousOperationId: req.context.profilerLastOperationId
-      }, req, false)
+        await emitProfile({
+          type: 'log',
+          timestamp: new Date().getTime(),
+          id: generateRequestId(),
+          level: 'error',
+          message: e.stack,
+          previousOperationId: req.context.profilerLastOperationId
+        }, req, false)
 
-      await emitProfile({
-        type: 'error',
-        timestamp: new Date().getTime(),
-        ...e,
-        id: generateRequestId(),
-        stack: e.stack,
-        message: e.message,
-        previousOperationId: req.context.profilerLastOperationId
-      }, req)
+        await emitProfile({
+          type: 'error',
+          timestamp: new Date().getTime(),
+          ...e,
+          id: generateRequestId(),
+          stack: e.stack,
+          message: e.message,
+          previousOperationId: req.context.profilerLastOperationId
+        }, req)
+      }
     } finally {
       profilersMap.delete(req.context.rootId)
     }

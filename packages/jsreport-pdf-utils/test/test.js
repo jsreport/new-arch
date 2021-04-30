@@ -16,7 +16,6 @@ describe('pdf utils', () => {
       }
     })
 
-    jsreport.use(require('jsreport-templates')())
     jsreport.use(require('jsreport-chrome-pdf')({
       launchOptions: {
         args: ['--no-sandbox']

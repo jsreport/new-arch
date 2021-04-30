@@ -26,7 +26,6 @@ const jsreportPackages = [
   'jsreport-scripts',
   'jsreport-studio',
   'jsreport-scheduling',
-  'jsreport-templates',
   'jsreport-text',
   'jsreport-version-control',
   'jsreport-xlsx'

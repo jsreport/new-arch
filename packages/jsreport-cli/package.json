@@ -57,7 +57,6 @@
     "jsreport-express": "2.8.0",
     "jsreport-fs-store": "2.9.0",
     "jsreport-handlebars": "2.1.0",
-    "jsreport-templates": "2.4.0",
     "mkdirp": "0.5.5",
     "mocha": "5.2.0",
     "node.extend.without.arrays": "1.1.6",

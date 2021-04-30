@@ -16,7 +16,6 @@
     "jsreport-assets": "1.7.0",
     "jsreport-core": "2.10.1",
     "jsreport-handlebars": "2.1.0",
-    "jsreport-templates": "2.4.0",
     "mocha": "8.3.2",
     "should": "13.2.3",
     "standard": "16.0.3"

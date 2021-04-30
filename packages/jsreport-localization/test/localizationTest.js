@@ -8,7 +8,6 @@ describe('localization', () => {
     reporter = jsreport()
       .use(require('jsreport-assets')())
       .use(require('jsreport-handlebars')())
-      .use(require('jsreport-templates')())
       .use(require('../')())
 
     return reporter.init()

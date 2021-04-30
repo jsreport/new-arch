@@ -7,6 +7,7 @@ import EntityTreeInputSearch from './components/EntityTree/EntityTreeInputSearch
 import EntityTreeNavigateButton from './components/EntityTree/EntityTreeNavigateButton.js'
 import Startup from './containers/Startup/Startup.js'
 import Profiler from './containers/Profiler/Profiler.js'
+import LinkModal from './components/Modals/LinkModal'
 import AboutModal from './components/Modals/AboutModal'
 import ThemeModal from './components/Modals/ThemeModal'
 import ApiModal from './components/Modals/ApiModal'
@@ -284,6 +285,22 @@ export default () => {
   }))
 
   configuration.aboutModal = AboutModal
+
+  configuration.toolbarComponents.left.push((props) => {
+    if (!props.tab || !props.tab.tab || props.tab.tab.type !== 'entity' || !props.tab.entity || props.tab.entity.__entitySet !== 'templates') {
+      return <span />
+    }
+
+    if (configuration.extensions.studio.options.linkButtonVisibility === false) {
+      return <span />
+    }
+
+    return (
+      <div className='toolbar-button' onClick={() => Studio.openModal(LinkModal, { entity: props.tab.entity })}>
+        <i className='fa fa-link' />Link
+      </div>
+    )
+  })
 
   configuration.toolbarComponents.settings.push(() => (
     <div

@@ -180,9 +180,17 @@ _jsreportStudio2.default.entitySaveListeners.push(function (entity) {
       return React.createElement(
         'div',
         null,
-        'script "',
+        'The script "',
         entity.name,
-        '" does not have any function hook defined, which means that the script won\'t do anything, if that is not what you want make sure to define either "beforeRender" or "afterRender" function.'
+        '" doesn\'t have a function hook defined. This means the script won\'t do anything. You should define either "beforeRender" or "afterRender" function hooks.',
+        React.createElement('br', null),
+        'See the ',
+        React.createElement(
+          'a',
+          { href: 'https://jsreport.net/learn/scripts' },
+          'scripts docummentation'
+        ),
+        ' for the details.'
       );
     });
   }

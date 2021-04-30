@@ -56,7 +56,6 @@
     "jsreport-jsrender": "2.1.1",
     "jsreport-scripts": "2.6.0",
     "jsreport-studio-dev": "1.6.0",
-    "jsreport-templates": "2.4.0",
     "mocha": "8.2.1",
     "should": "13.2.3",
     "standard": "16.0.3",

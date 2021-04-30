@@ -17,5 +17,5 @@ module.exports = {
       'version-control': schema
     }
   },
-  'dependencies': [ 'templates' ]
+  'dependencies': []
 }

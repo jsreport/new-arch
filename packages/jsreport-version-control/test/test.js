@@ -8,7 +8,6 @@ describe.only('version control', () => {
 
   beforeEach(async () => {
     jsreport = JsReport()
-    jsreport.use(require('jsreport-templates')())
     jsreport.use(require('jsreport-data')())
     jsreport.use(require('jsreport-chrome-pdf')())
     jsreport.use(require('jsreport-assets')())

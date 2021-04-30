@@ -19,6 +19,6 @@ module.exports = {
       }
     }
   },
-  'dependencies': ['templates'],
+  'dependencies': [],
   'skipInExeRender': true
 }

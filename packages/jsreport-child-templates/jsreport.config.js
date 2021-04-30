@@ -3,7 +3,7 @@ module.exports = {
   name: 'child-templates',
   main: 'lib/main.js',
   worker: 'lib/worker.js',
-  dependencies: ['templates'],
+  dependencies: [],
   hasPublicPart: false,
   optionsSchema: {
     extensions: {

@@ -15,6 +15,7 @@ const ExtensionsManager = require('./extensions/extensionsManager')
 const Settings = require('./settings')
 const SchemaValidator = require('./schemaValidator')
 const { getRootSchemaOptions, extendRootSchemaOptions } = require('./optionsSchema')
+const Templates = require('./templates')
 const Folders = require('./folders')
 const WorkersManager = require('advanced-workers')
 const { validateDuplicatedName } = require('./folders/validateDuplicatedName')
@@ -159,16 +160,9 @@ class MainReporter extends Reporter {
       documentStoreActions(this)
       this.blobStorage = BlobStorage(this, this.options)
       blobStorageActions(this)
+      Templates(this)
       Profiler(this)
       Monitoring(this)
-
-      this.documentStore.registerEntityType('TemplateType', {
-        content: { type: 'Edm.String', document: { extension: 'html', engine: true } },
-        recipe: { type: 'Edm.String' },
-        // helper accepts both string, and an object when using in-process
-        helpers: { type: 'Edm.String', document: { extension: 'js' }, schema: { type: 'object' } },
-        engine: { type: 'Edm.String' }
-      }, true)
 
       this.folders = Object.assign(this.folders, Folders(this))
 
@@ -214,6 +208,7 @@ class MainReporter extends Reporter {
           collections: Object.keys(this.documentStore.collections)
         }
       }
+
       const workersManagerSystemOptions = {
         numberOfWorkers: 1,
         workerModule: path.join(__dirname, '../worker', 'workerHandler.js')
@@ -239,7 +234,7 @@ class MainReporter extends Reporter {
 
       await this.initializeListeners.fire()
 
-      await this._startReaper(this.getPathsToWatchForAutoCleanup())
+      this._startReaper(this.getPathsToWatchForAutoCleanup())
 
       this.extensionsManager.recipes.push({
         name: 'html'
