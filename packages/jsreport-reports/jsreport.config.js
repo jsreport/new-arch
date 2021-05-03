@@ -9,8 +9,14 @@ module.exports = {
       reports: {
         type: 'object',
         properties: {
-          cleanInterval: { type: 'string' },
-          cleanThreshold: { type: 'string' }
+          cleanInterval: {
+            type: ['string', 'number'],
+            '$jsreport-acceptsDuration': true
+          },
+          cleanThreshold: {
+            type: ['string', 'number'],
+            '$jsreport-acceptsDuration': true
+          }
         }
       }
     }

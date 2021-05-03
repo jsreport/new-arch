@@ -9,7 +9,6 @@ module.exports = function (reporter, definition) {
     definition.options.allowedModules = '*'
   }
 
-  definition.options.timeout = definition.options.timeout || 30000
   definition.options.allowedModules = definition.options.allowedModules || []
   reporter.options.scripts = definition.options
 

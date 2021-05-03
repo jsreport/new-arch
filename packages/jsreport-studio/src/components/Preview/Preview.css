@@ -191,7 +191,7 @@
 
 .profilerLogItem {
   display: flex;
-  font-size: 1.1rem;
+  font-size: 0.9rem;
   margin-bottom: 0.2rem;
   align-items: baseline;
   border-bottom: 1px dashed transparent;

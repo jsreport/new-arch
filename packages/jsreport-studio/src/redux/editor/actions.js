@@ -9,7 +9,7 @@ import shortid from 'shortid'
 import reformatter from '../../helpers/reformatter'
 import preview from '../../helpers/preview'
 import resolveUrl from '../../helpers/resolveUrl.js'
-import { engines, recipes, entitySets, previewListeners, previewConfigurationHandler, locationResolver, editorComponents, concurrentUpdateModal, modalHandler } from '../../lib/configuration.js'
+import { engines, recipes, previewListeners, previewConfigurationHandler, locationResolver, editorComponents, concurrentUpdateModal, modalHandler } from '../../lib/configuration.js'
 
 export function closeTab (id) {
   return (dispatch, getState) => {
@@ -412,7 +412,7 @@ export function run (target) {
         name: template.name,
         shortid: template.shortid
       },
-      type: 'report'
+      type: target.previewType
     })
 
     await preview(request, target)

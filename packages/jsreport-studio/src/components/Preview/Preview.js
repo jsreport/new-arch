@@ -14,7 +14,6 @@ import { selectors as entitiesSelectors } from '../../redux/entities'
 import { selectors as editorSelectors, actions as editorActions } from '../../redux/editor'
 import parseProfile from '../../helpers/parseProfile'
 import getStateAtOperation from '../../helpers/getStateAtProfilerOperation'
-// import { openPreviewWindow, getPreviewWindowOptions } from '../../helpers/previewWindow'
 import resolveUrl from '../../helpers/resolveUrl'
 import uid from '../../helpers/uid'
 import { findTextEditor, selectLine as selectLineInTextEditor } from '../../helpers/textEditorInstance'
@@ -51,6 +50,7 @@ class Preview extends Component {
       previewId: null,
       previewTemplate: null,
       previewType: 'normal',
+      previewReportFile: null,
       disableTheming: false,
       activePreviewTab: 'profiler',
       expandedActionsMenu: false,
@@ -103,9 +103,15 @@ class Preview extends Component {
           newState.previewId = opts.id
           newState.previewTemplate = opts.template
           newState.previewType = opts.type
+          newState.previewReportFile = null
           newState.profilerOperations = []
           newState.profilerLogs = []
           newState.profilerActiveElement = null
+
+          if (opts.type === 'report') {
+            newState.activePreviewTab = 'report'
+          }
+
           newState.profilerErrors = { global: null, general: null, operations: {} }
         }
 
@@ -137,6 +143,40 @@ class Preview extends Component {
     ) {
       window.URL.revokeObjectURL(prevState.src)
     }
+
+    // NOTE: we need this special handling with reload and dataset.firstPaint
+    // because it seems that when we load something like a PDF in an iframe and such
+    // content is not visible on screen then the pdf viewer just loads as being empty.
+    // this happens when you render and the tab is active on profiler, when the render finish
+    // and you go to report tab you see the pdf viewer empty, this handling fix that behaviour
+    // by reloading the iframe when we activate the report tab for the first time after it completed
+    if (prevState.previewId !== this.state.previewId) {
+      const previewIframe = document.getElementById('preview')
+
+      if (!previewIframe) {
+        return
+      }
+
+      delete previewIframe.dataset.firstPaint
+    }
+
+    if (this.isPreviewCompleted()) {
+      const previewIframe = document.getElementById('preview')
+
+      if (!previewIframe) {
+        return
+      }
+
+      const firstPaint = previewIframe.dataset.firstPaint === '1'
+
+      if (prevState.activePreviewTab === 'profiler' && this.state.activePreviewTab === 'report' && !firstPaint) {
+        previewIframe.dataset.firstPaint = '1'
+        previewIframe.contentWindow.location.reload()
+      } else if (this.state.activePreviewTab === 'report' && !firstPaint) {
+        previewIframe.dataset.firstPaint = '1'
+      }
+    }
+    // end
   }
 
   componentWillUnmount () {
@@ -178,46 +218,13 @@ class Preview extends Component {
   }
 
   handleOnProfilerElementClick (meta) {
-    if (!meta.isEdge) {
-      if (meta.data.error != null && meta.data.operation == null) {
-        modalHandler.open(ProfilerErrorModal, { error: meta.data.error })
-      } else if (meta.data.error != null && meta.data.operation != null) {
-        if (
-          meta.data.error.entity != null &&
-          (meta.data.error.property === 'content' || meta.data.error.property === 'helpers') &&
-          meta.data.error.lineNumber != null
-        ) {
-          this.props.openTab({ shortid: meta.data.error.entity.shortid }).then(() => {
-            setTimeout(() => {
-              const entity = this.props.getEntityByShortid(meta.data.error.entity.shortid)
-              const contentIsTheSame = entity.content === meta.data.error.entity.content
-              const entityEditor = findTextEditor(meta.data.error.property === 'content' ? entity._id : `${entity._id}_helpers`)
-
-              if (entityEditor != null && contentIsTheSame) {
-                selectLineInTextEditor(entityEditor, { lineNumber: meta.data.error.lineNumber })
-              }
-            }, 300)
-          })
-        }
-      }
-
-      if (meta.data.operation == null) {
-        this.setState({ profilerActiveElement: null })
-        return
-      }
-    } else {
-      // don't open inspect modal for profile with no req/res information saved
-      if (this.state.profilerOperations[0].req == null || this.state.profilerOperations[0].res == null) {
-        return
-      }
-
+    const openInspectModal = ({ sourceId, targetId, inputId, outputId }) => {
       modalHandler.open(ProfilerInspectModal, {
         data: {
-          sourceId: meta.data.edge.source,
-          targetId: meta.data.edge.target,
+          sourceId,
+          targetId,
           template: this.state.previewTemplate,
           getContent: () => {
-            const { outputId, inputId } = meta.data.edge.data
             let basedOnCompletedState = false
             let operationWithState
             let result
@@ -255,6 +262,59 @@ class Preview extends Component {
         onModalClose: () => {
           this.setState({ profilerActiveElement: null })
         }
+      })
+    }
+
+    if (!meta.isEdge) {
+      if (meta.data.error != null && meta.data.operation == null) {
+        modalHandler.open(ProfilerErrorModal, { error: meta.data.error })
+      } else if (meta.data.error != null && meta.data.operation != null) {
+        if (
+          meta.data.error.entity != null &&
+          (meta.data.error.property === 'content' || meta.data.error.property === 'helpers') &&
+          meta.data.error.lineNumber != null
+        ) {
+          this.props.openTab({ shortid: meta.data.error.entity.shortid }).then(() => {
+            setTimeout(() => {
+              const entity = this.props.getEntityByShortid(meta.data.error.entity.shortid)
+              const contentIsTheSame = entity.content === meta.data.error.entity.content
+              const entityEditor = findTextEditor(meta.data.error.property === 'content' ? entity._id : `${entity._id}_helpers`)
+
+              if (entityEditor != null && contentIsTheSame) {
+                selectLineInTextEditor(entityEditor, { lineNumber: meta.data.error.lineNumber })
+              }
+            }, 300)
+          })
+        } else {
+          modalHandler.open(ProfilerErrorModal, { error: meta.data.error })
+        }
+      }
+
+      // click on start node should open inspector
+      if (meta.id === 'preview-start') {
+        openInspectModal({
+          sourceId: meta.data.id,
+          targetId: 'none',
+          inputId: this.state.profilerOperations[0].id,
+          outputId: null
+        })
+      }
+
+      if (meta.data.operation == null) {
+        this.setState({ profilerActiveElement: null })
+        return
+      }
+    } else {
+      // don't open inspect modal for profile with no req/res information saved
+      if (this.state.profilerOperations[0].req == null || this.state.profilerOperations[0].res == null) {
+        return
+      }
+
+      openInspectModal({
+        sourceId: meta.data.edge.source,
+        targetId: meta.data.edge.target,
+        inputId: meta.data.edge.data.inputId,
+        outputId: meta.data.edge.data.outputId
       })
     }
 
@@ -402,6 +462,12 @@ class Preview extends Component {
     }
   }
 
+  addReport (reportFileInfo) {
+    this.setState({
+      previewReportFile: reportFileInfo
+    })
+  }
+
   addProfilerOperation (operation) {
     this.setState((prev) => {
       let newOperations = prev.profilerOperations
@@ -449,23 +515,6 @@ class Preview extends Component {
           completedPreviousOperationId: null
         }]
       }
-
-      return {
-        profilerOperations: newOperations
-      }
-    })
-  }
-
-  addProfilerReport (reportFileInfo) {
-    this.setState((prev) => {
-      if (prev.profilerOperations.length === 0) {
-        return
-      }
-
-      const newOperations = [{
-        ...prev.profilerOperations[0],
-        reportFile: reportFileInfo
-      }, ...prev.profilerOperations.slice(1)]
 
       return {
         profilerOperations: newOperations
@@ -534,6 +583,13 @@ class Preview extends Component {
     previewFrameChangeHandler(newSrc, opts)
   }
 
+  isPreviewCompleted () {
+    const { previewType, previewReportFile, profilerOperations } = this.state
+    const mainOperation = profilerOperations.find((op) => op.type === 'render')
+    const isCompleted = previewType === 'report' ? previewReportFile != null : mainOperation != null ? mainOperation.completed === true : false
+    return isCompleted
+  }
+
   changeActiveTab (tabName) {
     this.setState({
       activePreviewTab: tabName
@@ -548,6 +604,7 @@ class Preview extends Component {
       previewId: null,
       previewTemplate: null,
       previewType: 'normal',
+      previewReportFile: null,
       activePreviewTab: 'profiler',
       profilerOperations: [],
       profilerLogs: [],
@@ -583,6 +640,8 @@ class Preview extends Component {
       activePreviewTab,
       expandedActionsMenu,
       previewType,
+      previewReportFile,
+      previewTemplate,
       profilerOperations,
       profilerLogs,
       profilerErrors,
@@ -591,12 +650,12 @@ class Preview extends Component {
 
     const { main } = this.props
     const mainOperation = profilerOperations.find((op) => op.type === 'render')
-    const isMainCompleted = mainOperation != null ? mainOperation.completed === true : false
-    const shouldUseTabs = previewType === 'report' || previewType === 'profiler'
+    const isCompleted = this.isPreviewCompleted()
+    const shouldUseTabs = previewType === 'report' || previewType === 'report-profiler' || previewType === 'profiler'
     const tabs = []
 
     if (shouldUseTabs) {
-      if (previewType === 'report') {
+      if (previewType === 'report' || previewType === 'report-profiler') {
         tabs.push({
           name: 'report',
           title: 'report',
@@ -616,29 +675,31 @@ class Preview extends Component {
         })
       }
 
-      tabs.push({
-        name: 'profiler',
-        title: 'profiler',
-        renderContent: () => {
-          return (
-            <ProfilerContent
-              activeElement={profilerActiveElement}
-              operations={profilerOperations}
-              logs={profilerLogs}
-              errors={profilerErrors}
-              onCanvasClick={this.handleOnProfilerCanvasClick}
-              onElementClick={this.handleOnProfilerElementClick}
-            />
-          )
-        }
-      })
+      if (previewType === 'report-profiler' || previewType === 'profiler') {
+        tabs.push({
+          name: 'profiler',
+          title: 'profiler',
+          renderContent: () => {
+            return (
+              <ProfilerContent
+                activeElement={profilerActiveElement}
+                operations={profilerOperations}
+                logs={profilerLogs}
+                errors={profilerErrors}
+                onCanvasClick={this.handleOnProfilerCanvasClick}
+                onElementClick={this.handleOnProfilerElementClick}
+              />
+            )
+          }
+        })
+      }
     }
 
     const actionsMenuComponents = []
 
-    if (previewType === 'report') {
+    if (previewType === 'report' || previewType === 'report-profiler') {
       actionsMenuComponents.push(({ onMenuAction, closeMenu }) => {
-        const enabled = isMainCompleted && mainOperation.reportFile != null
+        const enabled = isCompleted && previewReportFile != null
 
         return (
           <div className={enabled ? '' : 'disabled'} title='Download report output' onClick={() => {
@@ -646,7 +707,7 @@ class Preview extends Component {
               return
             }
 
-            onMenuAction('download', { reportFile: mainOperation.reportFile })
+            onMenuAction('download', { reportFile: previewReportFile })
             closeMenu()
           }}>
             <i className='fa fa-download' /><span>Download</span>
@@ -654,25 +715,27 @@ class Preview extends Component {
         )
       })
 
+      if (previewType === 'report-profiler') {
+        actionsMenuComponents.push(({ onMenuAction, closeMenu }) => {
+          const enabled = isCompleted && (profilerErrors == null || profilerErrors.global == null)
+
+          return (
+            <div className={enabled ? '' : 'disabled'} onClick={() => {
+              if (!enabled) {
+                return
+              }
+
+              onMenuAction('downloadProfile', { profileId: mainOperation.profileId })
+              closeMenu()
+            }}>
+              <i className='fa fa-download' /><span>Download Profile</span>
+            </div>
+          )
+        })
+      }
+
       actionsMenuComponents.push(({ onMenuAction, closeMenu }) => {
-        const enabled = isMainCompleted && (profilerErrors == null || profilerErrors.global == null)
-
-        return (
-          <div className={enabled ? '' : 'disabled'} onClick={() => {
-            if (!enabled) {
-              return
-            }
-
-            onMenuAction('downloadProfile', { profileId: mainOperation.profileId })
-            closeMenu()
-          }}>
-            <i className='fa fa-download' /><span>Download Profile</span>
-          </div>
-        )
-      })
-
-      actionsMenuComponents.push(({ onMenuAction, closeMenu }) => {
-        const enabled = isMainCompleted
+        const enabled = isCompleted
 
         return (
           <div className={enabled ? '' : 'disabled'} onClick={() => {
@@ -696,7 +759,7 @@ class Preview extends Component {
       })
 
       actionsMenuComponents.push(({ onMenuAction, closeMenu }) => {
-        const enabled = isMainCompleted && mainOperation.reportFile != null
+        const enabled = isCompleted && previewReportFile != null
 
         return (
           <div className={enabled ? '' : 'disabled'} onClick={() => {
@@ -704,7 +767,7 @@ class Preview extends Component {
               return
             }
 
-            onMenuAction('openNewTab', { templateName: mainOperation.name, reportFile: mainOperation.reportFile })
+            onMenuAction('openNewTab', { templateName: previewTemplate.name, reportFile: previewReportFile })
             closeMenu()
           }}>
             <i className='fa fa-external-link' /><span>Open in new tab</span>
@@ -724,7 +787,7 @@ class Preview extends Component {
       activeTabWithEntity.entity.__entitySet === 'templates'
     ) {
       actionsMenuComponents.push(({ onMenuAction, closeMenu }) => {
-        const enabled = mainOperation == null || isMainCompleted
+        const enabled = mainOperation == null || isCompleted
 
         return (
           <div className={enabled ? '' : 'disabled'} title='Undock preview pane into extra browser tab' onClick={() => {

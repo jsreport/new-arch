@@ -80,14 +80,6 @@ module.exports = {
             type: 'boolean',
             default: true
           },
-          requestLogEnabled: {
-            type: 'boolean',
-            default: true
-          },
-          flushLogsInterval: {
-            type: 'number',
-            default: 2000
-          },
           entityTreeOrder: {
             type: 'array',
             items: { type: 'string' }

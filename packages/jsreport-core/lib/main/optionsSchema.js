@@ -47,7 +47,8 @@ module.exports.getRootSchemaOptions = () => ({
       }
     },
     reportTimeout: {
-      type: 'number',
+      type: ['string', 'number'],
+      '$jsreport-acceptsDuration': true,
       description: 'global single timeout that controls how much a report generation should wait before it times out',
       default: 60000
     },

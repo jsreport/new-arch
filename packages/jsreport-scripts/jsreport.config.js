@@ -8,7 +8,6 @@ module.exports = {
       scripts: {
         type: 'object',
         properties: {
-          timeout: { type: 'number' },
           allowedModules: {
             anyOf: [{
               type: 'string',

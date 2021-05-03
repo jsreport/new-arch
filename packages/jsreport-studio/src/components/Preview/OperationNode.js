@@ -1,6 +1,8 @@
-import { Fragment, useCallback } from 'react'
+import { Fragment, useState, useCallback } from 'react'
+import { useDispatch } from 'react-redux'
 import { Handle } from 'react-flow-renderer'
 import fileSaver from 'filesaver.js-npm'
+import { actions as progressActions } from '../../redux/progress'
 import b64toBlob from '../../helpers/b64toBlob'
 import styles from './Preview.css'
 
@@ -17,25 +19,50 @@ const OperationNode = (props) => {
   const showExecutionTime = end ? time != null : (operation.type !== 'render' && time != null)
   const showTimeCost = end ? timeCost != null : (operation.type !== 'render' && timeCost != null)
 
+  const dispatch = useDispatch()
+
+  const [downloading, setDownloading] = useState(false)
+
+  const progressStart = useCallback(() => {
+    return dispatch(progressActions.start())
+  }, [dispatch])
+
+  const progressStop = useCallback(() => {
+    return dispatch(progressActions.stop())
+  }, [dispatch])
+
   const handleDownloadRenderResultClick = useCallback(async () => {
-    if (renderResult == null || renderResult.getContent == null) {
+    if (renderResult == null || renderResult.getContent == null || downloading) {
       return
     }
 
-    const renderResultInfo = renderResult.getContent()
-    const parsedMeta = JSON.parse(renderResultInfo.meta)
-    let blob
+    setDownloading(true)
 
-    if (renderResultInfo.contentEncoding === 'base64') {
-      blob = b64toBlob(renderResultInfo.content, parsedMeta.contentType)
-    } else if (renderResultInfo.contentEncoding === 'plain') {
-      blob = new Blob([renderResultInfo.content], { type: parsedMeta.contentType })
-    }
+    progressStart()
 
-    if (blob != null) {
-      fileSaver.saveAs(blob, `${parsedMeta.reportName}.${parsedMeta.fileExtension}`)
-    }
-  }, [renderResult])
+    // delay the execution a bit to have a chance to show the animation,
+    // this is useful when the downloaded file is a bit big
+    setTimeout(() => {
+      try {
+        const renderResultInfo = renderResult.getContent()
+        const parsedMeta = JSON.parse(renderResultInfo.meta)
+        let blob
+
+        if (renderResultInfo.contentEncoding === 'base64') {
+          blob = b64toBlob(renderResultInfo.content, parsedMeta.contentType)
+        } else if (renderResultInfo.contentEncoding === 'plain') {
+          blob = new Blob([renderResultInfo.content], { type: parsedMeta.contentType })
+        }
+
+        if (blob != null) {
+          fileSaver.saveAs(blob, `${parsedMeta.reportName}.${parsedMeta.fileExtension}`)
+        }
+      } finally {
+        progressStop()
+        setDownloading(false)
+      }
+    }, 200)
+  }, [downloading, renderResult, progressStart, progressStop])
 
   return (
     <Fragment>

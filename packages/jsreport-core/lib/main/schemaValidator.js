@@ -2,6 +2,7 @@ const extend = require('node.extend.without.arrays')
 const set = require('lodash.set')
 const hasOwn = require('has-own-deep')
 const unsetValue = require('unset-value')
+const ms = require('ms')
 const Ajv = require('ajv')
 
 const validatorCollection = new WeakMap()
@@ -92,6 +93,35 @@ class SchemaValidator {
 
         return (data) => {
           return Buffer.isBuffer(data)
+        }
+      }
+    })
+
+    validator.addKeyword('$jsreport-acceptsDuration', {
+      modifying: true,
+      compile: (sch) => {
+        if (sch !== true) {
+          return () => true
+        }
+
+        return (data, dataPath, parentData, parentDataProperty) => {
+          if (typeof data !== 'string' && typeof data !== 'number') {
+            return false
+          }
+
+          if (typeof data === 'number') {
+            return true
+          }
+
+          const newData = ms(data)
+
+          if (newData == null) {
+            return false
+          }
+
+          parentData[parentDataProperty] = newData
+
+          return true
         }
       }
     })

@@ -6,6 +6,7 @@ describe('scripts', () => {
 
   beforeEach(() => {
     reporter = JsReport({
+      reportTimeout: 4000,
       sandbox: {
         allowedModules: ['bluebird', 'helperA']
       }
@@ -13,7 +14,7 @@ describe('scripts', () => {
       .use(require('jsreport-templates')())
       .use(require('jsreport-assets')())
       .use(require('jsreport-jsrender')())
-      .use(require('../')({ timeout: 4000 }))
+      .use(require('../')())
       .use(JsReport.tests.listeners())
     return reporter.init()
   })
@@ -164,8 +165,8 @@ describe('scripts', () => {
           engine: 'none',
           scripts: [{
             content: `
-              function afterRender(req, res) {             
-                res.content = Buffer.from(JSON.stringify(req.context))                
+              function afterRender(req, res) {
+                res.content = Buffer.from(JSON.stringify(req.context))
               }
             `
           }]
@@ -254,7 +255,7 @@ describe('scripts', () => {
             engine: 'none',
             scripts: [{
               content: `
-                function beforeRender(req, res) {  req.cancel() }               
+                function beforeRender(req, res) {  req.cancel() }
               `
             }]
           }
@@ -275,7 +276,7 @@ describe('scripts', () => {
             engine: 'none',
             scripts: [{
               content: `
-                function beforeRender(req, res) {  req.cancel('custom message') }               
+                function beforeRender(req, res) {  req.cancel('custom message') }
               `
             }]
           }
@@ -296,7 +297,7 @@ describe('scripts', () => {
             engine: 'none',
             scripts: [{
               content: `
-                function beforeRender(req, res) {  req.cancel({ message: 'custom message', statusCode: 406 }) }               
+                function beforeRender(req, res) {  req.cancel({ message: 'custom message', statusCode: 406 }) }
               `
             }]
           }
@@ -999,8 +1000,8 @@ describe('scripts', () => {
 
     it('script error should contain lineNumber and entity identification', async () => {
       const script = await reporter.documentStore.collection('scripts').insert({
-        content: `function beforeRender(req, res, done) { 
-          done(new Error('foo')) 
+        content: `function beforeRender(req, res, done) {
+          done(new Error('foo'))
         }`,
         name: 'script'
       })
