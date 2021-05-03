@@ -1,8 +1,19 @@
-module.exports = (workerInitData) => {
-  return (actionData, rid) => {
-    return {
-      actionData,
-      workerInitData
+const workerState = {
+  counter: 0
+}
+module.exports = (initData) => {
+  return {
+    init: () => {
+      return initData
+    },
+
+    execute: (data) => {
+      workerState.counter++
+      return {
+        actionData: data,
+        initData: initData,
+        workerState
+      }
     }
   }
 }

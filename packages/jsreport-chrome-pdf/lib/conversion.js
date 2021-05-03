@@ -275,7 +275,7 @@ module.exports = async ({ reporter, getBrowser, htmlUrl, strategy, timeout, req,
       type: resultType,
       content: result
     }
-  }, timeout, `${imageExecution ? 'image' : 'pdf'} generation not completed after ${timeout}ms`)
+  }, timeout, `${imageExecution ? 'chrome image' : 'chrome pdf'} generation not completed after ${timeout}ms`)
 
   return conversionResult
 }

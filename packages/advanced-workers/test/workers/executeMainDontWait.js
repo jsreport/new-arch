@@ -1,7 +1,11 @@
-module.exports = (workerInitData, { executeMain }) => {
-  return ({ someData }, rid) => {
-    executeMain({
-      someData
-    }, rid)
+module.exports = (initData, { executeMain }) => {
+  return {
+    init: () => {
+      return initData
+    },
+
+    execute: (data) => {
+      executeMain(data)
+    }
   }
 }

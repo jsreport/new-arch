@@ -8,44 +8,14 @@ const os = require('os')
 const numCPUs = os.cpus().length
 
 module.exports = function (reporter, definition) {
-  const versionSupported = /^2/
-
-  if (!versionSupported.test(reporter.version)) {
-    throw new Error(`${definition.name} extension version currently installed can only be used in jsreport v2, your current jsreport installation (${
-      reporter.version
-    }) is incompatible with this extension. please downgrade ${definition.name} extension to a version which works with jsreport ${
-      reporter.version
-    } or update jsreport to v2`)
-  }
-
   definition.options = Object.assign({}, reporter.options.chrome, definition.options)
 
   if (definition.options.allowLocalFilesAccess == null) {
     definition.options.allowLocalFilesAccess = reporter.options.allowLocalFilesAccess
   }
 
-  let timeoutProp
-
-  if (definition.options.timeout != null) {
-    if (reporter.options.chrome && reporter.options.chrome.timeout != null) {
-      timeoutProp = 'chrome.timeout'
-    } else {
-      timeoutProp = 'extensions.chrome-pdf.timeout'
-    }
-  }
-
-  if (definition.options.timeout != null && reporter.options.reportTimeout != null) {
-    reporter.logger.warn(`"${timeoutProp}" configuration is ignored when "reportTimeout" is set`)
-  } else if (definition.options.timeout != null) {
-    reporter.logger.warn(`"${timeoutProp}" configuration is deprecated and will be removed in the future, please use "reportTimeout" instead`)
-  }
-
   if (definition.options.launchOptions == null) {
     definition.options.launchOptions = {}
-  }
-
-  if (definition.options.timeout == null) {
-    definition.options.timeout = 30000
   }
 
   if (definition.options.strategy == null) {

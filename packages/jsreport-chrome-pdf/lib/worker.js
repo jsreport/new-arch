@@ -95,8 +95,6 @@ module.exports = function (reporter, definition) {
     strategyCall = chromePoolStrategy({ reporter, puppeteer, options: definition.options })
   }
 
-  reporter.chromeStrategyKill = strategyCall.kill
-
   reporter.extensionsManager.recipes.push({
     name: 'chrome-pdf',
     execute: execute(reporter, puppeteer, definition, strategyCall)
@@ -107,9 +105,7 @@ module.exports = function (reporter, definition) {
     execute: execute(reporter, puppeteer, definition, strategyCall, true)
   })
 
-  reporter.closeListeners.add('docker-workers', async () => {
-    if (reporter.chromeStrategyKill) {
-      await reporter.chromeStrategyKill()
-    }
+  reporter.closeListeners.add('chrome', async () => {
+    await strategyCall.kill()
   })
 }

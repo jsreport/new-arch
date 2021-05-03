@@ -248,7 +248,8 @@ describe('profiler with timeout', () => {
 
   beforeEach(() => {
     reporter = jsreport({
-      reportTimeout: 100
+      reportTimeout: 100,
+      reportTimeoutMargin: 0
     })
     reporter.use(jsreport.tests.listeners())
     return reporter.init()

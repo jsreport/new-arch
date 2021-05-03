@@ -463,7 +463,7 @@ function timeoutTests (asReqOption = false) {
   let renderOpts
 
   beforeEach(() => {
-    const opts = { discover: false }
+    const opts = { discover: false, reportTimeoutMargin: 0 }
 
     if (!asReqOption) {
       opts.reportTimeout = reportTimeout

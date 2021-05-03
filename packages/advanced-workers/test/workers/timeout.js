@@ -1,11 +1,13 @@
-module.exports = (initData, { executeMain }) => {
+module.exports = (initData) => {
   return {
     init: () => {
       return initData
     },
 
     execute: (data) => {
-      return executeMain(data)
+      while (true) {
+        // endles loop
+      }
     }
   }
 }

@@ -4,6 +4,7 @@ const fs = require('fs')
 const JsReport = require('jsreport-core')
 const should = require('should')
 const parsePdf = require('parse-pdf')
+const psList = require('ps-list')
 
 describe('chrome pdf', () => {
   describe('dedicated-process strategy', () => {
@@ -434,13 +435,14 @@ function commonTimeout (strategy, imageExecution) {
   const recipe = imageExecution ? 'chrome-image' : 'chrome-pdf'
 
   beforeEach(() => {
-    reporter = JsReport()
+    reporter = JsReport({
+      reportTimeout: 2000
+    })
     reporter.use(require('../')({
       strategy,
       launchOptions: {
         args: ['--no-sandbox']
-      },
-      timeout: 0
+      }
     }))
 
     return reporter.init()
@@ -449,11 +451,30 @@ function commonTimeout (strategy, imageExecution) {
   afterEach(() => reporter.close())
 
   it('should reject', async () => {
+    const processesBefore = await psList()
+    const chromeCountBefore = processesBefore.filter(p => p.name.includes('chrome')).length
     const request = {
-      template: { content: 'content', recipe, engine: 'none' }
+      template: {
+        content: 'content',
+        recipe,
+        engine: 'none',
+        chromeImage: {
+          waitForJS: true
+        },
+        chrome: {
+          waitForJS: true
+        }
+      }
     }
 
-    return reporter.render(request).should.be.rejected()
+    await reporter.render(request).should.be.rejectedWith(/chrome.*generation/)
+
+    if (strategy !== 'chrome-pool') {
+      const processesAfter = await psList()
+      const chromeCountAfter = processesAfter.filter(p => p.name.includes('chrome')).length
+
+      chromeCountBefore.should.be.eql(chromeCountAfter)
+    }
   })
 }
 

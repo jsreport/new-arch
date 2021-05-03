@@ -221,7 +221,7 @@ class MainReporter extends Reporter {
 
       this._workersManager = this._workersManagerFactory
         ? this._workersManagerFactory(workersManagerOptions, workersManagerSystemOptions)
-        : new WorkersManager(workersManagerOptions, workersManagerSystemOptions, this.logger)
+        : WorkersManager(workersManagerOptions, workersManagerSystemOptions, this.logger)
 
       const workersStart = new Date().getTime()
 
@@ -229,7 +229,7 @@ class MainReporter extends Reporter {
 
       this.logger.debug(`Extensions in workers: ${extensionsForWorkers.map((e) => e.name).join(', ')}`)
 
-      await this._workersManager.init()
+      await this._workersManager.init(workersManagerOptions)
 
       this.logger.info(`${this.options.workers.numberOfWorkers} worker threads initialized in ${new Date().getTime() - workersStart}ms`)
 
@@ -337,14 +337,16 @@ class MainReporter extends Reporter {
       }
 
       const responseResult = await this.executeWorkerAction('render', {}, {
-        timeout: reportTimeout,
-        timeoutErrorMessage: 'Report timeout during render'
+        timeout: reportTimeout + this.options.reportTimeoutMargin
       }, request)
 
       Object.assign(response, responseResult)
       await this.afterRenderListeners.fire(request, response)
       response.stream = Readable.from(response.content)
     } catch (err) {
+      if (err.code === 'WORKER_TIMEOUT') {
+        err.message = 'Report timeout'
+      }
       if (!err.logged) {
         this.logger.error(`Report render failed: ${err.message}${err.stack != null ? ' ' + err.stack : ''}`, request)
       }

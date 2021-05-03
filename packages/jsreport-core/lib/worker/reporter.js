@@ -167,6 +167,11 @@ class WorkerReporter extends Reporter {
       }
     })
   }
+
+  async close () {
+    this.logger.debug('Closing jsreport worker')
+    return this.closeListeners.fire()
+  }
 }
 
 module.exports = WorkerReporter

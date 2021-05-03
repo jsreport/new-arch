@@ -1,6 +1,7 @@
 const conversion = require('./conversion')
 
 module.exports = ({ reporter, puppeteer, options }) => {
+  let openedBrowsers = []
   const execute = async ({ htmlUrl, strategy, launchOptions, conversionOptions, req, imageExecution, allowLocalFilesAccess }) => {
     let browser
 
@@ -9,12 +10,13 @@ module.exports = ({ reporter, puppeteer, options }) => {
         reporter,
         getBrowser: async () => {
           browser = await puppeteer.launch(launchOptions)
+          openedBrowsers.push(browser)
           return browser
         },
         htmlUrl,
         strategy,
         req,
-        timeout: options.timeout,
+        timeout: reporter.options.reportTimeout,
         allowLocalFilesAccess,
         imageExecution,
         options: conversionOptions
@@ -26,14 +28,28 @@ module.exports = ({ reporter, puppeteer, options }) => {
       }
     } finally {
       if (browser) {
-        let pages = await browser.pages()
-        await Promise.all(pages.map(page => page.close()))
-        await browser.close()
+        try {
+          let pages = await browser.pages()
+          await Promise.all(pages.map(page => page.close()))
+          await browser.close()
+        } finally {
+          openedBrowsers = openedBrowsers.filter(b => b !== browser)
+        }
       }
     }
   }
 
-  execute.kill = () => {}
+  execute.kill = async () => {
+    for (let browser of openedBrowsers) {
+      try {
+        let pages = await browser.pages()
+        await Promise.all(pages.map(page => page.close()))
+        await browser.close()
+      } catch (e) {
+
+      }
+    }
+  }
 
   return execute
 }

@@ -51,6 +51,11 @@ module.exports.getRootSchemaOptions = () => ({
       description: 'global single timeout that controls how much a report generation should wait before it times out',
       default: 60000
     },
+    reportTimeoutMargin: {
+      type: 'number',
+      description: 'the time to wait before the worker thread is forcibly  killed after timeout',
+      default: 1000
+    },
     enableRequestReportTimeout: { type: 'boolean', default: false, description: 'option that enables passing a custom report timeout per request using req.options.timeout. this enables that the caller of the report generation control the report timeout so enable it only when you trust the caller' },
     allowLocalFilesAccess: { type: 'boolean', default: false },
     encryption: {
