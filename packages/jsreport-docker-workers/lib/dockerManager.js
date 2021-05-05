@@ -3,7 +3,6 @@ const createServersChecker = require('./serversChecker')
 const createExecuteInWorker = require('./executeInWorker')
 const sendToWorker = require('./sendToWorker')
 const ip = require('ip')
-const serializator = require('serializator')
 
 module.exports = (reporter, {
   discriminatorPath,
@@ -17,12 +16,6 @@ module.exports = (reporter, {
   customContainersPoolFactory
 }, workerOptions, workerSystemOptions) => {
   reporter.options.ip = reporter.options.ip || ip.address()
-
-  container.customEnv = {
-    ...container.customEnv,
-    workerOptions: JSON.stringify(workerOptions),
-    workerSystemOptions: JSON.stringify(workerSystemOptions)
-  }
 
   const serversChecker = createServersChecker(reporter, {
     ip: reporter.options.ip,
@@ -40,7 +33,11 @@ module.exports = (reporter, {
     logger: reporter.logger,
     tempDirectory: reporter.options.tempDirectory,
     containerParallelRequestsLimit,
-    customContainersPoolFactory
+    customContainersPoolFactory,
+    initData: {
+      workerOptions,
+      workerSystemOptions
+    }
   })
 
   const executeInWorker = createExecuteInWorker({
@@ -67,13 +64,14 @@ module.exports = (reporter, {
     data,
     req
   }, {
-    executeMain
+    executeMain,
+    timeout
   }) {
     return executeInWorker(req, (worker) => sendToWorker(worker.url, {
       actionName,
       data,
       req
-    }, executeMain))
+    }, { executeMain, timeout }))
   }
 
   return {

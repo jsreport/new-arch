@@ -11,7 +11,8 @@ module.exports = ({
   logger,
   tempDirectory,
   containerParallelRequestsLimit,
-  customContainersPoolFactory
+  customContainersPoolFactory,
+  initData
 }) => {
   const warmupPolicy = container.warmupPolicy
   const containersPool = (customContainersPoolFactory || createContainersPool)({
@@ -21,7 +22,8 @@ module.exports = ({
     logger,
     container,
     tempDirectory,
-    numberOfWorkers
+    numberOfWorkers,
+    initData
   })
 
   let onRecycle = () => {}

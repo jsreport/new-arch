@@ -30,7 +30,7 @@ RUN rm -rf /tmp/*
 USER jsreport:jsreport
 
 ENV NVM_DIR /home/jsreport/.nvm
-ENV NODE_VERSION 12.16.1
+ENV NODE_VERSION 14.16.1
 
 # node
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.2/install.sh | bash && \
@@ -44,17 +44,12 @@ WORKDIR /app
 # the chrome was already installed from apt-get
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD true
 
-COPY --chown=jsreport:jsreport package.json /app/package.json
-
-RUN npm install --production && \
-    npm cache clean -f && \
-    rm -rf /tmp/*
-
-COPY --chown=jsreport:jsreport . /app
+RUN npm i -g yarn
+COPY --chown=jsreport:jsreport packages /app/packages
+COPY --chown=jsreport:jsreport packages/jsreport-worker/package.build.json /app/package.json
+RUN yarn install --production
+COPY --chown=jsreport:jsreport packages/jsreport-worker /app
 
 ENV NODE_ENV production
-ENV templatingEngines_strategy http-server
-ENV chrome_launchOptions_executablePath google-chrome-stable
-ENV chrome_launchOptions_args --no-sandbox,--disable-dev-shm-usage
 
 CMD ["node", "server.js"]

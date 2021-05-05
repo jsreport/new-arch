@@ -21,7 +21,7 @@ module.exports = ({
   worker,
   generalTimeout,
   closeTimeout = 5000,
-  initTimeout = 5000
+  initTimeout = 15000
 }) => {
   let currentAsyncAwaiter
 

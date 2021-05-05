@@ -38,16 +38,13 @@ module.exports = (options = {}) => {
   options = nconf.overrides(options).argv().env({ separator: ':' }).env({ separator: '_' }).get()
   options.httpPort = options.httpPort || 2000
 
-  console.log(`Worker temp directory is: ${options.workerTempDirectory}`)
-  console.log(`Worker temp auto cleanup directory is: ${options.workerTempAutoCleanupDirectory}`)
-
   if (options.workerDebuggingSession) {
     console.log('Debugging session is enabled')
   }
 
   options.workerInputRequestLimit = options.workerInputRequestLimit || '20mb'
 
-  const workersManager = new WorkersManager(JSON.parse(options.workerOptions), JSON.parse(options.workerSystemOptions))
+  let workersManager
 
   const app = new Koa()
 
@@ -74,10 +71,40 @@ module.exports = (options = {}) => {
       ctx.req.setTimeout(0)
     }
 
+    let reqId
     try {
       const reqBody = serializator.parse(ctx.request.rawBody)
 
-      const reqId = reqBody?.req?.context?.rootId
+      if (!workersManager) {
+        const workerOptions = reqBody.workerOptions
+        for (const def of workerOptions.extensionsDefs) {
+          // we currently send paths from the main container/process so need to hack it
+          def.directory = path.join(__dirname, '../', def.directory.replace(/.*packages/, 'packages')).replace(/\\/g, '/')
+
+          // the worker gets already merged configs so we cant it just have in ENV in dockerfile
+          if (def.name === 'chrome-pdf') {
+            def.options.launchOptions = {
+              executablePath: 'google-chrome-stable',
+              args: ['--no-sandbox', '--disable-dev-shm-usage', '--disable-dev-profile']
+            }
+          }
+        }
+
+        for (const m of workerOptions.options.sandbox.modules) {
+          m.path = path.join(__dirname, '../', m.path.replace(/.*packages/, 'packages')).replace(/\\/g, '/')
+        }
+
+        workerOptions.options.tempDirectory = '/tmp/jsreport'
+        workerOptions.options.tempAutoCleanupDirectory = '/tmp/jsreport/autocleanup'
+        const workerSystemOptions = reqBody.workerSystemOptions
+        workerSystemOptions.workerModule = require.resolve('jsreport-core/lib/worker/workerHandler.js')
+        workersManager = WorkersManager(workerOptions, workerSystemOptions)
+        await workersManager.init()
+        ctx.body = 'ok'
+        return
+      }
+
+      reqId = reqBody?.req?.context?.rootId
 
       if (!reqId) {
         throw new Error('Wrong worker request body')
@@ -87,7 +114,7 @@ module.exports = (options = {}) => {
 
       if (currentRequests[reqId]) {
         const workerRequest = currentRequests[reqId]
-        const callbackResult = await workerRequest.processCallbackResponse(ctx.request, { data: reqBody.data })
+        const callbackResult = await workerRequest.processCallbackResponse({ data: reqBody.data })
         workersManager.convertUint8ArrayToBuffer(callbackResult)
         ctx.body = serializator.serialize(callbackResult)
         ctx.status = callbackResult.actionName ? 200 : 201
@@ -95,40 +122,19 @@ module.exports = (options = {}) => {
         return
       }
 
-      const workerRequest = currentRequests[reqId] = WorkerRequest({ uuid: reqId, data: reqBody, httpReq: ctx.request }, {
-        onSuccess: ({ uuid }) => {
-          delete currentRequests[uuid]
-        },
-        onError: ({ uuid, error, httpReq }) => {
-          if (httpReq.socket.destroyed) {
-            // don't clear request if the last http request
-            // was destroyed already, this can only happen if there is an error
-            // that is throw in worker (like a timeout) while waiting
-            // for some callback response call.
-            //
-            // this handling gives the chance for
-            // "processCallbackResponse" to run and resolve with a timeout error after
-            // being detected idle for a while
-            console.error(`An error was throw when there is no active http connection to respond. uuid: ${
-              uuid
-            } error: ${error.message}, stack: ${
-              error.stack
-            }, attrs: ${JSON.stringify(error)}`)
-            return
-          }
+      const workerRequest = currentRequests[reqId] = WorkerRequest({ uuid: reqId, data: reqBody })
 
-          delete currentRequests[uuid]
-        },
-        callbackTimeout: options.workerCallbackTimeout || 10000
-      })
-
-      const actionResult = await workerRequest.process(ctx.request, () => {
+      const actionResult = await workerRequest.process(() => {
         return workersManager.executeWorker(reqBody, {
+          timeout: reqBody.timeout,
           executeMain: async (data) => {
             try {
               await callbackLock.acquire()
               const r = await workerRequest.callback(data)
               return r
+            } catch (e) {
+              console.error('Error when invoking callback', e)
+              throw e
             } finally {
               callbackLock.release()
             }
@@ -141,9 +147,13 @@ module.exports = (options = {}) => {
       ctx.status = actionResult.actionName ? 200 : 201
       ctx.set('Content-Type', 'text/plain')
     } catch (e) {
-      console.error(e)
+      console.error('Error when processing worker request', e)
       ctx.status = 400
       ctx.body = { message: e.message, stack: e.stack }
+    } finally {
+      if (reqId && (ctx.status === 201 || ctx.status === 400)) {
+        delete currentRequests[reqId]
+      }
     }
   })
 
@@ -151,7 +161,6 @@ module.exports = (options = {}) => {
 
   return ({
     async init () {
-      await workersManager.init()
       this.server = app.listen(options.httpPort)
     },
     async close () {

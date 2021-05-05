@@ -38,8 +38,7 @@ module.exports = {
               memorySwap: '512m',
               memory: '420m',
               cpus: '0.5',
-              logDriver: 'json-file',
-              tempVolumeTarget: '/tmp'
+              logDriver: 'json-file'
             },
             properties: {
               image: { type: 'string', default: 'jsreport/jsreport-worker' },
@@ -78,9 +77,7 @@ module.exports = {
               memory: { type: 'string', default: '420m' },
               cpus: { type: 'string', default: '0.5' },
               logDriver: { type: 'string', default: 'json-file' },
-              logOpt: { type: 'object' },
-              tempVolumeSourcePrefix: { type: 'string' },
-              tempVolumeTarget: { type: 'string', default: '/tmp' }
+              logOpt: { type: 'object' }
             }
           },
           subnet: { type: 'string', default: '172.30.0.0/24' },

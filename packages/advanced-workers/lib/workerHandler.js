@@ -60,7 +60,29 @@ async function processAndResponse (m, fn) {
     // skip failures on pending callbacks
   }
 
-  parentPort.postMessage(message)
+  try {
+    parentPort.postMessage(message)
+  } catch (e) {
+    // the errors are tricky and may contain unserializable props, we should probably omit these somehow but still keep ours
+    if (message.errorData) {
+      parentPort.postMessage({
+        type: 'response',
+        errorData: {
+          message: message.errorData.message,
+          stack: message.errorData.stack
+        }
+      })
+    } else {
+      parentPort.postMessage({
+        type: 'response',
+        errorData: {
+          message: e.message,
+          stack: e.stack,
+          ...e
+        }
+      })
+    }
+  }
 }
 
 function init () {

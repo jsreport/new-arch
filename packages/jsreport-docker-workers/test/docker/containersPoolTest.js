@@ -18,9 +18,9 @@ describe('containers pool', () => {
       hostIp: 'localhost',
       tempDirectory: path.join(os.tmpdir(), 'jsreport'),
       container: {
-        image: 'jsreport/jsreport-worker',
+        image: 'mendhak/http-https-echo:18',
         namePrefix: 'jsreport_worker',
-        exposedPort: 2000,
+        exposedPort: 8080,
         basePublishPort: 2001,
         baseDebugPort: 9230,
         startTimeout: 10000,

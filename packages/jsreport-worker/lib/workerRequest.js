@@ -1,4 +1,4 @@
-module.exports = ({ httpReq, data, uuid }, { onSuccess, onError, callbackTimeout }) => {
+module.exports = ({ data, uuid }) => {
   return {
     data,
     callback (resp) {
@@ -8,57 +8,22 @@ module.exports = ({ httpReq, data, uuid }, { onSuccess, onError, callbackTimeout
         this._reject = reject
       })
     },
-    process (httpReq, execPromiseFn) {
-      this._currentHttpReq = httpReq
-
+    process (execPromiseFn) {
       return new Promise((resolve, reject) => {
         this._resolve = resolve
         this._reject = reject
         execPromiseFn().then((d) => {
-          onSuccess({
-            uuid,
-            httpReq: this._currentHttpReq,
-            data: d
-          })
-
           this._resolve(d)
         }).catch((e) => {
-          onError({
-            uuid,
-            httpReq: this._currentHttpReq,
-            error: e
-          })
-
           this._reject(e)
         })
       })
     },
-    processCallbackResponse (httpReq, { data }) {
-      this._currentHttpReq = httpReq
-
-      let timeoutId
-
+    processCallbackResponse ({ data }) {
       return new Promise((resolve, reject) => {
-        timeoutId = setTimeout(() => {
-          const timeoutError = new Error(`Timeout while waiting for request callback response after ${callbackTimeout}ms`)
-          onError({
-            uuid,
-            httpReq: this._currentHttpReq,
-            error: timeoutError
-          })
-
-          this._reject(timeoutError)
-        }, callbackTimeout)
-
         this._resolve(data)
         this._resolve = resolve
         this._reject = reject
-      }).then((result) => {
-        clearTimeout(timeoutId)
-        return result
-      }).catch((err) => {
-        clearTimeout(timeoutId)
-        throw err
       })
     }
   }

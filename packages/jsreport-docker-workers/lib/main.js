@@ -38,11 +38,12 @@ module.exports = (reporter, definition) => {
     if (!reporter.authentication) {
       return reporter.express.app.post('/api/worker-docker-manager', express.text(), async (req, res, next) => {
         try {
-          const actionData = serializator.parse(req.body)
-          const result = await reporter.dockerManager.executeWorker(actionData, {
+          const reqBody = serializator.parse(req.body)
+          const result = await reporter.dockerManager.executeWorker(reqBody, {
             executeMain: async (data) => {
-              return reporter._invokeMainAction(data, actionData.req)
-            }
+              return reporter._invokeMainAction(data, reqBody.req)
+            },
+            timeout: reqBody.timeout
           })
           res.status(201).send(serializator.serialize(result))
         } catch (e) {
@@ -56,15 +57,5 @@ module.exports = (reporter, definition) => {
     reporter.dockerManager = createDockerManager(reporter, definition.options, options, systemOptions)
     reporter.closeListeners.add('docker-workers', reporter.dockerManager.close)
     return reporter.dockerManager
-  })
-
-  reporter.initializeListeners.insert({ before: 'express' }, 'docker-workers', async () => {
-    await reporter.dockerManager.init()
-
-    // adding the temp paths of containers for cleanup after starting all containers
-    // to ensure that the path exists
-    reporter.dockerManager.containersManager.containersPool.containers.forEach((container) => {
-      reporter.addPathToWatchForAutoCleanup(container.tempAutoCleanupLocalDirectoryPath)
-    })
   })
 }

@@ -2,6 +2,8 @@ const path = require('path')
 const Worker = require('../')
 require('should')
 const jsreport = require('jsreport-core')
+const axios = require('axios')
+const serializator = require('serializator')
 
 const workerTempDirectory = path.join(require('os').tmpdir(), 'test-jsreport-worker')
 const workerTempAutoCleanupDirectory = path.join(workerTempDirectory, 'autocleanup')
@@ -30,17 +32,31 @@ describe('worker', () => {
         }
       })).init()
 
-    const workerOptions = JSON.stringify(reporter.dockerManager.workerOptions)
-    const workerSystemOptions = JSON.stringify(reporter.dockerManager.workerSystemOptions)
-
     worker = Worker({
-      workerOptions,
-      workerSystemOptions,
       httpPort: 3000,
       workerTempDirectory,
       workerTempAutoCleanupDirectory
     })
     await worker.init()
+
+    const serializedData = serializator.serialize({
+      workerOptions: JSON.stringify(reporter.dockerManager.workerOptions),
+      workerSystemOptions: JSON.stringify(reporter.dockerManager.workerSystemOptions)
+    })
+
+    await axios({
+      method: 'POST',
+      url: 'http://localhost:3000',
+      maxContentLength: Infinity,
+      maxBodyLength: Infinity,
+      responseType: 'text',
+      transformResponse: [data => data],
+      headers: {
+        'Content-Type': 'text/plain',
+        'Content-Length': Buffer.byteLength(serializedData)
+      },
+      data: serializedData
+    })
   })
 
   afterEach(async () => {
@@ -77,14 +93,15 @@ describe('worker', () => {
   })
 })
 
-describe.skip('worker with small timeout', () => {
+describe('worker with small timeout', () => {
   let worker
   let reporter
 
   beforeEach(async () => {
-    reporter = await jsreport()
-      .use(require('jsreport-handlebars')())
-      .use(require('jsreport-chrome-pdf')())
+    reporter = await jsreport({
+      reportTimeout: 500
+    })
+      .use(jsreport.tests.listeners())
       .use(require('jsreport-docker-workers')({
         customContainersPoolFactory: () => {
           return {
@@ -101,18 +118,31 @@ describe.skip('worker with small timeout', () => {
         }
       })).init()
 
-    const workerOptions = JSON.stringify(reporter.dockerManager.workerOptions)
-    const workerSystemOptions = JSON.stringify(reporter.dockerManager.workerSystemOptions)
-
     worker = Worker({
-      workerOptions,
-      workerSystemOptions,
-      workerCallbackTimeout: 100,
       httpPort: 3000,
       workerTempDirectory,
       workerTempAutoCleanupDirectory
     })
     await worker.init()
+
+    const serializedData = serializator.serialize({
+      workerOptions: JSON.stringify(reporter.dockerManager.workerOptions),
+      workerSystemOptions: JSON.stringify(reporter.dockerManager.workerSystemOptions)
+    })
+
+    await axios({
+      method: 'POST',
+      url: 'http://localhost:3000',
+      maxContentLength: Infinity,
+      maxBodyLength: Infinity,
+      responseType: 'text',
+      transformResponse: [data => data],
+      headers: {
+        'Content-Type': 'text/plain',
+        'Content-Length': Buffer.byteLength(serializedData)
+      },
+      data: serializedData
+    })
   })
 
   afterEach(async () => {
@@ -121,14 +151,20 @@ describe.skip('worker with small timeout', () => {
   })
 
   it('should not hang when main action hangs', async () => {
-    reporter.documentStore.collection('templates').beforeFindListeners.add('test', () => {
+    reporter.registerMainAction('test-freeze', async (spec, originalReq) => {
       return new Promise((resolve) => {})
+    })
+
+    reporter.tests.beforeRenderEval((req, res, { reporter }) => {
+      return reporter.executeMainAction('test-freeze', {}, req)
     })
 
     return reporter.render({
       template: {
-        name: 'some name'
+        content: 'hello',
+        engine: 'none',
+        recipe: 'html'
       }
-    }).should.be.rejectedWith(/foo/)
+    }).should.be.rejectedWith(/Timeout when communicating with worker/)
   })
 })

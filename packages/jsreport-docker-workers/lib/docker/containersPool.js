@@ -10,7 +10,8 @@ module.exports = ({
   subnet,
   numberOfWorkers,
   tempDirectory,
-  logger
+  logger,
+  initData
 }) => {
   const containers = []
 
@@ -53,7 +54,8 @@ module.exports = ({
           debugPort: container.baseDebugPort + i,
           network,
           logger,
-          tempDirectory
+          tempDirectory,
+          initData
         })
 
         containers.push(c)

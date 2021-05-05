@@ -9,7 +9,6 @@ describe('container', () => {
 
   beforeEach(() => {
     container = new Container({
-      exposedPort: 2000,
       port: 2000,
       startTimeout: 2000,
       logger: reporter.logger,
@@ -18,9 +17,9 @@ describe('container', () => {
       network: 'nw_jsreport_docker_workers',
       hostIp: 'localhost',
       container: {
-        image: 'jsreport/jsreport-worker',
+        image: 'mendhak/http-https-echo:18',
         namePrefix: 'jsreport_worker',
-        exposedPort: 2000,
+        exposedPort: 8080,
         basePublishPort: 2001,
         baseDebugPort: 9230,
         startTimeout: 10000,
