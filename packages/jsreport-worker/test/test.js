@@ -21,7 +21,6 @@ describe('worker', () => {
           return {
             containers: [{
               id: 'a',
-              tempAutoCleanupLocalDirectoryPath: workerTempAutoCleanupDirectory,
               remove: () => {},
               restart: () => {},
               url: 'http://localhost:3000'
@@ -33,15 +32,16 @@ describe('worker', () => {
       })).init()
 
     worker = Worker({
+      overwriteExtensionPaths: false,
       httpPort: 3000,
-      workerTempDirectory,
-      workerTempAutoCleanupDirectory
+      tempDirectory: workerTempDirectory,
+      tempAutoCleanupDirectory: workerTempAutoCleanupDirectory
     })
     await worker.init()
 
     const serializedData = serializator.serialize({
-      workerOptions: JSON.stringify(reporter.dockerManager.workerOptions),
-      workerSystemOptions: JSON.stringify(reporter.dockerManager.workerSystemOptions)
+      workerOptions: reporter.dockerManager.workerOptions,
+      workerSystemOptions: reporter.dockerManager.workerSystemOptions
     })
 
     await axios({
@@ -89,6 +89,7 @@ describe('worker', () => {
     } catch (e) {
       e.message.should.containEql('{{#each')
       e.stack.should.containEql('handlebars')
+      e.weak.should.be.eql(true)
     }
   })
 })
@@ -119,15 +120,16 @@ describe('worker with small timeout', () => {
       })).init()
 
     worker = Worker({
+      overwriteExtensionPaths: false,
       httpPort: 3000,
-      workerTempDirectory,
-      workerTempAutoCleanupDirectory
+      tempDirectory: workerTempDirectory,
+      tempAutoCleanupDirectory: workerTempAutoCleanupDirectory
     })
     await worker.init()
 
     const serializedData = serializator.serialize({
-      workerOptions: JSON.stringify(reporter.dockerManager.workerOptions),
-      workerSystemOptions: JSON.stringify(reporter.dockerManager.workerSystemOptions)
+      workerOptions: reporter.dockerManager.workerOptions,
+      workerSystemOptions: reporter.dockerManager.workerSystemOptions
     })
 
     await axios({

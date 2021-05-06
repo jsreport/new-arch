@@ -7,6 +7,25 @@ const path = require('path')
 let defaultXlsxTemplate
 
 module.exports = (reporter, definition) => {
+  reporter.options.sandbox.modules.push({
+    alias: 'fsproxy.js',
+    path: path.join(__dirname, '../lib/fsproxy.js')
+  })
+
+  reporter.options.sandbox.modules.push({
+    alias: 'lodash',
+    path: require.resolve('lodash')
+  })
+
+  reporter.options.sandbox.modules.push({
+    alias: 'xml2js-preserve-spaces',
+    path: require.resolve('xml2js-preserve-spaces')
+  })
+
+  if (reporter.options.sandbox.allowedModules !== '*') {
+    reporter.options.sandbox.allowedModules.push('path')
+  }
+
   reporter.extensionsManager.recipes.push({
     name: 'xlsx',
     execute: (req, res) => recipe(reporter, definition, req, res)

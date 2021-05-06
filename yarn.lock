@@ -2,11 +2,6 @@
 # yarn lockfile v1
 
 
-"@assemblyscript/loader@^0.10.1":
-  version "0.10.1"
-  resolved "https://registry.yarnpkg.com/@assemblyscript/loader/-/loader-0.10.1.tgz#70e45678f06c72fa2e350e8553ec4a4d72b92e06"
-  integrity sha512-H71nDOOL8Y7kWRLqf6Sums+01Q5msqBW2KhDUTemh1tvY04eSkSXrK0uj/4mmY0Xr16/3zyZmsrxN7CKuRbNRg==
-
 "@azure/abort-controller@^1.0.0":
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/@azure/abort-controller/-/abort-controller-1.0.4.tgz#fd3c4d46c8ed67aace42498c8e2270960250eafd"
@@ -8290,26 +8285,12 @@ hdr-histogram-js@^1.0.0, hdr-histogram-js@^1.2.0:
     base64-js "^1.2.0"
     pako "^1.0.3"
 
-hdr-histogram-js@^2.0.1:
-  version "2.0.1"
-  resolved "https://registry.yarnpkg.com/hdr-histogram-js/-/hdr-histogram-js-2.0.1.tgz#ecb1ff2bcb6181c3e93ff4af9472c28c7e97284e"
-  integrity sha512-uPZxl1dAFnjUFHWLZmt93vUUvtHeaBay9nVNHu38SdOjMSF/4KqJUqa1Seuj08ptU1rEb6AHvB41X8n/zFZ74Q==
-  dependencies:
-    "@assemblyscript/loader" "^0.10.1"
-    base64-js "^1.2.0"
-    pako "^1.0.3"
-
 hdr-histogram-percentiles-obj@^2.0.1:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/hdr-histogram-percentiles-obj/-/hdr-histogram-percentiles-obj-2.0.1.tgz#7a4d52fa02087118c66469e6b66b74f9fbb44d82"
   integrity sha512-QBvbTxPlGwHj36IRF16XLoYEbUv5YEyO385kiS0IS3831fcSTNXTR785VtFFZ2ahY733z0ky8Jv4d6In+Ss+wQ==
   dependencies:
     hdr-histogram-js "^1.0.0"
-
-hdr-histogram-percentiles-obj@^3.0.0:
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/hdr-histogram-percentiles-obj/-/hdr-histogram-percentiles-obj-3.0.0.tgz#9409f4de0c2dda78e61de2d9d78b1e9f3cba283c"
-  integrity sha512-7kIufnBqdsBGcSZLPJwqHT3yhk1QTsSlFsVD3kx5ixH/AlgBs9yM1q6DPhXZ8f8gtdqgh7N7/5btRLpQsS2gHw==
 
 he@1.1.1:
   version "1.1.1"
@@ -12743,17 +12724,6 @@ piscina@1.6.3:
   optionalDependencies:
     nice-napi "^1.0.2"
 
-piscina@2.1.0:
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/piscina/-/piscina-2.1.0.tgz#947d937e0efd0de7a0e8bf10363c2e053c619413"
-  integrity sha512-3FgX36QyZcU4prKuNKl7/lWlOF3HAv9n7JpCjw09Zbql2KkzXXQ7E5xUS+RV5wV24Rn0r6Lr8jLdtU/cNZHAnA==
-  dependencies:
-    eventemitter-asyncresource "^1.0.0"
-    hdr-histogram-js "^2.0.1"
-    hdr-histogram-percentiles-obj "^3.0.0"
-  optionalDependencies:
-    nice-napi "^1.0.2"
-
 pkg-conf@^2.0.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/pkg-conf/-/pkg-conf-2.1.0.tgz#2126514ca6f2abfebd168596df18ba57867f0058"
@@ -13118,6 +13088,11 @@ prr@~1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/prr/-/prr-1.0.1.tgz#d3fc114ba06995a45ec6893f484ceb1d78f5f476"
   integrity sha1-0/wRS6BplaRexok/SEzrHXj19HY=
+
+ps-list@7.2.0:
+  version "7.2.0"
+  resolved "https://registry.yarnpkg.com/ps-list/-/ps-list-7.2.0.tgz#3d110e1de8249a4b178c9b1cf2a215d1e4e42fc0"
+  integrity sha512-v4Bl6I3f2kJfr5o80ShABNHAokIgY+wFDTQfE+X3zWYgSGQOCBeYptLZUpoOALBqO5EawmDN/tjTldJesd0ujQ==
 
 pseudomap@^1.0.1, pseudomap@^1.0.2:
   version "1.0.2"

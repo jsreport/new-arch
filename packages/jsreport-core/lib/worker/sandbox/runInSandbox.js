@@ -18,7 +18,7 @@ module.exports = (reporter) => {
     context.__rootDirectory = reporter.options.rootDirectory
     context.__parentModuleDirectory = reporter.options.parentModuleDirectory
     context.setTimeout = setTimeout
-    context.__handleError = handleError
+    context.__handleError = (err) => handleError(reporter, err)
 
     const { run, restore, sandbox } = safeSandbox(context, {
       onLog: (log) => {
@@ -75,7 +75,7 @@ module.exports = (reporter) => {
   }
 }
 
-function handleError (errValue) {
+function handleError (reporter, errValue) {
   let newError
 
   const isErrorObj = (
@@ -107,7 +107,10 @@ function handleError (errValue) {
     }
   }
 
-  throw newError
+  throw reporter.createError(null, {
+    original: newError,
+    statusCode: 400
+  })
 }
 
 function getTopLevelFunctions (code, cache) {

@@ -5,7 +5,6 @@
  * using phantomjs and then assembling excel Open XML.
  */
 
-const path = require('path')
 const extend = require('node.extend.without.arrays')
 const { htmlEngines } = require('./autoDetectHtmlEngines')()
 
@@ -43,8 +42,6 @@ module.exports = function (reporter, definition) {
     reporter.documentStore.model.entityTypes.TemplateType.baseXlsxTemplate = { type: 'jsreport.BaseXlsxTemplateRefType', schema: { type: 'null' } }
   }
 
-  definition.options.tmpDir = reporter.options.tempAutoCleanupDirectory
-
   definition.options.htmlEngines = Object.keys(htmlEngines)
 
   if (htmlEngines.chrome) {
@@ -57,11 +54,6 @@ module.exports = function (reporter, definition) {
 
   reporter.extensionsManager.recipes.push({
     name: 'html-to-xlsx'
-  })
-
-  reporter.options.sandbox.modules.push({
-    alias: 'tmpHandler.js',
-    path: path.join(__dirname, './tmpHandler.js')
   })
 
   reporter.initializeListeners.add(definition.name, () => {

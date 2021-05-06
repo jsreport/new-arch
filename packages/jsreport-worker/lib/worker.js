@@ -6,6 +6,7 @@ const serializator = require('serializator')
 const WorkersManager = require('advanced-workers')
 const WorkerRequest = require('./workerRequest')
 const { Lock } = require('semaphore-async-await')
+const camelCase = require('camelcase')
 const bootstrapFiles = []
 const currentRequests = {}
 
@@ -78,9 +79,13 @@ module.exports = (options = {}) => {
       if (!workersManager) {
         const workerOptions = reqBody.workerOptions
         for (const def of workerOptions.extensionsDefs) {
-          // we currently send paths from the main container/process so need to hack it
-          def.directory = path.join(__dirname, '../', def.directory.replace(/.*packages/, 'packages')).replace(/\\/g, '/')
+          if (options.overwriteExtensionPaths !== false) {
+            def.directory = options.extensions[camelCase(def.name)]
+          }
 
+          if (!def.directory) {
+            def.options.enabled = false
+          }
           // the worker gets already merged configs so we cant it just have in ENV in dockerfile
           if (def.name === 'chrome-pdf') {
             def.options.launchOptions = {
@@ -89,13 +94,22 @@ module.exports = (options = {}) => {
             }
           }
         }
-
-        for (const m of workerOptions.options.sandbox.modules) {
-          m.path = path.join(__dirname, '../', m.path.replace(/.*packages/, 'packages')).replace(/\\/g, '/')
+        workerOptions.options.chrome = {
+          ...workerOptions.options.chrome,
+          launchOptions: {
+            executablePath: 'google-chrome-stable',
+            args: ['--no-sandbox', '--disable-dev-shm-usage', '--disable-dev-profile']
+          }
         }
 
-        workerOptions.options.tempDirectory = '/tmp/jsreport'
-        workerOptions.options.tempAutoCleanupDirectory = '/tmp/jsreport/autocleanup'
+        workerOptions.options.tempDirectory = options.tempDirectory || '/tmp/jsreport'
+        workerOptions.options.tempAutoCleanupDirectory = options.tempAutoCleanupDirectory || '/tmp/jsreport/autocleanup'
+        await fs.promises.mkdir(workerOptions.options.tempDirectory, {
+          recursive: true
+        })
+        await fs.promises.mkdir(workerOptions.options.tempAutoCleanupDirectory, {
+          recursive: true
+        })
         const workerSystemOptions = reqBody.workerSystemOptions
         workerSystemOptions.workerModule = require.resolve('jsreport-core/lib/worker/workerHandler.js')
         workersManager = WorkersManager(workerOptions, workerSystemOptions)
@@ -149,7 +163,7 @@ module.exports = (options = {}) => {
     } catch (e) {
       console.error('Error when processing worker request', e)
       ctx.status = 400
-      ctx.body = { message: e.message, stack: e.stack }
+      ctx.body = { message: e.message, stack: e.stack, ...e }
     } finally {
       if (reqId && (ctx.status === 201 || ctx.status === 400)) {
         delete currentRequests[reqId]

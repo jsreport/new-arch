@@ -10,7 +10,6 @@ module.exports = function (message, options = {}) {
     error = new Error(message)
 
     if (original != null) {
-      // console.log(Object.keys(original.entity))
       error.entity = original.entity
       error.lineNumber = original.lineNumber
       error.property = original.property

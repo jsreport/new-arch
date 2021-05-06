@@ -8,7 +8,9 @@ module.exports = (reporter, extensionsDefs) => {
 
     async init () {
       for (const extension of this.extensions) {
-        await require(path.join(extension.directory, extension.worker))(reporter, extension)
+        if (extension.options.enabled !== false) {
+          await require(path.join(extension.directory, extension.worker))(reporter, extension)
+        }
       }
     }
   }

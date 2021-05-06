@@ -316,7 +316,52 @@ describe('docker manager', () => {
       })
     ])
 
-    containers[0].numberOfRestarts = 1
+    containers[0].numberOfRestarts.should.be.eql(1)
+  })
+
+  it('should restart if worker response doesnt have week attribute', async () => {
+    containers[0].handleReq(async (ctx) => {
+      ctx.status = 500
+      ctx.body = serializator.serialize({
+        message: 'handlebars failure'
+      })
+    })
+
+    await reporter.render({
+      template: {
+        recipe: 'html',
+        engine: 'none',
+        content: 'hello'
+      },
+      context: {
+        tenant: 'a'
+      }
+    }).should.be.rejected()
+
+    containers[0].numberOfRestarts.should.be.eql(1)
+  })
+
+  it('should not restart if worker response have week attribute', async () => {
+    containers[0].handleReq(async (ctx) => {
+      ctx.status = 400
+      ctx.body = serializator.serialize({
+        message: 'handlebars failure',
+        weak: true
+      })
+    })
+
+    await reporter.render({
+      template: {
+        recipe: 'html',
+        engine: 'none',
+        content: 'hello'
+      },
+      context: {
+        tenant: 'a'
+      }
+    }).should.be.rejected()
+
+    containers[0].numberOfRestarts.should.be.eql(0)
   })
 
   describe('remote', () => {

@@ -9,6 +9,16 @@
   },
   "reportTimeout": 60000,
   "extensions": {
+    "docker-workers": {
+      "enabled": true,
+      "container": {
+        "image": "worker",
+        "memory": "520m",
+        "memorySwap": "720m",
+        "cpus": "0.8"
+      },
+      "numberOfWorkers": 3
+    },
     "authentication": {
       "admin": {
         "username": "admin",
@@ -26,6 +36,7 @@
     "assets",
     "base",
     "data",
+    "docker-workers",
     "docx",
     "express",
     "freeze",

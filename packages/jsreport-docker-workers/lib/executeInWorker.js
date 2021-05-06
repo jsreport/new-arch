@@ -80,14 +80,18 @@ module.exports = ({ reporter, containersManager, ip, stack, serversChecker, disc
     try {
       result = await fn(container)
     } catch (e) {
-      if (container.remote !== true) {
-        reporter.logger.debug(`Work done (with error), releasing docker container (and restarting) ${container.id} (${container.url}) (discriminator: ${discriminator})`)
-
-        containersManager.recycle({ container, originalTenant: discriminator }).catch((err) => {
-          reporter.logger.error(`Error while trying to recycle container ${container.id} (${container.url}): ${err.stack}`)
-        })
-      } else {
+      if (container.remote) {
         reporter.logger.debug(`Work done (with error), release of used docker container was handled in remote worker (${container.url}) (discriminator: ${discriminator})`)
+      } else {
+        if (e.weak) {
+          reporter.logger.debug('Work done (with weak error), releasing container')
+          await containersManager.release(container)
+        } else {
+          reporter.logger.debug('Work done (with weak error), restart of container')
+          containersManager.recycle({ container, originalTenant: discriminator }).catch((err) => {
+            reporter.logger.error(`Error while trying to recycle container ${container.id} (${container.url}): ${err.stack}`)
+          })
+        }
       }
 
       throw e

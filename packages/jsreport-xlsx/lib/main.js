@@ -1,5 +1,4 @@
 const serialize = require('./serialize.js')
-const path = require('path')
 const extend = require('node.extend.without.arrays')
 const { response } = require('jsreport-office')
 
@@ -29,25 +28,6 @@ module.exports = (reporter, definition) => {
   reporter.extensionsManager.recipes.push({
     name: 'xlsx'
   })
-
-  reporter.options.sandbox.modules.push({
-    alias: 'fsproxy.js',
-    path: path.join(__dirname, '../lib/fsproxy.js')
-  })
-
-  reporter.options.sandbox.modules.push({
-    alias: 'lodash',
-    path: require.resolve('lodash')
-  })
-
-  reporter.options.sandbox.modules.push({
-    alias: 'xml2js-preserve-spaces',
-    path: require.resolve('xml2js-preserve-spaces')
-  })
-
-  if (reporter.options.sandbox.allowedModules !== '*') {
-    reporter.options.sandbox.allowedModules.push('path')
-  }
 
   reporter.documentStore.registerEntityType('XlsxTemplateType', {
     name: { type: 'Edm.String' },

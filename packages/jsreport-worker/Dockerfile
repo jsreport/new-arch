@@ -46,10 +46,29 @@ ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD true
 
 RUN npm i -g yarn
 COPY --chown=jsreport:jsreport packages /app/packages
-COPY --chown=jsreport:jsreport packages/jsreport-worker/package.build.json /app/package.json
+COPY --chown=jsreport:jsreport packages/jsreport-worker/build/package.build.json /app/package.json
 RUN yarn install --production
 COPY --chown=jsreport:jsreport packages/jsreport-worker /app
 
 ENV NODE_ENV production
+
+ENV extensions_browserClient /app/packages/jsreport-browser-client
+ENV extensions_chromePdf /app/packages/jsreport-chrome-pdf
+ENV extensions_docx /app/packages/jsreport-docx
+ENV extensions_handlebars /app/packages/jsreport-handlebars
+ENV extensions_data /app/packages/jsreport-data
+ENV extensions_assets /app/packages/jsreport-assets
+ENV extensions_htmlToXlsx /app/packages/jsreport-html-to-xlsx
+ENV extensions_jsrender /app/packages/jsreport-jsrender
+ENV extensions_pdfUtils /app/packages/jsreport-pdf-utils
+ENV extensions_pptx /app/packages/jsreport-pptx
+ENV extensions_xlsx /app/packages/jsreport-xlsx
+ENV extensions_scripts /app/packages/jsreport-scripts
+ENV extensions_staticPdf /app/packages/jsreport-static-pdf
+ENV extensions_text /app/packages/jsreport-text
+ENV extensions_versionControl /app/packages/jsreport-version-control
+ENV extensions_childTemplates /app/packages/jsreport-child-templates
+ENV extensions_base /app/packages/jsreport-base
+ENV extensions_reports /app/packages/jsreport-reports
 
 CMD ["node", "server.js"]
