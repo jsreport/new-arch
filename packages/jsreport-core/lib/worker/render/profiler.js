@@ -14,12 +14,32 @@ class Profiler {
         data.previousOperationId = req.context.profiling.lastOperationId
       }
     })
+
+    this.profiledRequestsMap = new Map()
+    const profileMessagesFushInterval = setInterval(async () => {
+      for (const id of [...this.profiledRequestsMap.keys()]) {
+        const profilingInfo = this.profiledRequestsMap.get(id)
+        if (profilingInfo) {
+          const batch = profilingInfo.batch
+          profilingInfo.batch = []
+          await this.reporter.executeMainAction('profile', batch, profilingInfo.req).catch((e) => this.reporter.logger.error(e, profilingInfo.req))
+        }
+      }
+    }, 100)
+    profileMessagesFushInterval.unref()
+
+    this.reporter.closeListeners.add('profiler', this, () => {
+      if (profileMessagesFushInterval) {
+        clearInterval(profileMessagesFushInterval)
+      }
+    })
   }
 
   emit (m, req, res) {
     m.timestamp = m.timpestamp || new Date().getTime()
 
     if (m.type === 'log' && !req.context.profiling) {
+      // this means there is an action running, but not the render, and it is logging...
       return this.reporter.executeMainAction('log', m, req)
     }
 
@@ -62,12 +82,11 @@ class Profiler {
       req.context.profiling.reqLastVal = stringifiedReq
     }
 
-    const emitPromise = this.reporter.executeMainAction('profile', m, req).catch((e) => this.reporter.logger.error(e, req))
-
-    if (m.type === 'error' || (m.type === 'operationEnd' && m.subtype === 'render' && !req.context.isChildRequest)) {
-      // we wait for the last operation to be sent
-      return emitPromise.then(() => m.id)
+    if (!this.profiledRequestsMap.has(req.context.rootId)) {
+      this.profiledRequestsMap.set(req.context.rootId, { req, batch: [] })
     }
+
+    this.profiledRequestsMap.get(req.context.rootId).batch.push(m)
     return m.id
   }
 
@@ -107,6 +126,14 @@ class Profiler {
         subtype: 'render',
         id: req.context.profiling.renderOperationId
       }, req, res)
+    }
+
+    if (!req.context.isChildRequest) {
+      const profilingInfo = this.profiledRequestsMap.get(req.context.rootId)
+      if (profilingInfo) {
+        this.profiledRequestsMap.delete(req.context.rootId)
+        await this.reporter.executeMainAction('profile', profilingInfo.batch, req)
+      }
     }
   }
 }

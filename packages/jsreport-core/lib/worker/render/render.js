@@ -113,6 +113,10 @@ module.exports = (reporter) => {
     const response = { meta: {} }
 
     try {
+      if (request.context.id == null) {
+        request.context.id = generateRequestId()
+      }
+
       await reporter.profiler.renderStart(request, parentReq, response)
       request.data = resolveReferences(request.data) || {}
 
@@ -120,10 +124,6 @@ module.exports = (reporter) => {
         response.meta.reportName = String(request.options.reportName)
       } else {
         response.meta.reportName = 'report'
-      }
-
-      if (request.context.id == null) {
-        request.context.id = generateRequestId()
       }
 
       request.context.reportCounter = ++reportCounter

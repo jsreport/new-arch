@@ -35,7 +35,11 @@ module.exports = (reporter) => {
     await reporter.blobStorage.append(req.context.profiling.entity.blobName, Buffer.from(JSON.stringify(m) + '\n'), req)
   }
 
-  reporter.registerMainAction('profile', emitProfile)
+  reporter.registerMainAction('profile', async (messages, req) => {
+    for (const message of messages) {
+      await emitProfile(message, req)
+    }
+  })
 
   reporter.attachProfiler = (req) => {
     req.context = req.context || {}
