@@ -57,7 +57,8 @@ module.exports = async (url, data, { executeMain, timeout }) => {
 
         data = {
           actionName: 'response',
-          req: data.req,
+          // we need just the request identification in the worker
+          req: { context: { rootId: data.req.context.rootId } },
           data: await executeMain(serializator.parse(res.data))
         }
       }
