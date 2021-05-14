@@ -24,14 +24,14 @@ module.exports = (app, reporter, exposedOptions) => {
 
   reporter.extensionsManager.extensions.forEach((e) => app.use('/extension/' + e.name, serveStatic(e.directory, { maxAge: oneMonth })))
 
-  function httpRender (renderRequest, req, res, stream, next) {
+  function httpRender (renderRequestContent, req, res, stream, next) {
     res.setTimeout(reporter.options.reportTimeout * 1.2)
     res.setHeader('X-XSS-Protection', 0)
 
-    renderRequest = Object.assign({}, renderRequest, {
-      options: renderRequest.options || {},
-      context: Object.assign({}, renderRequest.context, req.context)
-    })
+    const renderRequest = {
+      rawContent: renderRequestContent,
+      context: req.context
+    }
 
     let form
     let profiler
@@ -53,42 +53,21 @@ module.exports = (app, reporter, exposedOptions) => {
     }
 
     reporter.render(renderRequest).then((renderResponse) => {
-      const headers = {}
-
-      headers['Content-Type'] = renderResponse.meta.contentType
-
-      let reportName = renderResponse.meta.reportName
-      reportName = isInvalidASCII(reportName) ? 'report' : reportName
-
-      headers['Content-Disposition'] = `inline;filename=${reportName}.${renderResponse.meta.fileExtension}`
-
-      if (renderRequest.options['Content-Disposition']) {
-        headers['Content-Disposition'] = renderRequest.options['Content-Disposition']
-      }
-
-      if (renderRequest.options.download) {
-        headers['Content-Disposition'] = headers['Content-Disposition'].replace('inline;', 'attachment;')
-      }
-
       if (stream) {
         form.append('report', renderResponse.stream, {
-          filename: `${reportName}.${renderResponse.meta.fileExtension}`,
+          filename: `${renderResponse.meta.reportName}.${renderResponse.meta.fileExtension}`,
           contentLength: renderResponse.content.length,
-          header: headers
+          header: {
+            'Content-Type': renderResponse.meta.headers['Content-Type'],
+            'Content-Disposition': renderResponse.meta.headers['Content-Disposition']
+          }
         })
 
         form.end()
       } else {
-        for (const [key, value] of Object.entries(headers)) {
-          res.setHeader(key, value)
+        for (const key in renderResponse.meta.headers) {
+          res.setHeader(key, renderResponse.meta.headers[key])
         }
-
-        if (renderResponse.meta.headers) {
-          for (const key in renderResponse.meta.headers) {
-            res.setHeader(key, renderResponse.meta.headers[key])
-          }
-        }
-
         pipeline(renderResponse.stream, res, (pipeErr) => {
           if (pipeErr) {
             return next(pipeErr)
@@ -123,23 +102,11 @@ module.exports = (app, reporter, exposedOptions) => {
    * Main entry point for invoking report rendering
    */
   app.post('/api/report/:name?', (req, res, next) => {
-    if (!req.body.template) {
-      return next("Could not parse report template, aren't you missing content type?")
-    }
-
-    let doRender
-
     if (req.query.profilerDebug === 'true') {
-      doRender = reporter.express.streamRender
+      reporter.express.streamRender(req.body, req, res, next)
     } else {
-      doRender = reporter.express.render
+      reporter.express.render(req.body, req, res, next)
     }
-
-    doRender({
-      template: req.body.template,
-      data: req.body.data,
-      options: req.body.options
-    }, req, res, next)
   })
 
   app.get('/api/version', (req, res, next) => res.send(reporter.version))
@@ -204,8 +171,4 @@ module.exports = (app, reporter, exposedOptions) => {
       next(e)
     }
   })
-}
-
-function isInvalidASCII (str) {
-  return [...str].some(char => char.charCodeAt(0) > 127)
 }

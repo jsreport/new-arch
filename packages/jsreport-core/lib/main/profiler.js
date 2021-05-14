@@ -43,13 +43,13 @@ module.exports = (reporter) => {
 
   reporter.attachProfiler = (req) => {
     req.context = req.context || {}
-    req.context.rootId = generateRequestId()
+    req.context.rootId = reporter.generateRequestId()
     req.context.profiling = {
       isAttached: true
     }
-
     const profiler = new EventEmitter()
     profilersMap.set(req.context.rootId, profiler)
+
     return profiler
   }
 
@@ -98,7 +98,7 @@ module.exports = (reporter) => {
 
   reporter.renderErrorListeners.add('profiler', async (req, res, e) => {
     try {
-      if (req.context.profiling.entity != null) {
+      if (req.context.profiling?.entity != null) {
         await reporter.documentStore.collection('profiles').update({
           _id: req.context.profiling.entity._id
         }, {

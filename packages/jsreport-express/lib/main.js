@@ -149,8 +149,12 @@ const configureExpressApp = (app, reporter, definition, exposedOptions) => {
 
   app.use(cookieParser())
   app.use(bodyParser.urlencoded({ extended: true, limit: definition.options.inputRequestLimit || '50mb' }))
-  app.use(bodyParser.json({
+  app.use(/\/((?!api\/report).)*/, bodyParser.json({
     limit: definition.options.inputRequestLimit || '50mb'
+  }))
+  app.use('/api/report', bodyParser.text({
+    limit: definition.options.inputRequestLimit || '50mb',
+    type: '*/*'
   }))
 
   app.use(cors())

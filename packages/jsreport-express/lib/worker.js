@@ -15,4 +15,25 @@ module.exports = (reporter, definition) => {
       res.meta.headers = {}
     })
   })
+
+  reporter.afterRenderListeners.add('express', (req, res) => {
+    res.meta.headers.contentType = res.meta.contentType
+    if (!res.meta.headers['Content-Disposition']) {
+      res.meta.reportName = isInvalidASCII(res.meta.reportName) ? 'report' : res.meta.reportName
+
+      res.meta.headers['Content-Disposition'] = `inline;filename=${res.meta.reportName}.${res.meta.fileExtension}`
+
+      if (req.options['Content-Disposition']) {
+        res.meta.headers['Content-Disposition'] = req.options['Content-Disposition']
+      }
+
+      if (req.options.download) {
+        res.meta.headers['Content-Disposition'] = res.meta.headers['Content-Disposition'].replace('inline;', 'attachment;')
+      }
+    }
+  })
+}
+
+function isInvalidASCII (str) {
+  return [...str].some(char => char.charCodeAt(0) > 127)
 }

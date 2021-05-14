@@ -1,4 +1,5 @@
 const WorkerReporter = require('./reporter')
+const omit = require('lodash.omit')
 
 module.exports = (userInitData, { executeMain, convertUint8ArrayToBuffer }) => {
   const reporter = new WorkerReporter(userInitData, async (actionName, data, req) => {
@@ -9,6 +10,7 @@ module.exports = (userInitData, { executeMain, convertUint8ArrayToBuffer }) => {
     convertUint8ArrayToBuffer(actionRes)
     return actionRes
   })
+  let parsedReq
   return {
     init: () => {
       return reporter.init()
@@ -17,12 +19,24 @@ module.exports = (userInitData, { executeMain, convertUint8ArrayToBuffer }) => {
     execute: ({ actionName, data, req }) => {
       // we need to convert back arrays to buffer because transfer to/from thread converts buffers to array
       convertUint8ArrayToBuffer(data)
-
-      // for perf optimization we skip possibly big object data, which doesn't includes buffers anyway
-      const reqData = req.data
-      delete req.data
       convertUint8ArrayToBuffer(req)
-      req.data = reqData
+
+      if (actionName === 'parse') {
+        parsedReq = {
+          ...JSON.parse(data.rawContent),
+          context: data.context
+        }
+
+        return omit(parsedReq, 'data')
+      }
+
+      if (parsedReq) {
+        if (parsedReq.context.rootId === req.context.rootId) {
+          req.data = parsedReq.data
+        }
+
+        parsedReq = null
+      }
 
       return reporter.executeWorkerAction(actionName, data, req)
     }

@@ -295,35 +295,48 @@ class MainReporter extends Reporter {
       throw new Error('Not initialized, you need to call jsreport.init().then before rendering')
     }
 
-    const request = Request(req, parentReq)
-
-    // TODO: we will probably validate in the thread
-    if (this.entityTypeValidator.getSchema('TemplateType') != null) {
-      const templateValidationResult = this.entityTypeValidator.validate('TemplateType', request.template, { rootPrefix: 'template' })
-
-      if (!templateValidationResult.valid) {
-        throw this.createError(`template input in request contain values that does not match the defined schema. ${templateValidationResult.fullErrorMessage}`, {
-          statusCode: 400
-        })
-      }
+    let workerThatAlreadyParsed
+    if (req.rawContent) {
+      req.context = req.context || {}
+      req.context.rootId = req.context.rootId || generateRequestId()
+      const { result, workerHandle } = await this._workersManager.executeWorker({
+        actionName: 'parse',
+        data: req
+      }, {
+        keepActive: true
+      })
+      req = result
+      workerThatAlreadyParsed = workerHandle
     }
+    let request
+    const response = { meta: {} }
+    try {
+      request = Request(req, parentReq)
 
-    request.context.rootId = request.context.rootId || generateRequestId()
-    request.context.id = request.context.rootId
+      // TODO: we will probably validate in the thread
+      if (this.entityTypeValidator.getSchema('TemplateType') != null) {
+        const templateValidationResult = this.entityTypeValidator.validate('TemplateType', request.template, { rootPrefix: 'template' })
 
-    let reportTimeout = this.options.reportTimeout
+        if (!templateValidationResult.valid) {
+          throw this.createError(`template input in request contain values that does not match the defined schema. ${templateValidationResult.fullErrorMessage}`, {
+            statusCode: 400
+          })
+        }
+      }
 
-    if (
-      this.options.enableRequestReportTimeout &&
+      request.context.rootId = request.context.rootId || generateRequestId()
+      request.context.id = request.context.rootId
+
+      let reportTimeout = this.options.reportTimeout
+
+      if (
+        this.options.enableRequestReportTimeout &&
       request.options &&
       request.options.timeout != null
-    ) {
-      reportTimeout = request.options.timeout
-    }
+      ) {
+        reportTimeout = request.options.timeout
+      }
 
-    const response = { meta: {} }
-
-    try {
       await this.beforeRenderListeners.fire(request, response)
 
       if (request.context.isFinished) {
@@ -332,7 +345,8 @@ class MainReporter extends Reporter {
       }
 
       const responseResult = await this.executeWorkerAction('render', {}, {
-        timeout: reportTimeout + this.options.reportTimeoutMargin
+        timeout: reportTimeout + this.options.reportTimeoutMargin,
+        workerHandle: workerThatAlreadyParsed
       }, request)
 
       Object.assign(response, responseResult)
@@ -350,6 +364,10 @@ class MainReporter extends Reporter {
     }
 
     return response
+  }
+
+  generateRequestId () {
+    return generateRequestId()
   }
 
   registerWorkersManagerFactory (workersManagerFactory) {
@@ -419,6 +437,7 @@ class MainReporter extends Reporter {
       // TODO add worker timeout
       timeout: options.timeout || 60000,
       timeoutErrorMessage: options.timeoutErrorMessage || ('Timeout during worker action ' + actionName),
+      workerHandle: options.workerHandle,
       executeMain: async (data) => {
         return this._invokeMainAction(data, req)
       }

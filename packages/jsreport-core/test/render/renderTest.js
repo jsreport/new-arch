@@ -447,6 +447,29 @@ describe('render', () => {
     options.should.have.property('c')
     options.c.should.be.eql('x')
   })
+
+  it('should accept string render request', async () => {
+    reporter.tests.beforeRenderEval((req, res) => {
+      req.template.content = JSON.stringify(req)
+    })
+
+    const res = await reporter.render({
+      rawContent: JSON.stringify({
+        template: {
+          content: 'hello',
+          engine: 'none',
+          recipe: 'html'
+        },
+        data: {
+          someProp: 'foo'
+        }
+      })
+    })
+    const req = JSON.parse(res.content.toString())
+
+    req.data.someProp.should.be.eql('foo')
+    req.template.content.should.be.eql('hello')
+  })
 })
 
 describe('render (single timeout)', () => {

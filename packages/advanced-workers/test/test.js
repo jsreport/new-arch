@@ -206,4 +206,25 @@ describe('advanced workers', () => {
     }
     await Promise.all(promises)
   })
+
+  it('keepActive shouldnt release worker and next execute should reach it', async () => {
+    workers = Workers({ }, {
+      workerModule: path.join(__dirname, 'workers', 'simple.js'),
+      numberOfWorkers: 1
+    })
+
+    await workers.init()
+
+    const { workerHandle } = await workers.executeWorker({}, {
+      keepActive: true
+    })
+
+    workers.pool.workers[workerHandle].isBusy.should.be.true()
+
+    const result = await workers.executeWorker({}, {
+      workerHandle
+    })
+
+    result.workerState.counter.should.be.eql(2)
+  })
 })

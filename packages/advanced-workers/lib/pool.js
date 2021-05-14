@@ -18,10 +18,22 @@ module.exports = ({
       return Promise.all(workersCreateFn.map(fn => fn()))
     },
 
-    async runInWorker (fn) {
-      const worker = await this._allocateWorker()
+    async runInWorker (fn, options = {}) {
+      let worker
+      if (options.workerHandle != null) {
+        worker = this.workers[options.workerHandle]
+      } else {
+        worker = await this._allocateWorker()
+      }
+
       try {
         const r = await fn(worker)
+        if (options.keepActive) {
+          return {
+            result: r,
+            workerHandle: this.workers.indexOf(worker)
+          }
+        }
         worker.isBusy = false
         return r
       } catch (e) {
