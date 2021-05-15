@@ -62,7 +62,7 @@ module.exports = (app, reporter, exposedOptions) => {
             'Content-Disposition': renderResponse.meta.headers['Content-Disposition']
           }
         })
-
+       
         form.end()
       } else {
         for (const key in renderResponse.meta.headers) {

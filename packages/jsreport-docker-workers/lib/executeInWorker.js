@@ -13,7 +13,7 @@ module.exports = ({ reporter, containersManager, ip, stack, serversChecker, disc
     discriminator,
     req
   }) {
-    reporter.logger.debug(`Processing render with discriminator: ${discriminator}`)
+    reporter.logger.debug(`Allocating worker discriminator: ${discriminator}`)
     const serverPort = reporter.express ? reporter.express.server.address().port : null
 
     const currentTenantWorker = await reporter.documentStore.internalCollection('tenantWorkers').findOne({
@@ -51,9 +51,6 @@ module.exports = ({ reporter, containersManager, ip, stack, serversChecker, disc
 
     try {
       const container = await containersManager.allocate({ req, tenant: discriminator })
-
-      reporter.logger.debug(`Wait for container ${container.id} healthy at ${container.url} (discriminator: ${discriminator})`)
-
       reporter.logger.debug(`Container ${container.id} at ${container.url} ready (discriminator: ${discriminator})`)
 
       return container
@@ -63,17 +60,23 @@ module.exports = ({ reporter, containersManager, ip, stack, serversChecker, disc
     }
   }
 
-  return async (req, fn) => {
+  return async (req, { keepActive, workerHandle }, fn) => {
     const discriminator = get(req, discriminatorPath)
 
     if (discriminator == null) {
       throw reporter.createError(`No value found in request using discriminator "${discriminatorPath}", not possible to delegate requests to docker workers`)
     }
 
-    const container = await allocateWorker({
-      discriminator,
-      req
-    })
+    let container
+    if (workerHandle != null) {
+      reporter.logger.debug(`Using workerHandle from previous keepAlive discriminator: ${discriminator}`)
+      container = containersManager.containersPool.containers[workerHandle]
+    } else {
+      container = await allocateWorker({
+        discriminator,
+        req
+      })
+    }
 
     let result
 
@@ -95,6 +98,13 @@ module.exports = ({ reporter, containersManager, ip, stack, serversChecker, disc
       }
 
       throw e
+    }
+    if (keepActive) {
+      reporter.logger.debug(`Work done, with keepActive for container ${container.id} (${container.url}) (discriminator: ${discriminator})`)
+      return {
+        result,
+        workerHandle: containersManager.containersPool.containers.indexOf(container)
+      }
     }
 
     if (container.remote !== true) {

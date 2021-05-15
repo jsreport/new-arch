@@ -94,6 +94,45 @@ describe('docker manager', () => {
     res.content.toString().should.be.eql('from worker')
   })
 
+  it('should be able to render report through string based request', async () => {
+    containers[0].handleReq(async (ctx) => {
+      const reqData = serializator.parse(ctx.request.rawBody)
+
+      if (reqData.actionName === 'parse') {
+        reqData.keepActive.should.be.true()
+        ctx.response.status = 201
+        ctx.body = serializator.serialize({
+          ...JSON.parse(reqData.req.rawContent),
+          context: reqData.req.context
+        })
+
+        return
+      }
+
+      reqData.actionName.should.be.eql('render')
+      reqData.req.template.content.should.be.eql('hello')
+
+      ctx.response.status = 201
+      ctx.body = serializator.serialize({
+        content: Buffer.from('from worker')
+      })
+    })
+
+    const res = await reporter.render({
+      rawContent: JSON.stringify({
+        template: {
+          recipe: 'html',
+          engine: 'none',
+          content: 'hello'
+        }
+      }),
+      context: {
+        tenant: 'a'
+      }
+    })
+    res.content.toString().should.be.eql('from worker')
+  })
+
   it('should be able to callback to main', async () => {
     containers[0].handleReq(async (ctx) => {
       const reqData = serializator.parse(ctx.request.rawBody)

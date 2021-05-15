@@ -13,6 +13,7 @@
         "jsreport-chrome-pdf": "1.10.0",
         "jsreport-core": "2.10.1",
         "jsreport-docx": "2.9.0",
+        "jsreport-express": "2.8.1",
         "jsreport-handlebars": "2.1.0",
         "jsreport-html-to-xlsx": "2.8.3",
         "jsreport-jsrender": "2.1.1",

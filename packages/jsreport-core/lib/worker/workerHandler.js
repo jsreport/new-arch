@@ -23,8 +23,8 @@ module.exports = (userInitData, { executeMain, convertUint8ArrayToBuffer }) => {
 
       if (actionName === 'parse') {
         parsedReq = {
-          ...JSON.parse(data.rawContent),
-          context: data.context
+          ...JSON.parse(req.rawContent),
+          context: req.context
         }
 
         return omit(parsedReq, 'data')

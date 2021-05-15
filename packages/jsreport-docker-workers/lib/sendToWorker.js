@@ -1,7 +1,7 @@
 const axios = require('axios')
 const serializator = require('serializator')
 
-module.exports = async (url, data, { executeMain, timeout }) => {
+module.exports = async (url, data, { executeMain, timeout, keepActive }) => {
   return new Promise((resolve, reject) => {
     let isDone = false
     setTimeout(() => {
@@ -15,7 +15,7 @@ module.exports = async (url, data, { executeMain, timeout }) => {
 
     ;(async () => {
       while (true && !isDone) {
-        const stringBody = serializator.serialize({ ...data, timeout })
+        const stringBody = serializator.serialize({ ...data, timeout, keepActive })
         let res
         try {
           res = await axios({
@@ -33,16 +33,19 @@ module.exports = async (url, data, { executeMain, timeout }) => {
             timeout: timeout
           })
         } catch (err) {
+          isDone = true
           if (!err.response?.data) {
-            isDone = true
             return reject(new Error('Error when communicating with worker: ' + err.message))
           }
 
-          const errorData = JSON.parse(err.response.data)
-          const workerError = new Error(errorData.message)
-          Object.assign(workerError, errorData)
-          isDone = true
-          return reject(workerError)
+          try {
+            const errorData = JSON.parse(err.response.data)
+            const workerError = new Error(errorData.message)
+            Object.assign(workerError, errorData)
+            return reject(workerError)
+          } catch (e) {
+            return reject(new Error('Error when communicating with worker: ' + err.response.data))
+          }
         }
 
         if (res.status === 201) {

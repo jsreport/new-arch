@@ -301,9 +301,11 @@ class MainReporter extends Reporter {
       req.context.rootId = req.context.rootId || generateRequestId()
       const { result, workerHandle } = await this._workersManager.executeWorker({
         actionName: 'parse',
-        data: req
+        req,
+        data: {}
       }, {
-        keepActive: true
+        keepActive: true,
+        timeout: this.options.reportTimeout
       })
       req = result
       workerThatAlreadyParsed = workerHandle

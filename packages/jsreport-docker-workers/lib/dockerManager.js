@@ -65,13 +65,15 @@ module.exports = (reporter, {
     req
   }, {
     executeMain,
-    timeout
+    timeout,
+    keepActive,
+    workerHandle
   }) {
-    return executeInWorker(req, (worker) => sendToWorker(worker.url, {
+    return executeInWorker(req, { keepActive, workerHandle }, (worker) => sendToWorker(worker.url, {
       actionName,
       data,
       req
-    }, { executeMain, timeout }))
+    }, { executeMain, timeout, keepActive }))
   }
 
   return {

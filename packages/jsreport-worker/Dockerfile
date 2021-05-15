@@ -55,6 +55,7 @@ ENV NODE_ENV production
 ENV extensions_browserClient /app/packages/jsreport-browser-client
 ENV extensions_chromePdf /app/packages/jsreport-chrome-pdf
 ENV extensions_docx /app/packages/jsreport-docx
+ENV extensions_express /app/packages/jsreport-express
 ENV extensions_handlebars /app/packages/jsreport-handlebars
 ENV extensions_data /app/packages/jsreport-data
 ENV extensions_assets /app/packages/jsreport-assets

@@ -37,6 +37,7 @@ module.exports = ({
         worker.isBusy = false
         return r
       } catch (e) {
+        worker.isBusy = false
         if (e.code === 'WORKER_TIMEOUT') {
           worker.close()
           this.workers[this.workers.indexOf(worker)] = await createWorker({ timeout: this.initTimeout })

@@ -87,6 +87,7 @@ module.exports = (options = {}) => {
             def.options.enabled = false
           }
           // the worker gets already merged configs so we cant it just have in ENV in dockerfile
+          // TODO solve this somehow
           if (def.name === 'chrome-pdf') {
             def.options.launchOptions = {
               executablePath: 'google-chrome-stable',
@@ -123,8 +124,6 @@ module.exports = (options = {}) => {
       if (!reqId) {
         throw new Error('Wrong worker request body')
       }
-
-      console.log(reqId, reqBody.actionName)
 
       if (currentRequests[reqId]) {
         const workerRequest = currentRequests[reqId]

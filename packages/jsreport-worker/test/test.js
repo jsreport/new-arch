@@ -92,6 +92,23 @@ describe('worker', () => {
       e.weak.should.be.eql(true)
     }
   })
+
+  it('should be able to render from string', async () => {
+    const res = await reporter.render(
+      {
+        rawContent: JSON.stringify({
+          template: {
+            content: '{{message}}',
+            engine: 'handlebars',
+            recipe: 'html'
+          },
+          data: {
+            message: 'hello'
+          }
+        })
+      })
+    res.content.toString().should.be.eql('hello')
+  })
 })
 
 describe('worker with small timeout', () => {
