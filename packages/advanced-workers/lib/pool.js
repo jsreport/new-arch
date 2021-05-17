@@ -18,47 +18,37 @@ module.exports = ({
       return Promise.all(workersCreateFn.map(fn => fn()))
     },
 
-    async runInWorker (fn, options = {}) {
-      let worker
-      if (options.workerHandle != null) {
-        worker = this.workers[options.workerHandle]
-      } else {
-        worker = await this._allocateWorker()
-      }
-
-      try {
-        const r = await fn(worker)
-        if (options.keepActive) {
-          return {
-            result: r,
-            workerHandle: this.workers.indexOf(worker)
-          }
-        }
-        worker.isBusy = false
-        return r
-      } catch (e) {
-        worker.isBusy = false
-        if (e.code === 'WORKER_TIMEOUT') {
-          worker.close()
-          this.workers[this.workers.indexOf(worker)] = await createWorker({ timeout: this.initTimeout })
-        }
-        throw e
-      } finally {
-        this._flushTasksQueue()
-      }
-    },
-
     async close () {
       for (const w of this.workers) {
         await w.close()
       }
     },
 
-    async _allocateWorker () {
+    async allocate () {
       const worker = this.workers.find(w => w.isBusy === false)
       if (worker) {
         worker.isBusy = true
-        return worker
+        return {
+          release: async () => {
+            if (worker.needRestart) {
+              worker.close()
+              this.workers[this.workers.indexOf(worker)] = await createWorker({ timeout: this.initTimeout })
+            }
+            worker.isBusy = false
+            this._flushTasksQueue()
+          },
+
+          execute: async (userData, options = {}) => {
+            try {
+              return await worker.execute(userData, options)
+            } catch (e) {
+              if (e.code === 'WORKER_TIMEOUT') {
+                worker.needRestart = true
+              }
+              throw e
+            }
+          }
+        }
       }
 
       return new Promise((resolve, reject) => {
@@ -72,7 +62,7 @@ module.exports = ({
       }
 
       const task = this.tasksQueue.shift()
-      this._allocateWorker().then(task.resolve).catch(task.reject)
+      this.allocate().then(task.resolve).catch(task.reject)
     }
   }
 }

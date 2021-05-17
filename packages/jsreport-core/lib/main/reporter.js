@@ -295,24 +295,27 @@ class MainReporter extends Reporter {
       throw new Error('Not initialized, you need to call jsreport.init().then before rendering')
     }
 
-    let workerThatAlreadyParsed
-    if (req.rawContent) {
-      req.context = req.context || {}
-      req.context.rootId = req.context.rootId || generateRequestId()
-      const { result, workerHandle } = await this._workersManager.executeWorker({
-        actionName: 'parse',
-        req,
-        data: {}
-      }, {
-        keepActive: true,
-        timeout: this.options.reportTimeout
-      })
-      req = result
-      workerThatAlreadyParsed = workerHandle
-    }
-    let request
-    const response = { meta: {} }
+    req.context = req.context || {}
+    req.context.rootId = req.context.rootId || generateRequestId()
+
+    let request, response
+    const worker = await this._workersManager.allocate({
+      timeout: this.options.reportTimeout,
+      ...req
+    })
     try {
+      if (req.rawContent) {
+        const result = await worker.execute({
+          actionName: 'parse',
+          req,
+          data: {}
+        }, {
+          timeout: this.options.reportTimeout
+        })
+        req = result
+      }
+
+      response = { meta: {} }
       request = Request(req, parentReq)
 
       // TODO: we will probably validate in the thread
@@ -348,12 +351,13 @@ class MainReporter extends Reporter {
 
       const responseResult = await this.executeWorkerAction('render', {}, {
         timeout: reportTimeout + this.options.reportTimeoutMargin,
-        workerHandle: workerThatAlreadyParsed
+        worker
       }, request)
 
       Object.assign(response, responseResult)
       await this.afterRenderListeners.fire(request, response)
       response.stream = Readable.from(response.content)
+      return response
     } catch (err) {
       if (err.code === 'WORKER_TIMEOUT') {
         err.message = 'Report timeout'
@@ -363,9 +367,9 @@ class MainReporter extends Reporter {
       }
       await this.renderErrorListeners.fire(request, response, err)
       throw err
+    } finally {
+      await worker.release(req)
     }
-
-    return response
   }
 
   generateRequestId () {
@@ -425,27 +429,34 @@ class MainReporter extends Reporter {
   async executeWorkerAction (actionName, data, options = {}, req) {
     req.context.rootId = req.context.rootId || generateRequestId()
 
-    const result = await this._workersManager.executeWorker({
-      actionName,
-      data,
-      // we set just known props, to avoid clonning failures on expres req properties
-      req: {
-        context: req.context,
-        template: req.template,
-        data: req.data,
-        options: req.options
-      }
-    }, {
+    const worker = options.worker ? options.worker : await this._workersManager.allocate(req)
+
+    try {
+      const result = await worker.execute({
+        actionName,
+        data,
+        // we set just known props, to avoid clonning failures on expres req properties
+        req: {
+          context: req.context,
+          template: req.template,
+          data: req.data,
+          options: req.options
+        }
+      }, {
       // TODO add worker timeout
-      timeout: options.timeout || 60000,
-      timeoutErrorMessage: options.timeoutErrorMessage || ('Timeout during worker action ' + actionName),
-      workerHandle: options.workerHandle,
-      executeMain: async (data) => {
-        return this._invokeMainAction(data, req)
+        timeout: options.timeout || 60000,
+        timeoutErrorMessage: options.timeoutErrorMessage || ('Timeout during worker action ' + actionName),
+        executeMain: async (data) => {
+          return this._invokeMainAction(data, req)
+        }
+      })
+      this._workersManager.convertUint8ArrayToBuffer(result)
+      return result
+    } finally {
+      if (!options.worker) {
+        await worker.release(req)
       }
-    })
-    this._workersManager.convertUint8ArrayToBuffer(result)
-    return result
+    }
   }
 
   /**

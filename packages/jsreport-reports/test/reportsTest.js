@@ -263,7 +263,7 @@ describe('with reports extension', () => {
   })
 
   it('nested requests with save true should also produce reports', async () => {
-    await reporter.beforeRenderListeners.add('test', async (req, res) => {
+    reporter.tests.beforeRenderEval(async (req, res, { reporter }) => {
       if (req.template.content === 'main') {
         await reporter.render({
           template: {

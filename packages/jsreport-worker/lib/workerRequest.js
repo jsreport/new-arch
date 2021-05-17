@@ -1,6 +1,7 @@
-module.exports = ({ data, uuid }) => {
+module.exports = ({ data, uuid, worker }) => {
   return {
     data,
+    worker,
     callback (resp) {
       return new Promise((resolve, reject) => {
         this._resolve(resp)

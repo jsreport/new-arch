@@ -19,11 +19,12 @@ describe('advanced workers', () => {
       numberOfWorkers: 1
     })
     await workers.init()
-    const result = await workers.executeWorker({
+    const { execute } = await workers.allocate()
+
+    const result = await execute({
       someData: 'hello',
       myBuf: Buffer.from('abc')
     })
-
     workers.convertUint8ArrayToBuffer(result)
 
     result.actionData.someData.should.be.eql('hello')
@@ -39,9 +40,12 @@ describe('advanced workers', () => {
       numberOfWorkers: 1
     })
     await workers.init()
-    await workers.executeWorker({})
-    const result = await workers.executeWorker({})
-
+    const worker1 = await workers.allocate()
+    await worker1.execute({})
+    await worker1.release()
+    const worker2 = await workers.allocate()
+    const result = await worker2.execute({})
+    await worker2.release()
     result.workerState.counter.should.be.eql(2)
   })
 
@@ -53,7 +57,8 @@ describe('advanced workers', () => {
 
     await workers.init()
 
-    const result = await workers.executeWorker({
+    const worker = await workers.allocate()
+    const result = await worker.execute({
       someData: 'hello'
     }, {
       executeMain: (data) => (data)
@@ -70,7 +75,8 @@ describe('advanced workers', () => {
     await workers.init()
 
     try {
-      await workers.executeWorker({
+      const worker = await workers.allocate()
+      await worker.execute({
         someData: 'hello'
       })
       throw new Error('should have failed')
@@ -89,7 +95,8 @@ describe('advanced workers', () => {
     await workers.init()
 
     try {
-      await workers.executeWorker({
+      const worker = await workers.allocate()
+      await worker.execute({
         someData: 'hello'
       })
       throw new Error('should have failed')
@@ -108,7 +115,8 @@ describe('advanced workers', () => {
     await workers.init()
 
     try {
-      await workers.executeWorker({
+      const worker = await workers.allocate()
+      await worker.execute({
         someData: 'hello'
       }, {
         executeMain: (data) => {
@@ -133,7 +141,8 @@ describe('advanced workers', () => {
     await workers.init()
 
     let wasResolved = false
-    await workers.executeWorker({}, {
+    const worker = await workers.allocate()
+    await worker.execute({}, {
       executeMain: () => {
         return new Promise((resolve) => {
           setTimeout(() => {
@@ -154,8 +163,8 @@ describe('advanced workers', () => {
     })
 
     await workers.init()
-
-    const res = await workers.executeWorker({}, {
+    const worker = await workers.allocate()
+    const res = await worker.execute({}, {
       executeMain: (d) => {
         return new Promise((resolve) => {
           setTimeout(() => resolve(d), Math.round(Math.random() * 10))
@@ -175,10 +184,14 @@ describe('advanced workers', () => {
     })
 
     await workers.init()
-
-    return workers.executeWorker({}, {
-      timeout: 20
-    }).should.be.rejectedWith(/Timeout/)
+    const worker = await workers.allocate()
+    try {
+      await worker.execute({}, {
+        timeout: 20
+      }).should.be.rejectedWith(/Timeout/)
+    } finally {
+      await worker.release()
+    }
   })
 
   it('should tollerate second close', async () => {
@@ -199,32 +212,14 @@ describe('advanced workers', () => {
     })
 
     await workers.init()
-
     const promises = []
     for (let i = 0; i < 5; i++) {
-      promises.push(workers.executeWorker({}))
+      promises.push((async () => {
+        const worker = await workers.allocate()
+        await worker.execute({})
+        return worker.release()
+      })())
     }
     await Promise.all(promises)
-  })
-
-  it('keepActive shouldnt release worker and next execute should reach it', async () => {
-    workers = Workers({ }, {
-      workerModule: path.join(__dirname, 'workers', 'simple.js'),
-      numberOfWorkers: 1
-    })
-
-    await workers.init()
-
-    const { workerHandle } = await workers.executeWorker({}, {
-      keepActive: true
-    })
-
-    workers.pool.workers[workerHandle].isBusy.should.be.true()
-
-    const result = await workers.executeWorker({}, {
-      workerHandle
-    })
-
-    result.workerState.counter.should.be.eql(2)
   })
 })

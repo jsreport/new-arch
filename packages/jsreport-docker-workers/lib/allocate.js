@@ -1,4 +1,5 @@
 const get = require('lodash.get')
+const sendToWorker = require('./sendToWorker')
 
 module.exports = ({ reporter, containersManager, ip, stack, serversChecker, discriminatorPath }) => {
   containersManager.onRecycle(({ container, originalTenant }) => {
@@ -9,7 +10,7 @@ module.exports = ({ reporter, containersManager, ip, stack, serversChecker, disc
     })
   })
 
-  async function allocateWorker ({
+  async function allocateContainer ({
     discriminator,
     req
   }) {
@@ -60,60 +61,82 @@ module.exports = ({ reporter, containersManager, ip, stack, serversChecker, disc
     }
   }
 
-  return async (req, { keepActive, workerHandle }, fn) => {
+  return async (req) => {
     const discriminator = get(req, discriminatorPath)
 
     if (discriminator == null) {
       throw reporter.createError(`No value found in request using discriminator "${discriminatorPath}", not possible to delegate requests to docker workers`)
     }
 
-    let container
-    if (workerHandle != null) {
-      reporter.logger.debug(`Using workerHandle from previous keepAlive discriminator: ${discriminator}`)
-      container = containersManager.containersPool.containers[workerHandle]
-    } else {
-      container = await allocateWorker({
-        discriminator,
-        req
-      })
-    }
-
-    let result
+    const container = await allocateContainer({
+      discriminator,
+      req
+    })
 
     try {
-      result = await fn(container)
+      await sendToWorker(container.url, {
+        req: {
+          context: req.context
+        }
+      }, {
+        systemAction: 'allocate',
+        timeout: req.timeout
+      })
     } catch (e) {
-      if (container.remote) {
-        reporter.logger.debug(`Work done (with error), release of used docker container was handled in remote worker (${container.url}) (discriminator: ${discriminator})`)
-      } else {
-        if (e.weak) {
-          reporter.logger.debug('Work done (with weak error), releasing container')
-          await containersManager.release(container)
-        } else {
-          reporter.logger.debug('Work done (with weak error), restart of container')
+      await containersManager.release(container)
+      reporter.logger.warn(`Error while trying to allocate worker in container ${container.id} (${container.url}): ${e.stack}`)
+      throw reporter.createError('Unable to allocate worker')
+    }
+
+    return {
+      rootId: req.context.rootId,
+      async execute (userData, options) {
+        try {
+          return await sendToWorker(container.url, userData, {
+            ...options,
+            systemAction: 'execute'
+          })
+        } catch (e) {
+          if (!e.weak) {
+            container.needRestart = true
+          }
+          throw e
+        }
+      },
+
+      async release () {
+        let releaseError
+        try {
+          await sendToWorker(container.url, {
+            req: {
+              context: {
+                rootId: this.rootId
+              }
+            }
+          }, {
+            systemAction: 'release',
+            timeout: req.timeout
+          })
+        } catch (e) {
+          releaseError = e
+        }
+
+        if (container.remote === true) {
+          reporter.logger.debug(`Release of used docker container was handled in remote worker (${container.url}) (discriminator: ${discriminator})`)
+          return
+        }
+
+        if (container.needRestart || releaseError) {
+          container.needRestart = false
+          reporter.logger.debug(`Releasing (with hard error), restart of container ${container.id} (${container.url}`)
           containersManager.recycle({ container, originalTenant: discriminator }).catch((err) => {
             reporter.logger.error(`Error while trying to recycle container ${container.id} (${container.url}): ${err.stack}`)
           })
+        } else {
+          reporter.logger.debug(`Releasing container ${container.id} (${container.url})`)
+          await containersManager.release(container)
         }
       }
-
-      throw e
     }
-    if (keepActive) {
-      reporter.logger.debug(`Work done, with keepActive for container ${container.id} (${container.url}) (discriminator: ${discriminator})`)
-      return {
-        result,
-        workerHandle: containersManager.containersPool.containers.indexOf(container)
-      }
-    }
-
-    if (container.remote !== true) {
-      reporter.logger.debug(`Work done, releasing docker container ${container.id} (${container.url}) (discriminator: ${discriminator})`)
-      await containersManager.release(container)
-    } else {
-      reporter.logger.debug(`Work done, release of used docker container was handled in remote worker (${container.url}) (discriminator: ${discriminator})`)
-    }
-
-    return result
   }
 }

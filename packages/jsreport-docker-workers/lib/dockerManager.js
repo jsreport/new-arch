@@ -1,7 +1,6 @@
 const createContainersManager = require('./containersManager')
 const createServersChecker = require('./serversChecker')
-const createExecuteInWorker = require('./executeInWorker')
-const sendToWorker = require('./sendToWorker')
+const Allocate = require('./allocate')
 const ip = require('ip')
 
 module.exports = (reporter, {
@@ -40,7 +39,7 @@ module.exports = (reporter, {
     }
   })
 
-  const executeInWorker = createExecuteInWorker({
+  const allocate = Allocate({
     reporter, containersManager, ip: reporter.options.ip, stack: reporter.options.stack, serversChecker, discriminatorPath
   })
 
@@ -59,27 +58,10 @@ module.exports = (reporter, {
 
   process.on('SIGTERM', onSIGTERM)
 
-  async function executeWorker ({
-    actionName,
-    data,
-    req
-  }, {
-    executeMain,
-    timeout,
-    keepActive,
-    workerHandle
-  }) {
-    return executeInWorker(req, { keepActive, workerHandle }, (worker) => sendToWorker(worker.url, {
-      actionName,
-      data,
-      req
-    }, { executeMain, timeout, keepActive }))
-  }
-
   return {
     serversChecker,
     containersManager,
-    executeWorker,
+    allocate,
     convertUint8ArrayToBuffer: () => {},
     async init () {
       await serversChecker.startPingInterval()

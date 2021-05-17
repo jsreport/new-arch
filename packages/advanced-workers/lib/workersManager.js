@@ -35,8 +35,8 @@ module.exports = (userOptions, {
       return this.pool.init()
     },
 
-    async executeWorker (userData, options = { }) {
-      return this.pool.runInWorker((worker) => worker.execute(userData, { executeMain: options.executeMain, timeout: options.timeout }), options)
+    async allocate () {
+      return this.pool.allocate()
     },
 
     close () {

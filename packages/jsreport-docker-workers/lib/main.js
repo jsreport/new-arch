@@ -34,18 +34,47 @@ module.exports = (reporter, definition) => {
     reporter.express.app.post('/api/worker-docker-manager', reporter.dockerManager.executeWorker.bind(reporter.dockerManager))
   })
 
+  const workerRequestMap = new Map()
   reporter.on('after-express-static-configure', () => {
     if (!reporter.authentication) {
       return reporter.express.app.post('/api/worker-docker-manager', express.text(), async (req, res, next) => {
         try {
           const reqBody = serializator.parse(req.body)
-          const result = await reporter.dockerManager.executeWorker(reqBody, {
-            executeMain: async (data) => {
-              return reporter._invokeMainAction(data, reqBody.req)
-            },
-            timeout: reqBody.timeout
-          })
-          res.status(201).send(serializator.serialize(result))
+
+          if (reqBody.systemAction === 'allocate') {
+            const worker = await reporter.dockerManager.allocate({
+              context: reqBody.req.context,
+              timeout: reqBody.timeout
+            })
+            workerRequestMap.set(reqBody.req.context.rootId, worker)
+            res.status(201).send('{}')
+            return
+          }
+
+          if (reqBody.systemAction === 'release') {
+            const worker = workerRequestMap.get(reqBody.req.context.rootId)
+            try {
+              await worker.release()
+            } finally {
+              workerRequestMap.delete(reqBody.req.context.rootId)
+            }
+            res.status(201).send('{}')
+            return
+          }
+
+          if (reqBody.systemAction === 'execute') {
+            const worker = workerRequestMap.get(reqBody.req.context.rootId)
+            const result = await worker.execute(reqBody, {
+              executeMain: async (data) => {
+                return reporter._invokeMainAction(data, reqBody.req)
+              },
+              timeout: reqBody.timeout
+            })
+            res.status(201).send(serializator.serialize(result))
+            return
+          }
+
+          throw reporter.createError('Unknown worker action ' + reqBody.systemAction)
         } catch (e) {
           next(e)
         }

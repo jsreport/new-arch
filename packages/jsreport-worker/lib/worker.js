@@ -115,7 +115,7 @@ module.exports = (options = {}) => {
         workerSystemOptions.workerModule = require.resolve('jsreport-core/lib/worker/workerHandler.js')
         workersManager = WorkersManager(workerOptions, workerSystemOptions)
         await workersManager.init()
-        ctx.body = 'ok'
+        ctx.body = '{}'
         return
       }
 
@@ -125,8 +125,52 @@ module.exports = (options = {}) => {
         throw new Error('Wrong worker request body')
       }
 
-      if (currentRequests[reqId]) {
-        const workerRequest = currentRequests[reqId]
+      let workerRequest = currentRequests[reqId]
+
+      if (!workerRequest) {
+        const worker = await workersManager.allocate()
+        workerRequest = currentRequests[reqId] = WorkerRequest({ uuid: reqId, data: reqBody, worker })
+        ctx.body = '{}'
+        ctx.status = 201
+        ctx.set('Content-Type', 'text/plain')
+        return
+      }
+
+      if (reqBody.systemAction === 'release') {
+        await currentRequests[reqId].worker.release()
+        delete currentRequests[reqId]
+        ctx.body = '{}'
+        ctx.status = 201
+        ctx.set('Content-Type', 'text/plain')
+        return
+      }
+
+      if (reqBody.systemAction === 'execute') {
+        const actionResult = await workerRequest.process(() => {
+          return workerRequest.worker.execute(reqBody, {
+            timeout: reqBody.timeout,
+            executeMain: async (data) => {
+              try {
+                await callbackLock.acquire()
+                const r = await workerRequest.callback(data)
+                return r
+              } catch (e) {
+                console.error('Error when invoking callback', e)
+                throw e
+              } finally {
+                callbackLock.release()
+              }
+            }
+          })
+        })
+        workersManager.convertUint8ArrayToBuffer(actionResult)
+        ctx.body = serializator.serialize(actionResult)
+        ctx.status = actionResult.actionName ? 200 : 201
+        ctx.set('Content-Type', 'text/plain')
+        return
+      }
+
+      if (reqBody.systemAction === 'callback-response') {
         const callbackResult = await workerRequest.processCallbackResponse({ data: reqBody.data })
         workersManager.convertUint8ArrayToBuffer(callbackResult)
         ctx.body = serializator.serialize(callbackResult)
@@ -134,39 +178,10 @@ module.exports = (options = {}) => {
         ctx.set('Content-Type', 'text/plain')
         return
       }
-
-      const workerRequest = currentRequests[reqId] = WorkerRequest({ uuid: reqId, data: reqBody })
-
-      const actionResult = await workerRequest.process(() => {
-        return workersManager.executeWorker(reqBody, {
-          timeout: reqBody.timeout,
-          executeMain: async (data) => {
-            try {
-              await callbackLock.acquire()
-              const r = await workerRequest.callback(data)
-              return r
-            } catch (e) {
-              console.error('Error when invoking callback', e)
-              throw e
-            } finally {
-              callbackLock.release()
-            }
-          }
-        })
-      })
-      workersManager.convertUint8ArrayToBuffer(actionResult)
-
-      ctx.body = serializator.serialize(actionResult)
-      ctx.status = actionResult.actionName ? 200 : 201
-      ctx.set('Content-Type', 'text/plain')
     } catch (e) {
       console.error('Error when processing worker request', e)
       ctx.status = 400
       ctx.body = { message: e.message, stack: e.stack, ...e }
-    } finally {
-      if (reqId && (ctx.status === 201 || ctx.status === 400)) {
-        delete currentRequests[reqId]
-      }
     }
   })
 

@@ -1,7 +1,8 @@
 const axios = require('axios')
 const serializator = require('serializator')
 
-module.exports = async (url, data, { executeMain, timeout, keepActive }) => {
+module.exports = async (url, data, { executeMain, timeout, systemAction }) => {
+  data = { ...data, timeout, systemAction }
   return new Promise((resolve, reject) => {
     let isDone = false
     setTimeout(() => {
@@ -15,7 +16,7 @@ module.exports = async (url, data, { executeMain, timeout, keepActive }) => {
 
     ;(async () => {
       while (true && !isDone) {
-        const stringBody = serializator.serialize({ ...data, timeout, keepActive })
+        const stringBody = serializator.serialize(data)
         let res
         try {
           res = await axios({
@@ -59,7 +60,7 @@ module.exports = async (url, data, { executeMain, timeout, keepActive }) => {
         }
 
         data = {
-          actionName: 'response',
+          systemAction: 'callback-response',
           // we need just the request identification in the worker
           req: { context: { rootId: data.req.context.rootId } },
           data: await executeMain(serializator.parse(res.data))

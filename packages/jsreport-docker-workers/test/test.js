@@ -47,7 +47,7 @@ function createPool ({
   }
 }
 
-describe('docker manager', () => {
+describe.only('docker manager', () => {
   let reporter
   let containers
   beforeEach(() => {
@@ -70,15 +70,30 @@ describe('docker manager', () => {
   afterEach(() => reporter.close())
 
   it('should be able to render report', async () => {
+    let allocated = false
+    let executed = false
     containers[0].handleReq(async (ctx) => {
       const reqData = serializator.parse(ctx.request.rawBody)
-      reqData.actionName.should.be.eql('render')
-      reqData.req.template.content.should.be.eql('hello')
-
-      ctx.response.status = 201
-      ctx.body = serializator.serialize({
-        content: Buffer.from('from worker')
-      })
+      if (!allocated) {
+        reqData.systemAction.should.be.eql('allocate')
+        ctx.response.status = 201
+        ctx.body = '{}'
+        allocated = true
+      } else {
+        if (!executed) {
+          reqData.actionName.should.be.eql('render')
+          reqData.req.template.content.should.be.eql('hello')
+          ctx.response.status = 201
+          ctx.body = serializator.serialize({
+            content: Buffer.from('from worker')
+          })
+          executed = true
+        } else {
+          reqData.actionName.should.be.eql('release')
+          ctx.response.status = 201
+          ctx.body = '{}'
+        }
+      }
     })
 
     const res = await reporter.render({
@@ -95,27 +110,43 @@ describe('docker manager', () => {
   })
 
   it('should be able to render report through string based request', async () => {
+    let allocated = false
+    let executed = false
+    let parsed = false
     containers[0].handleReq(async (ctx) => {
       const reqData = serializator.parse(ctx.request.rawBody)
-
-      if (reqData.actionName === 'parse') {
-        reqData.keepActive.should.be.true()
+      if (!allocated) {
+        reqData.systemAction.should.be.eql('allocate')
         ctx.response.status = 201
-        ctx.body = serializator.serialize({
-          ...JSON.parse(reqData.req.rawContent),
-          context: reqData.req.context
-        })
-
+        ctx.body = '{}'
+        allocated = true
         return
       }
 
-      reqData.actionName.should.be.eql('render')
-      reqData.req.template.content.should.be.eql('hello')
-
+      if (!executed) {
+        if (!parsed) {
+          reqData.actionName.should.be.eql('parse')
+          ctx.response.status = 201
+          ctx.body = serializator.serialize({
+            ...JSON.parse(reqData.req.rawContent),
+            context: reqData.req.context
+          })
+          parsed = true
+          return
+        } else {
+          reqData.actionName.should.be.eql('render')
+          reqData.req.template.content.should.be.eql('hello')
+          ctx.response.status = 201
+          ctx.body = serializator.serialize({
+            content: Buffer.from('from worker')
+          })
+          executed = true
+          return
+        }
+      }
+      reqData.systemAction.should.be.eql('release')
       ctx.response.status = 201
-      ctx.body = serializator.serialize({
-        content: Buffer.from('from worker')
-      })
+      ctx.body = '{}'
     })
 
     const res = await reporter.render({
@@ -236,6 +267,7 @@ describe('docker manager', () => {
       }
     })
 
+    await new Promise((resolve) => setTimeout(resolve, 100))
     const tenantWorker = await reporter.documentStore.internalCollection('tenantWorkers').findOne({
       tenant: 'a',
       stack: reporter.options.stack
@@ -360,10 +392,16 @@ describe('docker manager', () => {
 
   it('should restart if worker response doesnt have week attribute', async () => {
     containers[0].handleReq(async (ctx) => {
-      ctx.status = 500
-      ctx.body = serializator.serialize({
-        message: 'handlebars failure'
-      })
+      const reqData = serializator.parse(ctx.request.rawBody)
+      if (reqData.actionName === 'render') {
+        ctx.status = 500
+        ctx.body = serializator.serialize({
+          message: 'handlebars failure'
+        })
+      } else {
+        ctx.status = 201
+        ctx.body = '{}'
+      }
     })
 
     await reporter.render({
