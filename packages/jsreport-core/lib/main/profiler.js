@@ -132,4 +132,46 @@ module.exports = (reporter) => {
       profilersMap.delete(req.context.rootId)
     }
   })
+
+  let profilesCleanupInterval
+  reporter.initializeListeners.add('profiler', () => {
+    reporter.documentStore.collection('profiles').beforeRemoveListeners.add('profiles', async (query, req) => {
+      const profiles = await reporter.documentStore.collection('profiles').find(query, req)
+
+      for (const profile of profiles) {
+        await reporter.blobStorage.remove(profile.blobName)
+      }
+    })
+
+    profilesCleanupInterval = setInterval(profilesCleanup, reporter.options.profiler.cleanupInterval)
+    profilesCleanupInterval.unref()
+  })
+
+  reporter.closeListeners.add('profiler', () => {
+    if (profilesCleanupInterval) {
+      clearInterval(profilesCleanupInterval)
+    }
+  })
+
+  let profilesCleanupRunning = false
+  async function profilesCleanup () {
+    if (profilesCleanupRunning) {
+      return
+    }
+    profilesCleanupRunning = true
+    try {
+      const profiles = await reporter.documentStore.collection('profiles').find({}).sort({ timestamp: -1 })
+      const profilesToRemove = profiles.slice(reporter.options.profiler.maxProfilesHistory)
+
+      for (const profile of profilesToRemove) {
+        await reporter.documentStore.collection('profiles').remove({
+          _id: profile._id
+        })
+      }
+    } catch (e) {
+      reporter.logger.error('Profile cleanup failed', e)
+    } finally {
+      profilesCleanupRunning = false
+    }
+  }
 }

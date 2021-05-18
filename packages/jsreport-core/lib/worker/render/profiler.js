@@ -75,6 +75,7 @@ class Profiler {
       m.res = { content, meta: { diff: createPatch('resMeta', req.context.profiling.resMetaLastVal || '', stringifiedResMeta, 0) } }
 
       const stringifiedReq = JSON.stringify({ template: req.template, data: req.data }, null, 2)
+
       m.req = { diff: createPatch('req', req.context.profiling.reqLastVal || '', stringifiedReq, 0) }
 
       req.context.profiling.resLastVal = res.content

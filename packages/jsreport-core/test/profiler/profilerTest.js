@@ -241,6 +241,20 @@ describe('profiler', () => {
       should(m.req).be.ok()
     }
   })
+
+  it('should delete profile blob when profile is deleted', async () => {
+    await reporter.render({
+      template: {
+        engine: 'none',
+        recipe: 'html',
+        content: 'Hello'
+      }
+    })
+
+    const profile = await reporter.documentStore.collection('profiles').findOne({})
+    await reporter.documentStore.collection('profiles').remove({})
+    return reporter.blobStorage.read(profile.blobName).should.be.rejectedWith(/found/)
+  })
 })
 
 describe('profiler with timeout', () => {
@@ -281,5 +295,36 @@ describe('profiler with timeout', () => {
     const messages = content.toString().split('\n').filter(l => l).map(JSON.parse)
     const errorMesage = messages.find(m => m.type === 'error')
     should(errorMesage).be.ok()
+  })
+})
+
+describe('profiler cleanup', () => {
+  let reporter
+
+  beforeEach(() => {
+    reporter = jsreport({
+      profiler: {
+        maxProfilesHistory: 2,
+        cleanupInterval: '50ms'
+      }
+    })
+    reporter.use(jsreport.tests.listeners())
+    return reporter.init()
+  })
+
+  afterEach(() => reporter.close())
+  it('should clean old profiles', async () => {
+    for (let i = 0; i < 3; i++) {
+      await reporter.render({
+        template: {
+          engine: 'none',
+          recipe: 'html',
+          content: 'Hello'
+        }
+      })
+    }
+    await new Promise((resolve) => setTimeout(resolve, 60))
+    const profiles = await reporter.documentStore.collection('profiles').find({})
+    profiles.should.have.length(2)
   })
 })

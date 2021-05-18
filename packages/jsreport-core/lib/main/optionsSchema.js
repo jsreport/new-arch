@@ -124,6 +124,21 @@ module.exports.getRootSchemaOptions = () => ({
     migrateEntitySetsToFolders: {
       type: 'boolean',
       default: true
+    },
+    profiler: {
+      type: 'object',
+      default: {},
+      properties: {
+        maxProfilesHistory: {
+          type: 'number',
+          default: 500
+        },
+        cleanupInterval: {
+          type: ['string', 'number'],
+          '$jsreport-acceptsDuration': true,
+          default: '3m'
+        }
+      }
     }
   }
 })
