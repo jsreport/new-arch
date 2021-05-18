@@ -49,6 +49,11 @@ module.exports = ({
         worker.postMessage(m)
         const workerResponse = await currentAsyncAwaiter.promise
 
+        if (workerResponse.workerCrashed) {
+          isDone = true
+          return reject(workerResponse.err)
+        }
+
         if (isDone) {
           return
         }
@@ -88,11 +93,19 @@ module.exports = ({
 
   let closingAwaiter
   let exited = false
-  worker.on('exit', () => {
+  worker.on('exit', (exitCode) => {
     exited = true
     if (closingAwaiter && !closingAwaiter.isSettled) {
       closingAwaiter.resolve()
     }
+  })
+
+  worker.on('error', (err) => {
+    err.code = 'WORKER_CRASHED'
+    currentAsyncAwaiter.resolve({
+      workerCrashed: true,
+      err
+    })
   })
 
   return {

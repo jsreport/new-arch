@@ -32,7 +32,9 @@ module.exports = ({
           release: async () => {
             if (worker.needRestart) {
               worker.close()
-              this.workers[this.workers.indexOf(worker)] = await createWorker({ timeout: this.initTimeout })
+              const workerIndes = this.workers.indexOf(worker)
+              this.workers[workerIndes] = await createWorker({ timeout: this.initTimeout })
+              this.workers[workerIndes].isBusy = false
             }
             worker.isBusy = false
             this._flushTasksQueue()
@@ -42,7 +44,7 @@ module.exports = ({
             try {
               return await worker.execute(userData, options)
             } catch (e) {
-              if (e.code === 'WORKER_TIMEOUT') {
+              if (e.code === 'WORKER_TIMEOUT' || e.code === 'WORKER_CRASHED') {
                 worker.needRestart = true
               }
               throw e

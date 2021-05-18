@@ -6,21 +6,25 @@ const pool = require('./pool')
 
 module.exports = (userOptions, {
   workerModule,
-  numberOfWorkers
+  numberOfWorkers,
+  resourceLimits
 }) => {
   async function createWorker ({ timeout }) {
-    const worker = ThreadWorker({
-      worker: new Worker(path.join(__dirname, 'workerHandler.js'), {
-        workerData: {
-          systemData: {
-            workerModule
-          },
-          userData: userOptions
-        }
-      })
+    const worker = new Worker(path.join(__dirname, 'workerHandler.js'), {
+      workerData: {
+        systemData: {
+          workerModule
+        },
+        userData: userOptions
+      },
+      resourceLimits
     })
-    await worker.init({ timeout })
-    return worker
+
+    const threadWorker = ThreadWorker({
+      worker
+    })
+    await threadWorker.init({ timeout })
+    return threadWorker
   }
 
   return {

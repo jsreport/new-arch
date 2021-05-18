@@ -222,4 +222,29 @@ describe('advanced workers', () => {
     }
     await Promise.all(promises)
   })
+
+  it('should reboot after worker OOM', async () => {
+    workers = Workers({
+    }, {
+      workerModule: path.join(__dirname, 'workers', 'memory.js'),
+      numberOfWorkers: 1,
+      resourceLimits: {
+        maxOldGenerationSizeMb: 10
+      }
+    })
+
+    await workers.init()
+    let worker = await workers.allocate()
+
+    await worker.execute({
+      OOM: true
+    }).should.be.rejected()
+    await worker.release()
+
+    worker = await workers.allocate()
+    await worker.execute({
+      OOM: false
+    })
+    await worker.release()
+  })
 })

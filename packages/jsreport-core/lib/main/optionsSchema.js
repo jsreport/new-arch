@@ -98,7 +98,16 @@ module.exports.getRootSchemaOptions = () => ({
     workers: {
       type: 'object',
       properties: {
-        numberOfWorkers: { type: 'number', default: 2 }
+        numberOfWorkers: { type: 'number', default: 2 },
+        resourceLimits: {
+          type: 'object',
+          properties: {
+            maxOldGenerationSizeMb: { type: 'number' },
+            maxYoungGenerationSizeMb: { type: 'number' },
+            codeRangeSizeMb: { type: 'number' },
+            stackSizeMb: { type: 'number' }
+          }
+        }
       }
     },
     store: {
