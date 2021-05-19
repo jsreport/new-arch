@@ -22,7 +22,7 @@
     "jsreport-studio-dev": "file:packages/jsreport-studio-dev",
     "mkdirp": "0.5.5",
     "node.extend.without.arrays": "1.1.6",
-    "puppeteer": "2.0.0",
+    "puppeteer": "9.1.1",
     "semver": "6.3.0"
   },
   "deprecated": false,
@@ -88,6 +88,8 @@
   "version": "2.11.0",
   "private": true,
   "workspaces": {
-    "packages": ["packages/*"]
+    "packages": [
+      "packages/*"
+    ]
   }
 }
