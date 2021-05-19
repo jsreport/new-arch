@@ -1,6 +1,6 @@
 const Workers = require('../')
 const path = require('path')
-require('should')
+const should = require('should')
 
 describe('advanced workers', () => {
   let workers
@@ -192,6 +192,30 @@ describe('advanced workers', () => {
     } finally {
       await worker.release()
     }
+  })
+
+  it('should be able to abort running request', async () => {
+    workers = Workers({ }, {
+      workerModule: path.join(__dirname, 'workers', 'timeout.js'),
+      numberOfWorkers: 1
+    })
+
+    await workers.init()
+    let worker = await workers.allocate()
+    let executeError
+    worker.execute({}).catch((e) => {
+      executeError = e
+    })
+    await new Promise((resolve) => setTimeout(resolve, 10))
+    await worker.release()
+
+    worker = await workers.allocate()
+    await worker.execute({
+      endless: false
+    })
+
+    should(executeError).be.ok()
+    executeError.message.should.containEql('aborted')
   })
 
   it('should tollerate second close', async () => {

@@ -5,6 +5,9 @@ module.exports = (initData) => {
     },
 
     execute: (data) => {
+      if (data.endless === false) {
+        return
+      }
       while (true) {
         // endles loop
       }

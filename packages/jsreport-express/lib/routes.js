@@ -4,6 +4,7 @@ const serveStatic = require('serve-static')
 const handleError = require('./handleError')
 const FormData = require('./formDataStream')
 const odata = require('./odata')
+const EventEmitter = require('events')
 const oneMonth = 31 * 86400000
 
 module.exports = (app, reporter, exposedOptions) => {
@@ -52,7 +53,12 @@ module.exports = (app, reporter, exposedOptions) => {
       })
     }
 
-    reporter.render(renderRequest).then((renderResponse) => {
+    const abortEmitter = new EventEmitter()
+    req.on('close', () => {
+      abortEmitter.emit('abort')
+    })
+
+    reporter.render(renderRequest, { abortEmitter }).then((renderResponse) => {
       if (stream) {
         form.append('report', renderResponse.stream, {
           filename: `${renderResponse.meta.reportName}.${renderResponse.meta.fileExtension}`,
@@ -62,7 +68,7 @@ module.exports = (app, reporter, exposedOptions) => {
             'Content-Disposition': renderResponse.meta.headers['Content-Disposition']
           }
         })
-       
+
         form.end()
       } else {
         for (const key in renderResponse.meta.headers) {

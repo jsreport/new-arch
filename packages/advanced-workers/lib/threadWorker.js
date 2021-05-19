@@ -125,6 +125,15 @@ module.exports = ({
         return
       }
 
+      if (currentAsyncAwaiter && !currentAsyncAwaiter.isSettled) {
+        const err = new Error('Worker aborted')
+        err.code = 'WORKER_ABORTED'
+        currentAsyncAwaiter.resolve({
+          workerCrashed: true,
+          err
+        })
+      }
+
       setTimeout(() => {
         if (!exited && !closingAwaiter.isSettled) {
           worker.terminate()

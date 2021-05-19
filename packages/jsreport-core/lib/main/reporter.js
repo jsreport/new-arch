@@ -304,7 +304,25 @@ class MainReporter extends Reporter {
       timeout: this.options.reportTimeout,
       ...req
     })
+
+    let workerAborted
+    if (parentReq && !parentReq.__isJsreportRequest__) {
+      const options = parentReq
+      parentReq = null
+
+      if (options.abortEmitter) {
+        options.abortEmitter.once('abort', () => {
+          workerAborted = true
+          worker.release(req)
+        })
+      }
+    }
+
     try {
+      if (workerAborted) {
+        throw this.createError('Request aborted by client')
+      }
+
       if (req.rawContent) {
         const result = await worker.execute({
           actionName: 'parse',
@@ -350,6 +368,10 @@ class MainReporter extends Reporter {
         return response
       }
 
+      if (workerAborted) {
+        throw this.createError('Request aborted by client')
+      }
+
       const responseResult = await this.executeWorkerAction('render', {}, {
         timeout: reportTimeout + this.options.reportTimeoutMargin,
         worker
@@ -369,7 +391,9 @@ class MainReporter extends Reporter {
       await this.renderErrorListeners.fire(request, response, err)
       throw err
     } finally {
-      await worker.release(req)
+      if (!workerAborted) {
+        await worker.release(req)
+      }
     }
   }
 

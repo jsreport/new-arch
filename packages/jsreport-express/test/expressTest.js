@@ -1,5 +1,6 @@
 const supertest = require('supertest')
 const JsReport = require('jsreport-core')
+const axios = require('axios')
 require('should')
 
 describe('express', () => {
@@ -100,6 +101,29 @@ describe('express', () => {
       .post('/api/report')
       .send({ template: { content: 'Hey', engine: 'none', recipe: 'html', name: 'čščěš' } })
       .expect(200, 'Hey')
+  })
+
+  it('/api/report should abort request when request gets closed', async () => {
+    let renderError
+    jsreport.renderErrorListeners.add('test', (req, res, err) => {
+      renderError = err
+    })
+    const cancelTokenSource = axios.CancelToken.source()
+    const resPromise = axios({
+      url: 'http://localhost:5488/api/report',
+      method: 'POST',
+      json: true,
+      data: {
+        template: { content: '{{:~loop()}}', engine: 'jsrender', recipe: 'html', helpers: `function loop() { while (true) { } }` }
+      },
+      cancelToken: cancelTokenSource.token
+    })
+    setTimeout(() => {
+      cancelTokenSource.cancel()
+    }, 100)
+    await resPromise.should.be.rejected()
+    await new Promise((resolve) => setTimeout(resolve, 100))
+    renderError.message.should.containEql('aborted')
   })
 
   it('/odata/$metadata should return 200', () => {

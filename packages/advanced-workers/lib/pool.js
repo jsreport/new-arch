@@ -11,7 +11,6 @@ module.exports = ({
       for (let i = 0; i < numberOfWorkers; i++) {
         workersCreateFn.push(async () => {
           const worker = await createWorker({ timeout: this.initTimeout })
-          worker.isBusy = false
           this.workers.push(worker)
         })
       }
@@ -25,16 +24,15 @@ module.exports = ({
     },
 
     async allocate () {
-      const worker = this.workers.find(w => w.isBusy === false)
+      const worker = this.workers.find(w => w.isBusy !== true)
       if (worker) {
         worker.isBusy = true
         return {
           release: async () => {
-            if (worker.needRestart) {
+            if (worker.needRestart || worker.running) {
               worker.close()
               const workerIndes = this.workers.indexOf(worker)
               this.workers[workerIndes] = await createWorker({ timeout: this.initTimeout })
-              this.workers[workerIndes].isBusy = false
             }
             worker.isBusy = false
             this._flushTasksQueue()
@@ -42,12 +40,15 @@ module.exports = ({
 
           execute: async (userData, options = {}) => {
             try {
+              worker.running = true
               return await worker.execute(userData, options)
             } catch (e) {
               if (e.code === 'WORKER_TIMEOUT' || e.code === 'WORKER_CRASHED') {
                 worker.needRestart = true
               }
               throw e
+            } finally {
+              worker.running = false
             }
           }
         }

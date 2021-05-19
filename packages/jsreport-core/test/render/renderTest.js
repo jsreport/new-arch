@@ -1,6 +1,7 @@
 const should = require('should')
 const core = require('../../index')
 const createRequest = require('../../lib/shared/request')
+const EventEmitter = require('events').EventEmitter
 
 describe('render', () => {
   let reporter
@@ -469,6 +470,26 @@ describe('render', () => {
 
     req.data.someProp.should.be.eql('foo')
     req.template.content.should.be.eql('hello')
+  })
+
+  it('should accept abort request', async () => {
+    reporter.tests.beforeRenderEval(async (req, res) => {
+      return new Promise((resolve) => setTimeout(resolve, 20000))
+    })
+
+    const abortEmitter = new EventEmitter()
+
+    // let it get to the worker
+    setTimeout(() => abortEmitter.emit('abort'), 50)
+    await reporter.render({
+      template: {
+        content: 'hello',
+        engine: 'none',
+        recipe: 'html'
+      }
+    }, {
+      abortEmitter
+    }).should.be.rejectedWith(/aborted/)
   })
 })
 
