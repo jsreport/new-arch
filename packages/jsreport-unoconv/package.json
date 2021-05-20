@@ -1,0 +1,63 @@
+{
+  "name": "jsreport-unoconv",
+  "version": "0.3.0",
+  "description": "jsreport unoconv for converting openoffice supported formats",
+  "homepage": "https://github.com/jsreport/jsreport-unoconv",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:jsreport/jsreport-unoconv.git"
+  },
+  "author": {
+    "name": "Jan Blaha",
+    "email": "jan.blaha@hotmail.com"
+  },
+  "contributos": [
+    "BJR Matos <bjrmatos@gmail.com> (https://github.com/bjrmatos)"
+  ],
+  "keywords": [
+    "jsreport",
+    "office"
+  ],
+  "scripts": {
+    "test": "mocha test --timeout 8000 && standard",
+    "build": "jsreport-studio-build",
+    "prepublishOnly": "jsreport-studio-build"
+  },
+  "standard": {
+    "ignore": [
+      "main.js"
+    ],
+    "parser": "babel-eslint",
+    "env": {
+      "node": true,
+      "mocha": true,
+      "browser": true
+    }
+  },
+  "license": "MIT",
+  "dependencies": {
+    "mime": "2.4.4"
+  },
+  "devDependencies": {
+    "babel-eslint": "10.0.3",
+    "eslint": "6.6.0",
+    "eslint-plugin-babel": "5.3.0",
+    "jsreport-assets": "1.5.1",
+    "jsreport-core": "2.6.2",
+    "jsreport-docxtemplater": "1.2.1",
+    "jsreport-studio-dev": "1.5.0",
+    "jsreport-templates": "2.3.2",
+    "mocha": "6.2.2",
+    "should": "13.2.3",
+    "standard": "14.3.1"
+  },
+  "files": [
+    "lib",
+    "studio",
+    "index.js",
+    "jsreport.config.js"
+  ],
+  "engines": {
+    "node": ">=8.9"
+  }
+}
