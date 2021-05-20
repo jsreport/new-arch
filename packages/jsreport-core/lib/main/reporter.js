@@ -298,8 +298,8 @@ class MainReporter extends Reporter {
 
     req.context = req.context || {}
     req.context.rootId = req.context.rootId || generateRequestId()
+    req.context.id = req.context.rootId
 
-    let request, response
     const worker = await this._workersManager.allocate({
       timeout: this.options.reportTimeout,
       ...req
@@ -318,6 +318,7 @@ class MainReporter extends Reporter {
       }
     }
 
+    let res
     try {
       if (workerAborted) {
         throw this.createError('Request aborted by client')
@@ -334,12 +335,12 @@ class MainReporter extends Reporter {
         req = result
       }
 
-      response = { meta: {} }
-      request = Request(req, parentReq)
+      res = { meta: {} }
+      req = Request(req, parentReq)
 
       // TODO: we will probably validate in the thread
       if (this.entityTypeValidator.getSchema('TemplateType') != null) {
-        const templateValidationResult = this.entityTypeValidator.validate('TemplateType', request.template, { rootPrefix: 'template' })
+        const templateValidationResult = this.entityTypeValidator.validate('TemplateType', req.template, { rootPrefix: 'template' })
 
         if (!templateValidationResult.valid) {
           throw this.createError(`template input in request contain values that does not match the defined schema. ${templateValidationResult.fullErrorMessage}`, {
@@ -348,24 +349,21 @@ class MainReporter extends Reporter {
         }
       }
 
-      request.context.rootId = request.context.rootId || generateRequestId()
-      request.context.id = request.context.rootId
-
       let reportTimeout = this.options.reportTimeout
 
       if (
         this.options.enableRequestReportTimeout &&
-      request.options &&
-      request.options.timeout != null
+      req.options &&
+      req.options.timeout != null
       ) {
-        reportTimeout = request.options.timeout
+        reportTimeout = req
       }
 
-      await this.beforeRenderListeners.fire(request, response)
+      await this.beforeRenderListeners.fire(req, res)
 
-      if (request.context.isFinished) {
-        response.stream = Readable.from(response.content)
-        return response
+      if (req.context.isFinished) {
+        res.stream = Readable.from(res.content)
+        return res
       }
 
       if (workerAborted) {
@@ -375,20 +373,21 @@ class MainReporter extends Reporter {
       const responseResult = await this.executeWorkerAction('render', {}, {
         timeout: reportTimeout + this.options.reportTimeoutMargin,
         worker
-      }, request)
+      }, req)
 
-      Object.assign(response, responseResult)
-      await this.afterRenderListeners.fire(request, response)
-      response.stream = Readable.from(response.content)
-      return response
+      Object.assign(res, responseResult)
+      await this.afterRenderListeners.fire(req, res)
+      res.stream = Readable.from(res.content)
+      return res
     } catch (err) {
       if (err.code === 'WORKER_TIMEOUT') {
         err.message = 'Report timeout'
       }
+
       if (!err.logged) {
-        this.logger.error(`Report render failed: ${err.message}${err.stack != null ? ' ' + err.stack : ''}`, request)
+        this.logger.error(`Report render failed: ${err.message}${err.stack != null ? ' ' + err.stack : ''}`, req)
       }
-      await this.renderErrorListeners.fire(request, response, err)
+      await this.renderErrorListeners.fire(req, res, err)
       throw err
     } finally {
       if (!workerAborted) {

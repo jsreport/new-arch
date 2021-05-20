@@ -22,12 +22,18 @@ module.exports = (userInitData, { executeMain, convertUint8ArrayToBuffer }) => {
       convertUint8ArrayToBuffer(req)
 
       if (actionName === 'parse') {
-        parsedReq = {
-          ...JSON.parse(req.rawContent),
-          context: req.context
-        }
+        try {
+          parsedReq = {
+            ...JSON.parse(req.rawContent),
+            context: req.context
+          }
 
-        return omit(parsedReq, 'data')
+          return omit(parsedReq, 'data')
+        } catch (e) {
+          e.message = 'Invalid request json: ' + e.message
+          e.weak = true
+          throw e
+        }
       }
 
       if (parsedReq) {
