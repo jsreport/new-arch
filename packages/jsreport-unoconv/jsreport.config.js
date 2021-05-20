@@ -1,7 +1,8 @@
 
 module.exports = {
   name: 'unoconv',
-  main: 'lib/unoconv.js',
+  main: 'lib/main.js',
+  worker: 'lib/worker.js',
   optionsSchema: {
     extensions: {
       unoconv: {

@@ -1,37 +1,27 @@
 require('should')
 const jsreport = require('jsreport-core')
-const fs = require('fs')
 const path = require('path')
 
 describe('unoconv', () => {
   let reporter
 
   beforeEach(() => {
-    reporter = jsreport({
-      templatingEngines: {
-        strategy: 'in-process'
-      }
-    }).use(require('../')({
-      command: `python ${path.join(__dirname, 'unoconv.py')}`
-    }))
-      .use(require('jsreport-templates')())
-      .use(require('jsreport-assets')())
-      .use(require('jsreport-docxtemplater')())
+    reporter = jsreport()
+      .use(require('../')({
+        command: `python ${path.join(__dirname, 'unoconv.py')}`
+      }))
+      .use(require('jsreport-html-to-xlsx')())
     return reporter.init()
   })
 
   afterEach(() => reporter.close())
 
-  it('should be able to convert docx to pdf', async () => {
+  it('should be able to convert xlsx to pdf', async () => {
     const result = await reporter.render({
       template: {
         engine: 'none',
-        recipe: 'docxtemplater',
-        docxtemplater: {
-          templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'template.docx'))
-          }
-        },
+        recipe: 'html-to-xlsx',
+        content: '<table><tr><td>Hello</td></tr></table>',
         unoconv: {
           format: 'pdf'
         }
