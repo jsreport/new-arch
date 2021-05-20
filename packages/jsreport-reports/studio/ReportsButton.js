@@ -8,7 +8,12 @@ class ReportsButton extends Component {
 
   render () {
     return (
-      <div onClick={() => this.openReports()}>
+      <div
+        onClick={() => {
+          this.openReports()
+          this.props.closeMenu()
+        }}
+      >
         <i className='fa fa-folder-open-o' />Reports
       </div>
     )

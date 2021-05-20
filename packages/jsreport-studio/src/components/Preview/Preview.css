@@ -1,9 +1,9 @@
-
 .previewContainer {
   display: flex;
   flex: 1 1;
   flex-direction: column;
   background-color: $preview-backgroundColor;
+  color: $preview-color;
 }
 
 .previewTitles {
@@ -13,7 +13,7 @@
   background-color: $tab-titles-backgroundColor;
   border-bottom: 0.2rem $tab-titles-borderColor solid;
   padding-top: 0.1rem;
-  min-height: 2.0rem;
+  min-height: 2rem;
 }
 
 .previewTitle {
@@ -25,7 +25,7 @@
   /*end flexbox workaround*/
   min-height: 1.7rem;
   white-space: nowrap;
-  display:flex;
+  display: flex;
   background-color: $tab-title-backgroundColor;
   padding: 0.3rem 0.9rem 0.3rem 0.9rem;
   border-right: 1px $tab-title-borderColor solid;
@@ -49,33 +49,22 @@
   margin-right: 2px;
 }
 
-.previewDisplayContainer {
-  background-color: $preview-backgroundColor;
-  color: $preview-color;
-}
-
-.previewDisplayContainerDefaultBackground {
-  /* emulates default background, color of browser */
-  background-color: #fff;
-  color: #000;
-}
-
-.profilerOperations {
+.profileOperations {
   position: relative;
   width: 100%;
   height: 100%;
 }
 
-.profilerOperations :global(.react-flow__edge-text) {
+.profileOperations :global(.react-flow__edge-text) {
   fill: $primary-color;
 }
 
-.profilerOperations :global(.react-flow__node-default),
-.profilerOperations :global(.react-flow__edge-text) {
+.profileOperations :global(.react-flow__node-default),
+.profileOperations :global(.react-flow__edge-text) {
   font-size: 12px;
 }
 
-.profilerOperationsErrorModal {
+.profileOperationsErrorModal {
   position: absolute;
   top: 0;
   right: 0;
@@ -86,7 +75,7 @@
   opacity: 1;
 }
 
-.profilerOperationsErrorModalContent {
+.profileOperationsErrorModalContent {
   background-color: $modal-backgroundColor;
   box-shadow: 1rem 1rem 1rem 0 $modal-shadowColor;
   color: $modal-color;
@@ -107,67 +96,60 @@
   max-height: 80%;
 }
 
-.profilerOperationsControls {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  z-index: 5;
-}
-
-.profilerButtonAction {
+.profileButtonAction {
   cursor: pointer;
   font-size: 0.8rem;
   padding-left: 0.6rem;
   padding-right: 0.6rem;
 }
 
-.profilerStartNode {
+.profileStartNode {
   cursor: pointer !important;
   width: 35px !important;
   border-radius: 50% !important;
 }
 
-.profilerStartNodeLabel {
+.profileStartNodeLabel {
   margin-right: -2px;
 }
 
-.profilerOperationNode {
+.profileOperationNode {
   cursor: pointer !important;
   border-radius: 1px !important;
 }
 
-.profilerEndNode {
+.profileEndNode {
   width: 70px !important;
   border-radius: 50% !important;
 }
 
-.profilerEndNode.renderError {
+.profileEndNode.renderError {
   width: 35px !important;
 }
 
-.profilerEndNodeLabel {
+.profileEndNodeLabel {
   font-size: 1rem;
   color: #ff0000;
 }
 
-.profilerStartNode :global(.react-flow__handle),
-.profilerOperationNode :global(.react-flow__handle) {
+.profileStartNode :global(.react-flow__handle),
+.profileOperationNode :global(.react-flow__handle) {
   opacity: 0 !important;
 }
 
-.profilerOperationNode.active {
+.profileOperationNode.active {
   outline: 2px solid $primary-selection-backgroundColor;
 }
 
-.profilerOperationNode.running {
+.profileOperationNode.running {
   animation: runningBlinker 0.7s linear infinite;
 }
 
-.profilerOperationNode.error {
+.profileOperationNode.error {
   border: 1px solid #ff0000;
 }
 
-.profilerOperationNode.error:before {
+.profileOperationNode.error:before {
   content: "";
   position: absolute;
   top: 0px;
@@ -190,22 +172,22 @@
   fill: $primary-selection-backgroundColor !important;
 }
 
-.profilerOperationEdge :global(.react-flow__edge-path) {
+.profileOperationEdge :global(.react-flow__edge-path) {
   cursor: pointer;
   stroke-width: 2;
 }
 
-.profilerOperationEdge .profilerOperationEdgeExpander {
+.profileOperationEdge .profileOperationEdgeExpander {
   stroke-width: 40;
   stroke-opacity: 0;
 }
 
-.profilerOperationEdge.active .main {
+.profileOperationEdge.active .main {
   stroke: $primary-selection-backgroundColor !important;
   marker-end: url("#react-flow__arrowclosed-active") !important;
 }
 
-.profilerLogs {
+.profileLogs {
   width: 100%;
   overflow: auto;
   height: 100%;
@@ -213,7 +195,7 @@
   padding-right: 0.4rem;
 }
 
-.profilerLogItem {
+.profileLogItem {
   display: flex;
   font-size: 0.9rem;
   margin-bottom: 0.2rem;
@@ -221,99 +203,90 @@
   border-bottom: 1px dashed transparent;
 }
 
-.profilerLogItem:last-child {
+.profileLogItem:last-child {
   margin-bottom: 0;
 }
 
-.profilerLogItem.notActive {
+.profileLogItem.notActive {
   opacity: 0.6;
 }
 
-.profilerLogItem.active {
+.profileLogItem.active {
   opacity: 1;
   border-bottom: 1px dashed $primary-selection-backgroundColor;
 }
 
-.profilerLogItemLevel {
+.profileLogItemLevel {
   min-width: 3.2em;
   max-width: 3.2em;
   margin-right: 0.3rem;
 }
 
-.profilerLogItemTime {
+.profileLogItemTime {
   font-size: 0.8em;
   min-width: 3.6em;
   max-width: 3.6em;
   margin-right: 0.5rem;
 }
 
-.profilerLogItemMessage {
+.profileLogItemMessage {
   flex-grow: 1;
   word-break: break-all;
   white-space: break-spaces;
 }
 
-.profilerLogItemLevel,
-.profilerLogItemTime {
+.profileLogItemLevel,
+.profileLogItemTime {
   text-overflow: ellipsis;
   overflow: hidden;
   white-space: nowrap;
 }
 
-.profilerLogItemLevel,
-.profilerLogItemTime,
-.profilerLogItemMessage {
+.profileLogItemLevel,
+.profileLogItemTime,
+.profileLogItemMessage {
   font-family: monospace;
 }
 
-.profilerReqResButtons {
-  cursor: default;
-  position: absolute;
-  padding: 0.3rem;
-  border-radius: 5px;
-  border: 1px solid #000;
-  background: #fff;
-  min-width: 100px;
-}
-
-.profilerExecutionTime {
+.profileExecutionTime {
   position: absolute;
   left: 50%;
   bottom: calc(-50% - 5px);
 }
 
-.profilerExecutionTimeCover {
+.profileExecutionTimeCover {
   position: absolute;
   left: 0;
   right: 0;
   bottom: calc(-50% - 5px);
 }
 
-.profilerExecutionTimeLabel {
+.profileExecutionTimeLabel {
   display: inline-block;
   color: $primary-color;
   transform: translateX(-50%);
-  text-shadow: -1px 0 $primary-backgroundColor, 0 1px $primary-backgroundColor, 1px 0 $primary-backgroundColor, 0 -1px $primary-backgroundColor;
+  text-shadow: -1px 0 $primary-backgroundColor, 0 1px $primary-backgroundColor,
+    1px 0 $primary-backgroundColor, 0 -1px $primary-backgroundColor;
 }
 
-.profilerExecutionTimeCost {
+.profileExecutionTimeCost {
   position: absolute;
   left: 0;
   right: 0;
   bottom: calc(-50% - 5px);
 }
 
-.profilerExecutionTimeCost.low {
+.profileExecutionTimeCost.low {
   background-color: #22b14c;
   opacity: 0.8;
 }
 
-.profilerExecutionTimeCost.medium {
+.profileExecutionTimeCost.medium {
   background-color: #f9e127;
   opacity: 0.8;
 }
 
-.profilerExecutionTimeCost.high {
+.profileExecutionTimeCost.high {
   background-color: #fa7f27;
   opacity: 0.8;
 }

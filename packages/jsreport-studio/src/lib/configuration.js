@@ -1,15 +1,17 @@
 export let version = null
 export let engines = []
 export let recipes = []
+export const previewTypes = {}
 export const initializeListeners = []
 export const readyListeners = []
-export const previewListeners = []
+export const runListeners = []
 export const entityNewListeners = []
 export const entitySaveListeners = []
 export const textEditorInitializeListeners = []
 export const textEditorCreatedListeners = []
 export let _themeChangedListeners = []
 export const entitySets = {}
+export const reportPreviewStyleResolvers = []
 export const templateEditorModeResolvers = []
 export const entityTreeOrder = []
 export const entityTreeWrapperComponents = []
@@ -40,58 +42,6 @@ export const textEditorInstances = []
 
 export let toolbarVisibilityResolver = () => true
 
-export const registerPreviewFrameChangeHandler = (fn) => {
-  previewFrameChangeHandler = fn
-
-  // dispose
-  return () => {
-    // only delete the handler when the current one is still the same fn
-    if (previewFrameChangeHandler === fn) {
-      previewFrameChangeHandler = () => {}
-    }
-  }
-}
-
-export let previewFrameChangeHandler = () => {}
-
-export const registerPreviewHandler = (fn) => {
-  previewHandler = fn
-
-  // dispose
-  return () => {
-    // only delete the handler when the current one is still the same fn
-    if (previewHandler === fn) {
-      previewHandler = () => {}
-    }
-  }
-}
-
-export let previewHandler = () => {}
-
-export const registerGetPreviewTargetHandler = (fn) => {
-  getPreviewTargetHandler = fn
-
-  return () => {
-    if (getPreviewTargetHandler === fn) {
-      getPreviewTargetHandler = () => {}
-    }
-  }
-}
-
-export let getPreviewTargetHandler = () => {}
-
-export const registerPreviewConfigurationHandler = (fn) => {
-  previewConfigurationHandler = fn
-
-  return () => {
-    if (previewConfigurationHandler === fn) {
-      previewConfigurationHandler = () => {}
-    }
-  }
-}
-
-export let previewConfigurationHandler = () => {}
-
 export const registerModalHandler = (fn) => { modalHandler = fn }
 export let modalHandler = () => {}
 
@@ -114,9 +64,17 @@ export let apiHeaders = {}
 
 export let _splitResizeHandlers = []
 
-export const subscribeToSplitResize = (fn) => {
-  _splitResizeHandlers.push(fn)
-  return () => { _splitResizeHandlers = _splitResizeHandlers.filter((s) => s !== fn) }
+export const subscribeToSplitPaneEvents = (el, fnMap) => {
+  const handler = {
+    el,
+    fnMap
+  }
+
+  _splitResizeHandlers.push(handler)
+
+  return () => {
+    _splitResizeHandlers = _splitResizeHandlers.filter(h => h !== handler)
+  }
 }
 
 export const subscribeToThemeChange = (fn) => {
@@ -125,8 +83,6 @@ export const subscribeToThemeChange = (fn) => {
 }
 
 export const triggerThemeChange = (data) => { _themeChangedListeners.forEach((fn) => fn(data)) }
-
-export const triggerSplitResize = () => { _splitResizeHandlers.forEach((fn) => fn()) }
 
 export let referencesLoader = null
 
@@ -139,10 +95,8 @@ export let extensions = []
 export let apiSpecs = {}
 
 export function rootPath () {
-  let _rootPath = window.location.pathname.indexOf('/studio') === -1 ? window.location.pathname : window.location.pathname.substring(0, window.location.pathname.indexOf('/studio'))
+  const _rootPath = window.location.pathname.indexOf('/studio') === -1 ? window.location.pathname : window.location.pathname.substring(0, window.location.pathname.indexOf('/studio'))
   return _rootPath[_rootPath.length - 1] === '/' ? _rootPath.substring(0, _rootPath.length - 1) : _rootPath
 }
 
-export const sharedComponents = {
-
-}
+export const sharedComponents = {}

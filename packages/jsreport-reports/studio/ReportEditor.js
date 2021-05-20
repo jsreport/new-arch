@@ -52,7 +52,14 @@ export default class ReportEditor extends Component {
         r.contentType === 'application/pdf' ||
         (r.contentType && r.contentType.indexOf('image') !== -1)
       ) {
-        Studio.setPreviewFrameSrc(`${Studio.rootUrl}/reports/${r._id}/content`)
+        Studio.preview({
+          type: 'rawContent',
+          data: {
+            type: 'url',
+            content: `${Studio.rootUrl}/reports/${r._id}/content`
+          },
+          completed: true
+        })
       } else {
         window.open(`${Studio.rootUrl}/reports/${r._id}/attachment`, '_self')
       }
@@ -60,7 +67,15 @@ export default class ReportEditor extends Component {
       this.setState({ active: r._id })
       this.ActiveReport = r
     } else if (state === 'error') {
-      Studio.setPreviewFrameSrc('data:text/html;charset=utf-8,' + encodeURI(r.error || r.state))
+      Studio.preview({
+        type: 'rawContent',
+        data: {
+          type: 'text/html',
+          content: r.error || r.state
+        },
+        completed: true
+      })
+
       this.setState({ active: null })
       this.ActiveReport = null
     }

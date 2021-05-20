@@ -12,7 +12,11 @@ class LogoutSettingsButton extends Component {
     return (
       <div>
         <div
-          onClick={() => this.logoutRef.current.click()} style={{ cursor: 'pointer' }}
+          onClick={() => {
+            this.logoutRef.current.click()
+            this.props.closeMenu()
+          }}
+          style={{ cursor: 'pointer' }}
         >
           <form method='POST' action={Studio.resolveUrl('/logout')}>
             <input ref={this.logoutRef} type='submit' id='logoutBtn' style={{ display: 'none' }} />

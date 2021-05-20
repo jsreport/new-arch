@@ -1,9 +1,8 @@
 import PropTypes from 'prop-types'
 import React, { Component } from 'react'
 import TextEditor from './TextEditor.js'
-import _debounce from 'lodash/debounce'
 import SplitPane from '../../components/common/SplitPane/SplitPane.js'
-import { triggerSplitResize, templateEditorModeResolvers } from '../../lib/configuration.js'
+import { templateEditorModeResolvers } from '../../lib/configuration.js'
 
 class TemplateEditor extends Component {
   static propTypes = {
@@ -15,12 +14,6 @@ class TemplateEditor extends Component {
     super(props)
 
     this.contentEditorRef = React.createRef()
-
-    this.handleSplitChanged = _debounce(this.handleSplitChanged, 150, { leading: true })
-  }
-
-  handleSplitChanged () {
-    triggerSplitResize()
   }
 
   resolveTemplateEditorMode (template) {
@@ -39,8 +32,11 @@ class TemplateEditor extends Component {
 
     return (
       <SplitPane
-        split='horizontal' resizerClassName='resizer-horizontal' onChange={() => this.handleSplitChanged()}
-        defaultSize={(window.innerHeight * 0.2) + 'px'}>
+        primary='second'
+        split='horizontal'
+        resizerClassName='resizer-horizontal'
+        defaultSize={(window.innerHeight * 0.2) + 'px'}
+      >
         <TextEditor
           key={entity._id}
           ref={this.contentEditorRef}

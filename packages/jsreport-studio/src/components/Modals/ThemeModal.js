@@ -133,7 +133,7 @@ class ThemeModal extends Component {
         <br />
         <div className='button-bar'>
           <button className='button confirmation' onClick={() => this.props.close()}>Confirm</button>
-          <button style={{ 'whiteSpace': 'nowrap' }} className='button danger' onClick={() => this.restoreThemeToDefault()}>Restore to default</button>
+          <button style={{ whiteSpace: 'nowrap' }} className='button danger' onClick={() => this.restoreThemeToDefault()}>Restore to default</button>
         </div>
       </div>
     )

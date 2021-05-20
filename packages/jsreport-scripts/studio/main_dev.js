@@ -26,7 +26,7 @@ Studio.addApiSpec({
   }
 })
 
-Studio.previewListeners.push((request, entities) => {
+Studio.runListeners.push((request, entities) => {
   if (!request.template.scripts) {
     return
   }

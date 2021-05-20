@@ -7,12 +7,12 @@ import { checkIsGroupNode, checkIsGroupEntityNode, getAllEntitiesInHierarchy } f
 import { entitySets, entityTreeContextMenuItemsResolvers } from '../../lib/configuration.js'
 import styles from './EntityTree.css'
 
-const ContextMenu = React.forwardRef(({
+const ContextMenu = React.forwardRef(function ContextMenu ({
   entity,
   node,
   getCoordinates,
   getContextMenuItems
-}, ref) => {
+}, ref) {
   const {
     selectable,
     clipboard,
@@ -206,7 +206,7 @@ const ContextMenuContainer = ({ children }) => {
   )
 }
 
-export const RootContextMenu = React.forwardRef(({ getContextMenuItems }, ref) => {
+export const RootContextMenu = React.forwardRef(function RootContextMenu ({ getContextMenuItems }, ref) {
   const { contextMenu } = useContext(EntityTreeContext)
 
   if (!contextMenu || contextMenu.id !== '__ROOT__') {
@@ -222,7 +222,7 @@ export const RootContextMenu = React.forwardRef(({ getContextMenuItems }, ref) =
   )
 })
 
-export const NodeContextMenu = React.forwardRef(({ node, getContextMenuItems, getCoordinates }, ref) => {
+export const NodeContextMenu = React.forwardRef(function NodeContextMenu ({ node, getContextMenuItems, getCoordinates }, ref) {
   const { contextMenu } = useContext(EntityTreeContext)
   const entity = node.data
 

@@ -176,8 +176,8 @@ describe.only('excel recipe', () => {
     res.content.toString().should.containEql('iframe')
   })
 
-  // TODO this is crashing on FATAL ERROR: v8::FromJust Maybe value is Nothing.
-  // strange is that if you put to jreport-office a console.log after asios post, it doesnt crash
+  // TODO: this is crashing on FATAL ERROR: v8::FromJust Maybe value is Nothing.
+  // strange is that if you put to jsreport-office a console.log after axios post, it doesn't crash
   it.skip('should return iframe in preview with title including template name', async () => {
     await reporter.documentStore.collection('templates').insert({ name: 'foo', engine: 'none', recipe: 'html' })
     const res = await reporter.render({

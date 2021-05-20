@@ -14,8 +14,8 @@ function getCurrentTheme () {
 
   let currentTheme = defaultTheme
   let currentEditorTheme = defaultEditorTheme
-  let userTheme = window.localStorage.getItem('studioTheme')
-  let userEditorTheme = window.localStorage.getItem('studioEditorTheme')
+  const userTheme = window.localStorage.getItem('studioTheme')
+  const userEditorTheme = window.localStorage.getItem('studioEditorTheme')
 
   if (userTheme != null && extensions.studio.options.availableThemes[userTheme] != null) {
     currentTheme = userTheme
@@ -33,9 +33,15 @@ function getCurrentTheme () {
 }
 
 function setCurrentTheme ({ theme, editorTheme }, { onComplete, onError } = {}) {
-  if (theme == null && editorTheme == null) {
+  const callOnComplete = () => {
     if (onComplete) {
       onComplete()
+    }
+  }
+
+  if (theme == null && editorTheme == null) {
+    if (callOnComplete) {
+      callOnComplete()
     }
 
     return getCurrentTheme()
@@ -44,8 +50,8 @@ function setCurrentTheme ({ theme, editorTheme }, { onComplete, onError } = {}) 
   if (theme == null && editorTheme != null) {
     changeEditorTheme(editorTheme)
 
-    if (onComplete) {
-      onComplete()
+    if (callOnComplete) {
+      callOnComplete()
     }
 
     return getCurrentTheme()
@@ -82,9 +88,9 @@ function setCurrentTheme ({ theme, editorTheme }, { onComplete, onError } = {}) 
       changeEditorTheme(newEditorTheme)
 
       if (customCssLink) {
-        changeCustomCss(theme, onComplete, onError)
+        changeCustomCss(theme, callOnComplete, onError)
       } else {
-        onComplete && onComplete()
+        callOnComplete()
       }
     }
 
@@ -109,9 +115,9 @@ function setCurrentTheme ({ theme, editorTheme }, { onComplete, onError } = {}) 
     changeEditorTheme(newEditorTheme)
 
     if (customCssLink) {
-      changeCustomCss(theme, onComplete, onError)
+      changeCustomCss(theme, callOnComplete, onError)
     } else {
-      onComplete && onComplete()
+      callOnComplete()
     }
 
     return getCurrentTheme()

@@ -10,15 +10,18 @@ import _merge from 'lodash/merge'
 import api, { methods } from './helpers/api.js'
 import { getCurrentTheme, setCurrentTheme } from './helpers/theme.js'
 import SplitPane from './components/common/SplitPane/SplitPane.js'
-import Popover from './components/common/Popover/index.js'
+import Popover from './components/common/Popover'
+import Popup from './components/common/Popup'
 import FileInput from './components/common/FileInput/FileInput.js'
 import MultiSelect from './components/common/MultiSelect/index.js'
 import EntityRefSelect from './components/common/EntityRefSelect/index.js'
 import TextEditor from './components/Editor/TextEditor.js'
 import EntityTree from './components/EntityTree/EntityTree.js'
 import EntityTreeButton from './components/EntityTree/EntityTreeButton.js'
-import Preview from './components/Preview/Preview.js'
+import Preview from './components/Preview/Preview'
+import FramePreview from './components/Preview/FramePreview'
 import NewEntityModal from './components/Modals/NewEntityModal.js'
+import storeMethods from './redux/methods'
 import * as editor from './redux/editor'
 import * as entities from './redux/entities'
 import * as progress from './redux/progress'
@@ -28,7 +31,6 @@ import rootUrl from './helpers/rootUrl'
 import resolveUrl from './helpers/resolveUrl'
 import { findTextEditor } from './helpers/textEditorInstance'
 import babelRuntime from './lib/babelRuntime.js'
-import customPreview from './helpers/customPreview.js'
 import bluebird from 'bluebird'
 import io from 'socket.io-client'
 
@@ -58,11 +60,20 @@ class Studio {
   }
 
   /**
-   * Array of async functions invoked in sequence when preview process starts.
+   * Array of async functions invoked in sequence when run template preview process starts.
    * @returns {Function[]}
    */
-  get previewListeners () {
-    return configuration.previewListeners
+  get runListeners () {
+    return configuration.runListeners
+  }
+
+  /**
+   * Array of functions invoked in sequence when a report preview is render.
+   * It should return an object describing the styles to apply to the Frame preview of the report
+   * @returns {Function[]}
+   */
+  get reportPreviewStyleResolvers () {
+    return configuration.reportPreviewStyleResolvers
   }
 
   /**
@@ -239,6 +250,7 @@ class Studio {
    * (defaultCalculatedPath, currentEntity) => String
    * @param {Function} fn
    */
+  // eslint-disable-next-line accessor-pairs
   set locationResolver (fn) {
     configuration.locationResolver = fn
   }
@@ -248,6 +260,7 @@ class Studio {
    * ('Save All') => return true
    * @param {Function} fn
    */
+  // eslint-disable-next-line accessor-pairs
   set toolbarVisibilityResolver (fn) {
     configuration.toolbarVisibilityResolver = fn
   }
@@ -257,6 +270,7 @@ class Studio {
    * (entitySet) => Promise([array])
    * @param {Function} fn
    */
+  // eslint-disable-next-line accessor-pairs
   set referencesLoader (fn) {
     configuration.referencesLoader = fn
   }
@@ -265,6 +279,7 @@ class Studio {
    * Optionally you can avoid displaying default startup page
    * @param {Boolean} trueOrFalse
    */
+  // eslint-disable-next-line accessor-pairs
   set shouldOpenStartupPage (trueOrFalse) {
     configuration.shouldOpenStartupPage = trueOrFalse
   }
@@ -274,6 +289,7 @@ class Studio {
    * (id) => {})
    * @param {Function} fn
    */
+  // eslint-disable-next-line accessor-pairs
   set removeHandler (fn) {
     configuration.removeHandler = fn
   }
@@ -304,26 +320,27 @@ class Studio {
   /** runtime helpers **/
 
   /**
-   * Override the right preview pane with additional content
-   * setPreviewFrameSrc('data:text/html;charset=utf-8,foooooooo')
-   * @param {String} frameSrc
+   * Render new content/data inside the MainPreview of studio
+   * @param {Object} params metadata about the preview
    */
-  setPreviewFrameSrc (frameSrc) {
-    configuration.previewFrameChangeHandler(frameSrc)
+  preview (params) {
+    return storeMethods.preview(params)
   }
 
   /**
-   * Display custom content in the preview pane using http post to the url
-   * This is usefull when Studio.setPreviewFrameSrc isn't working because the content to set is too big
-   * and hits the iframe src chars limit.
-   * @param {String} frameSrc
+   * Updates the content/data inside the MainPreview of studio
+   * @param {String} id Preview id of the content to update
+   * @param {Object} params new metadata about the preview to update
    */
-  customPreview (url, request, opts = {}) {
-    const target = configuration.getPreviewTargetHandler() || 'previewFrame'
+  updatePreview (id, params) {
+    return storeMethods.updatePreview(id, params)
+  }
 
-    configuration.previewConfigurationHandler({ ...opts, src: null }).then(() => {
-      customPreview(url, request, target)
-    })
+  /**
+   * Cleans the content inside the MainPreview of studio
+   */
+  clearPreview () {
+    return storeMethods.clearPreview()
   }
 
   /**
@@ -373,10 +390,11 @@ class Studio {
   }
 
   /**
-   * Invoke preview process for last active template
+   * Invokes run template preview process, when no template is passed it is invoked
+   * for the last active template
    */
-  preview () {
-    configuration.previewHandler()
+  run (params = {}, opts = {}) {
+    return this.store.dispatch(editor.actions.run(params, opts))
   }
 
   /**
@@ -572,7 +590,7 @@ class Studio {
    * @returns {Object|null}
    */
   getEntityById (_id, shouldThrow = true) {
-    return entities.selectors.getById(this.store.getState(), _id, shouldThrow)
+    return storeMethods.getEntityById(_id, shouldThrow)
   }
 
   /**
@@ -582,7 +600,7 @@ class Studio {
    * @returns {Object|null}
    */
   getEntityByShortid (shortid, shouldThrow = true) {
-    return entities.selectors.getByShortid(this.store.getState(), shortid, shouldThrow)
+    return storeMethods.getEntityByShortid(shortid, shouldThrow)
   }
 
   /**
@@ -640,7 +658,7 @@ class Studio {
    * @returns {String}
    */
   resolveEntityPath (entity) {
-    return entities.selectors.resolveEntityPath(this.store.getState(), entity)
+    return storeMethods.resolveEntityPath(entity)
   }
 
   relativizeUrl (path) {
@@ -691,6 +709,15 @@ class Studio {
   }
 
   /**
+   * Component used to show content in a popup
+   *
+   * @returns {Popup}
+   */
+  get Popup () {
+    return Popup
+  }
+
+  /**
    * Component used to visualise entities
    *
    * @returns {EntityTree}
@@ -733,6 +760,10 @@ class Studio {
 
   get Preview () {
     return Preview
+  }
+
+  get FramePreview () {
+    return FramePreview
   }
 
   get dragAndDropNativeTypes () {

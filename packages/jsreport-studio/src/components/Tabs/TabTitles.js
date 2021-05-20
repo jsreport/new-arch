@@ -1,9 +1,8 @@
 import PropTypes from 'prop-types'
 import React, { Component } from 'react'
-import { connect } from 'react-redux'
 import TabTitle from './TabTitle'
 import { getNodeTitleDOMId } from '../EntityTree/utils'
-import { selectors as entitiesSelectors } from '../../redux/entities'
+import storeMethods from '../../redux/methods'
 import { entitySets, collapseEntityHandler } from '../../lib/configuration'
 import style from './Tabs.css'
 
@@ -63,6 +62,8 @@ class TabTitles extends Component {
         currentTabIndex = idx
         return true
       }
+
+      return false
     })
 
     if (currentTabIndex != null) {
@@ -81,6 +82,8 @@ class TabTitles extends Component {
         currentTabIndex = idx
         return true
       }
+
+      return false
     })
 
     if (currentTabIndex != null) {
@@ -203,7 +206,7 @@ class TabTitles extends Component {
   }
 
   renderTitle (t) {
-    const { tabs, activeTabKey, closeTab, resolveEntityPath } = this.props
+    const { tabs, activeTabKey, closeTab } = this.props
     const { contextMenuKey } = this.state
     let complementTitle
 
@@ -219,7 +222,7 @@ class TabTitles extends Component {
       })
 
       if (duplicated) {
-        const currentPath = resolveEntityPath(t.entity)
+        const currentPath = storeMethods.resolveEntityPath(t.entity)
         complementTitle = `${currentPath.split('/').slice(1, -1).join('/')}`
 
         if (complementTitle === '') {
@@ -235,7 +238,6 @@ class TabTitles extends Component {
         contextMenu={contextMenuKey != null && contextMenuKey === t.tab.key ? this.renderContextMenu(t) : undefined}
         tab={t}
         complementTitle={complementTitle}
-        resolveEntityPath={resolveEntityPath}
         onClick={this.handleTabClick}
         onContextMenu={this.handleTabContextMenu}
         onClose={closeTab}
@@ -252,6 +254,4 @@ class TabTitles extends Component {
   }
 }
 
-export default connect((state) => ({
-  resolveEntityPath: (entity) => entitiesSelectors.resolveEntityPath(state, entity)
-}))(TabTitles)
+export default TabTitles

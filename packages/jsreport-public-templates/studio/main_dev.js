@@ -7,7 +7,13 @@ Studio.addToolbarComponent((props) => {
   }
 
   return (
-    <div className='toolbar-button' onClick={() => Studio.openModal(ShareModal, {entity: props.tab.entity})}>
+    <div
+      className='toolbar-button'
+      onClick={() => {
+        Studio.openModal(ShareModal, {entity: props.tab.entity})
+        props.closeMenu()
+      }}
+    >
       <i className='fa fa-unlock' />Share
     </div>
   )

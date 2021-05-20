@@ -3,13 +3,25 @@ import ImportModal from './ImportModal.js'
 import Studio from 'jsreport-studio'
 
 Studio.addToolbarComponent((props) => (
-  <div className='toolbar-button' onClick={() => Studio.openModal(ExportModal)}>
+  <div
+    className='toolbar-button'
+    onClick={() => {
+      Studio.openModal(ExportModal)
+      props.closeMenu()
+    }}
+  >
     <i className='fa fa-download' />Export
   </div>
 ), 'settings')
 
 Studio.addToolbarComponent((props) => (
-  <div className='toolbar-button' onClick={() => Studio.openModal(ImportModal)}>
+  <div
+    className='toolbar-button'
+    onClick={() => {
+      Studio.openModal(ImportModal)
+      props.closeMenu()
+    }}
+  >
     <i className='fa fa-upload' />Import
   </div>
 ), 'settings')

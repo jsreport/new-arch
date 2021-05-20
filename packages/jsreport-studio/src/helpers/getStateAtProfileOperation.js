@@ -1,6 +1,6 @@
 import { applyPatch } from 'diff'
 
-function getStateAtProfilerOperation (operations, operationId, completed = false, cache = {}) {
+function getStateAtProfileOperation (operations, operationId, completed = false, cache = {}) {
   let state
 
   const operation = operations.find((op) => op.id === operationId)
@@ -28,7 +28,7 @@ function getStateAtProfilerOperation (operations, operationId, completed = false
       cacheItem == null ||
       (previousOperation.type !== 'render' && cacheItem.completedReqState == null)
     ) {
-      previousOperationWithState = getStateAtProfilerOperation(operations, previousOperation.id, previousOperation.type !== 'render', cache)
+      previousOperationWithState = getStateAtProfileOperation(operations, previousOperation.id, previousOperation.type !== 'render', cache)
     } else {
       previousOperationWithState = cacheItem
     }
@@ -80,7 +80,7 @@ function getStateAtProfilerOperation (operations, operationId, completed = false
     if (operation.id === completedPreviousOperation.id) {
       completedPreviousOperationWithState = state
     } else if (completedPreviousOperation.type === 'render') {
-      completedPreviousOperationWithState = cache[completedPreviousOperation.id] != null ? cache[completedPreviousOperation.id] : getStateAtProfilerOperation(operations, completedPreviousOperation.id, false, cache)
+      completedPreviousOperationWithState = cache[completedPreviousOperation.id] != null ? cache[completedPreviousOperation.id] : getStateAtProfileOperation(operations, completedPreviousOperation.id, false, cache)
     } else {
       const cacheItem = cache[completedPreviousOperation.id]
 
@@ -88,7 +88,7 @@ function getStateAtProfilerOperation (operations, operationId, completed = false
         cacheItem == null ||
         (!isRenderOrSame && cacheItem.completedReqState == null)
       ) {
-        completedPreviousOperationWithState = getStateAtProfilerOperation(operations, completedPreviousOperation.id, true, cache)
+        completedPreviousOperationWithState = getStateAtProfileOperation(operations, completedPreviousOperation.id, true, cache)
       } else {
         completedPreviousOperationWithState = cacheItem
       }
@@ -138,4 +138,4 @@ function getStateAtProfilerOperation (operations, operationId, completed = false
   return state
 }
 
-export default getStateAtProfilerOperation
+export default getStateAtProfileOperation

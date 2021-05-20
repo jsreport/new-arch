@@ -26,8 +26,8 @@ module.exports = function (cacheEnabled, customLogWarnFn) {
 
   const THEME_VARIABLES = {}
 
-  let compiledThemeCss = {}
-  let customCssResult = {}
+  const compiledThemeCss = {}
+  const customCssResult = {}
 
   const themeCompilationLock = new Lock()
   const getCustomCssLock = new Lock()
@@ -212,7 +212,7 @@ async function doGetCurrentThemeVars (THEMES, THEME_VARIABLES, themeName, custom
     variablesInTheme = {}
   }
 
-  let themeVars = Object.assign(
+  const themeVars = Object.assign(
     {},
     Object.entries(THEME_VARIABLES).reduce((acu, [varName, varDef]) => {
       if (varDef.default != null) {
@@ -266,7 +266,7 @@ function themeInheritance (themeVariablesDef, currentVariables) {
 
   const variables = Object.assign({}, currentVariables)
 
-  Object.entries(inheritanceMap).map(([genericName, vars]) => {
+  Object.entries(inheritanceMap).forEach(([genericName, vars]) => {
     vars.forEach((varName) => {
       if (variables[varName] == null) {
         variables[varName] = variables[genericName]

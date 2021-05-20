@@ -1,7 +1,7 @@
 import classNames from 'classnames'
 import { Fragment, useEffect } from 'react'
 import { getSmoothStepPath, getMarkerEnd } from 'react-flow-renderer'
-import styles from './Preview.css'
+import styles from '../../Preview.css'
 
 const DefaultEdge = (props) => {
   const {
@@ -19,7 +19,7 @@ const DefaultEdge = (props) => {
 
   const edgePath = getSmoothStepPath({ sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition })
   const markerEnd = getMarkerEnd(arrowHeadType, markerEndId)
-  const expanderClass = classNames('react-flow__edge-path', styles.profilerOperationEdgeExpander)
+  const expanderClass = classNames('react-flow__edge-path', styles.profileOperationEdgeExpander)
   const mainClass = classNames('react-flow__edge-path', styles.main)
 
   useEffect(() => {

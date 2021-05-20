@@ -86,8 +86,8 @@ export default function useDropHandler ({
       }
 
       const runResolvers = (resolvers, idx) => {
-        let i = idx || 0
-        let currentResolver = resolvers[i]
+        const i = idx || 0
+        const currentResolver = resolvers[i]
 
         const end = (value) => {
           value++

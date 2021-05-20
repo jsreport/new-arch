@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import AssetUploadButton from './AssetUploadButton.js'
-import Studio, { Preview, TextEditor } from 'jsreport-studio'
+import Studio, { FramePreview, TextEditor } from 'jsreport-studio'
 import superagent from 'superagent'
 import Promise from 'bluebird'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
@@ -457,10 +457,12 @@ class AssetEditor extends Component {
     }
 
     if (this.isOfficeFile(entity)) {
+      const officeSrc = Studio.resolveUrl(`assets/office/${entity._id}/content`)
+
       return (
-        <Preview
+        <FramePreview
           onLoad={() => this.previewLoadFinish()}
-          initialSrc={Studio.resolveUrl(`assets/office/${entity._id}/content`)}
+          src={officeSrc}
         />
       )
     }

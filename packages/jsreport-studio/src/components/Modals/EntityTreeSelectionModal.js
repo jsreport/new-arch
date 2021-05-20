@@ -1,10 +1,11 @@
 import PropTypes from 'prop-types'
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
-import { actions as entitiesActions, selectors as entitiesSelectors } from '../../redux/entities'
 import EntityTreeButton from '../EntityTree/EntityTreeButton'
-import EntityTree from '../EntityTree/EntityTree.js'
-import api from '../../helpers/api.js'
+import EntityTree from '../EntityTree/EntityTree'
+import { actions as entitiesActions, selectors as entitiesSelectors } from '../../redux/entities'
+import storeMethods from '../../redux/methods'
+import api from '../../helpers/api'
 
 class NewFolderInline extends Component {
   constructor (props) {
@@ -36,11 +37,11 @@ class NewFolderInline extends Component {
   }
 
   renderEditMode () {
-    const { editMode, onSave, onCancel, getEntityByShortid, resolveEntityPath } = this.props
+    const { editMode, onSave, onCancel } = this.props
     let parentName
 
     if (editMode.parentShortid != null) {
-      parentName = resolveEntityPath(getEntityByShortid(editMode.parentShortid))
+      parentName = storeMethods.resolveEntityPath(storeMethods.getEntityByShortid(editMode.parentShortid))
     }
 
     return (
@@ -105,7 +106,7 @@ class EntityTreeSelectionModal extends Component {
     this.state = {
       newFolderEdit: null,
       selected: initialSelected.reduce((acu, shortid) => {
-        const entity = props.getEntityByShortid(shortid, false)
+        const entity = storeMethods.getEntityByShortid(shortid, false)
 
         if (entity) {
           acu[entity._id] = true
@@ -205,7 +206,7 @@ class EntityTreeSelectionModal extends Component {
     const values = []
 
     Object.keys(selected).forEach((_id) => {
-      const entity = this.props.getEntityById(_id, false)
+      const entity = storeMethods.getEntityById(_id, false)
 
       if (!entity) {
         return
@@ -232,8 +233,6 @@ class EntityTreeSelectionModal extends Component {
       treeStyle = {}
     } = this.props.options
 
-    const { getEntityByShortid, resolveEntityPath } = this.props
-
     const { selected, newFolderEdit } = this.state
 
     const entities = this.filterEntities(this.props.references)
@@ -254,8 +253,6 @@ class EntityTreeSelectionModal extends Component {
               onSave={this.createNewFolder}
               onCancel={() => this.setState({ newFolderEdit: null })}
               editMode={newFolderEdit}
-              getEntityByShortid={getEntityByShortid}
-              resolveEntityPath={resolveEntityPath}
             />
           </div>
         )}
@@ -315,8 +312,5 @@ class EntityTreeSelectionModal extends Component {
 }
 
 export default connect((state) => ({
-  references: entitiesSelectors.getReferences(state),
-  getEntityById: (_id, ...params) => entitiesSelectors.getById(state, _id, ...params),
-  getEntityByShortid: (shortid, ...params) => entitiesSelectors.getByShortid(state, shortid, ...params),
-  resolveEntityPath: (entity, ...params) => entitiesSelectors.resolveEntityPath(state, entity, ...params)
+  references: entitiesSelectors.getReferences(state)
 }), { addExistingEntity: entitiesActions.addExisting })(EntityTreeSelectionModal)

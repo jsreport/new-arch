@@ -9,7 +9,7 @@ async function parseProfile (profileStreamReader, onProfileMessage) {
     try {
       message = JSON.parse(rawMessage)
     } catch (e) {
-      console.error(`Unable to parse profiler message. raw: ${rawMessage}`, e)
+      console.error(`Unable to parse profile message. raw: ${rawMessage}`, e)
       return
     }
 

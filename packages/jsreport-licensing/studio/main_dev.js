@@ -120,7 +120,11 @@ Studio.readyListeners.push(async () => {
 
   Studio.addToolbarComponent((props) => (
     <div
-      className='toolbar-button' onClick={() => licenseInfoModal()}
+      className='toolbar-button'
+      onClick={() => {
+        licenseInfoModal()
+        props.closeMenu()
+      }}
     >
       <div style={{textTransform: 'capitalize'}}>
         <i className='fa fa-gavel' />{licensingInfo.license} <i className='fa fa-info-circle' style={{ marginRight: 0 }} />

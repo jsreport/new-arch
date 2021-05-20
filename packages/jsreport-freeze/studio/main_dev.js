@@ -54,20 +54,28 @@ Studio.initializeListeners.push(() => {
     return
   }
 
-  Studio.addToolbarComponent(() => (
+  Studio.addToolbarComponent((props) => (
     Studio.getSettingValueByKey('freeze', false) ? <span /> : (
       <div
-        className='toolbar-button' onClick={freeze}
+        className='toolbar-button'
+        onClick={() => {
+          freeze()
+          props.closeMenu()
+        }}
       >
         <i className='fa fa-lock' />Freeze edits
       </div>
     )
   ), 'settings')
 
-  Studio.addToolbarComponent(() => (
+  Studio.addToolbarComponent((props) => (
     Studio.getSettingValueByKey('freeze', false) ? (
       <div
-        className={'toolbar-button'} onClick={release}
+        className={'toolbar-button'}
+        onClick={() => {
+          release()
+          props.closeMenu()
+        }}
       >
         <i className='fa fa-unlock' />Release freeze
       </div>

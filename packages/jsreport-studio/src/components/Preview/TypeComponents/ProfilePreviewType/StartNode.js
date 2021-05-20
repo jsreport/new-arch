@@ -1,6 +1,6 @@
 import { useRef, useEffect } from 'react'
 import { Handle } from 'react-flow-renderer'
-import styles from './Preview.css'
+import styles from '../../Preview.css'
 
 const StartNode = (props) => {
   const {
@@ -21,7 +21,7 @@ const StartNode = (props) => {
   return (
     <div ref={elRef}>
       <Handle type='target' position={targetPosition} isConnectable={isConnectable} />
-      <span id={id}><i className={`fa fa-play ${styles.profilerStartNodeLabel}`} /></span>
+      <span id={id}><i className={`fa fa-play ${styles.profileStartNodeLabel}`} /></span>
       <Handle type='source' position={sourcePosition} isConnectable={isConnectable} />
     </div>
   )

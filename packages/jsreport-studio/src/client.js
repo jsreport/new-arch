@@ -37,12 +37,13 @@ const store = createStore(browserHistory)
 // that need to be evaluated/executed after we set the correct __webpack_public_path__
 const { createStudio } = require('./Studio')
 
-var Studio = window.Studio = createStudio(store)
+const Studio = window.Studio = createStudio(store)
 
 const start = async () => {
   await fetchExtensions()
 
   const extensionsArray = await Studio.api.get('/api/extensions')
+
   configuration.extensions = zipObject(extensionsArray.map((e) => e.name), extensionsArray)
 
   const oldMonacoGetWorkerUrl = window.MonacoEnvironment.getWorkerUrl
@@ -60,7 +61,7 @@ const start = async () => {
 
   // add folders to referenceAttributes for all entities
   Object.keys(Studio.entitySets).forEach((entitySetName) => {
-    let entitySet = Studio.entitySets[entitySetName]
+    const entitySet = Studio.entitySets[entitySetName]
 
     if (entitySet.referenceAttributes.indexOf('folder') === -1) {
       entitySet.referenceAttributes.push('folder')
@@ -69,7 +70,7 @@ const start = async () => {
 
   // calculate EntityTree order after initializeListeners
   configuration.entityTreeOrder = getEntityTreeOrder(
-    configuration.extensions['studio'].options.entityTreeOrder,
+    configuration.extensions.studio.options.entityTreeOrder,
     Studio.entitySets
   )
 
@@ -89,7 +90,7 @@ const start = async () => {
     [
       ...Object.keys(Studio.entitySets).map((t) => entities.actions.loadReferences(t)(store.dispatch)),
       Studio.api.get('/api/version', { parseJSON: false }).then((version) => (configuration.version = version)),
-      Studio.api.get('/api/engine').then((engs) => (configuration.engines = engs)),
+      Studio.api.get('/api/engine').then((engines) => (configuration.engines = engines)),
       Studio.api.get('/api/recipe').then((recs) => (configuration.recipes = recs)),
       settings.actions.load()(store.dispatch)
     ]
@@ -97,7 +98,7 @@ const start = async () => {
 
   const routes = getRoutes(window.Studio.routes)
 
-  let component = (
+  const component = (
     <ConnectedRouter history={browserHistory}>
       {routes}
     </ConnectedRouter>

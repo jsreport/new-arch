@@ -24,7 +24,7 @@ Studio.initializeListeners.push(() => {
       Studio.unloadEntity(lastActiveEntity._id)
       await Studio.loadEntity(lastActiveEntity._id)
       Studio.openTab({ _id: lastActiveEntity._id })
-      Studio.preview()
+      Studio.run()
     } finally {
       syncing = false
     }

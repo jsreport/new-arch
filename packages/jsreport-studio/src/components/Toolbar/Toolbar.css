@@ -69,28 +69,6 @@
   height: 2.5rem;
 }
 
-:global .popup-settings {
-  background-color: $toolbar-popup-backgroundColor;
-  color: $toolbar-color;
-  position: absolute;
-  padding: 0.5rem;
-  top: 2.4rem;
-  z-index: 2000
-}
-
-:global .popup-settings > div  {
-  padding: 0.5rem;
-}
-
-:global .popup-settings > div:hover {
-  background-color: $toolbar-popup-hover-backgroundColor;
-}
-
-:global .popup-settings .fa {
-  width: 1.1rem;
-  margin-right: 0.3rem;
-}
-
 .runCaret {
   font-family: FontAwesome;
   padding: 0.5rem;
@@ -103,12 +81,4 @@
 
 .runCaret:after {
   content: "\f0d7 "
-}
-
-.runPopup {
-  background-color: $toolbar-popup-backgroundColor;
-  top: 2.4rem;
-  position: absolute;
-  padding: 0.5rem;
-  z-index: 2000;
 }

@@ -27,28 +27,39 @@ class Resizer extends Component {
 
     const classes = ['Resizer', split, className]
 
+    let toggleButtonEl
+
+    if (collapsed) {
+      toggleButtonEl = (
+        <div className='pane-holder' onClick={(e) => collapse(false, undockeable, undocked ? false : null)}>
+          {undockeable && undocked && (
+            <span>
+              <i className='fa fa-window-maximize' />
+              {' '}
+            </span>
+          )}
+          {collapsedText}
+        </div>
+      )
+    } else {
+      toggleButtonEl = (
+        <div
+          title='Minimize pane'
+          className={'docker ' + (collapsable === 'first' ? 'left' : '')}
+          onClick={(e) => collapse(true, undockeable, null)}
+        >
+          <i className={'fa ' + (collapsable === 'first' ? 'fa-long-arrow-left' : 'fa-long-arrow-right')} />
+        </div>
+      )
+    }
+
     return (
-      <div className={classes.join(' ') + (collapsed ? ' collapsed' : '')} onMouseDown={this.onMouseDown}>
+      <div
+        className={classes.join(' ') + (collapsed ? ' collapsed' : '')}
+        onMouseDown={this.onMouseDown}
+      >
         <div className='resizer-line' />
-        {collapsed ? (
-          <div className='pane-holder' onClick={(e) => collapse(false, undockeable, undocked ? false : null)}>
-            {undockeable && undocked && (
-              <span>
-                <i className={'fa fa-window-maximize'} />
-                {' '}
-              </span>
-            )}
-            {collapsedText}
-          </div>
-        ) : (
-          <div
-            title='Minimize pane'
-            className={'docker ' + (collapsable === 'first' ? 'left' : '')}
-            onClick={(e) => collapse(true, undockeable, null)}
-          >
-            <i className={'fa ' + (collapsable === 'first' ? 'fa-long-arrow-left' : 'fa-long-arrow-right')} />
-          </div>
-        )}
+        {toggleButtonEl}
         {!collapsed && undockeable && (
           <div
             title='Undock preview pane into extra browser tab'
@@ -56,7 +67,7 @@ class Resizer extends Component {
             style={{ top: '35px' }}
             onClick={(e) => collapse(true, undockeable, true)}
           >
-            <i className={'fa fa-window-restore'} />
+            <i className='fa fa-window-restore' />
           </div>
         )}
       </div>

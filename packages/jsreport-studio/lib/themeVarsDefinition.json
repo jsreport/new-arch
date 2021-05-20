@@ -192,14 +192,6 @@
     "extends": "primary-hover-color"
   },
   {
-    "name": "toolbar-popup-backgroundColor",
-    "default": "#424c57"
-  },
-  {
-    "name": "toolbar-popup-hover-backgroundColor",
-    "extends": "primary-hover-backgroundColor"
-  },
-  {
     "name": "tab-titles-backgroundColor",
     "default": "#FEFEFE"
   },
@@ -470,6 +462,18 @@
   {
     "name": "popover-shadowColor",
     "default": "rgba(0,0,0,0.15)"
+  },
+  {
+    "name": "popup-color",
+    "extends": "primary-selection-color"
+  },
+  {
+    "name": "popup-backgroundColor",
+    "default": "#424c57"
+  },
+  {
+    "name": "popup-hover-backgroundColor",
+    "extends": "primary-hover-backgroundColor"
   },
   {
     "name": "anchors-color",

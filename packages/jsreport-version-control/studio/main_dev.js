@@ -4,6 +4,8 @@ import HistoryEditor from './HistoryEditor'
 import LocalChangesEditor from './LocalChangesEditor'
 import style from './VersionControl.css'
 
+const Popup = Studio.Popup
+
 Studio.initializeListeners.push(async () => {
   if (Studio.authentication && !Studio.authentication.user.isAdmin) {
     return
@@ -13,46 +15,89 @@ Studio.initializeListeners.push(async () => {
   Studio.addEditorComponent('versionControlLocalChanges', LocalChangesEditor)
 
   class VCToolbar extends Component {
-    constructor () {
-      super()
-      this.state = { }
-      this.tryHide = this.tryHide.bind(this)
-    }
+    constructor (props) {
+      super(props)
 
-    componentDidMount () {
-      window.addEventListener('click', this.tryHide)
-    }
+      this.state = {
+        expandedMenu: false
+      }
 
-    componentWillUnmount () {
-      window.removeEventListener('click', this.tryHide)
-    }
+      this.handleVCMenuTrigger = this.handleVCMenuTrigger.bind(this)
 
-    tryHide () {
-      this.setState({ expandedToolbar: false })
+      this.vcMenuTriggerRef = React.createRef()
+      this.vcMenuContainerRef = React.createRef()
     }
 
     openHistory (e) {
       e.stopPropagation()
-      this.tryHide()
       Studio.openTab({ key: 'versionControlHistory', editorComponentKey: 'versionControlHistory', title: 'Commits history' })
     }
 
     openLocalChanges (e) {
       e.stopPropagation()
-      this.tryHide()
       Studio.openTab({ key: 'versionControlLocalChanges', editorComponentKey: 'versionControlLocalChanges', title: 'Uncommited changes' })
+    }
+
+    handleVCMenuTrigger (e) {
+      e.stopPropagation()
+
+      if (
+        this.vcMenuTriggerRef.current == null ||
+        this.vcMenuContainerRef.current == null
+      ) {
+        return
+      }
+
+      if (
+        this.vcMenuTriggerRef.current.contains(e.target) &&
+        !this.vcMenuContainerRef.current.contains(e.target)
+      ) {
+        this.setState((prevState) => ({
+          expandedMenu: !prevState.expandedMenu
+        }))
+      }
     }
 
     render () {
       return (
-        <div className='toolbar-button' onClick={(e) => this.openLocalChanges(e)}>
+        <div
+          ref={this.vcMenuTriggerRef}
+          className='toolbar-button'
+          onClick={(e) => {
+            this.openLocalChanges(e)
+            this.setState({ expandedMenu: false })
+          }}
+        >
           <i className='fa fa-history ' />Commit
-          <span className={style.runCaret} onClick={(e) => { e.stopPropagation(); this.setState({ expandedToolbar: !this.state.expandedToolbar }) }} />
-          <div className='popup-settings' style={{ display: this.state.expandedToolbar ? 'block' : 'none' }}>
-            <div title='History' className='toolbar-button' onClick={(e) => this.openHistory(e)}>
-              <i className='fa fa-history' /><span>History</span>
-            </div>
-          </div>
+          <span
+            className={style.runCaret}
+            onClick={this.handleVCMenuTrigger}
+          />
+          <Popup
+            ref={this.vcMenuContainerRef}
+            open={this.state.expandedMenu}
+            position={{ top: undefined, right: undefined }}
+            onRequestClose={() => this.setState({ expandedMenu: false })}
+          >
+            {(itemProps) => {
+              if (!itemProps.open) {
+                return
+              }
+
+              return (
+                <div
+                  title='History'
+                  className='toolbar-button'
+                  onClick={(e) => {
+                    this.openHistory(e)
+                    itemProps.closeMenu()
+                  }}
+                >
+                  <i className='fa fa-history' /><span>History</span>
+                </div>
+              )
+            }}
+          </Popup>
         </div>
       )
     }

@@ -1,10 +1,9 @@
 import { useState, useCallback } from 'react'
+import storeMethods from '../../redux/methods'
 import { checkIsGroupNode, checkIsGroupEntityNode } from './utils'
 
 export default function useCollapsed ({
-  listRef,
-  getEntityById,
-  getEntityByShortid
+  listRef
 }) {
   const [collapsedNodes, setCollapsed] = useState({})
 
@@ -18,13 +17,12 @@ export default function useCollapsed ({
 
   const toogleNodeCollapse = useCallback((node, forceState) => {
     const nodesToProcess = Array.isArray(node) ? node : [node]
-    let newState
 
     if (nodesToProcess.length === 0) {
       return
     }
 
-    newState = nodesToProcess.reduce((acu, nodeObj) => {
+    const newState = nodesToProcess.reduce((acu, nodeObj) => {
       let newCollapseState
 
       if (forceState != null) {
@@ -50,9 +48,9 @@ export default function useCollapsed ({
     let entity
 
     if (idOrShortid._id) {
-      entity = getEntityById(idOrShortid._id, false)
+      entity = storeMethods.getEntityById(idOrShortid._id, false)
     } else if (idOrShortid.shortid) {
-      entity = getEntityByShortid(idOrShortid.shortid, false)
+      entity = storeMethods.getEntityByShortid(idOrShortid.shortid, false)
     }
 
     if (!entity) {
@@ -68,7 +66,7 @@ export default function useCollapsed ({
 
       while (currentEntity != null) {
         if (currentEntity.folder != null) {
-          currentEntity = getEntityByShortid(currentEntity.folder.shortid, false)
+          currentEntity = storeMethods.getEntityByShortid(currentEntity.folder.shortid, false)
 
           if (currentEntity != null) {
             toCollapse.unshift(currentEntity)
@@ -82,7 +80,7 @@ export default function useCollapsed ({
     toogleNodeCollapse(toCollapse.map((folder) => {
       return listRef.current.entityNodesById[folder._id]
     }), state)
-  }, [listRef, getEntityById, getEntityByShortid, toogleNodeCollapse])
+  }, [listRef, toogleNodeCollapse])
 
   return {
     isNodeCollapsed,

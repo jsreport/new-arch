@@ -3,14 +3,15 @@ import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import ChromeTheme from 'monaco-themes/themes/Chrome DevTools.json'
 import MonacoEditor from 'react-monaco-editor'
+import throttle from 'lodash/throttle'
 import debounce from 'lodash/debounce'
 import { reformat } from '../../redux/editor/actions'
 import reformatter from '../../helpers/reformatter'
 import { getCurrentTheme } from '../../helpers/theme'
 import LinterWorker from './workers/linter.worker'
-import { textEditorInstances, textEditorInitializeListeners, textEditorCreatedListeners, subscribeToThemeChange, subscribeToSplitResize } from '../../lib/configuration.js'
+import { textEditorInstances, textEditorInitializeListeners, textEditorCreatedListeners, subscribeToThemeChange, subscribeToSplitPaneEvents } from '../../lib/configuration.js'
 
-let lastTextEditorMounted = {
+const lastTextEditorMounted = {
   timeoutId: null,
   timestamp: null
 }
@@ -46,17 +47,26 @@ class TextEditor extends Component {
   }
 
   componentDidMount () {
-    this.unsubscribe = subscribeToSplitResize(this.calculateEditorLayout)
+    this.throttledCalculateEditorLayout = throttle(this.calculateEditorLayout, 200, {
+      trailing: true
+    })
 
-    this.debouncedCalculateEditorLayout = debounce(this.calculateEditorLayout, 200)
+    this.unsubscribe = subscribeToSplitPaneEvents(this.monacoRef.current.containerElement, {
+      change: this.throttledCalculateEditorLayout,
+      collapseChange: this.calculateEditorLayout
+    })
 
-    window.addEventListener('resize', this.debouncedCalculateEditorLayout)
+    window.addEventListener('resize', this.throttledCalculateEditorLayout)
 
     this.unsubscribeThemeChange = subscribeToThemeChange(({ newEditorTheme }) => {
       this.setState({
         editorTheme: newEditorTheme
       })
     })
+
+    setTimeout(() => {
+      this.calculateEditorLayout()
+    }, 100)
   }
 
   componentDidUpdate (prevProps) {
@@ -79,7 +89,7 @@ class TextEditor extends Component {
 
     this.unsubscribe()
 
-    window.removeEventListener('resize', this.debouncedCalculateEditorLayout)
+    window.removeEventListener('resize', this.throttledCalculateEditorLayout)
 
     this.unsubscribeThemeChange()
 
@@ -366,9 +376,7 @@ class TextEditor extends Component {
   }
 
   updateThemeRule (theme, tokenName, foregroundColor) {
-    let r
-
-    r = theme.rules.find((i) => i.token === tokenName)
+    const r = theme.rules.find((i) => i.token === tokenName)
 
     if (r) {
       r.foreground = foregroundColor

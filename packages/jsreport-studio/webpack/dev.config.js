@@ -21,7 +21,7 @@ try {
   console.error(err)
 }
 
-const babelrcObjectDevelopment = babelrcObject.env && babelrcObject.env.development || {}
+const babelrcObjectDevelopment = babelrcObject.env != null ? babelrcObject.env.development : {}
 
 // merge global and dev-only plugins
 let combinedPlugins = babelrcObject.plugins || []

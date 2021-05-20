@@ -1,7 +1,7 @@
 import isObject from 'lodash/isObject'
 import parseStreamingMultipart from './parseStreamingMultipart'
-import { getPreviewWindowName } from '../helpers/previewWindow'
-import resolveUrl from '../helpers/resolveUrl.js'
+import { getPreviewWindowName } from './previewWindow'
+import resolveUrl from './resolveUrl.js'
 import { extensions } from '../lib/configuration.js'
 
 export default async function (request, target) {
@@ -18,20 +18,14 @@ export default async function (request, target) {
   }
 }
 
-async function streamRender (request, target) {
+async function streamRender (request, { onStart, onFile } = {}) {
   const templateName = request.template.name
-
-  if (target.type === 'download') {
-    delete request.options.preview
-  }
 
   let url = templateName ? resolveUrl(`/api/report/${encodeURIComponent(templateName)}`) : resolveUrl('/api/report')
 
   url = `${url}?profilerDebug=true`
 
   try {
-    target.focus()
-
     const template = Object.keys(request.template).reduce((acu, templateProp) => {
       if (templateProp.indexOf('__') !== 0) {
         acu[templateProp] = request.template[templateProp]
@@ -39,6 +33,14 @@ async function streamRender (request, target) {
 
       return acu
     }, {})
+
+    if (onStart) {
+      try {
+        onStart()
+      } catch (e) {
+        console.error('Error during onStart callback of render', e)
+      }
+    }
 
     const response = await window.fetch(url, {
       method: 'POST',
@@ -120,7 +122,7 @@ async function streamRender (request, target) {
 
           for (const fileInfo of toProcess) {
             try {
-              target.processFile(fileInfo, target.previewId, target.previewName)
+              onFile(fileInfo)
             } catch (e) {
               console.error(`Error during onFile callback of "${fileInfo.name}" entry`, e)
             }

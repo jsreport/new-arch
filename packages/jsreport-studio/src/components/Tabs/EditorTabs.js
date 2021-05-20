@@ -4,7 +4,7 @@ import _omit from 'lodash/omit'
 import TabPane from './TabPane'
 import { editorComponents, entityEditorComponentKeyResolvers } from '../../lib/configuration.js'
 
-export default class EditorTabs extends Component {
+class EditorTabs extends Component {
   static propTypes = {
     onUpdate: PropTypes.func.isRequired,
     activeTabKey: PropTypes.string,
@@ -62,7 +62,7 @@ export default class EditorTabs extends Component {
 
     let entity = t.entity
 
-    if (editorComponentResult.hasOwnProperty('entity')) {
+    if (Object.prototype.hasOwnProperty.call(editorComponentResult, 'entity')) {
       entity = editorComponentResult.entity
     }
 
@@ -102,3 +102,5 @@ export default class EditorTabs extends Component {
     )
   }
 }
+
+export default EditorTabs

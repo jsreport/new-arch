@@ -1,9 +1,9 @@
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
-import { modalHandler } from '../../../lib/configuration.js'
-import { selectors as entitiesSelectors } from '../../../redux/entities'
+import { modalHandler } from '../../../lib/configuration'
 import { actions } from '../../../redux/editor'
-import EntityTreeSelectionModal from '../../Modals/EntityTreeSelectionModal.js'
+import storeMethods from '../../../redux/methods'
+import EntityTreeSelectionModal from '../../Modals/EntityTreeSelectionModal'
 import styles from './EntityRefSelect.css'
 
 const SelectInput = ({ textToShow, entity, handleOpenTree, openTab, disabled }) => (
@@ -42,7 +42,6 @@ class EntityRefSelect extends Component {
     }
 
     this.handleOpenTree = this.handleOpenTree.bind(this)
-    this.renderSelectedControl = this.renderSelectedControl
   }
 
   getPropsForEntityTree () {
@@ -78,8 +77,6 @@ class EntityRefSelect extends Component {
     const {
       value,
       multiple = false,
-      getEntityByShortid,
-      resolveEntityPath,
       disabled = false
     } = this.props
 
@@ -96,12 +93,12 @@ class EntityRefSelect extends Component {
       let entity
 
       if (currentValue != null && currentValue[0] != null) {
-        entity = getEntityByShortid(currentValue[0], false)
+        entity = storeMethods.getEntityByShortid(currentValue[0], false)
 
         if (!entity) {
           textToShow = ''
         } else {
-          textToShow = resolveEntityPath(entity)
+          textToShow = storeMethods.resolveEntityPath(entity)
         }
       } else {
         textToShow = ''
@@ -127,17 +124,17 @@ class EntityRefSelect extends Component {
       )
     }
 
-    let items = []
+    const items = []
 
     if (currentValue) {
       currentValue.forEach((eShortid) => {
-        const entity = getEntityByShortid(eShortid, false)
+        const entity = storeMethods.getEntityByShortid(eShortid, false)
 
         if (!entity) {
           return
         }
 
-        const namePath = resolveEntityPath(entity)
+        const namePath = storeMethods.resolveEntityPath(entity)
 
         items.push(
           <li key={namePath} title={namePath} onClick={() => this.props.openTab(entity)}>
@@ -171,9 +168,4 @@ class EntityRefSelect extends Component {
   }
 }
 
-export default connect(
-  (state) => ({
-    getEntityByShortid: (shortid, ...params) => entitiesSelectors.getByShortid(state, shortid, ...params),
-    resolveEntityPath: (entity, ...params) => entitiesSelectors.resolveEntityPath(state, entity, ...params)
-  }), { openTab: actions.openTab }
-)(EntityRefSelect)
+export default connect(undefined, { openTab: actions.openTab })(EntityRefSelect)

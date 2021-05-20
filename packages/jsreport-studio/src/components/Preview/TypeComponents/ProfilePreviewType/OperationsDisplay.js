@@ -5,8 +5,8 @@ import dagre from 'dagre'
 import StartNode from './StartNode'
 import OperationNode from './OperationNode'
 import DefaultEdge from './DefaultEdge'
-import getStateAtOperation from '../../helpers/getStateAtProfilerOperation'
-import styles from './Preview.css'
+import getStateAtProfileOperation from '../../../../helpers/getStateAtProfileOperation'
+import styles from '../../Preview.css'
 
 const nodeTypes = {
   start: StartNode,
@@ -56,10 +56,10 @@ const OperationsDisplay = (props) => {
   const mainError = isMainCompleted ? getMainError(errors) : undefined
 
   return (
-    <div className={styles.profilerOperations}>
+    <div className={styles.profileOperations}>
       {mainError && renderErrorModal != null && (
-        <div className={styles.profilerOperationsErrorModal}>
-          <div className={styles.profilerOperationsErrorModalContent}>
+        <div className={styles.profileOperationsErrorModal}>
+          <div className={styles.profileOperationsErrorModalContent}>
             {renderErrorModal(mainError)}
           </div>
         </div>
@@ -100,7 +100,7 @@ function getElementsFromOperations (operations, errors, activeElement) {
       data: {},
       position: defaultPosition,
       type: 'start',
-      className: classNames('react-flow__node-default', styles.profilerStartNode)
+      className: classNames('react-flow__node-default', styles.profileStartNode)
     })
   }
 
@@ -134,7 +134,7 @@ function getElementsFromOperations (operations, errors, activeElement) {
       }
     }
 
-    const nodeClass = classNames('react-flow__node-default', styles.profilerOperationNode, {
+    const nodeClass = classNames('react-flow__node-default', styles.profileOperationNode, {
       [styles.active]: isOperationActive,
       [styles.running]: !operation.completed && operation.type !== 'render' && errorSource == null,
       [styles.error]: errorSource != null
@@ -167,7 +167,7 @@ function getElementsFromOperations (operations, errors, activeElement) {
   }
 
   for (const operation of needsEndNode) {
-    const classArgs = ['react-flow__node-default', styles.profilerOperationNode]
+    const classArgs = ['react-flow__node-default', styles.profileOperationNode]
     const isMainRender = operation.previousOperationId == null
     let errorSource
     let errorInRender
@@ -196,7 +196,7 @@ function getElementsFromOperations (operations, errors, activeElement) {
       }
     }
 
-    const endNodeClass = classNames(...classArgs, styles.profilerEndNode, {
+    const endNodeClass = classNames(...classArgs, styles.profileEndNode, {
       [styles.renderError]: errorInRender != null
     })
 
@@ -210,7 +210,7 @@ function getElementsFromOperations (operations, errors, activeElement) {
         error: errorInRender,
         renderResult: errorInRender == null ? {
           getContent: (operations[0].req == null || operations[0].res == null) ? undefined : () => {
-            const state = getStateAtOperation(operations, operation.id, true)
+            const state = getStateAtProfileOperation(operations, operation.id, true)
 
             return {
               content: state.completedResState,
@@ -264,7 +264,7 @@ function getElementsFromOperations (operations, errors, activeElement) {
       el.targetPosition = 'left'
       el.sourcePosition = 'right'
 
-      // we need this little hack to pass a slighltiy different position
+      // we need this little hack to pass a slightly different position
       // in order to notify react flow about the change
       el.position = {
         x: nodeWithPosition.x + Math.random() / 1000,
@@ -301,7 +301,7 @@ function getMainError (errors) {
 function createEdge (sourceId, targetId, activeElement, opts = {}) {
   const edgeId = `${sourceId}-edge-${targetId}`
 
-  const edgeClass = classNames(styles.profilerOperationEdge, {
+  const edgeClass = classNames(styles.profileOperationEdge, {
     [styles.active]: activeElement != null && edgeId === activeElement.id
   })
 

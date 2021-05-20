@@ -2,9 +2,9 @@ import { Fragment, useState, useCallback } from 'react'
 import { useDispatch } from 'react-redux'
 import { Handle } from 'react-flow-renderer'
 import fileSaver from 'filesaver.js-npm'
-import { actions as progressActions } from '../../redux/progress'
-import b64toBlob from '../../helpers/b64toBlob'
-import styles from './Preview.css'
+import { actions as progressActions } from '../../../../redux/progress'
+import b64toBlob from '../../../../helpers/b64toBlob'
+import styles from '../../Preview.css'
 
 const OperationNode = (props) => {
   const {
@@ -70,7 +70,7 @@ const OperationNode = (props) => {
       <div id={id}>
         {renderResult != null ? (
           <button
-            className={`${styles.profilerButtonAction} ${renderResult.getContent == null ? 'disabled' : ''}`}
+            className={`${styles.profileButtonAction} ${renderResult.getContent == null ? 'disabled' : ''}`}
             title={renderResult.getContent == null ? 'render result not available' : 'download render result'}
             disabled={renderResult.getContent == null}
             onClick={handleDownloadRenderResultClick}
@@ -78,13 +78,13 @@ const OperationNode = (props) => {
             <i className='fa fa-download' />
           </button>
         ) : (
-          error != null && end ? <span className={styles.profilerEndNodeLabel} title='report ended with error'><i className='fa fa-times' /></span> : <span>{data.label}</span>
+          error != null && end ? <span className={styles.profileEndNodeLabel} title='report ended with error'><i className='fa fa-times' /></span> : <span>{data.label}</span>
         )}
       </div>
       <Handle type='source' position={sourcePosition} isConnectable={isConnectable} />
       {showTimeCost && (
         <div
-          className={`${styles.profilerExecutionTimeCost} ${getTimeCostCategoryClass(timeCost * 100)}`}
+          className={`${styles.profileExecutionTimeCost} ${getTimeCostCategoryClass(timeCost * 100)}`}
           style={{ width: `${timeCost * 100}%` }}
         >
           &nbsp;
@@ -92,10 +92,10 @@ const OperationNode = (props) => {
       )}
       {showExecutionTime && (
         <Fragment>
-          <div className={styles.profilerExecutionTime}>
-            <span className={styles.profilerExecutionTimeLabel}>{time}ms</span>
+          <div className={styles.profileExecutionTime}>
+            <span className={styles.profileExecutionTimeLabel}>{time}ms</span>
           </div>
-          <div className={styles.profilerExecutionTimeCover} title={`${time}ms`}>
+          <div className={styles.profileExecutionTimeCover} title={`${time}ms`}>
             &nbsp;
           </div>
         </Fragment>

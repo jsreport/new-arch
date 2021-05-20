@@ -1,13 +1,6 @@
 import React, { Component } from 'react'
-import { triggerSplitResize } from '../../lib/configuration.js'
 
 class TabContent extends Component {
-  componentDidUpdate (prevProps) {
-    if (this.props.active && !prevProps.active) {
-      triggerSplitResize()
-    }
-  }
-
   shouldComponentUpdate (nextProps) {
     return this.props.active || nextProps.active
   }

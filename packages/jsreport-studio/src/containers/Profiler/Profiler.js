@@ -1,9 +1,10 @@
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
-import api from '../../helpers/api.js'
-import { selectors as entitiesSelectors } from '../../redux/entities'
-import { previewFrameChangeHandler } from '../../lib/configuration.js'
-import { actions as settingsActions, selectors as settingsSelectors } from '../../redux/settings'
+import api from '../../helpers/api'
+import resolveUrl from '../../helpers/resolveUrl'
+import openProfileFromStreamReader from '../../helpers/openProfileFromStreamReader'
+import storeMethods from '../../redux/methods'
+import { actions as settingsActions } from '../../redux/settings'
 
 class Profiler extends Component {
   constructor () {
@@ -21,12 +22,12 @@ class Profiler extends Component {
 
     this.setState({
       profiles: response.value.map(p => {
-        let template = this.props.getByShortid(p.templateShortid, false)
+        let template = storeMethods.getEntityByShortid(p.templateShortid, false)
 
         if (!template) {
           template = { name: 'anonymous', path: 'anonymous' }
         } else {
-          template = { ...template, path: this.props.resolveEntityPath(template) }
+          template = { ...template, path: storeMethods.resolveEntityPath(template) }
         }
 
         return {
@@ -46,7 +47,7 @@ class Profiler extends Component {
 
     return (
       <div>
-        <h2><i className='fa fa-spinner fa-spin fa-fw' /> profiling {this.props.gettSettingsByKey('fullProfilerRunning', false) ? 'with request data' : ''} ...</h2>
+        <h2><i className='fa fa-spinner fa-spin fa-fw' /> profiling {storeMethods.getSettingsByKey('fullProfilerRunning', false) ? 'with request data' : ''} ...</h2>
 
         <div>
           <table className='table'>
@@ -77,10 +78,32 @@ class Profiler extends Component {
   }
 
   async openProfile (p) {
-    const ab = await api.get(`/api/profile/${p._id}/content`, { responseType: 'arraybuffer' })
-    const str = String.fromCharCode.apply(null, new Uint8Array(ab))
+    try {
+      await openProfileFromStreamReader(async () => {
+        const getBlobUrl = resolveUrl(`/api/profile/${p._id}/content`)
 
-    return previewFrameChangeHandler('data:text/html;charset=utf-8,' + encodeURI(str))
+        const response = await window.fetch(getBlobUrl, {
+          method: 'GET',
+          cache: 'no-cache'
+        })
+
+        if (response.status !== 200) {
+          throw new Error(`Got not ok response, status: ${response.status}`)
+        }
+
+        return response.body.getReader()
+      }, {
+        name: p.template.name,
+        shortid: p.template.shortid
+      })
+    } catch (e) {
+      const newError = new Error(`Open profile "${p._id}" failed. ${e.message}`)
+
+      newError.stack = e.stack
+      Object.assign(newError, e)
+
+      throw newError
+    }
   }
 
   startFullRequestProfiling () {
@@ -92,20 +115,22 @@ class Profiler extends Component {
   }
 
   render () {
-    return <div className='block custom-editor' style={{ overflow: 'auto', minHeight: 0, height: 'auto' }}>
-      <div>
-        {this.props.gettSettingsByKey('fullProfilerRunning', false)
-          ? <button className='button danger' onClick={() => this.stopFullRequestProfiling()}>Stop full requests profiling</button>
-          : <button className='button danger' onClick={() => this.startFullRequestProfiling()}>Start full requests profiling</button>
-        }
+    return (
+      <div className='block custom-editor' style={{ overflow: 'auto', minHeight: 0, height: 'auto' }}>
+        <div>
+          {storeMethods.getSettingsByKey('fullProfilerRunning', false)
+            ? <button className='button danger' onClick={() => this.stopFullRequestProfiling()}>Stop full requests profiling</button>
+            : <button className='button danger' onClick={() => this.startFullRequestProfiling()}>Start full requests profiling</button>}
+        </div>
+        {this.renderProfiles(this.state.profiles)}
       </div>
-      {this.renderProfiles(this.state.profiles)}
-    </div>
+    )
   }
 }
 
-export default connect((state) => ({
-  resolveEntityPath: (...params) => entitiesSelectors.resolveEntityPath(state, ...params),
-  getByShortid: (...params) => entitiesSelectors.getByShortid(state, ...params),
-  gettSettingsByKey: (...params) => settingsSelectors.getValueByKey(state, ...params)
-}), { ...settingsActions }, undefined, { forwardRef: true })(Profiler)
+export default connect(
+  undefined,
+  { ...settingsActions },
+  undefined,
+  { forwardRef: true }
+)(Profiler)

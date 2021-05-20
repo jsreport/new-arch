@@ -3,13 +3,14 @@ import thunk from 'redux-thunk'
 import { createLogger } from 'redux-logger'
 import { routerMiddleware } from 'connected-react-router'
 import { enableBatching } from 'redux-batched-actions'
-import groupUpdate from './middlewares/groupUpdate.js'
+import groupUpdate from './middlewares/groupUpdate'
+import { setStore as setStoreForMethods } from './methods'
 
 const logger = createLogger()
 
 export default function createStore (history) {
   const reduxRouterMiddleware = routerMiddleware(history)
-  const middleware = [ thunk, reduxRouterMiddleware, groupUpdate ]
+  const middleware = [thunk, reduxRouterMiddleware, groupUpdate]
 
   let finalCreateStore
   if (__DEVELOPMENT__) {
@@ -27,6 +28,8 @@ export default function createStore (history) {
       store.replaceReducer(require('./reducer')(history))
     })
   }
+
+  setStoreForMethods(store)
 
   return store
 }

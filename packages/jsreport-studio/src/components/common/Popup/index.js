@@ -1,8 +1,9 @@
 import React, { useRef, useEffect } from 'react'
 import composeRefs from '@seznam/compose-react-refs'
+import styles from './Popup.css'
 
-const PreviewActionsMenu = React.forwardRef((props, externalRef) => {
-  const { open, actionsComponents, onMenuAction, onRequestClose } = props
+const Popup = React.forwardRef((props, externalRef) => {
+  const { open, onRequestClose, position = {}, children } = props
   const containerRef = useRef(null)
 
   useEffect(() => {
@@ -39,16 +40,20 @@ const PreviewActionsMenu = React.forwardRef((props, externalRef) => {
   }, [open, onRequestClose])
 
   return (
-    <div ref={composeRefs(containerRef, externalRef)} className='popup-settings' style={{ display: open ? 'block' : 'none', top: '100%', right: '0' }}>
-      {actionsComponents.map((ActionComponent, idx) => (
-        React.createElement(ActionComponent, {
-          key: idx,
-          onMenuAction,
-          closeMenu: onRequestClose
-        })
-      ))}
+    <div
+      ref={composeRefs(containerRef, externalRef)}
+      className={styles.container}
+      style={{
+        display: open ? 'block' : 'none',
+        top: Object.prototype.hasOwnProperty.call(position, 'top') ? position.top : '100%',
+        left: Object.prototype.hasOwnProperty.call(position, 'left') ? position.left : undefined,
+        right: Object.prototype.hasOwnProperty.call(position, 'right') ? position.right : '0',
+        bottom: Object.prototype.hasOwnProperty.call(position, 'bottom') ? position.bottom : undefined
+      }}
+    >
+      {typeof children === 'function' && children({ open, closeMenu: onRequestClose })}
     </div>
   )
 })
 
-export default PreviewActionsMenu
+export default Popup

@@ -1,12 +1,14 @@
+import { useRef } from 'react'
 import { connect } from 'react-redux'
-import * as configuration from './lib/configuration.js'
-import TemplateProperties from './components/Properties/TemplateProperties.js'
-import EntityTree from './components/EntityTree/EntityTree.js'
+import * as configuration from './lib/configuration'
+import FileInput from './components/common/FileInput/FileInput'
+import TemplateProperties from './components/Properties/TemplateProperties'
+import EntityTree from './components/EntityTree/EntityTree'
 import EntityTreeNewButton from './components/EntityTree/EntityTreeNewButton'
-import EntityTreeInputSearch from './components/EntityTree/EntityTreeInputSearch.js'
-import EntityTreeNavigateButton from './components/EntityTree/EntityTreeNavigateButton.js'
-import Startup from './containers/Startup/Startup.js'
-import Profiler from './containers/Profiler/Profiler.js'
+import EntityTreeInputSearch from './components/EntityTree/EntityTreeInputSearch'
+import EntityTreeNavigateButton from './components/EntityTree/EntityTreeNavigateButton'
+import Startup from './containers/Startup/Startup'
+import Profiler from './containers/Profiler/Profiler'
 import LinkModal from './components/Modals/LinkModal'
 import AboutModal from './components/Modals/AboutModal'
 import ThemeModal from './components/Modals/ThemeModal'
@@ -14,6 +16,15 @@ import ApiModal from './components/Modals/ApiModal'
 import NewTemplateModal from './components/Modals/NewTemplateModal'
 import NewFolderModal from './components/Modals/NewFolderModal'
 import ConcurrentUpdateErrorModal from './components/Modals/ConcurrentUpdateErrorModal'
+import DownloadPreviewAction from './components/Preview/MenuActions/DownloadAction'
+import DownloadProfilePreviewAction from './components/Preview/MenuActions/DownloadProfileAction'
+import UploadProfilePreviewAction from './components/Preview/MenuActions/UploadProfileAction'
+import OpenNewTabPreviewAction from './components/Preview/MenuActions/OpenNewTabAction'
+import RawContentPreviewType from './components/Preview/TypeComponents/RawContentPreviewType'
+import ReportPreviewType from './components/Preview/TypeComponents/ReportPreviewType'
+import ProfilePreviewType from './components/Preview/TypeComponents/ProfilePreviewType/ProfilePreviewType'
+import ReportProfilePreviewType from './components/Preview/TypeComponents/ReportProfilePreviewType'
+import openProfileFromStreamReader from './helpers/openProfileFromStreamReader'
 import { openTab } from './redux/editor/actions'
 
 export default () => {
@@ -278,7 +289,11 @@ export default () => {
 
     return (
       <div
-        onClick={() => props.openTab({ key: 'StartupPage', editorComponentKey: 'startup', title: 'Startup' })}>
+        onClick={() => {
+          props.openTab({ key: 'StartupPage', editorComponentKey: 'startup', title: 'Startup' })
+          props.closeMenu()
+        }}
+      >
         <i className='fa fa-home' />Startup page
       </div>
     )
@@ -302,43 +317,143 @@ export default () => {
     )
   })
 
-  configuration.toolbarComponents.settings.push(() => (
+  configuration.toolbarComponents.settings.push((props) => (
     <div
-      onClick={() => configuration.modalHandler.open(configuration.aboutModal, {
-        version: configuration.version,
-        engines: configuration.engines,
-        recipes: configuration.recipes,
-        extensions: configuration.extensions
-      })}>
+      onClick={() => {
+        configuration.modalHandler.open(configuration.aboutModal, {
+          version: configuration.version,
+          engines: configuration.engines,
+          recipes: configuration.recipes,
+          extensions: configuration.extensions
+        })
+
+        props.closeMenu()
+      }}
+    >
       <i className='fa fa-info-circle' />About
     </div>
   ))
 
-  configuration.toolbarComponents.settings.push(() => (
+  configuration.toolbarComponents.settings.push((props) => (
     <div
-      onClick={() => configuration.modalHandler.open(ThemeModal, {
-        availableThemes: configuration.extensions.studio.options.availableThemes,
-        availableEditorThemes: configuration.extensions.studio.options.availableEditorThemes
-      })}
+      onClick={() => {
+        configuration.modalHandler.open(ThemeModal, {
+          availableThemes: configuration.extensions.studio.options.availableThemes,
+          availableEditorThemes: configuration.extensions.studio.options.availableEditorThemes
+        })
+
+        props.closeMenu()
+      }}
     >
       <i className='fa fa-paint-brush' />Theme
     </div>
   ))
 
-  configuration.toolbarComponents.settings.push(() => (
+  configuration.toolbarComponents.settings.push((props) => (
     <div
-      onClick={() => configuration.modalHandler.open(ApiModal, { apiSpecs: configuration.apiSpecs })}>
+      onClick={() => {
+        configuration.modalHandler.open(ApiModal, { apiSpecs: configuration.apiSpecs })
+        props.closeMenu()
+      }}
+    >
       <i className='fa fa-plug' />API
     </div>
   ))
 
+  configuration.toolbarComponents.settings.push((props) => {
+    const uploadProfileInputRef = useRef(null)
+
+    const handleUploadProfile = (file) => {
+      const profileName = file.name
+
+      openProfileFromStreamReader(() => file.stream().getReader(), {
+        name: 'anonymous',
+        shortid: null
+      }).catch((err) => {
+        console.error(`Unable to upload profile "${profileName}"`, err)
+      })
+    }
+
+    return (
+      <div
+        onClick={() => {
+          if (uploadProfileInputRef.current) {
+            uploadProfileInputRef.current.openSelection()
+          }
+        }}
+      >
+        <i className='fa fa-upload' />Profile
+        <div style={{ display: 'none' }}>
+          <FileInput
+            ref={uploadProfileInputRef}
+            onFileSelect={(file) => {
+              handleUploadProfile(file)
+              props.closeMenu()
+            }}
+          />
+        </div>
+      </div>
+    )
+  })
+
   configuration.concurrentUpdateModal = ConcurrentUpdateErrorModal
 
-  configuration.previewListeners.push((request) => {
-    if (request.template && request.template.recipe === 'html') {
-      return { disableTheming: true }
+  configuration.reportPreviewStyleResolvers.push((reportFile) => {
+    if (reportFile.contentType === 'text/html') {
+      // match default browser styles
+      return {
+        backgroundColor: '#fff',
+        color: '#000'
+      }
     }
   })
+
+  const EmptyPreviewType = () => null
+
+  configuration.previewTypes.empty = {
+    component: EmptyPreviewType
+  }
+
+  configuration.previewTypes.rawContent = {
+    component: RawContentPreviewType
+  }
+
+  configuration.previewTypes.report = {
+    component: ReportPreviewType,
+    tabs: [{ name: 'report', title: 'report' }],
+    actions: [{
+      component: DownloadPreviewAction
+    }, {
+      component: UploadProfilePreviewAction
+    }, {
+      component: OpenNewTabPreviewAction
+    }] // { component: UndockNewTab }
+  }
+
+  configuration.previewTypes.profile = {
+    component: ProfilePreviewType,
+    tabs: [{ name: 'profile', title: 'profile' }],
+    actions: [{
+      component: DownloadProfilePreviewAction
+    }, {
+      component: UploadProfilePreviewAction
+    }]
+  }
+
+  configuration.previewTypes['report-profile'] = {
+    component: ReportProfilePreviewType,
+    defaultActiveTab: 'profile',
+    tabs: [{ name: 'report', title: 'report' }, { name: 'profile', title: 'profile' }],
+    actions: [{
+      component: DownloadPreviewAction
+    }, {
+      component: DownloadProfilePreviewAction
+    }, {
+      component: UploadProfilePreviewAction
+    }, {
+      component: OpenNewTabPreviewAction
+    }] // { component: UndockNewTab }
+  }
 
   configuration.initializeListeners.push(() => {
     configuration.entityTreeIconResolvers.push((entity) => {

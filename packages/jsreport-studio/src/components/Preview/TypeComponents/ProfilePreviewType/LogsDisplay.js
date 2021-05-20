@@ -1,12 +1,12 @@
 import { useCallback, useEffect } from 'react'
 import classNames from 'classnames'
-import styles from './Preview.css'
+import styles from '../../Preview.css'
 
 const LogsDisplay = (props) => {
   const { activeOperation, logs } = props
 
   const getLogNodeId = useCallback((id) => {
-    return `profilerLog-${id}`
+    return `profileLog-${id}`
   }, [])
 
   const getRelativeTimestamp = useCallback((prevTimestamp, currentTimestamp) => {
@@ -46,24 +46,24 @@ const LogsDisplay = (props) => {
 
   for (let i = 0; i < logsLength; i++) {
     const log = logs[i]
-    const relatimeTime = `+${prevLog == null ? '0' : String(getRelativeTimestamp(prevLog.timestamp, log.timestamp))}`
+    const relativeTime = `+${prevLog == null ? '0' : String(getRelativeTimestamp(prevLog.timestamp, log.timestamp))}`
 
-    const profilerLogItemClass = classNames(styles.profilerLogItem, {
+    const profileLogItemClass = classNames(styles.profileLogItem, {
       [styles.active]: activeOperation != null && log.previousOperationId === activeOperation.id,
       [styles.notActive]: activeOperation != null && log.previousOperationId !== activeOperation.id
     })
 
     logsElements.push(
-      <div id={getLogNodeId(i)} className={profilerLogItemClass} key={i}>
-        <span className={styles.profilerLogItemLevel}>{log.level}</span>
+      <div id={getLogNodeId(i)} className={profileLogItemClass} key={i}>
+        <span className={styles.profileLogItemLevel}>{log.level}</span>
         <span
-          className={styles.profilerLogItemTime}
-          title={relatimeTime}
+          className={styles.profileLogItemTime}
+          title={relativeTime}
         >
-          {relatimeTime}
+          {relativeTime}
         </span>
         <span
-          className={styles.profilerLogItemMessage}
+          className={styles.profileLogItemMessage}
           title={log.message}
         >
           {log.message}
@@ -75,7 +75,7 @@ const LogsDisplay = (props) => {
   }
 
   return (
-    <div className={styles.profilerLogs}>
+    <div className={styles.profileLogs}>
       {logsElements}
     </div>
   )

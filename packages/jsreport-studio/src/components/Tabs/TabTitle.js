@@ -1,5 +1,6 @@
 import React, { Component } from 'react'
-import { tabTitleComponents, entitySets } from '../../lib/configuration.js'
+import { tabTitleComponents } from '../../lib/configuration'
+import storeMethods from '../../redux/methods'
 import style from './Tabs.css'
 
 class TabTitle extends Component {
@@ -38,11 +39,11 @@ class TabTitle extends Component {
   }
 
   render () {
-    const { tab, active, contextMenu, complementTitle, resolveEntityPath, onClick, onContextMenu, onClose } = this.props
+    const { tab, active, contextMenu, complementTitle, onClick, onContextMenu, onClose } = this.props
     let tabTooltip
 
     if (tab.entity) {
-      const fullPath = resolveEntityPath(tab.entity, { parents: true, self: false })
+      const fullPath = storeMethods.resolveEntityPath(tab.entity, { parents: true, self: false })
 
       if (fullPath) {
         tabTooltip = fullPath

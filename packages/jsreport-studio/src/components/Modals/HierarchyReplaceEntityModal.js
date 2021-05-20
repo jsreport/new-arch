@@ -4,6 +4,7 @@ import { entitySets } from '../../lib/configuration'
 import { connect } from 'react-redux'
 import { selectors } from '../../redux/entities'
 import { actions } from '../../redux/editor'
+import storeMethods from '../../redux/methods'
 
 class HierarchyReplaceEntityModal extends Component {
   static propTypes = {
@@ -39,7 +40,7 @@ class HierarchyReplaceEntityModal extends Component {
   }
 
   render () {
-    const { sourceEntity, targetEntity, resolveEntityPath, options } = this.props
+    const { sourceEntity, targetEntity, options } = this.props
     const { existingEntity, existingEntityEntitySet } = options
 
     if (!sourceEntity) {
@@ -55,14 +56,14 @@ class HierarchyReplaceEntityModal extends Component {
       <div>
         <div>
           <b>{shouldCopy ? 'Copy' : 'Move'}</b> failed. Entity with name <b>{sourceEntityName}</b> already exists {targetEntity != null ? 'in target folder ' : 'at root level'}{targetEntity != null && (
-            <b>{resolveEntityPath(targetEntity)}</b>
+            <b>{storeMethods.resolveEntityPath(targetEntity)}</b>
           )}.
           <br />
           <br />
           <div>
-            <b>source entity: </b> {resolveEntityPath(sourceEntity)} ({sourceEntitySetVisibleName})
+            <b>source entity: </b> {storeMethods.resolveEntityPath(sourceEntity)} ({sourceEntitySetVisibleName})
             <br />
-            <b>target entity: </b> {resolveEntityPath(existingEntity)} ({existingEntityEntitySetVisibleName})
+            <b>target entity: </b> {storeMethods.resolveEntityPath(existingEntity)} ({existingEntityEntitySetVisibleName})
           </div>
           <br />
           Do you want to replace it?
@@ -78,6 +79,5 @@ class HierarchyReplaceEntityModal extends Component {
 
 export default connect((state, props) => ({
   sourceEntity: selectors.getById(state, props.options.sourceId, false),
-  targetEntity: selectors.getByShortid(state, props.options.targetShortId, false),
-  resolveEntityPath: (entity, ...params) => selectors.resolveEntityPath(state, entity, ...params)
+  targetEntity: selectors.getByShortid(state, props.options.targetShortId, false)
 }), { ...actions })(HierarchyReplaceEntityModal)

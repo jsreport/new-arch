@@ -15,9 +15,9 @@ class Pane extends Component {
 
   render () {
     const { split } = this.props
-    const classes = [ 'Pane', split, this.props.className ]
+    const classes = ['Pane', split, this.props.className]
 
-    let style = {
+    const style = {
       flex: 1,
       display: 'flex',
       outline: 'none'

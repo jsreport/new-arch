@@ -1,7 +1,7 @@
 import { Component } from 'react'
-import styles from './ProfilerErrorModal.css'
+import styles from './ProfileErrorModal.css'
 
-class ProfilerErrorModal extends Component {
+class ProfileErrorModal extends Component {
   render () {
     const { close, options } = this.props
     const { title, error, containerStyle, renderCustomButtons } = options
@@ -26,4 +26,4 @@ class ProfilerErrorModal extends Component {
   }
 }
 
-export default ProfilerErrorModal
+export default ProfileErrorModal

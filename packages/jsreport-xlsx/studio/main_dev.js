@@ -82,7 +82,7 @@ Studio.entityEditorComponentKeyResolvers.push((entity) => {
 Studio.addToolbarComponent(XlsxUploadButton)
 Studio.addPropertiesComponent(XlsxTemplateProperties.title, XlsxTemplateProperties, (entity) => entity.__entitySet === 'templates' && entity.recipe === 'xlsx')
 
-Studio.previewListeners.push((request, entities) => {
+Studio.runListeners.push((request, entities) => {
   if (request.template.recipe !== 'xlsx') {
     return
   }

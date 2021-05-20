@@ -2,13 +2,12 @@ import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import { Line } from 'react-chartjs-2'
 import { actions } from '../../redux/editor'
-import { selectors as entitiesSelectors } from '../../redux/entities'
-import uid from '../../helpers/uid'
+import storeMethods from '../../redux/methods'
 import api from '../../helpers/api'
 import resolveUrl from '../../helpers/resolveUrl'
-import parseProfile from '../../helpers/parseProfile'
+import openProfileFromStreamReader from '../../helpers/openProfileFromStreamReader'
 import NewTemplateModal from '../../components/Modals/NewTemplateModal'
-import { modalHandler, previewConfigurationHandler } from '../../lib/configuration'
+import { modalHandler } from '../../lib/configuration'
 
 function randomColor () {
   const hue = Math.floor(Math.random() * 360)
@@ -43,7 +42,7 @@ class Startup extends Component {
     this.setState({
       templates: response.value.map((t) => ({
         ...t,
-        path: this.props.resolveEntityPath(t)
+        path: storeMethods.resolveEntityPath(t)
       }))
     })
   }
@@ -53,12 +52,12 @@ class Startup extends Component {
 
     this.setState({
       profiles: response.value.map(p => {
-        let template = this.props.getByShortid(p.templateShortid, false)
+        let template = storeMethods.getEntityByShortid(p.templateShortid, false)
 
         if (!template) {
           template = { name: 'anonymous', shortid: null, path: 'anonymous' }
         } else {
-          template = { ...template, path: this.props.resolveEntityPath(template) }
+          template = { ...template, path: storeMethods.resolveEntityPath(template) }
         }
 
         return {
@@ -92,44 +91,27 @@ class Startup extends Component {
   }
 
   async openProfile (p) {
-    const { addProfilerOperation, addProfilerLog, addProfilerError } = this.props
-
     this.setState({
       loadingProfile: true
     })
 
-    await previewConfigurationHandler({
-      src: null,
-      id: uid(),
-      template: {
+    try {
+      await openProfileFromStreamReader(async () => {
+        const getBlobUrl = resolveUrl(`/api/profile/${p._id}/content`)
+
+        const response = await window.fetch(getBlobUrl, {
+          method: 'GET',
+          cache: 'no-cache'
+        })
+
+        if (response.status !== 200) {
+          throw new Error(`Got not ok response, status: ${response.status}`)
+        }
+
+        return response.body.getReader()
+      }, {
         name: p.template.name,
         shortid: p.template.shortid
-      },
-      type: 'profiler'
-    })
-
-    try {
-      const getBlobUrl = resolveUrl(`/api/profile/${p._id}/content`)
-
-      const response = await window.fetch(getBlobUrl, {
-        method: 'GET',
-        cache: 'no-cache'
-      })
-
-      if (response.status !== 200) {
-        throw new Error(`Got not ok response, status: ${response.status}`)
-      }
-
-      const reader = response.body.getReader()
-
-      await parseProfile(reader, (message) => {
-        if (message.type === 'log') {
-          addProfilerLog(message)
-        } else if (message.type === 'operationStart' || message.type === 'operationEnd') {
-          addProfilerOperation(message)
-        } else if (message.type === 'error') {
-          addProfilerError(message)
-        }
       })
     } catch (e) {
       const newError = new Error(`Open profile "${p._id}" failed. ${e.message}`)
@@ -196,32 +178,34 @@ class Startup extends Component {
       return t
     }, { })
 
-    return <Line
-      data={{
-        datasets: [{
-          label: 'successfull requests',
-          borderColor: 'green',
-          data: Object.keys(successfullRequests).map(r => ({
-            x: new Date(r * 1000 * 60),
-            y: successfullRequests[r]
-          }))
-        }, {
-          label: 'failed request',
-          borderColor: 'red',
-          data: Object.keys(failedRequests).map(r => ({
-            x: new Date(r * 1000 * 60),
-            y: failedRequests[r]
-          }))
-        }]
-      }}
-      options={{
-        scales: {
-          xAxes: [{
-            type: 'time'
+    return (
+      <Line
+        data={{
+          datasets: [{
+            label: 'successfull requests',
+            borderColor: 'green',
+            data: Object.keys(successfullRequests).map(r => ({
+              x: new Date(r * 1000 * 60),
+              y: successfullRequests[r]
+            }))
+          }, {
+            label: 'failed request',
+            borderColor: 'red',
+            data: Object.keys(failedRequests).map(r => ({
+              x: new Date(r * 1000 * 60),
+              y: failedRequests[r]
+            }))
           }]
-        }
-      }}
-    />
+        }}
+        options={{
+          scales: {
+            xAxes: [{
+              type: 'time'
+            }]
+          }
+        }}
+      />
+    )
   }
 
   renderRequestsDurationsChart (profiles) {
@@ -258,43 +242,49 @@ class Startup extends Component {
   }
 
   renderCPUChart (monitoring) {
-    return <Line
-      data={{
-        datasets: monitoring.map(m => ({
-          ...m,
-          data: m.data.map((d) => ({
-            y: d.cpu,
-            x: d.timestamp
+    return (
+      <Line
+        data={{
+          datasets: monitoring.map(m => ({
+            ...m,
+            data: m.data.map((d) => ({
+              y: d.cpu,
+              x: d.timestamp
+            }))
           }))
-        }))
-      }}
-      options={{
-        scales: {
-          xAxes: [{
-            type: 'time'
-          }]
-        }
-      }} />
+        }}
+        options={{
+          scales: {
+            xAxes: [{
+              type: 'time'
+            }]
+          }
+        }}
+      />
+    )
   }
 
   renderMemoryChart (monitoring) {
-    return <Line
-      data={{
-        datasets: monitoring.map(m => ({
-          ...m,
-          data: m.data.map((d) => ({
-            y: d.freemem,
-            x: d.timestamp
+    return (
+      <Line
+        data={{
+          datasets: monitoring.map(m => ({
+            ...m,
+            data: m.data.map((d) => ({
+              y: d.freemem,
+              x: d.timestamp
+            }))
           }))
-        }))
-      }}
-      options={{
-        scales: {
-          xAxes: [{
-            type: 'time'
-          }]
-        }
-      }} />
+        }}
+        options={{
+          scales: {
+            xAxes: [{
+              type: 'time'
+            }]
+          }
+        }}
+      />
+    )
   }
 
   render () {
@@ -361,7 +351,5 @@ class Startup extends Component {
 }
 
 export default connect((state) => ({
-  activeTabKey: state.editor.activeTabKey,
-  resolveEntityPath: (...params) => entitiesSelectors.resolveEntityPath(state, ...params),
-  getByShortid: (...params) => entitiesSelectors.getByShortid(state, ...params)
+  activeTabKey: state.editor.activeTabKey
 }), { ...actions }, undefined, { forwardRef: true })(Startup)

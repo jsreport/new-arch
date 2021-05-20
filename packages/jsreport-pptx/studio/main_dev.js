@@ -53,7 +53,7 @@ const pendingModalsInterval = setInterval(() => {
   }
 }, 200)
 
-Studio.previewListeners.push((request, entities) => {
+Studio.runListeners.push((request, entities) => {
   if (request.template.recipe !== 'pptx') {
     return
   }
@@ -79,7 +79,7 @@ Studio.previewListeners.push((request, entities) => {
   pendingModalsLaunch.push(launchBetaModal)
 })
 
-Studio.previewListeners.push((request, entities) => {
+Studio.runListeners.push((request, entities) => {
   if (request.template.recipe !== 'pptx') {
     return
   }

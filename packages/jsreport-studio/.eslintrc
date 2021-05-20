@@ -9,19 +9,22 @@
     "mocha": true
   },
   "rules": {
-    "babel/arrow-parens": 2,
-    "arrow-parens": 0
+    "arrow-parens": 0,
+    "react/jsx-handler-names": [0],
+    "react/jsx-fragments": [0],
+    "no-import-assign": "off",
+    "multiline-ternary": "off"
   },
   "globals" : {
-    "Studio": 1,
-    "FileReader": 1,
-    "alert": 1,
-    "atob": 1,
-    "Blob": 1,
-    "saveAs": 1,
-    "describe": 1,
-    "it": 1,
-    "beforeEach": 1,
-    "__DEVELOPMENT__": 1
+    "Studio": "readonly",
+    "FileReader": "readonly",
+    "alert": "readonly",
+    "atob": "readonly",
+    "Blob": "readonly",
+    "saveAs": "readonly",
+    "describe": "readonly",
+    "it": "readonly",
+    "beforeEach": "readonly",
+    "__DEVELOPMENT__": "readonly"
   }
 }

@@ -1,13 +1,23 @@
 import * as ActionTypes from './constants.js'
 import { ActionTypes as EntityActionTypes } from '../entities'
 import createReducer from '../createReducer.js'
+import uid from '../../helpers/uid'
+import { previewTypes } from '../../lib/configuration'
 
 const reducer = createReducer({
   tabs: [],
   activeTabKey: null,
   lastActiveTemplateKey: null,
-  undockMode: false
+  undockMode: false,
+  preview: {
+    id: uid(),
+    type: 'empty',
+    data: null,
+    activeTab: null,
+    completed: true
+  }
 })
+
 export default reducer.export()
 
 reducer.handleAction(ActionTypes.OPEN_TAB, (state, { tab }) => ({
@@ -136,6 +146,38 @@ reducer.handleAction(EntityActionTypes.REPLACE, (state, action) => {
     tabs: tabs,
     activeTabKey: newActiveTabKey,
     lastActiveTemplateKey: state.lastActiveTemplateKey === action.oldId ? action.entity._id : state.lastActiveTemplateKey
+  }
+})
+
+reducer.handleAction(ActionTypes.PREVIEW, (state, action) => {
+  let activeTab = null
+
+  const previewType = previewTypes[action.preview.type]
+
+  if (action.preview.activeTab != null) {
+    activeTab = action.preview.activeTab
+  } else if (state.preview.type === action.preview.type) {
+    activeTab = state.preview.activeTab
+  } else if (previewType.defaultActiveTab != null) {
+    activeTab = previewType.defaultActiveTab
+  } else if (previewType.tabs != null && previewType.tabs.length > 0) {
+    activeTab = previewType.tabs[0].name
+  }
+
+  return {
+    ...state,
+    preview: { ...action.preview, activeTab }
+  }
+})
+
+reducer.handleAction(ActionTypes.UPDATE_PREVIEW, (state, action) => {
+  if (state.preview.id !== action.preview.id) {
+    return state
+  }
+
+  return {
+    ...state,
+    preview: { ...state.preview, ...action.preview }
   }
 })
 

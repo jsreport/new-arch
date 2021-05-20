@@ -1,4 +1,3 @@
-
 import Studio from 'jsreport-studio'
 import DownloadBigFileModal from './DownloadBigFileModal'
 
@@ -9,7 +8,37 @@ const openDiff = async (change) => {
     })
   }
 
-  Studio.customPreview('/studio/diff-html', { patch: change.patch })
+  const previewId = Studio.preview({
+    type: 'rawContent',
+    data: {}
+  })
+
+  try {
+    const response = await Studio.api.post('/studio/diff-html', {
+      parseJSON: false,
+      data: {
+        patch: change.patch
+      }
+    })
+
+    Studio.updatePreview(previewId, {
+      type: 'rawContent',
+      data: {
+        type: 'text/html',
+        content: response
+      },
+      completed: true
+    })
+  } catch (err) {
+    Studio.updatePreview(previewId, {
+      type: 'rawContent',
+      data: {
+        type: 'text/html',
+        content: err.stack
+      },
+      completed: true
+    })
+  }
 }
 
 const operationIcon = (operation) => {

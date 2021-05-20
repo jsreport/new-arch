@@ -4,44 +4,38 @@ import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import { DndProvider } from 'react-dnd'
 import { HTML5Backend } from 'react-dnd-html5-backend'
-import { actions, selectors } from '../../redux/editor'
+import * as editor from '../../redux/editor'
 import * as entities from '../../redux/entities'
-import Preview from '../../components/Preview/Preview.js'
-import EntityTreeBox from '../../components/EntityTree/EntityTreeBox.js'
-import EntityTree from '../../components/EntityTree/EntityTree.js'
-import Properties from '../../components/Properties/Properties.js'
-import style from './App.css'
-import Toolbar from '../../components/Toolbar/Toolbar.js'
-import SplitPane from '../../components/common/SplitPane/SplitPane.js'
-import EditorTabs from '../../components/Tabs/EditorTabs.js'
-import TabTitles from '../../components/Tabs/TabTitles.js'
-import Modal from '../Modal/Modal.js'
-import NewFolderModal from '../../components/Modals/NewFolderModal.js'
-import NewEntityModal from '../../components/Modals/NewEntityModal.js'
-import DeleteConfirmationModal from '../../components/Modals/DeleteConfirmationModal.js'
-import CloseConfirmationModal from '../../components/Modals/CloseConfirmationModal.js'
-import RenameModal from '../../components/Modals/RenameModal.js'
-import RestoreDockConfirmationModal from '../../components/Modals/RestoreDockConfirmationModal.js'
 import * as progress from '../../redux/progress'
+import storeMethods from '../../redux/methods'
+import MainPreview from '../../components/Preview/MainPreview'
+import EntityTreeBox from '../../components/EntityTree/EntityTreeBox'
+import EntityTree from '../../components/EntityTree/EntityTree'
+import Properties from '../../components/Properties/Properties'
+import style from './App.css'
+import Toolbar from '../../components/Toolbar/Toolbar'
+import SplitPane from '../../components/common/SplitPane/SplitPane'
+import EditorTabs from '../../components/Tabs/EditorTabs'
+import TabTitles from '../../components/Tabs/TabTitles'
+import Modal from '../Modal/Modal'
+import NewFolderModal from '../../components/Modals/NewFolderModal'
+import NewEntityModal from '../../components/Modals/NewEntityModal'
+import DeleteConfirmationModal from '../../components/Modals/DeleteConfirmationModal'
+import CloseConfirmationModal from '../../components/Modals/CloseConfirmationModal'
+import RenameModal from '../../components/Modals/RenameModal'
+import RestoreDockConfirmationModal from '../../components/Modals/RestoreDockConfirmationModal'
 import getCloneName from '../../../shared/getCloneName'
-import uid from '../../helpers/uid.js'
-import { previewWindows, openPreviewWindow, getPreviewWindowOptions } from '../../helpers/previewWindow'
+import { previewWindows, getPreviewWindowOptions } from '../../helpers/previewWindow'
 import {
   extensions,
-  triggerSplitResize,
   removeHandler,
-  previewListeners,
-  registerGetPreviewTargetHandler,
-  registerPreviewHandler,
   entitySets,
   shouldOpenStartupPage,
   registerCollapseLeftHandler,
   registerCollapsePreviewHandler,
   collapseEntityHandler,
   entityTreeWrapperComponents
-} from '../../lib/configuration.js'
-
-const progressActions = progress.actions
+} from '../../lib/configuration'
 
 class App extends Component {
   static propTypes = {
@@ -62,12 +56,11 @@ class App extends Component {
     this.previewRef = React.createRef()
 
     this.openModal = this.openModal.bind(this)
-    this.createPreviewTarget = this.createPreviewTarget.bind(this)
+    this.handleRun = this.handleRun.bind(this)
     this.handlePreviewCollapsing = this.handlePreviewCollapsing.bind(this)
     this.handlePreviewDocking = this.handlePreviewDocking.bind(this)
     this.handlePreviewUndocking = this.handlePreviewUndocking.bind(this)
     this.handlePreviewUndocked = this.handlePreviewUndocked.bind(this)
-    this.handlePreviewCollapseChange = this.handlePreviewCollapseChange.bind(this)
     this.isPreviewUndockeable = this.isPreviewUndockeable.bind(this)
   }
 
@@ -78,60 +71,12 @@ class App extends Component {
       }
     }
 
-    registerGetPreviewTargetHandler(() => {
-      let target = 'previewFrame'
-
-      if (this.props.undockMode) {
-        target = 'previewFrame_GENERAL'
-
-        openPreviewWindow({
-          id: target,
-          name: target,
-          tab: true
-        })
-      }
-
-      return target
-    })
-
-    registerPreviewHandler((src) => {
-      if (!src) {
-        this.handleRun(
-          this.createPreviewTarget(
-            this.props.undockMode ? (
-              `window-${getPreviewWindowOptions(this.props.lastActiveTemplate != null ? this.props.lastActiveTemplate.shortid : undefined).id}`
-            ) : undefined
-          )
-        )
-      }
-    })
-
     registerCollapseLeftHandler((type = true) => {
       this.leftPaneRef.current.collapse(type)
     })
 
     registerCollapsePreviewHandler((type = true) => {
       this.previewPaneRef.current.collapse(type)
-    })
-
-    previewListeners.push((request, entities, target) => {
-      const { lastActiveTemplate, undockMode } = this.props
-
-      // we need to try to open the window again to get a reference to any existing window
-      // created with the id, this is necessary because the window can be closed by the user
-      // using the native close functionality of the browser tab,
-      // if we don't try to open the window again we will have inconsistent references and
-      // we can not close all preview tabs when un-collapsing the main pane preview again
-      if (
-        (undockMode || target.type.indexOf('window-') === 0) &&
-        this.previewPaneRef.current &&
-        target &&
-        target.type &&
-        target.type.indexOf(request.template.shortid) !== -1
-      ) {
-        let previewWinOpts = getPreviewWindowOptions(lastActiveTemplate != null ? lastActiveTemplate.shortid : undefined)
-        openPreviewWindow(previewWinOpts)
-      }
     })
 
     if (this.props.match.params.shortid) {
@@ -153,143 +98,13 @@ class App extends Component {
     this.props.updateHistory()
   }
 
-  createPreviewTarget (type, profiling = true) {
-    const normalizedType = type == null ? 'preview' : type
-    const windowPrefix = 'window-'
-    const isWindowType = normalizedType.indexOf(windowPrefix) === 0
-    let processFile
-    let focus
-
-    const handleLog = (fileInfo) => {
-      if (isWindowType || !profiling) {
-        return
-      }
-
-      try {
-        const log = JSON.parse(new TextDecoder().decode(fileInfo.rawData))
-        this.previewRef.current.addProfilerLog(log)
-      } catch (e) {
-        console.warn(`Unable to parse profiler log. Error: ${e.message}`)
-      }
-    }
-
-    const handleOperation = (fileInfo) => {
-      if (isWindowType || !profiling) {
-        return
-      }
-
-      try {
-        const operation = JSON.parse(new TextDecoder().decode(fileInfo.rawData))
-        this.previewRef.current.addProfilerOperation(operation)
-      } catch (e) {
-        console.warn(`Unable to parse profiler operation. Error: ${e.message}`)
-      }
-    }
-
-    const handleError = (fileInfo) => {
-      try {
-        // we get here when there was an error during the render, usually the error
-        // here is something general so it should show as part of the general error state
-        const error = JSON.parse(new TextDecoder().decode(fileInfo.rawData))
-
-        if (!isWindowType && profiling) {
-          this.previewRef.current.addProfilerError(error)
-        }
-
-        return error
-      } catch (e) {
-        console.warn(`Unable to parse error. Error: ${e.message}`)
-      }
-    }
-
-    if (normalizedType === 'preview' || normalizedType.indexOf(windowPrefix) === 0) {
-      processFile = (fileInfo, previewId, previewName) => {
-        if (fileInfo.name === 'report') {
-          const file = new window.File([fileInfo.rawData.buffer], fileInfo.filename, {
-            type: fileInfo.contentType
-          })
-
-          const newURLBlob = URL.createObjectURL(file)
-
-          if (isWindowType) {
-            const windowId = normalizedType.slice(windowPrefix.length)
-            const windowRef = previewWindows[windowId]
-            windowRef.location.href = newURLBlob
-          } else {
-            this.previewRef.current.changeSrc(newURLBlob, { id: previewId })
-            this.previewRef.current.addReport(fileInfo)
-          }
-        } else if (fileInfo.name === 'log') {
-          handleLog(fileInfo)
-        } else if (fileInfo.name === 'operationStart' || fileInfo.name === 'operationEnd') {
-          handleOperation(fileInfo)
-        } else if (fileInfo.name === 'error') {
-          const error = handleError(fileInfo)
-          const newURLBlob = URL.createObjectURL(new Blob([`Report${previewName != null ? ` "${previewName}"` : ''} render failed.\n\n${error.message}\n${error.stack}`], { type: 'text/plain' }))
-
-          if (isWindowType) {
-            const windowId = normalizedType.slice(windowPrefix.length)
-            const windowRef = previewWindows[windowId]
-            windowRef.location.href = newURLBlob
-          } else {
-            this.previewRef.current.changeSrc(newURLBlob, { id: previewId })
-          }
-        }
-      }
-
-      focus = () => {
-        if (isWindowType) {
-          const windowId = normalizedType.slice(windowPrefix.length)
-          const windowRef = previewWindows[windowId]
-          windowRef.focus()
-        }
-      }
-    }
-
-    if (processFile == null) {
-      throw new Error(`Preview target type "${normalizedType}" is not supported`)
-    }
-
-    return {
-      type: normalizedType,
-      previewType: profiling ? 'report-profiler' : 'report',
-      processFile,
-      focus
-    }
-  }
-
-  async handleRun (target, profiling = true) {
-    this.props.start()
-
-    const previewId = uid()
-
-    target.previewId = previewId
-
-    const windowPrefix = 'window-'
-    const isWindowType = target.type.indexOf(windowPrefix) === 0
+  async handleRun (profiling = true) {
+    this.props.progressStart()
 
     try {
-      await this.props.run(target)
-    } catch (error) {
-      if (!isWindowType && profiling) {
-        this.previewRef.current.addProfilerError({
-          type: 'globalError',
-          message: error.message,
-          stack: error.stack
-        })
-      }
-
-      const newURLBlob = URL.createObjectURL(new Blob([`${error.message}\n\n${error.stack}`], { type: 'text/plain' }))
-
-      if (isWindowType) {
-        const windowId = target.type.slice(windowPrefix.length)
-        const windowRef = previewWindows[windowId]
-        windowRef.location.href = newURLBlob
-      } else {
-        this.previewRef.current.changeSrc(newURLBlob, { id: previewId })
-      }
+      await this.props.run({}, { profiling })
     } finally {
-      this.props.stop()
+      this.props.progressStop()
     }
   }
 
@@ -305,15 +120,6 @@ class App extends Component {
     return this.props.saveAll()
   }
 
-  handleSplitChanged () {
-    triggerSplitResize()
-
-    Object.keys(Preview.instances).forEach((instanceId) => {
-      const previewInstance = Preview.instances[instanceId]
-      previewInstance.resizeStarted()
-    })
-  }
-
   openStartup () {
     if (!extensions.studio.options.startupPage) {
       return
@@ -323,31 +129,18 @@ class App extends Component {
       this.props.openTab({
         key: 'StartupPage',
         editorComponentKey: 'startup',
-        title: 'Startup',
-        getProps: () => ({
-          addProfilerOperation: this.previewRef.current.addProfilerOperation,
-          addProfilerLog: this.previewRef.current.addProfilerLog,
-          addProfilerError: this.previewRef.current.addProfilerError
-        })
+        title: 'Startup'
       })
     }
   }
 
   closeTab (key) {
-    const { getEntityById } = this.props
-    const entity = getEntityById(key, false)
+    const entity = storeMethods.getEntityById(key, false)
 
     if (!entity || !entity.__isDirty) {
       return this.props.closeTab(key)
     }
     this.openModal(CloseConfirmationModal, { _id: key })
-  }
-
-  handleSplitDragFinished () {
-    Object.keys(Preview.instances).forEach((instanceId) => {
-      const previewInstance = Preview.instances[instanceId]
-      previewInstance.resizeEnded()
-    })
   }
 
   isPreviewUndockeable () {
@@ -381,10 +174,6 @@ class App extends Component {
     return true
   }
 
-  handlePreviewCollapseChange () {
-    triggerSplitResize()
-  }
-
   handlePreviewDocking () {
     // close all preview windows when docking
     if (Object.keys(previewWindows).length) {
@@ -415,9 +204,8 @@ class App extends Component {
     return false
   }
 
-  handlePreviewUndocked (id, previewWindow) {
-    previewWindows[id] = previewWindow
-    this.handleRun(this.createPreviewTarget(`window-${id}`))
+  handlePreviewUndocked () {
+    this.handleRun()
   }
 
   renderEntityTree () {
@@ -503,15 +291,13 @@ class App extends Component {
       canSave,
       canSaveAll,
       activeTabWithEntity,
-      lastActiveTemplate,
       entities,
       activateTab,
       activeTabKey,
       activeTab,
       activeEntity,
       update,
-      groupedUpdate,
-      undockMode
+      groupedUpdate
     } = this.props
 
     const updateBasedOnActiveTab = (...params) => {
@@ -534,7 +320,6 @@ class App extends Component {
       <DndProvider backend={HTML5Backend}>
         <div className='container'>
           <Modal openCallback={(open) => { this.refOpenModal = open }} />
-
           <div className={style.appContent + ' container'}>
             <div className='block'>
               <Toolbar
@@ -547,25 +332,25 @@ class App extends Component {
                 activeTab={activeTabWithEntity}
                 onUpdate={updateBasedOnActiveTab}
                 onRun={(profiling = true) => {
-                  this.handleRun(
-                    this.createPreviewTarget(undockMode ? (
-                      `window-${getPreviewWindowOptions(lastActiveTemplate != null ? lastActiveTemplate.shortid : undefined).id}`
-                    ) : undefined, profiling),
-                    profiling
-                  )
+                  this.handleRun(profiling)
                 }}
                 openStartup={() => this.openStartup()}
               />
-
               <div className='block'>
                 <SplitPane
                   ref={this.leftPaneRef}
-                  collapsedText='Objects / Properties' collapsable='first'
-                  resizerClassName='resizer' defaultSize='85%' onChange={() => this.handleSplitChanged()}
-                  onDragFinished={() => this.handleSplitDragFinished()}>
+                  primary='second'
+                  collapsedText='Objects / Properties'
+                  collapsable='first'
+                  resizerClassName='resizer'
+                  defaultSize='85%'
+                >
                   <SplitPane
-                    resizerClassName='resizer-horizontal' split='horizontal'
-                    defaultSize={(window.innerHeight * 0.5) + 'px'}>
+                    primary='second'
+                    resizerClassName='resizer-horizontal'
+                    split='horizontal'
+                    defaultSize={(window.innerHeight * 0.5) + 'px'}
+                  >
                     <EntityTreeBox>
                       {this.renderEntityTree()}
                     </EntityTreeBox>
@@ -574,27 +359,29 @@ class App extends Component {
 
                   <div className='block'>
                     <TabTitles
-                      activeTabKey={activeTabKey} activateTab={activateTab} tabs={tabsWithEntities}
-                      closeTab={(k) => this.closeTab(k)} />
+                      activeTabKey={activeTabKey}
+                      activateTab={activateTab}
+                      tabs={tabsWithEntities}
+                      closeTab={(k) => this.closeTab(k)}
+                    />
                     <SplitPane
                       ref={this.previewPaneRef}
+                      primary='second'
                       collapsedText='preview'
                       collapsable='second'
                       undockeable={this.isPreviewUndockeable}
-                      onChange={() => this.handleSplitChanged()}
                       onCollapsing={this.handlePreviewCollapsing}
-                      onCollapseChange={this.handlePreviewCollapseChange}
                       onDocking={this.handlePreviewDocking}
                       onUndocking={this.handlePreviewUndocking}
                       onUndocked={this.handlePreviewUndocked}
-                      onDragFinished={() => this.handleSplitDragFinished()}
-                      resizerClassName='resizer'>
+                      resizerClassName='resizer'
+                    >
                       <EditorTabs
                         activeTabKey={activeTabKey}
                         onUpdate={(v) => groupedUpdateBasedOnActiveTab(v)}
                         tabs={tabsWithEntities}
                       />
-                      <Preview ref={this.previewRef} main />
+                      <MainPreview />
                     </SplitPane>
                   </div>
                 </SplitPane>
@@ -607,20 +394,24 @@ class App extends Component {
   }
 }
 
-export default connect((state) => ({
-  entities: state.entities,
-  references: entities.selectors.getReferences(state),
-  activeTabKey: state.editor.activeTabKey,
-  activeTabWithEntity: selectors.getActiveTabWithEntity(state),
-  isPending: progress.selectors.getIsPending(state),
-  canRun: selectors.canRun(state),
-  canSave: selectors.canSave(state),
-  canSaveAll: selectors.canSaveAll(state),
-  tabsWithEntities: selectors.getTabWithEntities(state),
-  activeTab: selectors.getActiveTab(state),
-  activeEntity: selectors.getActiveEntity(state),
-  lastActiveTemplate: selectors.getLastActiveTemplate(state),
-  undockMode: state.editor.undockMode,
-  getEntityById: (id, ...params) => entities.selectors.getById(state, id, ...params),
-  getEntityByShortid: (shortid, ...params) => entities.selectors.getByShortid(state, shortid, ...params)
-}), { ...actions, ...progressActions })(App)
+export default connect((state) => {
+  return {
+    entities: state.entities,
+    undockMode: state.editor.undockMode,
+    references: entities.selectors.getReferences(state),
+    activeTabKey: state.editor.activeTabKey,
+    activeTabWithEntity: editor.selectors.getActiveTabWithEntity(state),
+    isPending: progress.selectors.getIsPending(state),
+    canRun: editor.selectors.canRun(state),
+    canSave: editor.selectors.canSave(state),
+    canSaveAll: editor.selectors.canSaveAll(state),
+    tabsWithEntities: editor.selectors.getTabWithEntities(state),
+    activeTab: editor.selectors.getActiveTab(state),
+    activeEntity: editor.selectors.getActiveEntity(state),
+    lastActiveTemplate: editor.selectors.getLastActiveTemplate(state)
+  }
+}, {
+  ...editor.actions,
+  progressStart: progress.actions.start,
+  progressStop: progress.actions.stop
+})(App)

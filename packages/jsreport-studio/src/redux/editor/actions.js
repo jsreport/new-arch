@@ -1,15 +1,32 @@
 import * as entities from '../entities'
 import * as progress from '../progress'
-import * as ActionTypes from './constants.js'
-import uid from '../../helpers/uid.js'
-import api from '../../helpers/api.js'
-import * as selectors from './selectors.js'
+import * as ActionTypes from './constants'
+import uid from '../../helpers/uid'
+import api from '../../helpers/api'
+import * as selectors from './selectors'
 import { push } from 'connected-react-router'
 import shortid from 'shortid'
 import reformatter from '../../helpers/reformatter'
-import preview from '../../helpers/preview'
-import resolveUrl from '../../helpers/resolveUrl.js'
-import { engines, recipes, previewListeners, previewConfigurationHandler, locationResolver, editorComponents, concurrentUpdateModal, modalHandler } from '../../lib/configuration.js'
+import { openPreviewWindow, getPreviewWindowOptions } from '../../helpers/previewWindow'
+import createTemplateRenderFilesHandler from '../../helpers/createTemplateRenderFilesHandler'
+import executeTemplateRender from '../../helpers/executeTemplateRender'
+import resolveUrl from '../../helpers/resolveUrl'
+
+import {
+  addLog as addProfileLog,
+  addOperation as addProfileOperation,
+  addError as addProfileError
+} from '../../helpers/profileDataManager'
+
+import {
+  engines,
+  recipes,
+  runListeners,
+  locationResolver,
+  editorComponents,
+  concurrentUpdateModal,
+  modalHandler
+} from '../../lib/configuration'
 
 export function closeTab (id) {
   return (dispatch, getState) => {
@@ -25,7 +42,7 @@ export function closeTab (id) {
         )
       })
 
-      // close also dependants tabs (like header-footer, pdf-utils, etc)
+      // close also dependant tabs (like header-footer, pdf-utils, etc)
       // if the entity is new of if it is dirty
       dependantEntityTabs.forEach((t) => {
         if (entity.__isNew || entity.__isDirty) {
@@ -298,8 +315,6 @@ export function save () {
         type: ActionTypes.SAVE_SUCCESS
       })
     } catch (e) {
-      console.error(e)
-
       if (e.error && e.error.code === 'CONCURRENT_UPDATE_INVALID') {
         dispatch(progress.actions.stop())
 
@@ -384,38 +399,232 @@ export function remove () {
   }
 }
 
-export function run (target) {
+export function preview ({ type, data = null, activeTab, completed = false }) {
+  const previewId = uid()
+
+  return (dispatch) => {
+    dispatch({
+      type: ActionTypes.PREVIEW,
+      preview: {
+        id: previewId,
+        type,
+        data,
+        activeTab,
+        completed
+      }
+    })
+
+    return previewId
+  }
+}
+
+export function updatePreview (id, params = {}) {
+  const toUpdate = {}
+
+  if (Object.hasOwnProperty.call(params, 'data')) {
+    toUpdate.data = params.data
+  }
+
+  if (Object.hasOwnProperty.call(params, 'activeTab')) {
+    toUpdate.activeTab = params.activeTab
+  }
+
+  if (Object.hasOwnProperty.call(params, 'completed')) {
+    toUpdate.completed = params.completed
+  }
+
+  return {
+    type: ActionTypes.UPDATE_PREVIEW,
+    preview: {
+      id,
+      ...toUpdate
+    }
+  }
+}
+
+export function clearPreview () {
+  return (dispatch) => {
+    dispatch(preview({ type: 'empty', completed: true }))
+  }
+}
+
+export function run (params = {}, opts = {}) {
   return async function (dispatch, getState) {
-    let template = Object.assign({}, selectors.getLastActiveTemplate(getState()))
-    let request = { template: template, options: {} }
+    const supportedTargets = ['preview', 'window']
+    const template = params.template != null ? params.template : Object.assign({}, selectors.getLastActiveTemplate(getState()))
+    const templateName = template.name
+
+    const request = {
+      template,
+      options: params.options != null ? params.options : {}
+    }
+
+    const undockMode = getState().editor.undockMode
+
+    let targetType
+    let profiling
+
+    if (opts.target != null) {
+      targetType = opts.target
+    } else if (undockMode) {
+      targetType = 'window'
+    } else {
+      targetType = 'preview'
+    }
+
+    if (supportedTargets.indexOf(targetType) === -1) {
+      throw new Error(`Run template preview target type "${targetType}" is not supported`)
+    }
+
+    if (targetType === 'preview') {
+      profiling = opts.profiling != null ? opts.profiling : true
+    } else {
+      profiling = false
+    }
+
     const entities = Object.assign({}, getState().entities)
 
-    target.previewName = template.name
+    await Promise.all([...runListeners.map((l) => l(request, entities))])
 
-    const previewListenersReturns = await Promise.all([...previewListeners.map((l) => l(request, entities, target))])
+    let previewId
+    let previewWindow
 
-    const previewConfig = previewListenersReturns.reduce((acu, value) => {
-      if (value != null) {
-        acu = Object.assign(acu, value)
-      }
-
-      return acu
-    }, {})
-
-    dispatch({ type: ActionTypes.RUN })
-
-    await previewConfigurationHandler({
-      ...previewConfig,
-      src: null,
-      id: target.previewId,
+    let previewData = {
       template: {
         name: template.name,
         shortid: template.shortid
       },
-      type: target.previewType
-    })
+      reportSrc: null,
+      reportFile: null
+    }
 
-    await preview(request, target)
+    if (profiling) {
+      previewData.profileOperations = []
+      previewData.profileLogs = []
+      previewData.profileErrors = { global: null, general: null, operations: [] }
+    }
+
+    dispatch({ type: ActionTypes.RUN })
+
+    if (targetType === 'preview') {
+      previewId = dispatch(preview({
+        type: profiling ? 'report-profile' : 'report',
+        data: previewData
+      }))
+    } else if (targetType === 'window') {
+      previewWindow = openPreviewWindow(getPreviewWindowOptions(template != null ? template.shortid : undefined))
+    }
+
+    try {
+      await executeTemplateRender(request, {
+        onStart: () => {
+          if (targetType === 'window') {
+            previewWindow.focus()
+          }
+        },
+        onFile: createTemplateRenderFilesHandler({
+          profiling,
+          onLog: (log) => {
+            previewData = addProfileLog(previewData, log)
+
+            dispatch(updatePreview(previewId, {
+              data: previewData
+            }))
+          },
+          onOperation: (operation) => {
+            previewData = addProfileOperation(previewData, operation)
+
+            dispatch(updatePreview(previewId, {
+              data: previewData
+            }))
+          },
+          onError: (errorInfo) => {
+            if (profiling) {
+              previewData = addProfileError(previewData, errorInfo)
+
+              dispatch(updatePreview(previewId, {
+                data: previewData
+              }))
+            }
+
+            const reportSrc = URL.createObjectURL(
+              new Blob([
+                `Report${templateName != null ? ` "${templateName}"` : ''} render failed.\n\n${errorInfo.message}\n${errorInfo.stack}`
+              ], { type: 'text/plain' })
+            )
+
+            if (targetType === 'window') {
+              previewWindow.location.href = reportSrc
+            } else {
+              previewData = {
+                ...previewData,
+                reportSrc
+              }
+
+              dispatch(updatePreview(previewId, {
+                data: previewData
+              }))
+            }
+          },
+          onReport: (reportFileInfo) => {
+            const reportSrc = URL.createObjectURL(
+              new window.File([reportFileInfo.rawData.buffer], reportFileInfo.filename, {
+                type: reportFileInfo.contentType
+              })
+            )
+
+            previewData = {
+              ...previewData,
+              reportSrc,
+              reportFile: {
+                filename: reportFileInfo.filename,
+                rawData: reportFileInfo.rawData,
+                contentType: reportFileInfo.contentType
+              }
+            }
+
+            if (targetType === 'window') {
+              previewWindow.location.href = reportSrc
+            } else {
+              dispatch(updatePreview(previewId, {
+                data: previewData
+              }))
+            }
+          }
+        })
+      })
+    } catch (error) {
+      if (targetType === 'preview' && profiling) {
+        previewData = addProfileError(previewData, {
+          type: 'globalError',
+          message: error.message,
+          stack: error.stack
+        })
+
+        dispatch(updatePreview(previewId, {
+          data: previewData
+        }))
+      }
+
+      const errorURLBlob = URL.createObjectURL(new Blob([`${error.message}\n\n${error.stack}`], { type: 'text/plain' }))
+
+      if (targetType === 'window') {
+        previewWindow.location.href = errorURLBlob
+      } else {
+        previewData = {
+          ...previewData,
+          reportSrc: errorURLBlob
+        }
+
+        dispatch(updatePreview(previewId, {
+          data: previewData
+        }))
+      }
+    } finally {
+      if (targetType === 'preview') {
+        dispatch(updatePreview(previewId, { completed: true }))
+      }
+    }
   }
 }
 

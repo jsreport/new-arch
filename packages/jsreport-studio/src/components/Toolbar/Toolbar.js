@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types'
-import React, { Component } from 'react'
+import React, { Component, Fragment } from 'react'
+import Popup from '../common/Popup'
 import EntityFuzzyFinderModal from '../Modals/EntityFuzzyFinderModal.js'
 import { modalHandler, toolbarComponents, toolbarVisibilityResolver, extensions } from '../../lib/configuration.js'
 import resolveUrl from '../../helpers/resolveUrl'
@@ -25,20 +26,24 @@ class Toolbar extends Component {
   constructor () {
     super()
     this.state = {}
-    this.tryHide = this.tryHide.bind(this)
     this.handleShortcut = this.handleShortcut.bind(this)
     this.handleEarlyShortcut = this.handleEarlyShortcut.bind(this)
+    this.handleRunMenuTrigger = this.handleRunMenuTrigger.bind(this)
+    this.handleSettingsMenuTrigger = this.handleSettingsMenuTrigger.bind(this)
     this.handleSave = this.handleSave.bind(this)
+
+    this.runMenuTriggerRef = React.createRef()
+    this.runMenuContainerRef = React.createRef()
+    this.settingsMenuTriggerRef = React.createRef()
+    this.settingsMenuContainerRef = React.createRef()
   }
 
   componentDidMount () {
-    window.addEventListener('click', this.tryHide)
     window.addEventListener('keydown', this.handleShortcut)
     window.addEventListener('keydown', this.handleEarlyShortcut, true)
   }
 
   componentWillUnmount () {
-    window.removeEventListener('click', this.tryHide)
     window.removeEventListener('keydown', this.handleShortcut)
     window.addEventListener('keydown', this.handleEarlyShortcut, true)
   }
@@ -93,16 +98,6 @@ class Toolbar extends Component {
     }
   }
 
-  tryHide () {
-    if (this.state.expandedSettings) {
-      this.setState({ expandedSettings: false })
-    }
-
-    if (this.state.expandedRun) {
-      this.setState({ expandedRun: false })
-    }
-  }
-
   async handleSave (onSave) {
     if (this.state.saving) {
       return
@@ -118,6 +113,46 @@ class Toolbar extends Component {
       this.setState({
         saving: false
       })
+    }
+  }
+
+  handleRunMenuTrigger (e) {
+    e.stopPropagation()
+
+    if (
+      this.runMenuTriggerRef.current == null ||
+      this.runMenuContainerRef.current == null
+    ) {
+      return
+    }
+
+    if (
+      this.runMenuTriggerRef.current.contains(e.target) &&
+      !this.runMenuContainerRef.current.contains(e.target)
+    ) {
+      this.setState((prevState) => ({
+        expandedRun: !prevState.expandedRun
+      }))
+    }
+  }
+
+  handleSettingsMenuTrigger (e) {
+    e.stopPropagation()
+
+    if (
+      this.settingsMenuTriggerRef.current == null ||
+      this.settingsMenuContainerRef.current == null
+    ) {
+      return
+    }
+
+    if (
+      this.settingsMenuTriggerRef.current.contains(e.target) &&
+      !this.settingsMenuContainerRef.current.contains(e.target)
+    ) {
+      this.setState((prevState) => ({
+        expandedSettings: !prevState.expandedSettings
+      }))
     }
   }
 
@@ -142,21 +177,50 @@ class Toolbar extends Component {
 
     return (
       <div
-        title='Preview report in the right pane (F8)' className={'toolbar-button ' + (canRun ? '' : 'disabled')}
-        onClick={canRun ? () => onRun() : () => {}}
+        ref={this.runMenuTriggerRef}
+        title='Preview report in the right pane (F8)'
+        className={'toolbar-button ' + (canRun ? '' : 'disabled')}
+        onClick={() => {
+          if (!canRun) {
+            return
+          }
+
+          onRun()
+          this.setState({ expandedRun: false })
+        }}
       >
-        <i className='fa fa-play' />Run <span className={style.runCaret} onClick={(e) => { e.stopPropagation(); this.setState({ expandedRun: !this.state.expandedRun }) }} />
-        <div className='popup-settings' style={{ display: this.state.expandedRun ? 'block' : 'none' }}>
-          {this.renderButton((e) => { e.stopPropagation(); this.tryHide(); onRun(false) }, canRun, 'Run without profiling', 'fa fa-play-circle', 'Preview in new tab')}
-        </div>
+        <i className='fa fa-play' />Run
+        <span
+          className={style.runCaret}
+          onClick={this.handleRunMenuTrigger}
+        />
+        <Popup
+          ref={this.runMenuContainerRef}
+          open={this.state.expandedRun}
+          position={{ top: undefined, right: undefined }}
+          onRequestClose={() => this.setState({ expandedRun: false })}
+        >
+          {(itemProps) => {
+            if (!itemProps.open) {
+              return
+            }
+
+            return this.renderButton((e) => {
+              e.stopPropagation()
+              itemProps.closeMenu()
+              onRun(false)
+            }, canRun, 'Run without profiling', 'fa fa-play-circle', 'Preview in new tab')
+          }}
+        </Popup>
       </div>
     )
   }
 
-  renderToolbarComponents (position) {
+  renderToolbarComponents (position, onCloseMenu) {
     return toolbarComponents[position].map((p, i) => React.createElement(p, {
       key: i,
       tab: this.props.activeTab,
+      closeMenu: position === 'settings' || position === 'settingsBottom' ? onCloseMenu : undefined,
       onUpdate: this.props.onUpdate,
       canRun: this.props.canRun,
       canSaveAll: this.props.canSaveAll
@@ -170,15 +234,31 @@ class Toolbar extends Component {
 
     return (
       <div
+        ref={this.settingsMenuTriggerRef}
         className='toolbar-button'
-        onClick={(e) => { e.stopPropagation(); this.setState({ expandedSettings: !this.state.expandedSettings }) }}
+        onClick={this.handleSettingsMenuTrigger}
       >
         <i className='fa fa-cog' />
-        <div className='popup-settings' style={{ display: this.state.expandedSettings ? 'block' : 'none', right: '0' }}>
-          {this.renderToolbarComponents('settings')}
-          {toolbarComponents.settingsBottom.length ? <hr /> : ''}
-          {this.renderToolbarComponents('settingsBottom')}
-        </div>
+        <Popup
+          ref={this.settingsMenuContainerRef}
+          open={this.state.expandedSettings}
+          position={{ top: undefined }}
+          onRequestClose={() => this.setState({ expandedSettings: false })}
+        >
+          {(itemProps) => {
+            if (!itemProps.open) {
+              return
+            }
+
+            return (
+              <Fragment>
+                {this.renderToolbarComponents('settings', itemProps.closeMenu)}
+                {toolbarComponents.settingsBottom.length ? <hr /> : ''}
+                {this.renderToolbarComponents('settingsBottom', itemProps.closeMenu)}
+              </Fragment>
+            )
+          }}
+        </Popup>
       </div>
     )
   }

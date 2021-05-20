@@ -1,14 +1,25 @@
 import ChangePasswordModal from './ChangePasswordModal.js'
 import Studio from 'jsreport-studio'
 
-export default (props) => {
+const ChangePasswordSettingsButton = (props) => {
   if (Studio.authentication.user.isAdmin) {
     return <span />
   }
 
   return (
     <div>
-      <a id='changePassword' onClick={() => Studio.openModal(ChangePasswordModal, { entity: Studio.authentication.user })} style={{ cursor: 'pointer' }}> <i className='fa fa-key' />Change password</a>
+      <a
+        id='changePassword'
+        onClick={() => {
+          Studio.openModal(ChangePasswordModal, { entity: Studio.authentication.user })
+          props.closeMenu()
+        }}
+        style={{ cursor: 'pointer' }}
+      >
+        <i className='fa fa-key' />Change password
+      </a>
     </div>
   )
 }
+
+export default ChangePasswordSettingsButton

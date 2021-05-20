@@ -20,11 +20,12 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Launch Program",
+            "name": "Run Program",
             "skipFiles": [
                 "<node_internals>/**"
             ],
-            "program": "${workspaceFolder}\\server.js",
+            "program": "${workspaceFolder}/server.js",
+            "envFile": "${workspaceFolder}/launch.env",
             "autoAttachChildProcesses": true
         }
     ]

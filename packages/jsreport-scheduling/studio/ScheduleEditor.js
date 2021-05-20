@@ -55,7 +55,14 @@ class ScheduleEditor extends Component {
         report.contentType === 'application/pdf' ||
         (report.contentType && report.contentType.indexOf('image') !== -1)
       ) {
-        Studio.setPreviewFrameSrc(`${Studio.rootUrl}/reports/${report._id}/content`)
+        Studio.preview({
+          type: 'rawContent',
+          data: {
+            type: 'url',
+            content: `${Studio.rootUrl}/reports/${report._id}/content`
+          },
+          completed: true
+        })
       } else {
         window.open(`${Studio.rootUrl}/reports/${report._id}/attachment`, '_self')
       }
@@ -64,7 +71,16 @@ class ScheduleEditor extends Component {
       _activeReport = report
     } else {
       _activeReport = null
-      Studio.setPreviewFrameSrc('data:text/html;charset=utf-8,' + encodeURI(t.error || t.state))
+
+      Studio.preview({
+        type: 'rawContent',
+        data: {
+          type: 'text/html',
+          content: t.error || t.state
+        },
+        completed: true
+      })
+
       this.setState({ active: null })
     }
   }
