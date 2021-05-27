@@ -88,7 +88,7 @@ function getAttributeForRecipe (recipe) {
     return {
       attrName: 'htmlToXlsx',
       shortidAttrName: 'templateAssetShortid',
-      selectLabel: `select xlsx template`
+      selectLabel: 'select xlsx template'
     }
   }
 

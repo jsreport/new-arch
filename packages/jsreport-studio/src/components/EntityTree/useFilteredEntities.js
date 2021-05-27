@@ -19,7 +19,7 @@ function useFilteredEntities (entities) {
 }
 
 function filterEntities (entities, filter) {
-  let result = {}
+  const result = {}
 
   const allFiltersAreEmpty = Object.keys(filter).every((filterKey) => {
     const filterValue = filter[filterKey]

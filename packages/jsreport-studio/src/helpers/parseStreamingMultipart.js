@@ -203,8 +203,8 @@ function arrayBufferEqual (buf1, buf2) {
     return false
   }
 
-  var view1 = new DataView(buf1)
-  var view2 = new DataView(buf2)
+  const view1 = new DataView(buf1)
+  const view2 = new DataView(buf2)
 
   let i = buf1.byteLength
 
@@ -227,6 +227,7 @@ function concatUInt8Array (buf1, buf2) {
 function getBoundary (contentType = '') {
   const contentTypeParts = contentType.split(';')
 
+  // eslint-disable-next-line
   for (const contentTypePart of contentTypeParts) {
     const [key, value] = (contentTypePart || '').trim().split('=')
 
@@ -280,8 +281,8 @@ function parseContentDisposition (string) {
   const type = match[1].toLowerCase()
 
   let key
-  let names = []
-  let params = {}
+  const names = []
+  const params = {}
   let value
 
   // calculate index to start at

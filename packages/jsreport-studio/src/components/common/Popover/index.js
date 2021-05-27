@@ -13,8 +13,8 @@ const Popover = (props) => {
     children
   } = props
 
-  let stylesForWrapper = {}
-  let stylesForTrianguleWrapper = {}
+  const stylesForWrapper = {}
+  const stylesForTrianguleWrapper = {}
   let marginTopWrapper
 
   if (topWrapper == null) {
@@ -40,23 +40,29 @@ const Popover = (props) => {
         <div className={style.popoverCloseLayer} onClick={onClose} />
         <div className={style.popoverContent}>
           {
-            open ? (
-              wrapper ? (
-                <div className={style.popoverContentWrapper} style={stylesForWrapper}>
-                  {triangle && <div className={style.popoverTriangleShadow} />}
-                  {triangle && <div className={style.popoverTriangle} style={stylesForTrianguleWrapper} />}
-                  {children}
-                </div>
-              ) : (
-                triangle ? (
-                  <div>
-                    <div className={style.popoverTriangleShadow} />
-                    <div className={style.popoverTriangle} style={stylesForTrianguleWrapper} />
-                    {children}
-                  </div>
-                ) : children
-              )
-            ) : null
+            open
+              ? (
+                  wrapper
+                    ? (
+                      <div className={style.popoverContentWrapper} style={stylesForWrapper}>
+                        {triangle && <div className={style.popoverTriangleShadow} />}
+                        {triangle && <div className={style.popoverTriangle} style={stylesForTrianguleWrapper} />}
+                        {children}
+                      </div>
+                      )
+                    : (
+                        triangle
+                          ? (
+                            <div>
+                              <div className={style.popoverTriangleShadow} />
+                              <div className={style.popoverTriangle} style={stylesForTrianguleWrapper} />
+                              {children}
+                            </div>
+                            )
+                          : children
+                      )
+                )
+              : null
           }
         </div>
       </div>

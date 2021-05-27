@@ -10,6 +10,5 @@ export default {
   'helpers/inherits': require('babel-runtime/helpers/inherits'),
   'helpers/extends': require('babel-runtime/helpers/extends'),
   'helpers/asyncToGenerator': require('babel-runtime/helpers/asyncToGenerator'),
-  'regenerator': require('babel-runtime/regenerator')
+  regenerator: require('babel-runtime/regenerator')
 }
-

@@ -1,15 +1,16 @@
-import PropTypes from 'prop-types'
+/* import PropTypes from 'prop-types' */
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import { actions, selectors } from '../../redux/entities'
 import api from '../../helpers/api.js'
-import { entitySets } from '../../lib/configuration.js'
 
 class RenameModal extends Component {
+  /* TODO
   static propTypes = {
     close: PropTypes.func.isRequired,
     options: PropTypes.object.isRequired
   }
+  */
 
   constructor (props) {
     super(props)
@@ -70,26 +71,28 @@ class RenameModal extends Component {
 
   render () {
     const { error } = this.state
-    const { entity } = this.props    
+    const { entity } = this.props
 
-    return <div>
-      <div className='form-group'>
-        <label>rename entity</label>
-        <input
-          ref={this.nameRef}
-          type='text'
-          defaultValue={entity.name}
-          onKeyPress={(e) => this.handleKeyPress(e)}
-        />
+    return (
+      <div>
+        <div className='form-group'>
+          <label>rename entity</label>
+          <input
+            ref={this.nameRef}
+            type='text'
+            defaultValue={entity.name}
+            onKeyPress={(e) => this.handleKeyPress(e)}
+          />
+        </div>
+        <div className='form-group'>
+          <span style={{ color: 'red', display: error ? 'block' : 'none' }}>{error}</span>
+        </div>
+        <div className='button-bar'>
+          <button className='button confirmation' onClick={() => this.rename()}>Ok</button>
+          <button className='button confirmation' onClick={() => this.props.close()}>Cancel</button>
+        </div>
       </div>
-      <div className='form-group'>
-        <span style={{ color: 'red', display: error ? 'block' : 'none' }}>{error}</span>
-      </div>
-      <div className='button-bar'>
-        <button className='button confirmation' onClick={() => this.rename()}>Ok</button>
-        <button className='button confirmation' onClick={() => this.props.close()}>Cancel</button>
-      </div>
-    </div>
+    )
   }
 }
 

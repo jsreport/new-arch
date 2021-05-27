@@ -126,6 +126,15 @@
       "extensions.js",
       "webpack/**"
     ],
+    "global": [
+      "__DEVELOPMENT__",
+      "Studio"
+    ],
+    "env": {
+      "mocha": true,
+      "node": true,
+      "browser": true
+    },
     "parser": "babel-eslint"
   },
   "version": "2.10.1"

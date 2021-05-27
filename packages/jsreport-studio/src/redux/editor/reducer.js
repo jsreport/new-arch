@@ -33,7 +33,7 @@ reducer.handleAction(ActionTypes.OPEN_NEW_TAB, (state, { tab }) => ({
 }))
 
 reducer.handleActions([EntityActionTypes.REMOVE, ActionTypes.CLOSE_TAB], (state, action) => {
-  let newTabs = state.tabs.filter((t) => {
+  const newTabs = state.tabs.filter((t) => {
     let shouldStay = t.key !== action.key && (!action._id || t._id !== action._id)
 
     if (shouldStay && action.children) {
@@ -65,7 +65,8 @@ reducer.handleActions([EntityActionTypes.REMOVE, ActionTypes.CLOSE_TAB], (state,
     ...state,
     activeTabKey: newActiveTabKey,
     tabs: newTabs,
-    lastActiveTemplateKey: (newActiveTab && newActiveTab.entitySet === 'templates') ? newActiveTab._id
+    lastActiveTemplateKey: (newActiveTab && newActiveTab.entitySet === 'templates')
+      ? newActiveTab._id
       : (newTabs.filter((t) => t._id === state.lastActiveTemplateKey).length ? state.lastActiveTemplateKey : null)
   }
 })
@@ -81,12 +82,12 @@ reducer.handleAction(ActionTypes.ACTIVATE_TAB, (state, action) => {
 })
 
 reducer.handleAction(EntityActionTypes.SAVE_NEW, (state, action) => {
-  let indexMap = {}
-  let indexes = []
-  let tabs = []
+  const indexMap = {}
+  const indexes = []
+  const tabs = []
 
   // this code is necessary to support updating header/footer templates
-  let modTabs = state.tabs.filter((t, idx) => {
+  const modTabs = state.tabs.filter((t, idx) => {
     const keepItem = (t._id === action.oldId)
 
     if (keepItem) {
@@ -110,10 +111,14 @@ reducer.handleAction(EntityActionTypes.SAVE_NEW, (state, action) => {
     tabs.push(tab)
   })
 
-  const newActiveTabKey = (state.lastActiveTemplateKey === action.oldId || state.activeTabKey === action.oldId) ? ((
-    // looking if the last activeTabKey was a header/footer tab
-    state.activeTabKey.indexOf(state.lastActiveTemplateKey) === 0 && state.activeTabKey !== state.lastActiveTemplateKey
-  ) ? state.activeTabKey.replace(action.oldId, action.entity._id) : action.entity._id) : state.activeTabKey
+  const newActiveTabKey = (state.lastActiveTemplateKey === action.oldId || state.activeTabKey === action.oldId)
+    ? ((
+      // looking if the last activeTabKey was a header/footer tab
+        state.activeTabKey.indexOf(state.lastActiveTemplateKey) === 0 && state.activeTabKey !== state.lastActiveTemplateKey
+      )
+        ? state.activeTabKey.replace(action.oldId, action.entity._id)
+        : action.entity._id)
+    : state.activeTabKey
 
   return {
     ...state,

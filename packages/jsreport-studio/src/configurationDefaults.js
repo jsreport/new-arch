@@ -71,6 +71,7 @@ export default () => {
 
   configuration.sharedComponents.EntityTree = EntityTree
 
+  // eslint-disable-next-line
   configuration.apiSpecs = {
     template: {
       content: '...',
@@ -299,6 +300,7 @@ export default () => {
     )
   }))
 
+  // eslint-disable-next-line
   configuration.aboutModal = AboutModal
 
   configuration.toolbarComponents.left.push((props) => {
@@ -396,6 +398,7 @@ export default () => {
     )
   })
 
+  // eslint-disable-next-line
   configuration.concurrentUpdateModal = ConcurrentUpdateErrorModal
 
   configuration.reportPreviewStyleResolvers.push((reportFile) => {

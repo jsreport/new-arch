@@ -74,6 +74,7 @@ class SplitPane extends Component {
       return listeners
     }
 
+    // eslint-disable-next-line
     for (const handler of _splitResizeHandlers) {
       if (this.splitPaneRef.current.contains(handler.el) && handler.fnMap[eventName] != null) {
         listeners.push(handler.fnMap[eventName])
@@ -137,6 +138,7 @@ class SplitPane extends Component {
     } finally {
       const listeners = this.getExternalEventListeners(eventName)
 
+      // eslint-disable-next-line
       for (const listener of listeners) {
         listener(...payload)
       }
@@ -419,6 +421,7 @@ class SplitPane extends Component {
           collapsable={collapsable}
           collapsedText={collapsedText}
           className={disabledClass + ' ' + resizerClassName}
+          // eslint-disable-next-line
           onMouseDown={this.onMouseDown}
           collapsed={collapsed}
           split={split}

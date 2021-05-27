@@ -78,7 +78,7 @@ reducer.handleAction(ActionTypes.REPLACE, (state, action) => _omit({
 }, action.oldId))
 
 reducer.handleAction(ActionTypes.LOAD_REFERENCES, (state, action) => {
-  let newStateRef = Object.assign({}, state)
+  const newStateRef = Object.assign({}, state)
   action.entities.forEach((e) => {
     e.__entitySet = action.entitySet
     e.__name = e.name

@@ -39,6 +39,7 @@ async function parseProfile (profileStreamReader, onProfileMessage) {
 
     messages = messages.filter((m) => m !== '')
 
+    // eslint-disable-next-line
     for (const m of messages) {
       handleMessage(m)
     }

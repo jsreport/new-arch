@@ -4,7 +4,7 @@ import { describeAsyncStore, itAsync } from '../asyncStore.js'
 
 describeAsyncStore('entities.actions.remove', async ({ store, api, history }) => {
   itAsync('should delete to API and remove entity from state', async () => {
-    store.update({ entities: { '1': { __entitySet: 'testEntity' } } })
+    store.update({ entities: { 1: { __entitySet: 'testEntity' } } })
     let called = false
     api.del((p) => { called = true })
 
@@ -14,7 +14,7 @@ describeAsyncStore('entities.actions.remove', async ({ store, api, history }) =>
   })
 
   itAsync('should trigger API_START and API_DONE', async () => {
-    store.update({ entities: { '1': { __entitySet: 'testEntity' } } })
+    store.update({ entities: { 1: { __entitySet: 'testEntity' } } })
     api.del((p) => { })
 
     await store.dispatch(actions.remove('1'))
@@ -23,7 +23,7 @@ describeAsyncStore('entities.actions.remove', async ({ store, api, history }) =>
   })
 
   itAsync('should trigger API_FAILED when api call throws', async () => {
-    store.update({ entities: { '1': { __entitySet: 'testEntity' } } })
+    store.update({ entities: { 1: { __entitySet: 'testEntity' } } })
     api.del((p) => { throw new Error('api failed') })
 
     try {

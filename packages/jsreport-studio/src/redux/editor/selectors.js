@@ -2,9 +2,7 @@ import { selectors } from '../entities'
 import { editorComponents } from '../../lib/configuration.js'
 
 export const getTabWithEntities = (state) => state.editor.tabs.map((t) => ({
-  entity: t.type === 'entity' ? selectors.getById(state, t._id) : (
-    typeof t.getEntity === 'function' ? t.getEntity() : null
-  ),
+  entity: t.type === 'entity' ? selectors.getById(state, t._id) : typeof t.getEntity === 'function' ? t.getEntity() : null,
   tab: t
 }))
 
@@ -21,9 +19,9 @@ export const getActiveEntity = (state) => {
     return null
   }
 
-  return tab.type === 'entity' ? selectors.getById(state, tab._id, false) : (
-    typeof tab.getEntity === 'function' ? tab.getEntity() : null
-  )
+  return tab.type === 'entity'
+    ? selectors.getById(state, tab._id, false)
+    : typeof tab.getEntity === 'function' ? tab.getEntity() : null
 }
 
 export const getActiveTabWithEntity = (state) => {
@@ -35,9 +33,10 @@ export const getActiveTabWithEntity = (state) => {
 
   return {
     tab,
-    entity: tab.type === 'entity' ? selectors.getById(state, tab._id) : (
-      typeof tab.getEntity === 'function' ? tab.getEntity() : null
-    )
+    entity: tab.type === 'entity'
+      ? selectors.getById(state, tab._id)
+      : typeof tab.getEntity === 'function' ? tab.getEntity() : null
+
   }
 }
 

@@ -28,6 +28,7 @@ const MainPreview = () => {
 
   const handleRenderActions = useCallback((actionProps) => {
     return (
+      // eslint-disable-next-line
       <Fragment>
         {actions.map((action, idx) => React.createElement(action.component, {
           ...actionProps,

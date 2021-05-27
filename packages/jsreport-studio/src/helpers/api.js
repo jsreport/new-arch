@@ -5,18 +5,18 @@ import resolveUrl from './resolveUrl'
 import { apiHeaders } from '../lib/configuration.js'
 export const methods = ['get', 'post', 'put', 'patch', 'del']
 
-let requestHandler = {}
+const requestHandler = {}
 
 const createError = (err, body) => {
   try {
-    let parsed = JSON.parse(body)
+    const parsed = JSON.parse(body)
     body = parsed
   } catch (e) {
 
   }
 
   if (body && body.error) {
-    let e = new Error(body.error.message)
+    const e = new Error(body.error.message)
 
     Object.assign(e, body)
 
@@ -28,7 +28,7 @@ const createError = (err, body) => {
   }
 
   if (body && body.message) {
-    let e = new Error(body.message)
+    const e = new Error(body.message)
 
     Object.assign(e, body)
 
@@ -96,9 +96,9 @@ methods.forEach((m) => {
 
 export default requestHandler
 
-let stubHandler = {}
+const stubHandler = {}
 methods.forEach((m) => {
   stubHandler[m] = (stub) => (requestHandler[m] = stub)
 })
 
-export let stub = stubHandler
+export const stub = stubHandler

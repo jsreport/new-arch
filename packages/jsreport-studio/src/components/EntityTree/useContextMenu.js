@@ -12,7 +12,7 @@ export default function useContextMenu (contextMenuRef) {
       return
     }
 
-    let newContextMenu = {}
+    const newContextMenu = {}
 
     if (entity) {
       newContextMenu.id = entity._id

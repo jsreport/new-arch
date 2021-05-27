@@ -46,19 +46,21 @@ function ProfilePreviewType (props) {
           title: 'preview error',
           error,
           containerStyle: { maxWidth: 'none', maxHeight: '320px' },
-          renderCustomButtons: showGoToLineButton ? () => {
-            return (
-              <button
-                className='button confirmation'
-                onClick={() => {
-                  openErrorLine(error)
-                  setShowErrorModal(false)
-                }}
-              >
-                Go to error line
-              </button>
-            )
-          } : undefined
+          renderCustomButtons: showGoToLineButton
+            ? () => {
+                return (
+                  <button
+                    className='button confirmation'
+                    onClick={() => {
+                      openErrorLine(error)
+                      setShowErrorModal(false)
+                    }}
+                  >
+                    Go to error line
+                  </button>
+                )
+              }
+            : undefined
         }}
       />
     )

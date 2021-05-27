@@ -119,17 +119,19 @@ const TreeNode = ({ node, depth, draggable, renderTree }) => {
       ref={connectDropping}
       className={containerClass}
     >
-      {isGroupNode ? (
-        <GroupNode
-          {...commonProps}
-          draggable={draggable}
-          renderTree={renderTree}
-        />
-      ) : (
-        <EntityNode
-          {...commonProps}
-        />
-      )}
+      {isGroupNode
+        ? (
+          <GroupNode
+            {...commonProps}
+            draggable={draggable}
+            renderTree={renderTree}
+          />
+          )
+        : (
+          <EntityNode
+            {...commonProps}
+          />
+          )}
     </div>
   )
 }

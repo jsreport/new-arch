@@ -184,6 +184,7 @@ export function renderEntityTreeItemComponents (position, propsToItem, originalC
 }
 
 export function resolveEntityTreeIconStyle (entity, info) {
+  // eslint-disable-next-line
   for (const k in entityTreeIconResolvers) {
     const mode = entityTreeIconResolvers[k](entity, info)
 

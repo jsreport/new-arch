@@ -97,7 +97,7 @@ export function openNewTab ({ entitySet, entity, name }) {
   const shouldClone = entity != null && entity._id != null
 
   return async function (dispatch, getState) {
-    let id = uid()
+    const id = uid()
     let newEntity
     let clonedEntity
 
@@ -234,7 +234,7 @@ export function hierarchyMove (source, target, shouldCopy = false, replace = fal
             const sourceEntity = entities.selectors.getById(getState(), source.id, false)
 
             let childTargetId
-            let childTargetChildren = []
+            const childTargetChildren = []
 
             const allFoldersInsideTarget = target.children.reduce((acu, childId) => {
               const childEntity = entities.selectors.getById(getState(), childId, false)
@@ -351,6 +351,7 @@ export function saveAll () {
         if (entity.__isNew || entity.__isDirty) {
           return entities.actions.save(t._id, { ignoreFailed: true })(dispatch, getState)
         }
+        return true
       }))
 
       dispatch({

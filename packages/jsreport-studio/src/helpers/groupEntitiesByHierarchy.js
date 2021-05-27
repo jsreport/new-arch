@@ -1,7 +1,6 @@
-
 module.exports = (entitySetsNames, entities) => {
   const newItems = []
-  let allFoldersEntities = Studio.getReferences().folders || []
+  const allFoldersEntities = Studio.getReferences().folders || []
   const entitiesByFolderLevel = {}
 
   if (entities.folders != null) {
@@ -39,7 +38,7 @@ module.exports = (entitySetsNames, entities) => {
       return
     }
 
-    let entitiesInSetCount = entitiesInSet.length
+    const entitiesInSetCount = entitiesInSet.length
 
     for (let j = 0; j < entitiesInSetCount; j++) {
       groupEntityByFolderLevel(entitiesByFolderLevel, allFoldersEntities, entitiesInSet[j])

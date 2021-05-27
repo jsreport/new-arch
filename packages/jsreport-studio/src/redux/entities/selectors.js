@@ -19,7 +19,7 @@ export const getByShortid = (state, shortid, shouldThrow = true) => {
 }
 
 export const getReferences = (state) => {
-  let result = {}
+  const result = {}
   getAll(state).forEach((entity) => {
     result[entity.__entitySet] = result[entity.__entitySet] || []
     result[entity.__entitySet].push(entity)

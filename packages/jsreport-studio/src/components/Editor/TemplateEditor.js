@@ -17,6 +17,7 @@ class TemplateEditor extends Component {
   }
 
   resolveTemplateEditorMode (template) {
+    // eslint-disable-next-line
     for (const k in templateEditorModeResolvers) {
       const mode = templateEditorModeResolvers[k](template)
       if (mode) {

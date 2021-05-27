@@ -4,7 +4,7 @@ import { describeAsyncStore, itAsync } from '../asyncStore.js'
 
 describeAsyncStore('entities.actions.save', async ({ store, api, history }) => {
   itAsync('should patch to API if entity not __isNew and clear __isDirty', async () => {
-    store.update({ entities: { '1': { __entitySet: 'testEntity', __isDirty: true, _id: '1' } } })
+    store.update({ entities: { 1: { __entitySet: 'testEntity', __isDirty: true, _id: '1' } } })
     let called = false
     api.patch((p) => { called = true })
 
@@ -16,7 +16,7 @@ describeAsyncStore('entities.actions.save', async ({ store, api, history }) => {
   itAsync('patch should prune meta properties before sending', async () => {
     store.update({
       entities: {
-        '1': {
+        1: {
           __entitySet: 'testEntity',
           __isNew: false,
           __isDirty: true,
@@ -39,7 +39,7 @@ describeAsyncStore('entities.actions.save', async ({ store, api, history }) => {
   })
 
   itAsync('patch trigger API_START and API_DONE events', async () => {
-    store.update({ entities: { '1': { __entitySet: 'testEntity', _id: '1' } } })
+    store.update({ entities: { 1: { __entitySet: 'testEntity', _id: '1' } } })
     api.patch((p) => { })
 
     await store.dispatch(actions.save('1'))
@@ -48,7 +48,7 @@ describeAsyncStore('entities.actions.save', async ({ store, api, history }) => {
   })
 
   itAsync('patch trigger API_FAILED when API throws', async () => {
-    store.update({ entities: { '1': { __entitySet: 'testEntity' } } })
+    store.update({ entities: { 1: { __entitySet: 'testEntity' } } })
     api.patch((p) => { throw new Error('api error') })
 
     try {
@@ -59,7 +59,7 @@ describeAsyncStore('entities.actions.save', async ({ store, api, history }) => {
   })
 
   itAsync('should post to API if entity __isNew, update the _id, __isNew and __isDirty', async () => {
-    store.update({ entities: { '1': { __entitySet: 'testEntity', __isNew: true, __isDirty: true, _id: '1' } } })
+    store.update({ entities: { 1: { __entitySet: 'testEntity', __isNew: true, __isDirty: true, _id: '1' } } })
     api.post((p) => ({ _id: '2' }))
 
     await store.dispatch(actions.save('1'))
@@ -72,7 +72,7 @@ describeAsyncStore('entities.actions.save', async ({ store, api, history }) => {
   itAsync('post should prune meta properties before sending', async () => {
     store.update({
       entities: {
-        '1': {
+        1: {
           __entitySet: 'testEntity',
           __isNew: true,
           __isDirty: true,
@@ -95,7 +95,7 @@ describeAsyncStore('entities.actions.save', async ({ store, api, history }) => {
   })
 
   itAsync('post trigger API_START and API_DONE events', async () => {
-    store.update({ entities: { '1': { __entitySet: 'testEntity', __isNew: true, _id: '1' } } })
+    store.update({ entities: { 1: { __entitySet: 'testEntity', __isNew: true, _id: '1' } } })
     api.post((p) => ({ _id: '2' }))
 
     await store.dispatch(actions.save('1'))
@@ -104,7 +104,7 @@ describeAsyncStore('entities.actions.save', async ({ store, api, history }) => {
   })
 
   itAsync('post trigger API_FAILED when API throws', async () => {
-    store.update({ entities: { '1': { __entitySet: 'testEntity', __isNew: true } } })
+    store.update({ entities: { 1: { __entitySet: 'testEntity', __isNew: true } } })
     api.post((p) => { throw new Error('api error') })
 
     try {

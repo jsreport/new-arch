@@ -77,14 +77,15 @@ class EntityTreeNewButton extends Component {
         onClick={() => {
           this.props.onNewEntity(entitySet.name)
           this.tryHide()
-        }}>
+        }}
+      >
         <i className={`fa ${entitySet.faIcon != null ? entitySet.faIcon : 'fa-file'}`} /> {entitySet.visibleName}
       </div>
     ))
 
     menuItems.push(
       <div
-        key={'New Entity'}
+        key='New Entity'
         className={`${style.contextButton} ${style.hasNestedLevels}`}
         onClick={(e) => { e.stopPropagation() }}
       >
@@ -99,14 +100,15 @@ class EntityTreeNewButton extends Component {
 
     menuItems.push(
       <div
-        key={'New Folder'}
+        key='New Folder'
         className={style.contextButton}
         onClick={(e) => {
           e.stopPropagation()
 
           modalHandler.open(NewFolderModal, {})
           this.tryHide()
-        }}>
+        }}
+      >
         <i className='fa fa-folder' /> New Folder
       </div>
     )

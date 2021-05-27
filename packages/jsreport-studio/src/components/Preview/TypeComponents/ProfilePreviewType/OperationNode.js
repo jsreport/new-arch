@@ -65,21 +65,24 @@ const OperationNode = (props) => {
   }, [downloading, renderResult, progressStart, progressStop])
 
   return (
+    // eslint-disable-next-line
     <Fragment>
       <Handle type='target' position={targetPosition} isConnectable={isConnectable} />
       <div id={id}>
-        {renderResult != null ? (
-          <button
-            className={`${styles.profileButtonAction} ${renderResult.getContent == null ? 'disabled' : ''}`}
-            title={renderResult.getContent == null ? 'render result not available' : 'download render result'}
-            disabled={renderResult.getContent == null}
-            onClick={handleDownloadRenderResultClick}
-          >
-            <i className='fa fa-download' />
-          </button>
-        ) : (
-          error != null && end ? <span className={styles.profileEndNodeLabel} title='report ended with error'><i className='fa fa-times' /></span> : <span>{data.label}</span>
-        )}
+        {renderResult != null
+          ? (
+            <button
+              className={`${styles.profileButtonAction} ${renderResult.getContent == null ? 'disabled' : ''}`}
+              title={renderResult.getContent == null ? 'render result not available' : 'download render result'}
+              disabled={renderResult.getContent == null}
+              onClick={handleDownloadRenderResultClick}
+            >
+              <i className='fa fa-download' />
+            </button>
+            )
+          : (
+              error != null && end ? <span className={styles.profileEndNodeLabel} title='report ended with error'><i className='fa fa-times' /></span> : <span>{data.label}</span>
+            )}
       </div>
       <Handle type='source' position={sourcePosition} isConnectable={isConnectable} />
       {showTimeCost && (
@@ -91,6 +94,7 @@ const OperationNode = (props) => {
         </div>
       )}
       {showExecutionTime && (
+        // eslint-disable-next-line
         <Fragment>
           <div className={styles.profileExecutionTime}>
             <span className={styles.profileExecutionTimeLabel}>{time}ms</span>

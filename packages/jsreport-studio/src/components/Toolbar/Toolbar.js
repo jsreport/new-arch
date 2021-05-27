@@ -1,4 +1,4 @@
-import PropTypes from 'prop-types'
+/* import PropTypes from 'prop-types' */
 import React, { Component, Fragment } from 'react'
 import Popup from '../common/Popup'
 import EntityFuzzyFinderModal from '../Modals/EntityFuzzyFinderModal.js'
@@ -10,6 +10,7 @@ import logo from './js-logo.png'
 const isMac = () => window.navigator.platform.toUpperCase().indexOf('MAC') >= 0
 
 class Toolbar extends Component {
+  /* TODO
   static propTypes = {
     openStartup: PropTypes.func.isRequired,
     onUpdate: PropTypes.func.isRequired,
@@ -22,6 +23,7 @@ class Toolbar extends Component {
     isPending: PropTypes.bool.isRequired,
     activeTab: PropTypes.object
   }
+  */
 
   constructor () {
     super()
@@ -251,6 +253,7 @@ class Toolbar extends Component {
             }
 
             return (
+              // eslint-disable-next-line
               <Fragment>
                 {this.renderToolbarComponents('settings', itemProps.closeMenu)}
                 {toolbarComponents.settingsBottom.length ? <hr /> : ''}

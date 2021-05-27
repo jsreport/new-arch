@@ -4,7 +4,7 @@ import * as selectors from './selectors.js'
 import { entitySets, entityNewListeners, entitySaveListeners, referencesLoader } from '../../lib/configuration.js'
 
 export const prune = (entity) => {
-  let pruned = {}
+  const pruned = {}
   Object.keys(entity).forEach((k) => {
     if (k.indexOf('__') !== 0 && k.indexOf('@')) {
       pruned[k] = entity[k]
@@ -79,6 +79,7 @@ export function add (entity) {
     throw new Error('Invalid entity submitted to add')
   }
 
+  // eslint-disable-next-line
   for (const l of entityNewListeners) {
     l(entity)
   }
@@ -196,7 +197,8 @@ export function save (id, { ignoreFailed = false, validateConcurrent = true } = 
 
       dispatch(apiStart())
 
-      for (const l of entitySaveListeners) {
+      // eslint-disable-next-line
+      for (const l of entitySaveListeners) {       
         await l(entity)
       }
 

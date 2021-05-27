@@ -5,14 +5,16 @@ const DownloadAction = ({ completed, data, closeMenu }) => {
   const enabled = completed && reportFile != null
 
   return (
-    <div className={enabled ? '' : 'disabled'} title='Download report output' onClick={() => {
-      if (!enabled) {
-        return
-      }
+    <div
+      className={enabled ? '' : 'disabled'} title='Download report output' onClick={() => {
+        if (!enabled) {
+          return
+        }
 
-      handleDownload(reportFile)
-      closeMenu()
-    }}>
+        handleDownload(reportFile)
+        closeMenu()
+      }}
+    >
       <i className='fa fa-download' /><span>Download</span>
     </div>
   )

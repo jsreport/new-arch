@@ -1,4 +1,4 @@
-var jsreport = require('jsreport')()
+const jsreport = require('jsreport')()
 
 jsreport.init().then(function () {
   console.log('running')

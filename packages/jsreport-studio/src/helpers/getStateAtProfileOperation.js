@@ -34,9 +34,9 @@ function getStateAtProfileOperation (operations, operationId, completed = false,
     }
   }
 
-  const reqState = applyPatch(previousOperationWithState != null ? (
-    previousOperationWithState.type === 'render' ? previousOperationWithState.reqState : previousOperationWithState.completedReqState
-  ) : '', operation.req.diff)
+  const reqState = applyPatch(previousOperationWithState != null
+    ? previousOperationWithState.type === 'render' ? previousOperationWithState.reqState : previousOperationWithState.completedReqState
+    : '', operation.req.diff)
 
   let resState
 
@@ -54,9 +54,9 @@ function getStateAtProfileOperation (operations, operationId, completed = false,
     resState = ''
   }
 
-  const resMetaState = applyPatch(previousOperationWithState != null ? (
-    previousOperationWithState.type === 'render' ? previousOperationWithState.resMetaState : previousOperationWithState.completedResMetaState
-  ) : '', operation.res.meta.diff)
+  const resMetaState = applyPatch(previousOperationWithState != null
+    ? previousOperationWithState.type === 'render' ? previousOperationWithState.resMetaState : previousOperationWithState.completedResMetaState
+    : '', operation.res.meta.diff)
 
   state = {
     ...operation,
@@ -95,9 +95,7 @@ function getStateAtProfileOperation (operations, operationId, completed = false,
     }
 
     const completedReqState = applyPatch(
-      isRenderOrSame ? (
-        completedPreviousOperationWithState.reqState
-      ) : completedPreviousOperationWithState.completed ? completedPreviousOperationWithState.completedReqState : completedPreviousOperationWithState.reqState,
+      isRenderOrSame ? completedPreviousOperationWithState.reqState : completedPreviousOperationWithState.completed ? completedPreviousOperationWithState.completedReqState : completedPreviousOperationWithState.reqState,
       operation.completedReq.diff
     )
 
@@ -106,9 +104,9 @@ function getStateAtProfileOperation (operations, operationId, completed = false,
     if (operation.completedRes.content != null) {
       if (operation.completedRes.content.encoding === 'diff') {
         completedResState = applyPatch(
-          isRenderOrSame ? (
-            completedPreviousOperationWithState.resState
-          ) : completedPreviousOperationWithState.completed ? completedPreviousOperationWithState.completedResState : completedPreviousOperationWithState.resState,
+          isRenderOrSame
+            ? completedPreviousOperationWithState.resState
+            : completedPreviousOperationWithState.completed ? completedPreviousOperationWithState.completedResState : completedPreviousOperationWithState.resState,
           operation.completedRes.content.content
         )
       } else {
@@ -119,9 +117,9 @@ function getStateAtProfileOperation (operations, operationId, completed = false,
     }
 
     const completedResMetaState = applyPatch(
-      isRenderOrSame ? (
-        completedPreviousOperationWithState.resMetaState
-      ) : completedPreviousOperationWithState.completed ? completedPreviousOperationWithState.completedResMetaState : completedPreviousOperationWithState.resMetaState,
+      isRenderOrSame
+        ? completedPreviousOperationWithState.resMetaState
+        : completedPreviousOperationWithState.completed ? completedPreviousOperationWithState.completedResMetaState : completedPreviousOperationWithState.resMetaState,
       operation.completedRes.meta.diff
     )
 

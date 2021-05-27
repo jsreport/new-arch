@@ -252,6 +252,7 @@ class Studio {
    */
   // eslint-disable-next-line accessor-pairs
   set locationResolver (fn) {
+    // eslint-disable-next-line no-import-assign
     configuration.locationResolver = fn
   }
 
@@ -262,6 +263,7 @@ class Studio {
    */
   // eslint-disable-next-line accessor-pairs
   set toolbarVisibilityResolver (fn) {
+    // eslint-disable-next-line no-import-assign
     configuration.toolbarVisibilityResolver = fn
   }
 
@@ -272,6 +274,7 @@ class Studio {
    */
   // eslint-disable-next-line accessor-pairs
   set referencesLoader (fn) {
+    // eslint-disable-next-line no-import-assign
     configuration.referencesLoader = fn
   }
 
@@ -281,6 +284,7 @@ class Studio {
    */
   // eslint-disable-next-line accessor-pairs
   set shouldOpenStartupPage (trueOrFalse) {
+    // eslint-disable-next-line no-import-assign
     configuration.shouldOpenStartupPage = trueOrFalse
   }
 
@@ -291,6 +295,7 @@ class Studio {
    */
   // eslint-disable-next-line accessor-pairs
   set removeHandler (fn) {
+    // eslint-disable-next-line no-import-assign
     configuration.removeHandler = fn
   }
 
@@ -304,6 +309,7 @@ class Studio {
   }
 
   setAboutModal (AboutModalComponent) {
+    // eslint-disable-next-line no-import-assign
     configuration.aboutModal = AboutModalComponent
   }
 

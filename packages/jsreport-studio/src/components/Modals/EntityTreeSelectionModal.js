@@ -1,4 +1,4 @@
-import PropTypes from 'prop-types'
+/* import PropTypes from 'prop-types' */
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import EntityTreeButton from '../EntityTree/EntityTreeButton'
@@ -76,32 +76,38 @@ class NewFolderInline extends Component {
 
     return (
       <div title='Add new folder' style={{ display: 'inline-block' }}>
-        {!editMode ? (
-          <EntityTreeButton onClick={onAdd}>
-            <span style={{ display: 'inline-block' }}>
-              <i className='fa fa-folder' />&nbsp;New folder
-            </span>
-          </EntityTreeButton>
-        ) : (
-          this.renderEditMode()
-        )}
+        {!editMode
+          ? (
+            <EntityTreeButton onClick={onAdd}>
+              <span style={{ display: 'inline-block' }}>
+                <i className='fa fa-folder' />&nbsp;New folder
+              </span>
+            </EntityTreeButton>
+            )
+          : (
+              this.renderEditMode()
+            )}
       </div>
     )
   }
 }
 
 class EntityTreeSelectionModal extends Component {
+  /* TODO
   static propTypes = {
     close: PropTypes.func.isRequired,
     options: PropTypes.object.isRequired
   }
+  */
 
   constructor (props) {
     super(props)
 
-    const initialSelected = props.options.selected != null ? (
-      !Array.isArray(props.options.selected) ? [props.options.selected] : props.options.selected
-    ) : []
+    const initialSelected = props.options.selected != null
+      ? (
+          !Array.isArray(props.options.selected) ? [props.options.selected] : props.options.selected
+        )
+      : []
 
     this.state = {
       newFolderEdit: null,
@@ -250,6 +256,7 @@ class EntityTreeSelectionModal extends Component {
               onAdd={() => this.setState({
                 newFolderEdit: {}
               })}
+              /* eslint-disable-next-line */
               onSave={this.createNewFolder}
               onCancel={() => this.setState({ newFolderEdit: null })}
               editMode={newFolderEdit}
@@ -279,20 +286,22 @@ class EntityTreeSelectionModal extends Component {
             }}
             selected={selected}
             onSelectionChanged={this.handleSelectionChange}
-            getContextMenuItems={allowNewFolder ? ({ entity, isRoot }) => {
-              if (isRoot) {
-                return
-              }
+            getContextMenuItems={allowNewFolder
+              ? ({ entity, isRoot }) => {
+                  if (isRoot) {
+                    return
+                  }
 
-              return [{
-                key: 'New Folder',
-                title: 'New Folder',
-                icon: 'fa-folder',
-                onClick: () => this.setState({
-                  newFolderEdit: { parentShortid: entity.shortid }
-                })
-              }]
-            } : undefined}
+                  return [{
+                    key: 'New Folder',
+                    title: 'New Folder',
+                    icon: 'fa-folder',
+                    onClick: () => this.setState({
+                      newFolderEdit: { parentShortid: entity.shortid }
+                    })
+                  }]
+                }
+              : undefined}
           />
         </div>
         <div className='button-bar'>

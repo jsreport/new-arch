@@ -4,14 +4,16 @@ const OpenNewTabAction = ({ id, completed, data, closeMenu }) => {
   const enabled = completed && reportFile != null
 
   return (
-    <div className={enabled ? '' : 'disabled'} onClick={() => {
-      if (!enabled) {
-        return
-      }
+    <div
+      className={enabled ? '' : 'disabled'} onClick={() => {
+        if (!enabled) {
+          return
+        }
 
-      openNewTab(id, template.name, reportFile)
-      closeMenu()
-    }}>
+        openNewTab(id, template.name, reportFile)
+        closeMenu()
+      }}
+    >
       <i className='fa fa-external-link' /><span>Open in new tab</span>
     </div>
   )

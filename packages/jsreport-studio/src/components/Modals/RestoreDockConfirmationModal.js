@@ -1,12 +1,14 @@
-import PropTypes from 'prop-types'
+/* import PropTypes from 'prop-types' */
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
 
 class RestoreDockConfirmationModal extends Component {
+  /* TODO
   static propTypes = {
     close: PropTypes.func.isRequired,
     options: PropTypes.object.isRequired
   }
+  */
 
   constructor (props) {
     super(props)
@@ -36,17 +38,19 @@ class RestoreDockConfirmationModal extends Component {
   }
 
   render () {
-    return <div>
+    return (
       <div>
-        This action will close all preview tabs and will redirect rendering output back to pane.
-        Do you want to continue?
-      </div>
+        <div>
+          This action will close all preview tabs and will redirect rendering output back to pane.
+          Do you want to continue?
+        </div>
 
-      <div className='button-bar'>
-        <button className='button danger' onClick={() => this.onResponse(true)}>Yes</button>
-        <button className='button confirmation' ref={this.cancelRef} onClick={() => this.onResponse(false)}>Cancel</button>
+        <div className='button-bar'>
+          <button className='button danger' onClick={() => this.onResponse(true)}>Yes</button>
+          <button className='button confirmation' ref={this.cancelRef} onClick={() => this.onResponse(false)}>Cancel</button>
+        </div>
       </div>
-    </div>
+    )
   }
 }
 

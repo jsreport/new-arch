@@ -44,6 +44,7 @@ const start = async () => {
 
   const extensionsArray = await Studio.api.get('/api/extensions')
 
+  // eslint-disable-next-line
   configuration.extensions = zipObject(extensionsArray.map((e) => e.name), extensionsArray)
 
   const oldMonacoGetWorkerUrl = window.MonacoEnvironment.getWorkerUrl
@@ -55,6 +56,7 @@ const start = async () => {
     return `${url}?${configuration.extensions.studio.options.serverStartupHash}`
   }
 
+  // eslint-disable-next-line
   for (const key in Studio.initializeListeners) {
     await Studio.initializeListeners[key]()
   }
@@ -69,6 +71,7 @@ const start = async () => {
   })
 
   // calculate EntityTree order after initializeListeners
+  // eslint-disable-next-line
   configuration.entityTreeOrder = getEntityTreeOrder(
     configuration.extensions.studio.options.entityTreeOrder,
     Studio.entitySets
@@ -89,8 +92,11 @@ const start = async () => {
   await Promise.all(
     [
       ...Object.keys(Studio.entitySets).map((t) => entities.actions.loadReferences(t)(store.dispatch)),
+      // eslint-disable-next-line
       Studio.api.get('/api/version', { parseJSON: false }).then((version) => (configuration.version = version)),
+      // eslint-disable-next-line
       Studio.api.get('/api/engine').then((engines) => (configuration.engines = engines)),
+      // eslint-disable-next-line
       Studio.api.get('/api/recipe').then((recs) => (configuration.recipes = recs)),
       settings.actions.load()(store.dispatch)
     ]
@@ -115,6 +121,7 @@ const start = async () => {
 
   document.getElementById('loader').style.display = 'none'
 
+  // eslint-disable-next-line
   for (const key in Studio.readyListeners) {
     await Studio.readyListeners[key]()
   }

@@ -21,3 +21,5 @@ import '../../jsreport-scripts/studio/main_dev.js'
 
 import '../../jsreport-xlsx/studio/main_dev.js'
 import '../../jsreport-sample-template/studio/main_dev.js'
+
+import '../../jsreport-unoconv/studio/main_dev.js'

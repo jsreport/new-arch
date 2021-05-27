@@ -116,6 +116,7 @@ class EntityRefSelect extends Component {
       return (
         <SelectInput
           textToShow={textToShow}
+          // eslint-disable-next-line
           handleOpenTree={this.handleOpenTree}
           entity={entity}
           openTab={this.props.openTab}
@@ -146,23 +147,26 @@ class EntityRefSelect extends Component {
 
     return (
       <div className={styles.select} style={{ opacity: disabled ? 0.7 : 1 }}>
-        {showingTreeInline ? (
-          <EntityTreeSelectionModal
-            close={() => this.setState({ showingTreeInline: false })}
-            options={this.getPropsForEntityTree()}
-          />
-        ) : (
-          [
-            <SelectInput
-              key='selectInput'
-              handleOpenTree={this.handleOpenTree}
-              openTab={this.props.openTab}
-            />,
-            <ul key='selectedItems' tabIndex='0'>
-              {items}
-            </ul>
-          ]
-        )}
+        {showingTreeInline
+          ? (
+            <EntityTreeSelectionModal
+              close={() => this.setState({ showingTreeInline: false })}
+              options={this.getPropsForEntityTree()}
+            />
+            )
+          : (
+              [
+                <SelectInput
+                  key='selectInput'
+                  // eslint-disable-next-line
+                  handleOpenTree={this.handleOpenTree}
+                  openTab={this.props.openTab}
+                />,
+                <ul key='selectedItems' tabIndex='0'>
+                  {items}
+                </ul>
+              ]
+            )}
       </div>
     )
   }

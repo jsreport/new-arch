@@ -19,7 +19,7 @@ function getPreviewWindowName (id) {
 }
 
 function openPreviewWindow (opts) {
-  let defaultWindowOpts = {
+  const defaultWindowOpts = {
     directories: false,
     toolbar: false,
     titlebar: false,
@@ -42,18 +42,18 @@ function openPreviewWindow (opts) {
   }
 
   if (!opts.tab) {
-    let windowOpts = assign({}, defaultWindowOpts, opts.windowOpts)
+    const windowOpts = assign({}, defaultWindowOpts, opts.windowOpts)
 
-    let dualScreenLeft = window.screenLeft != null ? window.screenLeft : window.screen.left
-    let dualScreenTop = window.screenTop != null ? window.screenTop : window.screen.top
+    const dualScreenLeft = window.screenLeft != null ? window.screenLeft : window.screen.left
+    const dualScreenTop = window.screenTop != null ? window.screenTop : window.screen.top
 
-    let width = window.innerWidth ? window.innerWidth : document.documentElement.clientWidth ? document.documentElement.clientWidth : window.screen.width
-    let height = window.innerHeight ? window.innerHeight : document.documentElement.clientHeight ? document.documentElement.clientHeight : window.screen.height
-    let windowWidth = width / 2
-    let windowHeight = height / 1.3
+    const width = window.innerWidth ? window.innerWidth : document.documentElement.clientWidth ? document.documentElement.clientWidth : window.screen.width
+    const height = window.innerHeight ? window.innerHeight : document.documentElement.clientHeight ? document.documentElement.clientHeight : window.screen.height
+    const windowWidth = width / 2
+    const windowHeight = height / 1.3
 
-    let left = ((width / 2) - (windowWidth / 2)) + dualScreenLeft
-    let top = ((height / 2) - (windowHeight / 2)) + dualScreenTop
+    const left = ((width / 2) - (windowWidth / 2)) + dualScreenLeft
+    const top = ((height / 2) - (windowHeight / 2)) + dualScreenTop
 
     windowOpts.top = top
     windowOpts.left = left
@@ -67,7 +67,7 @@ function openPreviewWindow (opts) {
     )
   }
 
-  let nWindow = window.open(
+  const nWindow = window.open(
     opts.url || '',
     opts.name || '_blank',
     opts.tab ? undefined : windowOptsStr

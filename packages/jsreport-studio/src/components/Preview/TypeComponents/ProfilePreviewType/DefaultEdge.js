@@ -23,11 +23,8 @@ const DefaultEdge = (props) => {
   const mainClass = classNames('react-flow__edge-path', styles.main)
 
   useEffect(() => {
-    let elId
-    let clonedElId
-
-    elId = 'react-flow__arrowclosed'
-    clonedElId = `${elId}-active`
+    const elId = 'react-flow__arrowclosed'
+    const clonedElId = `${elId}-active`
 
     if (document.getElementById(clonedElId) == null) {
       const markerEndEl = document.getElementById(elId)
@@ -38,6 +35,7 @@ const DefaultEdge = (props) => {
   }, [])
 
   return (
+    // eslint-disable-next-line
     <Fragment>
       <path
         id={`${id}-expander`}

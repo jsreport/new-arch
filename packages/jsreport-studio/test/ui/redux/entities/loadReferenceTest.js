@@ -17,7 +17,7 @@ describeAsyncStore('entities.actions.loadReference', ({ store, api, history }) =
     await store.dispatch(actions.loadReferences('testEntity'))
     store.getState().entities['1'].__entitySet.should.be.eql('testEntity')
     store.getState().entities['1'].__name.should.be.eql('foo')
-    should(store.getState().entities['1'].__isLoad).not.be.ok
+    should(store.getState().entities['1'].__isLoad).not.be.ok()
   })
 
   itAsync('should order by name and select name and shortid', async () => {

@@ -47,8 +47,8 @@ describe('parseStreamingMultipart', () => {
       new TextEncoder().encode('Content-Type: application/'),
       new TextEncoder().encode('json\r\nContent'),
       new TextEncoder().encode(`-Length: ${logContentLength}`),
-      new TextEncoder().encode(`\r\n`),
-      new TextEncoder().encode(`\r\n`),
+      new TextEncoder().encode('\r\n'),
+      new TextEncoder().encode('\r\n'),
       new TextEncoder().encode(`${logContent}\r\n--${boundary}--\r\n`)
     ])
 
@@ -183,7 +183,7 @@ describe('parseStreamingMultipart', () => {
         ' cont'
       ),
       new TextEncoder().encode(
-        `ent\r\n`,
+        'ent\r\n',
         `--${boundary}--\r\n`
       )
     ])
@@ -317,7 +317,7 @@ describe('parseStreamingMultipart', () => {
         ' cont'
       ),
       new TextEncoder().encode(
-        `ent\r\n--`
+        'ent\r\n--'
       ),
       new TextEncoder().encode(
         `${boundary}`

@@ -6,6 +6,7 @@ function ReportProfilePreviewType (props) {
   const { activeTab } = props
 
   return (
+    // eslint-disable-next-line
     <Fragment>
       <div
         className='block'

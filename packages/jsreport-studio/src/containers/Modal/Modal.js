@@ -192,6 +192,7 @@ class Modal extends Component {
         getBodyParams={this.getBodyParams}
         updateContainerPosition={this.updateContainerPosition}
         frameless={this.componentOrText && this.componentOrText.frameless}
+         // eslint-disable-next-line
         onClose={this.close}
       />
     )

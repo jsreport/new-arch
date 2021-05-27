@@ -140,9 +140,7 @@ module.exports = (reporter, definition) => {
         try {
           fs.statSync(path.join(e.directory, '/studio/main_dev.js'))
 
-          const extensionPath = shouldUseMainEntry ? (
-            path.join(e.directory, '/studio/main.js')
-          ) : path.join(e.directory, '/studio/main_dev.js')
+          const extensionPath = shouldUseMainEntry ? path.join(e.directory, '/studio/main.js') : path.join(e.directory, '/studio/main_dev.js')
 
           if (shouldUseMainEntry) {
             extsInNormalMode.push(e)
@@ -196,7 +194,7 @@ module.exports = (reporter, definition) => {
 
       compiler = webpack(webpackConfig)
 
-      let statsOpts = definition.options.webpackStatsInDevMode || {}
+      const statsOpts = definition.options.webpackStatsInDevMode || {}
 
       if (statsOpts.colors == null) {
         statsOpts.colors = true
@@ -330,11 +328,11 @@ module.exports = (reporter, definition) => {
           throw e
         }
 
+        /* eslint-disable-next-line */
         for (const e of updatedItems) {
           const doc = await reporter.documentStore.collection(e.__entitySet).serializeProperties([e])
           Object.assign(e, doc[0])
         }
-
         res.status(200).json({
           items: updatedItems
         })
@@ -383,9 +381,7 @@ module.exports = (reporter, definition) => {
           await reporter.checkValidEntityName(entitySet, {
             _id: entityId,
             name: entityName,
-            folder: folderShortid != null ? {
-              shortid: folderShortid
-            } : null
+            folder: folderShortid != null ? { shortid: folderShortid } : null
           }, req)
         }
 
@@ -401,7 +397,8 @@ module.exports = (reporter, definition) => {
   reporter.documentStore.on('after-init', () => {
     const documentStore = reporter.documentStore
 
-    for (let key in documentStore.collections) {
+    /* eslint-disable-next-line */
+    for (const key in documentStore.collections) {
       const col = reporter.documentStore.collections[key]
       const entitySet = documentStore.model.entitySets[col.entitySet]
 
@@ -573,9 +570,9 @@ module.exports = (reporter, definition) => {
       content = content.replace('$defaultTheme', definition.options.theme.name)
       content = content.replace(/client\.[^.]+.js/, (match) => `${reporter.options.appPath}studio/assets/${match}`)
       content = content.replace(/main\.[^.]+.css/, (match) => `${reporter.options.appPath}studio/assets/${match}`)
-      content = content.replace('$customCssFiles', (customCssFile != null || customCssContent != null) ? (
-        `<link href="${reporter.options.appPath}studio/assets/customCss.css?${serverStartupHash}&theme=${definition.options.theme.name}" data-jsreport-studio-custom-css="true" rel="stylesheet">`
-      ) : '')
+      content = content.replace('$customCssFiles', (customCssFile != null || customCssContent != null)
+        ? `<link href="${reporter.options.appPath}studio/assets/customCss.css?${serverStartupHash}&theme=${definition.options.theme.name}" data-jsreport-studio-custom-css="true" rel="stylesheet">`
+        : '')
 
       res.send(content)
     }
@@ -598,6 +595,7 @@ module.exports = (reporter, definition) => {
   }
 
   function redirectOrSendIndex (req, res, next) {
+    // eslint-disable-next-line
     const reqUrl = url.parse(req.originalUrl)
     if (reqUrl.pathname[reqUrl.pathname.length - 1] !== '/') {
       return res.redirect(reqUrl.pathname + '/' + (reqUrl.search || ''))

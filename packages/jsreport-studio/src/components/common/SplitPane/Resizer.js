@@ -56,6 +56,7 @@ class Resizer extends Component {
     return (
       <div
         className={classes.join(' ') + (collapsed ? ' collapsed' : '')}
+        // eslint-disable-next-line
         onMouseDown={this.onMouseDown}
       >
         <div className='resizer-line' />

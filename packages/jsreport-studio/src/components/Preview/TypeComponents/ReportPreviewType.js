@@ -16,6 +16,7 @@ const ReportPreviewType = (props) => {
 
     let styles
 
+    // eslint-disable-next-line
     for (const resolver of reportPreviewStyleResolvers) {
       const result = resolver(reportFile)
 

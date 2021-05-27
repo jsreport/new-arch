@@ -1,20 +1,24 @@
-import PropTypes from 'prop-types'
+/* import PropTypes from 'prop-types' */
 import React, { Component } from 'react'
 import { engines, recipes } from '../../lib/configuration'
 
 class TemplateProperties extends Component {
+  /*
   static propTypes = {
     entity: PropTypes.object,
     entities: PropTypes.object,
     onChange: PropTypes.func.isRequired
   }
+  */
 
   renderEngines () {
     const { entity, onChange } = this.props
 
-    return <select value={entity.engine} onChange={(v) => onChange({ _id: entity._id, engine: v.target.value })}>
-      {engines.map((e) => <option key={e} value={e}>{e}</option>)}
-    </select>
+    return (
+      <select value={entity.engine} onChange={(v) => onChange({ _id: entity._id, engine: v.target.value })}>
+        {engines.map((e) => <option key={e} value={e}>{e}</option>)}
+      </select>
+    )
   }
 
   static title (entity) {
@@ -24,9 +28,11 @@ class TemplateProperties extends Component {
   renderRecipes () {
     const { entity, onChange } = this.props
 
-    return <select value={entity.recipe} onChange={(v) => onChange({ _id: entity._id, recipe: v.target.value })}>
-      {recipes.map((e) => <option key={e} value={e}>{e}</option>)}
-    </select>
+    return (
+      <select value={entity.recipe} onChange={(v) => onChange({ _id: entity._id, recipe: v.target.value })}>
+        {recipes.map((e) => <option key={e} value={e}>{e}</option>)}
+      </select>
+    )
   }
 
   render () {

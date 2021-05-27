@@ -4,7 +4,7 @@ import { describeAsyncStore, itAsync } from '../asyncStore.js'
 
 describeAsyncStore('entities.actions.load', async ({ store, api, history }) => {
   itAsync('should request API and update state with entity', async () => {
-    store.update({ entities: { '1': { __entitySet: 'testEntity' } } })
+    store.update({ entities: { 1: { __entitySet: 'testEntity' } } })
     api.get((p) => ({ value: [{ _id: '1', name: 'foo' }] }))
 
     await store.dispatch(actions.load('1'))
@@ -12,7 +12,7 @@ describeAsyncStore('entities.actions.load', async ({ store, api, history }) => {
   })
 
   itAsync('should not request API if already loaded', async () => {
-    store.update({ entities: { '1': { __isLoaded: true, __entitySet: 'testEntity' } } })
+    store.update({ entities: { 1: { __isLoaded: true, __entitySet: 'testEntity' } } })
     let called = false
     api.get((p) => (called = true))
 
@@ -21,7 +21,7 @@ describeAsyncStore('entities.actions.load', async ({ store, api, history }) => {
   })
 
   itAsync('should request API if loaded but forced by param', async () => {
-    store.update({ entities: { '1': { __isLoaded: true, __entitySet: 'testEntity' } } })
+    store.update({ entities: { 1: { __isLoaded: true, __entitySet: 'testEntity' } } })
     api.get((p) => ({ value: [{ _id: '1', prop: 'foo' }] }))
 
     await store.dispatch(actions.load('1', true))
@@ -29,7 +29,7 @@ describeAsyncStore('entities.actions.load', async ({ store, api, history }) => {
   })
 
   itAsync('should not request API if already entity is new - not yet persisted', async () => {
-    store.update({ entities: { '1': { __isNew: true, __entitySet: 'testEntity' } } })
+    store.update({ entities: { 1: { __isNew: true, __entitySet: 'testEntity' } } })
     let called = false
     api.get((p) => (called = true))
 
@@ -38,7 +38,7 @@ describeAsyncStore('entities.actions.load', async ({ store, api, history }) => {
   })
 
   itAsync('should trigger API_START and API_DONE events', async () => {
-    store.update({ entities: { '1': { __entitySet: 'testEntity' } } })
+    store.update({ entities: { 1: { __entitySet: 'testEntity' } } })
     api.get((p) => ({ value: [{ _id: '1', name: 'foo' }] }))
 
     await store.dispatch(actions.load('1'))
@@ -47,7 +47,7 @@ describeAsyncStore('entities.actions.load', async ({ store, api, history }) => {
   })
 
   itAsync('should trigger API_FAILED when remote call fails', async () => {
-    store.update({ entities: { '1': { __entitySet: 'testEntity' } } })
+    store.update({ entities: { 1: { __entitySet: 'testEntity' } } })
     api.get((p) => { throw new Error('API failed') })
 
     try {

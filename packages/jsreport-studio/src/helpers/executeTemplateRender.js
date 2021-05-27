@@ -70,7 +70,7 @@ async function streamRender (request, { onStart, onFile } = {}) {
 
       let parsing = true
 
-      let filesProcessingExecution = {}
+      const filesProcessingExecution = {}
 
       filesProcessingExecution.promise = new Promise((resolve, reject) => {
         filesProcessingExecution.resolve = resolve
@@ -120,6 +120,7 @@ async function streamRender (request, { onStart, onFile } = {}) {
             } while (pendingFile != null)
           }
 
+          // eslint-disable-next-line
           for (const fileInfo of toProcess) {
             try {
               onFile(fileInfo)
@@ -210,19 +211,20 @@ async function render (request, target) {
       return
     }
 
+    // eslint-disable-next-line
     for (const key in body) {
-      if (isObject(body[ key ])) {
+      if (isObject(body[key])) {
         // if it is an empty object or array then it should not be added to form,
         // this fix problem with url encoded data which can not represent empty arrays or objects
         // so instead of sending empty `template[scripts]:` we don't add the value at all
-        if (Object.keys(body[ key ]).length === 0) {
+        if (Object.keys(body[key]).length === 0) {
           continue
         }
 
-        addBody(path + '[' + key + ']', body[ key ])
+        addBody(path + '[' + key + ']', body[key])
       } else {
-        if (body[ key ] !== undefined && !(body[ key ] instanceof Array)) {
-          addInput(mapForm, path + '[' + key + ']', body[ key ])
+        if (body[key] !== undefined && !(body[key] instanceof Array)) {
+          addInput(mapForm, path + '[' + key + ']', body[key])
         }
       }
     }

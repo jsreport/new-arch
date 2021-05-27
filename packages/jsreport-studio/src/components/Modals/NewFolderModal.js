@@ -1,4 +1,4 @@
-import PropTypes from 'prop-types'
+/* import PropTypes from 'prop-types' */
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import { actions as editorActions } from '../../redux/editor'
@@ -6,10 +6,12 @@ import { actions as entitiesActions } from '../../redux/entities'
 import api from '../../helpers/api.js'
 
 class NewFolderModal extends Component {
+  /* TODO
   static propTypes = {
     close: PropTypes.func.isRequired,
     options: PropTypes.object.isRequired
   }
+  */
 
   constructor (props) {
     super(props)
@@ -114,24 +116,26 @@ class NewFolderModal extends Component {
     const { error, processing } = this.state
     const { initialName } = this.props.options
 
-    return <div>
-      <div className='form-group'>
-        <label>New folder</label>
-        <input
-          type='text'
-          placeholder='name...'
-          ref={this.nameInputRef}
-          defaultValue={initialName}
-          onKeyPress={(e) => this.handleKeyPress(e)}
-        />
+    return (
+      <div>
+        <div className='form-group'>
+          <label>New folder</label>
+          <input
+            type='text'
+            placeholder='name...'
+            ref={this.nameInputRef}
+            defaultValue={initialName}
+            onKeyPress={(e) => this.handleKeyPress(e)}
+          />
+        </div>
+        <div className='form-group'>
+          <span style={{ color: 'red', display: error ? 'block' : 'none' }}>{error}</span>
+        </div>
+        <div className='button-bar'>
+          <button className='button confirmation' disabled={processing} onClick={() => this.submit()}>Ok</button>
+        </div>
       </div>
-      <div className='form-group'>
-        <span style={{ color: 'red', display: error ? 'block' : 'none' }}>{error}</span>
-      </div>
-      <div className='button-bar'>
-        <button className='button confirmation' disabled={processing} onClick={() => this.submit()}>Ok</button>
-      </div>
-    </div>
+    )
   }
 }
 

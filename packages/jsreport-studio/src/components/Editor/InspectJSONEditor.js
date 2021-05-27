@@ -10,7 +10,7 @@ class InspectJSONEditor extends Component {
         key={jsonId}
         name={jsonId}
         getFilename={() => jsonName}
-        mode={'json'}
+        mode='json'
         onUpdate={() => {}}
         value={jsonContent || ''}
         readOnly

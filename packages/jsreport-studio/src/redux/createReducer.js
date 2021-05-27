@@ -9,18 +9,18 @@ function Reducer (state) {
 
 Reducer.prototype.export = function () {
   return (state = this.initialState, action = {}) => {
-    if (!this.handlers[ action.type ]) {
+    if (!this.handlers[action.type]) {
       return state
     }
 
-    return this.handlers[ action.type ](state, action)
+    return this.handlers[action.type](state, action)
   }
 }
 
 Reducer.prototype.handleAction = function (type, fn) {
-  this.handlers[ type ] = fn
+  this.handlers[type] = fn
 }
 
 Reducer.prototype.handleActions = function (actionTypes, fn) {
-  actionTypes.forEach((type) => { this.handlers[ type ] = fn })
+  actionTypes.forEach((type) => { this.handlers[type] = fn })
 }

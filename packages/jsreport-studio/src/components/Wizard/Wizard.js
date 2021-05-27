@@ -15,7 +15,8 @@ function Wizard (props) {
   }
 
   return (
-    <Fragment>
+    // eslint-disable-next-line
+    <Fragment> 
       <div className={styles.wizardTitles}>
         {steps.map((step, stepIndex) => {
           const isComplete = stepIndex < activeStepIndex
@@ -28,9 +29,12 @@ function Wizard (props) {
 
           return (
             <div key={step.name} className={stepClass}>
-              <span>{step.icon != null ? (
-                <span className={styles.wizardTitleIcon}><i className={`fa ${step.icon}`} />&nbsp;</span>
-              ) : ''}{step.title}</span>
+              <span>{step.icon != null
+                ? (
+                  <span className={styles.wizardTitleIcon}><i className={`fa ${step.icon}`} />&nbsp;</span>
+                  )
+                : ''}{step.title}
+              </span>
             </div>
           )
         })}

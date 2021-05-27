@@ -6,7 +6,7 @@ import { describeAsyncStore, itAsync } from './../asyncStore.js'
 describeAsyncStore('editor.actions.closeTab', ({ store, api, history }) => {
   itAsync('should remove tab from collection and unload', async () => {
     store.update({
-      entities: { '1': { __entitySet: 'testEntity', _id: '1', shortid: 'foo' } },
+      entities: { 1: { __entitySet: 'testEntity', _id: '1', shortid: 'foo' } },
       editor: { tabs: [{ key: '1', _id: '1', type: 'entity', entitySet: 'testEntity' }], activeTabKey: '1' }
     })
 

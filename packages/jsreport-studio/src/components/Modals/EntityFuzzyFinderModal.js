@@ -1,4 +1,4 @@
-import PropTypes from 'prop-types'
+/* import PropTypes from 'prop-types' */
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
 // TODO: uncomment this when we want to test the fuzzy finder (it is disabled because yarn problems with windows)
@@ -11,19 +11,21 @@ import styles from './EntityFuzzyFinderModal.css'
 
 // TODO: uncomment this when we want to test the fuzzy finder (it is disabled because yarn problems with windows)
 // const { InputFilter, FilterResults } = fuzzyFilterFactory()
-
+/*
 const fuseConfig = {
   shouldSort: true,
   includeScore: true,
   includeMatches: true,
   keys: ['path', 'name']
 }
+*/
 
 class EntityFuzzyFinderModal extends Component {
+  /* TODO
   static propTypes = {
     close: PropTypes.func.isRequired,
     options: PropTypes.object.isRequired
-  }
+  } */
 
   constructor (props) {
     super(props)
@@ -55,6 +57,7 @@ class EntityFuzzyFinderModal extends Component {
   }
 
   getItem (itemResult) {
+    // eslint-disable-next-line
     return itemResult.hasOwnProperty('_id') ? itemResult : itemResult.item
   }
 
@@ -269,6 +272,7 @@ class EntityFuzzyFinderModal extends Component {
         const item = this.getItem(current)
         const isActive = selectedIndex === idx
         const iconStyle = resolveEntityTreeIconStyle(item.entity) || (entitySets[item.entity.__entitySet].faIcon || styles.resultsItemDefaultIcon)
+        // eslint-disable-next-line
         const keyMatch = (current.hasOwnProperty('_id') ? [] : current.matches).find((m) => m.key === 'path')
 
         return (
@@ -302,12 +306,11 @@ class EntityFuzzyFinderModal extends Component {
   }
 
   render () {
-    const { entities } = this.props
-
     return 'CONTENT IS DISABLED FOR NOW'
 
     // TODO: uncomment this when we want to test the fuzzy finder (it is disabled because yarn problems with windows)
     /*
+     const { entities } = this.props
     return (
       <div className={styles.container}>
         <div onKeyDown={this.handleKeyDown}>

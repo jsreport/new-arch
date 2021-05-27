@@ -12,7 +12,7 @@ describeAsyncStore('editor.actions.openTab', ({ store, api, history }) => {
   })
 
   itAsync('should load entity if _id supplied', async () => {
-    store.update({ entities: { '1': { __entitySet: 'testEntity' } } })
+    store.update({ entities: { 1: { __entitySet: 'testEntity' } } })
     api.get((p) => ({ value: [{ _id: '1' }] }))
 
     await store.dispatch(actions.openTab({ _id: '1' }))
@@ -20,7 +20,7 @@ describeAsyncStore('editor.actions.openTab', ({ store, api, history }) => {
   })
 
   itAsync('should be also able to add tab based on shortid', async () => {
-    store.update({ entities: { '1': { __entitySet: 'testEntity', shortid: 'foo', __isLoaded: true, _id: '1' } } })
+    store.update({ entities: { 1: { __entitySet: 'testEntity', shortid: 'foo', __isLoaded: true, _id: '1' } } })
 
     await store.dispatch(actions.openTab({ shortid: 'foo' }))
 

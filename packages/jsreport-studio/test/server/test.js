@@ -137,7 +137,7 @@ describe('studio', () => {
 
       const themeVarsValues = await reporter.studio.getCurrentThemeVars('custom')
 
-      const res = await request(reporter.express.app).get(`/studio/assets/alternativeTheme.css?name=custom`)
+      const res = await request(reporter.express.app).get('/studio/assets/alternativeTheme.css?name=custom')
       const primaryColorResult = /(?:[a-zA-Z-]+): *([\w#]+)\/\*theme-var:primary-color\*\//g.exec(res.text)
       const primaryBackgroundColorResult = /(?:[a-zA-Z-]+): *([\w#]+)\/\*theme-var:primary-backgroundColor\*\//g.exec(res.text)
 

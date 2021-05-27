@@ -11,11 +11,13 @@ export const getByKey = (state, key, shouldThrow = true) => {
     return null
   }
 
-  return typeof entities[0].value === 'string' ? {
-    _id: entities[0]._id,
-    key: key,
-    value: parse(entities[0].value)
-  } : entities[0]
+  return typeof entities[0].value === 'string'
+    ? {
+        _id: entities[0]._id,
+        key: key,
+        value: parse(entities[0].value)
+      }
+    : entities[0]
 }
 
 export const getValueByKey = (state, key, shouldThrow = true) => {

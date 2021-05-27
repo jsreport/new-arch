@@ -125,7 +125,8 @@ function getElementsFromOperations (operations, errors, activeElement) {
     }
 
     if (errors.operations != null) {
-      for (let errorKey of Object.keys(errors.operations)) {
+      // eslint-disable-next-line
+      for (const errorKey of Object.keys(errors.operations)) {
         // error.id is equal to the id of the operation "render" which it belongs
         if (errorKey === operation.id) {
           errorSource = errors.operations[errorKey]
@@ -166,6 +167,7 @@ function getElementsFromOperations (operations, errors, activeElement) {
     }
   }
 
+  // eslint-disable-next-line
   for (const operation of needsEndNode) {
     const classArgs = ['react-flow__node-default', styles.profileOperationNode]
     const isMainRender = operation.previousOperationId == null
@@ -185,7 +187,8 @@ function getElementsFromOperations (operations, errors, activeElement) {
     if (errorSource != null) {
       errorInRender = errorSource
     } else if (errors.operations != null) {
-      for (let errorKey of Object.keys(errors.operations)) {
+      // eslint-disable-next-line
+      for (const errorKey of Object.keys(errors.operations)) {
         const error = errors.operations[errorKey]
 
         // error.id is equal to the id of the operation "render" which it belongs
@@ -208,17 +211,21 @@ function getElementsFromOperations (operations, errors, activeElement) {
         time: operation.completedTimestamp - operation.timestamp,
         timeCost: isMainCompleted && mainOperation.id !== operation.id ? getTimeCost(operation.completedTimestamp - operation.timestamp, mainOperation.completedTimestamp - mainOperation.timestamp) : null,
         error: errorInRender,
-        renderResult: errorInRender == null ? {
-          getContent: (operations[0].req == null || operations[0].res == null) ? undefined : () => {
-            const state = getStateAtProfileOperation(operations, operation.id, true)
+        renderResult: errorInRender == null
+          ? {
+              getContent: (operations[0].req == null || operations[0].res == null)
+                ? undefined
+                : () => {
+                    const state = getStateAtProfileOperation(operations, operation.id, true)
 
-            return {
-              content: state.completedResState,
-              contentEncoding: operation.completedRes.content.encoding === 'diff' ? 'plain' : operation.completedRes.content.encoding,
-              meta: state.completedResMetaState
+                    return {
+                      content: state.completedResState,
+                      contentEncoding: operation.completedRes.content.encoding === 'diff' ? 'plain' : operation.completedRes.content.encoding,
+                      meta: state.completedResMetaState
+                    }
+                  }
             }
-          }
-        } : undefined,
+          : undefined,
         end: true
       },
       position: defaultPosition,

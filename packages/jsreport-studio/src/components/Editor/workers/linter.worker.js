@@ -12,7 +12,7 @@ self.addEventListener('message', (event) => {
     return
   }
 
-  let config = Object.assign({}, defaultConfig)
+  const config = Object.assign({}, defaultConfig)
 
   const validations = linter.verify(code, config, {
     filename,

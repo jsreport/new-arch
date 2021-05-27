@@ -19,13 +19,14 @@ const actionHistoryMiddleware = (history) => ({ dispatch, getState }) => (next) 
 }
 
 export const describeAsyncStore = (name, nestedDescribe) => {
-  let store = {}
-  let history = {}
+  const store = {}
+  const history = {}
 
   describe(name, () => {
     beforeEach(() => {
       Object.keys(history).forEach((a) => delete history[a])
-      configuration.entitySets = { 'testEntity': { nameAttribute: 'name', referenceAttributes: ['name', 'shortid'] } }
+      // eslint-disable-next-line no-import-assign
+      configuration.entitySets = { testEntity: { nameAttribute: 'name', referenceAttributes: ['name', 'shortid'] } }
 
       const reducer = createReducer(history)
 
@@ -41,7 +42,7 @@ export const describeAsyncStore = (name, nestedDescribe) => {
         return reducer(state, action)
       }
 
-      let _store = createStore(rootReducer, applyMiddleware(thunk, Invariant(), actionHistoryMiddleware(history)))
+      const _store = createStore(rootReducer, applyMiddleware(thunk, Invariant(), actionHistoryMiddleware(history)))
       _store.dispatch({ type: '@RESET' })
       store.update = (val) => _store.dispatch({ type: '@UPDATE', value: val })
       store.getState = _store.getState

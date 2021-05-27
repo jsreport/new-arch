@@ -38,9 +38,11 @@ const GroupNode = ({ id, titleId, node, depth, draggable, isDragging, connectDra
   const isCollapsed = isNodeCollapsed(node)
   const isActive = isNodeActive(node)
 
-  const groupStyle = node.data != null ? resolveEntityTreeIconStyle(node.data, {
-    isCollapsed
-  }) : null
+  const groupStyle = node.data != null
+    ? resolveEntityTreeIconStyle(node.data, {
+        isCollapsed
+      })
+    : null
 
   const groupIsEntity = checkIsGroupEntityNode(node)
   const isContextMenuActive = contextMenu != null && groupIsEntity && contextMenu.id === node.data._id
@@ -117,9 +119,11 @@ const GroupNode = ({ id, titleId, node, depth, draggable, isDragging, connectDra
           <a
             className={styles.add}
             title={`New ${
-              entitySets[node.name] && entitySets[node.name].visibleName ? (
+              entitySets[node.name] && entitySets[node.name].visibleName
+              ? (
                 entitySets[node.name].visibleName
-              ) : node.name
+              )
+              : node.name
             }`}
             onClick={(ev) => {
               ev.preventDefault()

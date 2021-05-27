@@ -1,11 +1,13 @@
-import PropTypes from 'prop-types'
+/* import PropTypes from 'prop-types' */
 import React, { Component } from 'react'
 import logo from './jsreport-bg.png'
 
 class AboutModal extends Component {
+  /* TODO
   static propTypes = {
     options: PropTypes.object.isRequired
   }
+  */
 
   constructor (props) {
     super(props)
@@ -33,6 +35,7 @@ class AboutModal extends Component {
             className='button confirmation'
             href={`https://github.com/jsreport/jsreport/releases/tag/${version}`}
             target='_blank'
+            rel='noreferrer'
             style={{ marginLeft: 0 }}
           >
             Release notes

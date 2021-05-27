@@ -21,15 +21,19 @@ export const update = (key, value) => {
     let _id
     if (existingEntry) {
       _id = existingEntry._id
-      await api.patch(`/odata/settings(${existingEntry._id})`, { data: {
-        ...existingEntry,
-        value: svalue
-      }})
+      await api.patch(`/odata/settings(${existingEntry._id})`, {
+        data: {
+          ...existingEntry,
+          value: svalue
+        }
+      })
     } else {
-      const response = await api.post('/odata/settings', { data: {
-        key: key,
-        value: svalue
-      }})
+      const response = await api.post('/odata/settings', {
+        data: {
+          key: key,
+          value: svalue
+        }
+      })
       _id = response._id
     }
 

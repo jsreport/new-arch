@@ -369,6 +369,7 @@ export default function useEntityTree (main, {
 
         const newSelected = {}
 
+        // eslint-disable-next-line
         for (const entityId of Object.keys(updates)) {
           if (updates[entityId] === true) {
             newSelected[entityId] = true

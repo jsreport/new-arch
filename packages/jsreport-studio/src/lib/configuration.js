@@ -1,61 +1,62 @@
+/*eslint-disable*/
 export let version = null
 export let engines = []
 export let recipes = []
-export const previewTypes = {}
-export const initializeListeners = []
-export const readyListeners = []
-export const runListeners = []
-export const entityNewListeners = []
-export const entitySaveListeners = []
-export const textEditorInitializeListeners = []
-export const textEditorCreatedListeners = []
+export let previewTypes = {}
+export let initializeListeners = []
+export let readyListeners = []
+export let runListeners = []
+export let entityNewListeners = []
+export let entitySaveListeners = []
+export let textEditorInitializeListeners = []
+export let textEditorCreatedListeners = []
 export let _themeChangedListeners = []
-export const entitySets = {}
-export const reportPreviewStyleResolvers = []
-export const templateEditorModeResolvers = []
-export const entityTreeOrder = []
-export const entityTreeWrapperComponents = []
-export const entityTreeIconResolvers = []
-export const entityTreeFilterItemResolvers = []
-export const entityTreeDropResolvers = []
-export const entityEditorComponentKeyResolvers = []
-export const entityTreeContextMenuItemsResolvers = []
-export const entityTreeToolbarComponents = {
+export let entitySets = {}
+export let reportPreviewStyleResolvers = []
+export let templateEditorModeResolvers = []
+export let entityTreeOrder = []
+export let entityTreeWrapperComponents = []
+export let entityTreeIconResolvers = []
+export let entityTreeFilterItemResolvers = []
+export let entityTreeDropResolvers = []
+export let entityEditorComponentKeyResolvers = []
+export let entityTreeContextMenuItemsResolvers = []
+export let entityTreeToolbarComponents = {
   single: [],
   group: []
 }
-export const entityTreeItemComponents = {
+export let entityTreeItemComponents = {
   container: [],
   right: [],
   groupRight: []
 }
-export const propertiesComponents = []
-export const editorComponents = []
-export const toolbarComponents = {
+export let propertiesComponents = []
+export let editorComponents = []
+export let toolbarComponents = {
   left: [],
   right: [],
   settings: [],
   settingsBottom: []
 }
-export const tabTitleComponents = []
-export const textEditorInstances = []
+export let tabTitleComponents = []
+export let textEditorInstances = []
 
 export let toolbarVisibilityResolver = () => true
 
-export const registerModalHandler = (fn) => { modalHandler = fn }
+export let registerModalHandler = (fn) => { modalHandler = fn }
 export let modalHandler = () => {}
 
 export let concurrentUpdateModal = () => { return null }
 
 export let aboutModal = () => { return null }
 
-export const registerCollapseEntityHandler = (fn) => { collapseEntityHandler = fn }
+export let registerCollapseEntityHandler = (fn) => { collapseEntityHandler = fn }
 export let collapseEntityHandler = () => {}
 
-export const registerCollapseLeftHandler = (fn) => { collapseLeftHandler = fn }
+export let registerCollapseLeftHandler = (fn) => { collapseLeftHandler = fn }
 export let collapseLeftHandler = () => {}
 
-export const registerCollapsePreviewHandler = (fn) => { collapsePreviewHandler = fn }
+export let registerCollapsePreviewHandler = (fn) => { collapsePreviewHandler = fn }
 export let collapsePreviewHandler = () => {}
 
 export let shouldOpenStartupPage = true
@@ -64,8 +65,8 @@ export let apiHeaders = {}
 
 export let _splitResizeHandlers = []
 
-export const subscribeToSplitPaneEvents = (el, fnMap) => {
-  const handler = {
+export let subscribeToSplitPaneEvents = (el, fnMap) => {
+  let handler = {
     el,
     fnMap
   }
@@ -77,12 +78,12 @@ export const subscribeToSplitPaneEvents = (el, fnMap) => {
   }
 }
 
-export const subscribeToThemeChange = (fn) => {
+export let subscribeToThemeChange = (fn) => {
   _themeChangedListeners.push(fn)
   return () => { _themeChangedListeners = _themeChangedListeners.filter((s) => s !== fn) }
 }
 
-export const triggerThemeChange = (data) => { _themeChangedListeners.forEach((fn) => fn(data)) }
+export let triggerThemeChange = (data) => { _themeChangedListeners.forEach((fn) => fn(data)) }
 
 export let referencesLoader = null
 
@@ -95,8 +96,8 @@ export let extensions = []
 export let apiSpecs = {}
 
 export function rootPath () {
-  const _rootPath = window.location.pathname.indexOf('/studio') === -1 ? window.location.pathname : window.location.pathname.substring(0, window.location.pathname.indexOf('/studio'))
+  let _rootPath = window.location.pathname.indexOf('/studio') === -1 ? window.location.pathname : window.location.pathname.substring(0, window.location.pathname.indexOf('/studio'))
   return _rootPath[_rootPath.length - 1] === '/' ? _rootPath.substring(0, _rootPath.length - 1) : _rootPath
 }
 
-export const sharedComponents = {}
+export let sharedComponents = {}

@@ -4,7 +4,7 @@ import { rootPath } from './lib/configuration.js'
 import App from './containers/App/App.js'
 
 function getPathDef (path) {
-  let currentRootPath = rootPath()
+  const currentRootPath = rootPath()
 
   if (path == null) {
     return currentRootPath === '' ? '/' : currentRootPath
