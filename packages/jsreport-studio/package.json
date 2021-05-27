@@ -122,6 +122,7 @@
   },
   "standard": {
     "ignore": [
+      "static/**",
       "extensions.js",
       "webpack/**"
     ],
