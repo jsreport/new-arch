@@ -1,0 +1,60 @@
+{
+  "name": "jsreport-compile",
+  "version": "2.5.1",
+  "description": "Compile jsreport into single executable",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha test/test.js --timeout 45000"
+  },
+  "homepage": "https://github.com/jsreport/jsreport-compile",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jsreport/jsreport-compile.git"
+  },
+  "bugs": {
+    "url": "https://github.com/jsreport/jsreport-compile/issues"
+  },
+  "keywords": [
+    "jsreport"
+  ],
+  "author": "Jan Blaha",
+  "files": [
+    "lib",
+    "index.js",
+    "bin"
+  ],
+  "bin": {
+    "jsreport-compile": "./bin/compile.js"
+  },
+  "standard": {
+    "ignore": [
+      "build"
+    ],
+    "env": {
+      "node": true,
+      "mocha": true
+    }
+  },
+  "dependencies": {
+    "@bjrmatos/pkg": "4.7.0",
+    "acorn": "5.5.0",
+    "bubleify": "0.7.0",
+    "debug": "2.6.3",
+    "lockfile": "1.0.4",
+    "mkdirp": "0.5.5",
+    "object-assign": "4.1.1",
+    "rimraf": "2.6.3",
+    "shortid": "2.2.8",
+    "winser-with-api": "1.0.1",
+    "yargs": "6.6.0"
+  },
+  "devDependencies": {
+    "eslint": "3.19.0",
+    "fs-extra": "2.1.2",
+    "jsreport-cli": "2.2.5",
+    "jsreport-core": "2.10.1",
+    "mocha": "3.2.0",
+    "should": "11.2.1",
+    "standard": "8.6.0"
+  }
+}
