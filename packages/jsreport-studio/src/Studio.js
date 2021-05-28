@@ -199,6 +199,19 @@ class Studio {
   }
 
   /**
+   * Add component used in the MainPreview section
+   * @param {String} type name of the new type of content that is going to display in MainPreview
+   * @param {ReactComponent} component the component that is responsible of rendering the new type of content
+   * @param {Object} opts options related to the presence of elements in the MainPreview title bar (tabs, actions, defaultActiveTab)
+   */
+  addPreviewComponent (type, component, opts = {}) {
+    configuration.previewComponents[type] = {
+      ...opts,
+      component
+    }
+  }
+
+  /**
    * Array of functions used to resolve ace editor mode for template content. This is used by custom templating engines
    * to add highlighting support for jade,ejs...
    *

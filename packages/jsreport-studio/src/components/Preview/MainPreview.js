@@ -3,15 +3,15 @@ import { useDispatch, useSelector } from 'react-redux'
 import Preview from './Preview'
 import ClearAction from './MenuActions/ClearAction'
 import { actions as editorActions } from '../../redux/editor'
-import { previewTypes } from '../../lib/configuration'
+import { previewComponents } from '../../lib/configuration'
 
 const MainPreview = () => {
   const preview = useSelector((state) => state.editor.preview)
-  const tabs = [...(previewTypes[preview.type].tabs || [])]
+  const tabs = [...(previewComponents[preview.type].tabs || [])]
 
   const actions = useMemo(() => {
     return [
-      ...(previewTypes[preview.type].actions || []),
+      ...(previewComponents[preview.type].actions || []),
       {
         component: ClearAction
       }
@@ -43,7 +43,7 @@ const MainPreview = () => {
     )
   }, [actions, preview])
 
-  const previewContent = React.createElement(previewTypes[preview.type].component, {
+  const previewContent = React.createElement(previewComponents[preview.type].component, {
     id: preview.id,
     type: preview.type,
     data: preview.data,

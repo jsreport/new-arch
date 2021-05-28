@@ -2,7 +2,7 @@ import * as ActionTypes from './constants.js'
 import { ActionTypes as EntityActionTypes } from '../entities'
 import createReducer from '../createReducer.js'
 import uid from '../../helpers/uid'
-import { previewTypes } from '../../lib/configuration'
+import { previewComponents } from '../../lib/configuration'
 
 const reducer = createReducer({
   tabs: [],
@@ -157,7 +157,7 @@ reducer.handleAction(EntityActionTypes.REPLACE, (state, action) => {
 reducer.handleAction(ActionTypes.PREVIEW, (state, action) => {
   let activeTab = null
 
-  const previewType = previewTypes[action.preview.type]
+  const previewType = previewComponents[action.preview.type]
 
   if (action.preview.activeTab != null) {
     activeTab = action.preview.activeTab

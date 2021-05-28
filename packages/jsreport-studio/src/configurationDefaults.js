@@ -314,7 +314,7 @@ export default () => {
     }
 
     return (
-      <div className='toolbar-button' onClick={() => Studio.openModal(LinkModal, { entity: props.tab.entity })}>
+      <div className='toolbar-button' onClick={() => openModal(LinkModal, { entity: props.tab.entity })}>
         <i className='fa fa-link' />Link
       </div>
     )
@@ -414,15 +414,15 @@ export default () => {
 
   const EmptyPreviewType = () => null
 
-  configuration.previewTypes.empty = {
+  configuration.previewComponents.empty = {
     component: EmptyPreviewType
   }
 
-  configuration.previewTypes.rawContent = {
+  configuration.previewComponents.rawContent = {
     component: RawContentPreviewType
   }
 
-  configuration.previewTypes.report = {
+  configuration.previewComponents.report = {
     component: ReportPreviewType,
     tabs: [{ name: 'report', title: 'report' }],
     actions: [{
@@ -434,7 +434,7 @@ export default () => {
     }] // { component: UndockNewTab }
   }
 
-  configuration.previewTypes.profile = {
+  configuration.previewComponents.profile = {
     component: ProfilePreviewType,
     tabs: [{ name: 'profile', title: 'profile' }],
     actions: [{
@@ -444,7 +444,7 @@ export default () => {
     }]
   }
 
-  configuration.previewTypes['report-profile'] = {
+  configuration.previewComponents['report-profile'] = {
     component: ReportProfilePreviewType,
     defaultActiveTab: 'profile',
     tabs: [{ name: 'report', title: 'report' }, { name: 'profile', title: 'profile' }],
