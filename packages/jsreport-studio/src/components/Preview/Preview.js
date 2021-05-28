@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react'
+import React, { useState, useRef, useCallback } from 'react'
 import classNames from 'classnames'
 import Popup from '../common/Popup'
 import styles from './Preview.css'
