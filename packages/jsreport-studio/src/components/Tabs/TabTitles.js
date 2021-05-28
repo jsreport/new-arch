@@ -17,7 +17,7 @@ class TabTitles extends Component {
     super(props)
     this.state = {}
 
-    this.closeTab = this.closeTab.bind(this)
+    this.handleCloseTab = this.handleCloseTab.bind(this)
     this.handleTabClick = this.handleTabClick.bind(this)
     this.handleTabContextMenu = this.handleTabContextMenu.bind(this)
   }
@@ -36,16 +36,6 @@ class TabTitles extends Component {
     }
   }
 
-  closeTab (tabKey) {
-    const entity = storeMethods.getEntityById(tabKey, false)
-
-    if (!entity || !entity.__isDirty) {
-      return this.props.closeTab(tabKey)
-    }
-
-    openModal(CloseConfirmationModal, { _id: tabKey })
-  }
-
   closeOtherTabs (tabKey) {
     const { tabs } = this.props
 
@@ -54,7 +44,7 @@ class TabTitles extends Component {
         return
       }
 
-      this.closeTab(t.tab.key)
+      this.handleCloseTab(t.tab.key)
     })
   }
 
@@ -73,7 +63,7 @@ class TabTitles extends Component {
 
     if (currentTabIndex != null) {
       for (let i = currentTabIndex + 1; i < tabs.length; i++) {
-        this.closeTab(tabs[i].tab.key)
+        this.handleCloseTab(tabs[i].tab.key)
       }
     }
   }
@@ -93,7 +83,7 @@ class TabTitles extends Component {
 
     if (currentTabIndex != null) {
       for (let i = 0; i < currentTabIndex; i++) {
-        this.closeTab(tabs[i].tab.key)
+        this.handleCloseTab(tabs[i].tab.key)
       }
     }
   }
@@ -106,7 +96,7 @@ class TabTitles extends Component {
         return
       }
 
-      this.closeTab(t.tab.key)
+      this.handleCloseTab(t.tab.key)
     })
   }
 
@@ -114,7 +104,7 @@ class TabTitles extends Component {
     const { tabs } = this.props
 
     tabs.forEach((t) => {
-      this.closeTab(t.tab.key)
+      this.handleCloseTab(t.tab.key)
     })
   }
 
@@ -143,10 +133,20 @@ class TabTitles extends Component {
       (!e.nativeEvent && e.which === 2)
     ) {
       e.stopPropagation()
-      return this.closeTab(t.tab.key)
+      return this.handleCloseTab(t.tab.key)
     }
 
     this.props.activateTab(t.tab.key)
+  }
+
+  handleCloseTab (tabKey) {
+    const entity = storeMethods.getEntityById(tabKey, false)
+
+    if (!entity || !entity.__isDirty) {
+      return this.props.closeTab(tabKey)
+    }
+
+    openModal(CloseConfirmationModal, { _id: tabKey })
   }
 
   handleTabContextMenu (e, t) {
@@ -160,7 +160,7 @@ class TabTitles extends Component {
         <div className={style.contextMenu}>
           <div
             className={style.contextButton}
-            onClick={(e) => { e.stopPropagation(); this.closeTab(t.tab.key); this.tryHide() }}
+            onClick={(e) => { e.stopPropagation(); this.handleCloseTab(t.tab.key); this.tryHide() }}
           >
             Close Tab
           </div>
@@ -245,7 +245,7 @@ class TabTitles extends Component {
         complementTitle={complementTitle}
         onClick={this.handleTabClick}
         onContextMenu={this.handleTabContextMenu}
-        onClose={this.closeTab}
+        onClose={this.handleCloseTab}
       />
     )
   }

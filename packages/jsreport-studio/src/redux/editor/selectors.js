@@ -22,9 +22,7 @@ export const createGetActiveTabSelector = () => {
 }
 
 export const getTabWithEntities = (tabs, entities) => tabs.map((t) => ({
-  entity: t.type === 'entity' ? selectors.getById(entities, t._id) : (
-    typeof t.getEntity === 'function' ? t.getEntity() : null
-  ),
+  entity: t.type === 'entity' ? selectors.getById(entities, t._id) : (typeof t.getEntity === 'function' ? t.getEntity() : null),
   tab: t
 }))
 
@@ -46,9 +44,7 @@ export const getActiveEntity = (activeTabKey, tabs, entities) => {
     return null
   }
 
-  return tab.type === 'entity' ? selectors.getById(entities, tab._id, false) : (
-    typeof tab.getEntity === 'function' ? tab.getEntity() : null
-  )
+  return tab.type === 'entity' ? selectors.getById(entities, tab._id, false) : (typeof tab.getEntity === 'function' ? tab.getEntity() : null)
 }
 
 export const createGetActiveEntitySelector = () => {
@@ -67,9 +63,7 @@ export const getActiveTabWithEntity = (activeTabKey, tabs, entities) => {
 
   return {
     tab,
-    entity: tab.type === 'entity' ? selectors.getById(entities, tab._id) : (
-      typeof tab.getEntity === 'function' ? tab.getEntity() : null
-    )
+    entity: tab.type === 'entity' ? selectors.getById(entities, tab._id) : (typeof tab.getEntity === 'function' ? tab.getEntity() : null)
   }
 }
 
