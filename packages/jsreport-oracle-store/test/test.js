@@ -56,5 +56,6 @@ describe('common store tests', () => {
 
   afterEach(() => reporter.close())
 
+  jsreport.tests.blobStorage()(() => reporter.blobStorage)
   jsreport.tests.documentStore()(() => reporter.documentStore)
 })

@@ -77,12 +77,10 @@
     "ignore": [
       "data/**"
     ],
-    "globals": [
-      "describe",
-      "it",
-      "beforeEach",
-      "afterEach",
-      "define"
+    "env": [
+      "mocha",
+      "browser",
+      "node"
     ]
   },
   "version": "2.11.0",

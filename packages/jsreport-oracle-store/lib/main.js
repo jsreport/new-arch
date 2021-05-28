@@ -161,10 +161,92 @@ module.exports = async (reporter, definition) => {
 
   reporter.documentStore.registerProvider(store)
 
+  if (reporter.options.blobStorage.provider === 'oracle') {
+    reporter.blobStorage.registerProvider({
+      init: async () => {
+        const query = `
+        declare
+        begin
+          execute immediate 'create table "jsreport_Blob" ("blobName" varchar2(1024), "content" BLOB)';
+          exception when others then
+            if SQLCODE = -955 then null; else raise; end if;
+        end;
+        `
+        let conn
+        try {
+          conn = await pool.getConnection()
+          await conn.execute(query)
+        } finally {
+          if (conn) {
+            conn.close(() => {})
+          }
+        }
+      },
+      write: async (blobName, buf) => {
+        let conn
+        try {
+          conn = await pool.getConnection()
+          await conn.execute('INSERT INTO "jsreport_Blob" VALUES(:blobName, :buf)', {
+            blobName,
+            buf
+          }
+          )
+          await conn.commit()
+        } finally {
+          if (conn) {
+            conn.close(() => {})
+          }
+        }
+      },
+      read: async (blobName, buf) => {
+        let conn
+        try {
+          conn = await pool.getConnection()
+          const r = await conn.execute('SELECT "blobName", "content" FROM "jsreport_Blob" where "blobName" = :blobName', {
+            blobName
+          }, { outFormat: oracledb.OUT_FORMAT_OBJECT })
+
+          if (r.rows.length === 0) {
+            return null
+          }
+
+          return r.rows[0].content
+        } finally {
+          if (conn) {
+            conn.close(() => {})
+          }
+        }
+      },
+      remove: async (blobName) => {
+        let conn
+        try {
+          conn = await pool.getConnection()
+          await conn.execute('DELETE FROM "jsreport_Blob" where "blobName" = :blobName', {
+            blobName
+          })
+          await conn.commit()
+        } finally {
+          if (conn) {
+            conn.close(() => {})
+          }
+        }
+      },
+      drop: async () => {
+        let conn
+        try {
+          conn = await pool.getConnection()
+          await conn.execute('DROP TABLE "jsreport_BLob"')
+          await conn.commit()
+        } finally {
+          if (conn) {
+            conn.close(() => {})
+          }
+        }
+      }
+    })
+  }
+
   oracledb.fetchAsString = [oracledb.CLOB]
   oracledb.fetchAsBuffer = [oracledb.BLOB]
   const pool = await oracledb.createPool(definition.options)
-
-  // avoid exposing connection string through /api/extensions
-  definition.options = {}
 }
