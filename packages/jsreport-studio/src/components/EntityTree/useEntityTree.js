@@ -15,7 +15,8 @@ import {
   getNodeDOMId,
   getNodeTitleDOMId
 } from './utils'
-import { registerCollapseEntityHandler, modalHandler, entityTreeDropResolvers } from '../../lib/configuration.js'
+import { openModal } from '../../helpers/openModal'
+import { registerCollapseEntityHandler, entityTreeDropResolvers } from '../../lib/configuration.js'
 
 const mainEntityDropResolver = {
   type: ENTITY_NODE_DRAG_TYPE,
@@ -68,7 +69,7 @@ export default function useEntityTree (main, {
         return
       }
 
-      modalHandler.open(HierarchyReplaceEntityModal, {
+      openModal(HierarchyReplaceEntityModal, {
         sourceId: sourceInfo.id,
         targetShortId: targetInfo.shortid,
         targetChildren: targetInfo.children,

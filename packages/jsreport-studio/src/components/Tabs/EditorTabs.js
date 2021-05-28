@@ -1,14 +1,16 @@
-import PropTypes from 'prop-types'
 import React, { Fragment, Component } from 'react'
+import { connect } from 'react-redux'
 import _omit from 'lodash/omit'
 import TabPane from './TabPane'
-import { editorComponents, entityEditorComponentKeyResolvers } from '../../lib/configuration.js'
+import { createGetActiveTabSelector, createGetTabWithEntitiesSelector } from '../../redux/editor/selectors'
+import { groupedUpdate } from '../../redux/editor/actions'
+import { editorComponents, entityEditorComponentKeyResolvers } from '../../lib/configuration'
 
 class EditorTabs extends Component {
-  static propTypes = {
-    onUpdate: PropTypes.func.isRequired,
-    activeTabKey: PropTypes.string,
-    tabs: PropTypes.array.isRequired
+  constructor (props) {
+    super(props)
+
+    this.onUpdate = this.onUpdate.bind(this)
   }
 
   componentDidMount () {
@@ -19,6 +21,16 @@ class EditorTabs extends Component {
     if (prevProps.activeTabKey !== this.props.activeTabKey) {
       this.checkActiveTabAndFireHook(this.props.activeTabKey)
     }
+  }
+
+  onUpdate (entity) {
+    const { activeTab, groupedUpdate } = this.props
+
+    if (activeTab && activeTab.readOnly) {
+      return
+    }
+
+    return groupedUpdate(entity)
   }
 
   checkActiveTabAndFireHook (activeTabKey) {
@@ -89,18 +101,31 @@ class EditorTabs extends Component {
   }
 
   render () {
-    const { activeTabKey, onUpdate, tabs } = this.props
+    const { activeTabKey, tabs } = this.props
 
     return (
       <TabPane
         activeTabKey={activeTabKey}
       >
         {tabs.map((t) =>
-          this.renderEntityTab(t, onUpdate)
+          this.renderEntityTab(t, this.onUpdate)
         )}
       </TabPane>
     )
   }
 }
 
-export default EditorTabs
+function makeMapStateToProps () {
+  const getActiveTab = createGetActiveTabSelector()
+  const getTabWithEntities = createGetTabWithEntitiesSelector()
+
+  return (state) => ({
+    activeTab: getActiveTab(state),
+    activeTabKey: state.editor.activeTabKey,
+    tabs: getTabWithEntities(state)
+  })
+}
+
+export default connect(makeMapStateToProps, {
+  groupedUpdate
+})(EditorTabs)

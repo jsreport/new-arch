@@ -1,8 +1,8 @@
 import PropTypes from 'prop-types'
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
-import { selectors } from '../../redux/entities'
-import { actions } from '../../redux/editor'
+import { createGetByIdSelector } from '../../redux/entities/selectors'
+import { actions as editorActions } from '../../redux/editor'
 
 class CloseConfirmationModal extends Component {
   constructor (props) {
@@ -49,7 +49,15 @@ class CloseConfirmationModal extends Component {
   }
 }
 
+function makeMapStateToProps () {
+  const getById = createGetByIdSelector()
+
+  return (state, props) => ({
+    entity: getById(state, { id: props.options._id })
+  })
+}
+
 export default connect(
-  (state, props) => ({ entity: selectors.getById(state, props.options._id, false) }),
-  { ...actions }
+  makeMapStateToProps,
+  { ...editorActions }
 )(CloseConfirmationModal)

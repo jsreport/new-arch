@@ -2,9 +2,9 @@ import React, { Component } from 'react'
 import EntityTreeButton from './EntityTreeButton'
 import NewFolderModal from '../Modals/NewFolderModal'
 import getVisibleEntitySetsInTree from '../../helpers/getVisibleEntitySetsInTree'
-import { entitySets, modalHandler } from '../../lib/configuration'
+import { openModal } from '../../helpers/openModal'
+import { entitySets } from '../../lib/configuration'
 import style from './EntityTree.css'
-
 class EntityTreeNewButton extends Component {
   constructor (props) {
     super(props)
@@ -105,7 +105,7 @@ class EntityTreeNewButton extends Component {
         onClick={(e) => {
           e.stopPropagation()
 
-          modalHandler.open(NewFolderModal, {})
+          openModal(NewFolderModal, {})
           this.tryHide()
         }}
       >

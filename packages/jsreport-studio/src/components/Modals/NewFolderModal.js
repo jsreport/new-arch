@@ -140,6 +140,6 @@ class NewFolderModal extends Component {
 }
 
 export default connect(
-  (state) => ({}),
+  undefined,
   { ...entitiesActions, ...editorActions }
 )(NewFolderModal)

@@ -1,9 +1,9 @@
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
-import { modalHandler } from '../../../lib/configuration'
 import { actions } from '../../../redux/editor'
 import storeMethods from '../../../redux/methods'
 import EntityTreeSelectionModal from '../../Modals/EntityTreeSelectionModal'
+import { openModal } from '../../../helpers/openModal'
 import styles from './EntityRefSelect.css'
 
 const SelectInput = ({ textToShow, entity, handleOpenTree, openTab, disabled }) => (
@@ -69,7 +69,7 @@ class EntityRefSelect extends Component {
         showingTreeInline: true
       })
     } else {
-      modalHandler.open(EntityTreeSelectionModal, this.getPropsForEntityTree())
+      openModal(EntityTreeSelectionModal, this.getPropsForEntityTree())
     }
   }
 

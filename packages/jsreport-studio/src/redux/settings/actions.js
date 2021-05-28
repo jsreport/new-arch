@@ -17,7 +17,7 @@ export const update = (key, value) => {
   const svalue = typeof value !== 'string' ? JSON.stringify(value) : value
 
   return async (dispatch, getState) => {
-    const existingEntry = selectors.getByKey(getState(), key, false)
+    const existingEntry = selectors.getByKey(getState().settings, key, false)
     let _id
     if (existingEntry) {
       _id = existingEntry._id

@@ -7,20 +7,20 @@ import superagent from 'superagent'
 import shortid from 'shortid'
 import fileSaver from 'filesaver.js-npm'
 import _merge from 'lodash/merge'
-import api, { methods } from './helpers/api.js'
-import { getCurrentTheme, setCurrentTheme } from './helpers/theme.js'
-import SplitPane from './components/common/SplitPane/SplitPane.js'
+import api, { methods } from './helpers/api'
+import { getCurrentTheme, setCurrentTheme } from './helpers/theme'
+import SplitPane from './components/common/SplitPane/SplitPane'
 import Popover from './components/common/Popover'
 import Popup from './components/common/Popup'
-import FileInput from './components/common/FileInput/FileInput.js'
-import MultiSelect from './components/common/MultiSelect/index.js'
-import EntityRefSelect from './components/common/EntityRefSelect/index.js'
-import TextEditor from './components/Editor/TextEditor.js'
-import EntityTree from './components/EntityTree/EntityTree.js'
-import EntityTreeButton from './components/EntityTree/EntityTreeButton.js'
+import FileInput from './components/common/FileInput/FileInput'
+import MultiSelect from './components/common/MultiSelect/index'
+import EntityRefSelect from './components/common/EntityRefSelect/index'
+import TextEditor from './components/Editor/TextEditor'
+import EntityTree from './components/EntityTree/EntityTree'
+import EntityTreeButton from './components/EntityTree/EntityTreeButton'
 import Preview from './components/Preview/Preview'
 import FramePreview from './components/Preview/FramePreview'
-import NewEntityModal from './components/Modals/NewEntityModal.js'
+import NewEntityModal from './components/Modals/NewEntityModal'
 import storeMethods from './redux/methods'
 import * as editor from './redux/editor'
 import * as entities from './redux/entities'
@@ -28,9 +28,10 @@ import * as progress from './redux/progress'
 import * as settings from './redux/settings'
 import * as configuration from './lib/configuration'
 import rootUrl from './helpers/rootUrl'
+import { openModal, isModalOpen } from './helpers/openModal'
 import resolveUrl from './helpers/resolveUrl'
 import { findTextEditor } from './helpers/textEditorInstance'
-import babelRuntime from './lib/babelRuntime.js'
+import babelRuntime from './lib/babelRuntime'
 import bluebird from 'bluebird'
 import io from 'socket.io-client'
 
@@ -153,7 +154,7 @@ class Studio {
   }
 
   /**
-   *  Add a fn to resolve items for the conext menu at Entity Tree
+   *  Add a fn to resolve items for the context menu at Entity Tree
    *  @param {Function} fn
    */
   addEntityTreeContextMenuItemsResolver (fn) {
@@ -183,7 +184,7 @@ class Studio {
   }
 
   /**
-   * Add component used in the left Properties secion
+   * Add component used in the left Properties section
    *
    * @param {Function|String} string or title function used to render the section title
    * @param {ReactComponent|Function} component
@@ -380,19 +381,19 @@ class Studio {
   /**
    * Opens modal dialog.
    *
-   * @param {ReacrComponent|String}componentOrText
+   * @param {ReactComponent|String}componentOrText
    * @param {Object} options passed as props to the react component
    */
   openModal (componentOrText, options) {
-    configuration.modalHandler.open(componentOrText, options || {})
+    openModal(componentOrText, options || {})
   }
 
   openNewModal (entitySet) {
-    configuration.modalHandler.open(NewEntityModal, { entitySet: entitySet })
+    openModal(NewEntityModal, { entitySet: entitySet })
   }
 
   isModalOpen () {
-    return configuration.modalHandler.isModalOpen()
+    return isModalOpen()
   }
 
   /**
@@ -568,7 +569,7 @@ class Studio {
    * @returns {Object[]}
    */
   getSettings () {
-    return settings.selectors.getAll(this.store.getState())
+    return settings.selectors.getAll(this.store.getState().settings)
   }
 
   /**
@@ -586,7 +587,7 @@ class Studio {
    * @param {Boolean} shouldThrow
    */
   getSettingValueByKey (key, shouldThrow = true) {
-    return settings.selectors.getValueByKey(this.store.getState(), key, shouldThrow)
+    return settings.selectors.getValueByKey(this.store.getState().settings, key, shouldThrow)
   }
 
   /**
@@ -614,7 +615,7 @@ class Studio {
    * @returns {Object}
    */
   getActiveEntity () {
-    return editor.selectors.getActiveEntity(this.store.getState())
+    return editor.selectors.getActiveEntity(this.store.getState().activeTabKey, this.store.getState().editor.tabs, this.store.getState().entities)
   }
 
   /**
@@ -622,7 +623,7 @@ class Studio {
    * @returns {Object|null}
    */
   getLastActiveTemplate () {
-    return editor.selectors.getLastActiveTemplate(this.store.getState())
+    return editor.selectors.getLastActiveTemplate(this.store.getState().editor.lastActiveTemplateKey, this.store.getState().entities)
   }
 
   /**
@@ -630,7 +631,7 @@ class Studio {
    * @returns {Object[]}
    */
   getAllEntities () {
-    return entities.selectors.getAll(this.store.getState())
+    return entities.selectors.getAll(this.store.getState().entities)
   }
 
   /**
@@ -646,7 +647,7 @@ class Studio {
    * @returns {Object[]}
    */
   getReferences () {
-    return entities.selectors.getReferences(this.store.getState())
+    return entities.selectors.getReferences(this.store.getState().entities)
   }
 
   /**

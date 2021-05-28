@@ -1,31 +1,65 @@
 import { selectors } from '../entities'
-import { editorComponents } from '../../lib/configuration.js'
+import { createSelector } from 'reselect'
 
-export const getTabWithEntities = (state) => state.editor.tabs.map((t) => ({
-  entity: t.type === 'entity' ? selectors.getById(state, t._id) : typeof t.getEntity === 'function' ? t.getEntity() : null,
+const getActiveTabKey = (state) => state.editor.activeTabKey
+const getLastActiveTemplateKey = (state) => state.editor.lastActiveTemplateKey
+const getTabs = (state) => state.editor.tabs
+const getEntities = (state) => state.entities
+
+export const getActiveTab = (activeTabKey, tabs) => {
+  if (activeTabKey) {
+    return tabs.filter((t) => t.key === activeTabKey)[0]
+  }
+
+  return null
+}
+
+export const createGetActiveTabSelector = () => {
+  return createSelector(
+    [getActiveTabKey, getTabs],
+    getActiveTab
+  )
+}
+
+export const getTabWithEntities = (tabs, entities) => tabs.map((t) => ({
+  entity: t.type === 'entity' ? selectors.getById(entities, t._id) : (
+    typeof t.getEntity === 'function' ? t.getEntity() : null
+  ),
   tab: t
 }))
 
-export const getActiveTab = (state) => state.editor.activeTabKey ? state.editor.tabs.filter((t) => t.key === state.editor.activeTabKey)[0] : null
+export const createGetTabWithEntitiesSelector = () => {
+  return createSelector(
+    [getTabs, getEntities],
+    getTabWithEntities
+  )
+}
 
-export const getActiveEntity = (state) => {
-  if (!state.editor.activeTabKey) {
+export const getActiveEntity = (activeTabKey, tabs, entities) => {
+  if (!activeTabKey) {
     return null
   }
 
-  const tab = getActiveTab(state)
+  const tab = getActiveTab(activeTabKey, tabs)
 
   if (!tab) {
     return null
   }
 
-  return tab.type === 'entity'
-    ? selectors.getById(state, tab._id, false)
-    : typeof tab.getEntity === 'function' ? tab.getEntity() : null
+  return tab.type === 'entity' ? selectors.getById(entities, tab._id, false) : (
+    typeof tab.getEntity === 'function' ? tab.getEntity() : null
+  )
 }
 
-export const getActiveTabWithEntity = (state) => {
-  const tab = getActiveTab(state)
+export const createGetActiveEntitySelector = () => {
+  return createSelector(
+    [getActiveTabKey, getTabs, getEntities],
+    getActiveEntity
+  )
+}
+
+export const getActiveTabWithEntity = (activeTabKey, tabs, entities) => {
+  const tab = getActiveTab(activeTabKey, tabs)
 
   if (!tab || (tab.type !== 'entity' && typeof tab.getEntity !== 'function')) {
     return { tab }
@@ -33,49 +67,71 @@ export const getActiveTabWithEntity = (state) => {
 
   return {
     tab,
-    entity: tab.type === 'entity'
-      ? selectors.getById(state, tab._id)
-      : typeof tab.getEntity === 'function' ? tab.getEntity() : null
-
+    entity: tab.type === 'entity' ? selectors.getById(entities, tab._id) : (
+      typeof tab.getEntity === 'function' ? tab.getEntity() : null
+    )
   }
 }
 
-export const getLastActiveTemplate = (state) => {
-  if (!state.editor.lastActiveTemplateKey) {
+export const createGetActiveTabWithEntitySelector = () => {
+  return createSelector(
+    [getActiveTabKey, getTabs, getEntities],
+    getActiveTabWithEntity
+  )
+}
+
+export const getLastActiveTemplate = (lastActiveTemplateKey, entities) => {
+  if (!lastActiveTemplateKey) {
     return null
   }
 
-  return selectors.getById(state, state.editor.lastActiveTemplateKey)
+  return selectors.getById(entities, lastActiveTemplateKey)
 }
 
-export const canRun = (state) => {
-  const activeTab = getActiveTab(state)
+export const createGetLastActiveTemplateSelector = () => {
+  return createSelector(
+    [getLastActiveTemplateKey, getEntities],
+    getLastActiveTemplate
+  )
+}
+
+export const getCanRun = (activeTabKey, lastActiveTemplateKey, tabs) => {
+  const activeTab = getActiveTab(activeTabKey, tabs)
 
   if (activeTab != null) {
-    return !!state.editor.lastActiveTemplateKey && activeTab.type === 'entity'
+    return !!lastActiveTemplateKey && activeTab.type === 'entity'
   }
 
-  return !!state.editor.lastActiveTemplateKey
+  return !!lastActiveTemplateKey
 }
 
-export const canRemove = (state) => {
-  const entity = getActiveEntity(state)
-
-  return !!entity
+export const createGetCanRunSelector = () => {
+  return createSelector(
+    [getActiveTabKey, getLastActiveTemplateKey, getTabs],
+    getCanRun
+  )
 }
 
-export const canSave = (state) => {
-  const entity = getActiveEntity(state)
+export const getCanSave = (activeTabKey, tabs, entities) => {
+  const entity = getActiveEntity(activeTabKey, tabs, entities)
 
   return entity ? !!entity.__isDirty : false
 }
 
-export const canSaveAll = (state) => {
-  return getTabWithEntities(state).filter((t) => t.entity && t.entity.__isDirty).length > 0
+export const createGetCanSaveSelector = () => {
+  return createSelector(
+    [getActiveTabKey, getTabs, getEntities],
+    getCanSave
+  )
 }
 
-export const canReformat = (state) => {
-  const tab = getActiveTab(state)
+export const getCanSaveAll = (tabs, entities) => {
+  return getTabWithEntities(tabs, entities).filter((t) => t.entity && t.entity.__isDirty).length > 0
+}
 
-  return (tab && editorComponents[tab.editorComponentKey || tab.entitySet].reformat != null)
+export const createGetCanSaveAllSelector = () => {
+  return createSelector(
+    [getTabs, getEntities],
+    getCanSaveAll
+  )
 }

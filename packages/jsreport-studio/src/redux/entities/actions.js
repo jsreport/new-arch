@@ -38,7 +38,7 @@ export function groupedUpdate (entity) {
 
 export function remove (id, children) {
   return async function (dispatch, getState) {
-    const entity = selectors.getById(getState(), id)
+    const entity = selectors.getById(getState().entities, id)
 
     if (entity.__isNew) {
       return dispatch({
@@ -103,7 +103,7 @@ export function addExisting (entity) {
 
 export function load (id, force) {
   return async function (dispatch, getState) {
-    let entity = selectors.getById(getState(), id)
+    let entity = selectors.getById(getState().entities, id)
 
     if (!force && (entity.__isLoaded || entity.__isNew)) {
       return entity
@@ -193,7 +193,7 @@ export const replace = (oldId, entity) => ({
 export function save (id, { ignoreFailed = false, validateConcurrent = true } = {}) {
   return async function (dispatch, getState) {
     try {
-      const entity = Object.assign({}, selectors.getById(getState(), id))
+      const entity = Object.assign({}, selectors.getById(getState().entities, id))
 
       dispatch(apiStart())
 

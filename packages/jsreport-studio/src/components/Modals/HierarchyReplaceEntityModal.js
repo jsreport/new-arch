@@ -2,9 +2,9 @@ import PropTypes from 'prop-types'
 import React, { Component } from 'react'
 import { entitySets } from '../../lib/configuration'
 import { connect } from 'react-redux'
-import { selectors } from '../../redux/entities'
-import { actions } from '../../redux/editor'
+import { actions as editorActions } from '../../redux/editor'
 import storeMethods from '../../redux/methods'
+import { createGetByIdSelector, createGetByShortidSelector } from '../../redux/entities/selectors'
 
 class HierarchyReplaceEntityModal extends Component {
   static propTypes = {
@@ -77,7 +77,17 @@ class HierarchyReplaceEntityModal extends Component {
   }
 }
 
-export default connect((state, props) => ({
-  sourceEntity: selectors.getById(state, props.options.sourceId, false),
-  targetEntity: selectors.getByShortid(state, props.options.targetShortId, false)
-}), { ...actions })(HierarchyReplaceEntityModal)
+function makeMapStateToProps () {
+  const getById = createGetByIdSelector()
+  const getByShortid = createGetByShortidSelector()
+
+  return (state, props) => ({
+    sourceEntity: getById(state, { id: props.options.sourceId }),
+    targetEntity: getByShortid(state, { shortid: props.options.targetShortId })
+  })
+}
+
+export default connect(
+  makeMapStateToProps,
+  { ...editorActions }
+)(HierarchyReplaceEntityModal)

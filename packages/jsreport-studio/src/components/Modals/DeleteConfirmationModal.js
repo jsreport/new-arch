@@ -2,7 +2,8 @@ import PropTypes from 'prop-types'
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import { entitySets } from '../../lib/configuration.js'
-import { actions, selectors } from '../../redux/entities'
+import { actions as entitiesActions } from '../../redux/entities'
+import { createGetByIdSelector } from '../../redux/entities/selectors.js'
 
 class DeleteConfirmationModal extends Component {
   static propTypes = {
@@ -18,7 +19,7 @@ class DeleteConfirmationModal extends Component {
 
   remove () {
     this.props.close()
-    this.props.remove(this.props.entity._id, this.props.childrenIds)
+    this.props.remove(this.props.entity._id, this.props.options.childrenIds)
   }
 
   cancel () {
@@ -69,7 +70,15 @@ class DeleteConfirmationModal extends Component {
   }
 }
 
-export default connect((state, props) => ({
-  entity: selectors.getById(state, props.options._id, false),
-  childrenIds: props.options.childrenIds
-}), { ...actions })(DeleteConfirmationModal)
+function makeMapStateToProps () {
+  const getById = createGetByIdSelector()
+
+  return (state, props) => ({
+    entity: getById(state, { id: props.options._id })
+  })
+}
+
+export default connect(
+  makeMapStateToProps,
+  { ...entitiesActions }
+)(DeleteConfirmationModal)

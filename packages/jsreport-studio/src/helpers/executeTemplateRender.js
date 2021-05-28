@@ -85,7 +85,7 @@ async function streamRender (request, { onStart, onFile } = {}) {
         if (files.length > 0) {
           const toProcess = []
 
-          // if the report is already available we process it inmediatly
+          // if the report is already available we process it immediately
           if (files[files.length - 1].name === 'report') {
             const fileInfo = files.pop()
             toProcess.push(fileInfo)

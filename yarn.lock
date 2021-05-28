@@ -3344,6 +3344,11 @@ camelcase@5.0.0:
   resolved "https://registry.yarnpkg.com/camelcase/-/camelcase-5.0.0.tgz#03295527d58bd3cd4aa75363f35b2e8d97be2f42"
   integrity sha512-faqwZqnWxbxn+F1d399ygeamQNy3lPp/H9H6rNrqYh4FSVCtcY+3cub1MxA8o9mDd55mM8Aghuu/kuyYA6VTsA==
 
+camelcase@6.2.0, camelcase@^6.0.0:
+  version "6.2.0"
+  resolved "https://registry.yarnpkg.com/camelcase/-/camelcase-6.2.0.tgz#924af881c9d525ac9d87f40d964e5cea982a1809"
+  integrity sha512-c7wVvbw3f37nuobQNtgsgG9POC9qMbNuMQmTCqZv23b6MIz0fcYpBiOlv9gEN/hdLdnZTDQhg6e9Dq5M1vKvfg==
+
 camelcase@^2.0.0, camelcase@^2.0.1:
   version "2.1.1"
   resolved "https://registry.yarnpkg.com/camelcase/-/camelcase-2.1.1.tgz#7c1d16d679a1bbe59ca02cacecfb011e201f5a1f"
@@ -3358,11 +3363,6 @@ camelcase@^5.0.0, camelcase@^5.2.0:
   version "5.3.1"
   resolved "https://registry.yarnpkg.com/camelcase/-/camelcase-5.3.1.tgz#e3c9b31569e106811df242f715725a1f4c494320"
   integrity sha512-L28STB170nwWS63UjtlEOE3dldQApaJXZkOI1uMFfzf3rRuPegHaHesyee+YxQ+W6SvRDQV6UrdOdRiR153wJg==
-
-camelcase@^6.0.0:
-  version "6.2.0"
-  resolved "https://registry.yarnpkg.com/camelcase/-/camelcase-6.2.0.tgz#924af881c9d525ac9d87f40d964e5cea982a1809"
-  integrity sha512-c7wVvbw3f37nuobQNtgsgG9POC9qMbNuMQmTCqZv23b6MIz0fcYpBiOlv9gEN/hdLdnZTDQhg6e9Dq5M1vKvfg==
 
 caniuse-lite@^1.0.30000957, caniuse-lite@^1.0.30001173:
   version "1.0.30001178"
@@ -4795,6 +4795,11 @@ devtools-protocol@0.0.854822:
   version "0.0.854822"
   resolved "https://registry.yarnpkg.com/devtools-protocol/-/devtools-protocol-0.0.854822.tgz#eac3a5260a6b3b4e729a09fdc0c77b0d322e777b"
   integrity sha512-xd4D8kHQtB0KtWW0c9xBZD5LVtm9chkMOfs/3Yn01RhT/sFIsVtzTtypfKoFfWBaL+7xCYLxjOLkhwPXaX/Kcg==
+
+devtools-protocol@0.0.869402:
+  version "0.0.869402"
+  resolved "https://registry.yarnpkg.com/devtools-protocol/-/devtools-protocol-0.0.869402.tgz#03ade701761742e43ae4de5dc188bcd80f156d8d"
+  integrity sha512-VvlVYY+VDJe639yHs5PHISzdWTLL3Aw8rO4cvUtwvoxFd6FHbE4OpHHcde52M6096uYYazAmd4l0o5VuFRO2WA==
 
 dicer@0.2.5:
   version "0.2.5"
@@ -6558,6 +6563,49 @@ eslint@6.1.0, eslint@~6.1.0:
     text-table "^0.2.0"
     v8-compile-cache "^2.0.3"
 
+eslint@6.6.0:
+  version "6.6.0"
+  resolved "https://registry.yarnpkg.com/eslint/-/eslint-6.6.0.tgz#4a01a2fb48d32aacef5530ee9c5a78f11a8afd04"
+  integrity sha512-PpEBq7b6qY/qrOmpYQ/jTMDYfuQMELR4g4WI1M/NaSDDD/bdcMb+dj4Hgks7p41kW2caXsPsEZAEAyAgjVVC0g==
+  dependencies:
+    "@babel/code-frame" "^7.0.0"
+    ajv "^6.10.0"
+    chalk "^2.1.0"
+    cross-spawn "^6.0.5"
+    debug "^4.0.1"
+    doctrine "^3.0.0"
+    eslint-scope "^5.0.0"
+    eslint-utils "^1.4.3"
+    eslint-visitor-keys "^1.1.0"
+    espree "^6.1.2"
+    esquery "^1.0.1"
+    esutils "^2.0.2"
+    file-entry-cache "^5.0.1"
+    functional-red-black-tree "^1.0.1"
+    glob-parent "^5.0.0"
+    globals "^11.7.0"
+    ignore "^4.0.6"
+    import-fresh "^3.0.0"
+    imurmurhash "^0.1.4"
+    inquirer "^7.0.0"
+    is-glob "^4.0.0"
+    js-yaml "^3.13.1"
+    json-stable-stringify-without-jsonify "^1.0.1"
+    levn "^0.3.0"
+    lodash "^4.17.14"
+    minimatch "^3.0.4"
+    mkdirp "^0.5.1"
+    natural-compare "^1.4.0"
+    optionator "^0.8.2"
+    progress "^2.0.0"
+    regexpp "^2.0.1"
+    semver "^6.1.2"
+    strip-ansi "^5.2.0"
+    strip-json-comments "^3.0.1"
+    table "^5.2.3"
+    text-table "^0.2.0"
+    v8-compile-cache "^2.0.3"
+
 eslint@6.7.2:
   version "6.7.2"
   resolved "https://registry.yarnpkg.com/eslint/-/eslint-6.7.2.tgz#c17707ca4ad7b2d8af986a33feba71e18a9fecd1"
@@ -6820,6 +6868,49 @@ eslint@7.23.0:
   version "7.23.0"
   resolved "https://registry.yarnpkg.com/eslint/-/eslint-7.23.0.tgz#8d029d252f6e8cf45894b4bee08f5493f8e94325"
   integrity sha512-kqvNVbdkjzpFy0XOszNwjkKzZ+6TcwCQ/h+ozlcIWwaimBBuhlQ4nN6kbiM2L+OjDcznkTJxzYfRFH92sx4a0Q==
+  dependencies:
+    "@babel/code-frame" "7.12.11"
+    "@eslint/eslintrc" "^0.4.0"
+    ajv "^6.10.0"
+    chalk "^4.0.0"
+    cross-spawn "^7.0.2"
+    debug "^4.0.1"
+    doctrine "^3.0.0"
+    enquirer "^2.3.5"
+    eslint-scope "^5.1.1"
+    eslint-utils "^2.1.0"
+    eslint-visitor-keys "^2.0.0"
+    espree "^7.3.1"
+    esquery "^1.4.0"
+    esutils "^2.0.2"
+    file-entry-cache "^6.0.1"
+    functional-red-black-tree "^1.0.1"
+    glob-parent "^5.0.0"
+    globals "^13.6.0"
+    ignore "^4.0.6"
+    import-fresh "^3.0.0"
+    imurmurhash "^0.1.4"
+    is-glob "^4.0.0"
+    js-yaml "^3.13.1"
+    json-stable-stringify-without-jsonify "^1.0.1"
+    levn "^0.4.1"
+    lodash "^4.17.21"
+    minimatch "^3.0.4"
+    natural-compare "^1.4.0"
+    optionator "^0.9.1"
+    progress "^2.0.0"
+    regexpp "^3.1.0"
+    semver "^7.2.1"
+    strip-ansi "^6.0.0"
+    strip-json-comments "^3.1.0"
+    table "^6.0.4"
+    text-table "^0.2.0"
+    v8-compile-cache "^2.0.3"
+
+eslint@7.24.0:
+  version "7.24.0"
+  resolved "https://registry.yarnpkg.com/eslint/-/eslint-7.24.0.tgz#2e44fa62d93892bfdb100521f17345ba54b8513a"
+  integrity sha512-k9gaHeHiFmGCDQ2rEfvULlSLruz6tgfA8DEn+rY9/oYPFFTlz55mM/Q/Rij1b2Y42jwZiK3lXvNTw6w6TXzcKQ==
   dependencies:
     "@babel/code-frame" "7.12.11"
     "@eslint/eslintrc" "^0.4.0"
@@ -8516,6 +8607,15 @@ html-to-xlsx@2.0.3:
     tinycolor2 "1.4.1"
     uuid "3.2.1"
 
+"html-to-xlsx@github:pofider/html-to-xlsx":
+  version "2.0.3"
+  resolved "https://codeload.github.com/pofider/html-to-xlsx/tar.gz/447e78f0844c2890ec7a9102716bc50fec911050"
+  dependencies:
+    jsreport-exceljs "3.7.1"
+    moment "2.22.1"
+    tinycolor2 "1.4.1"
+    uuid "3.2.1"
+
 html-webpack-plugin@3.2.0:
   version "3.2.0"
   resolved "https://registry.yarnpkg.com/html-webpack-plugin/-/html-webpack-plugin-3.2.0.tgz#b01abbd723acaaa7b37b6af4492ebda03d9dd37b"
@@ -10033,6 +10133,19 @@ jsreport-fs-store@2.9.0:
     socket.io "2.3.0"
     uuid "3.3.3"
 
+jsreport-html-to-xlsx@2.8.4:
+  version "2.8.4"
+  resolved "https://registry.yarnpkg.com/jsreport-html-to-xlsx/-/jsreport-html-to-xlsx-2.8.4.tgz#5fc42643455876801fe9f4eb57769c9bb76d1bd9"
+  integrity sha512-ah5SDPj4I04PwC/1sNFJBxS3Nw8Bn8OzVF7fnnBhzK0P93/bqD7BTOxROHiuYkpw5Q5ZQiPKWUDb0+BNuwv0Sg==
+  dependencies:
+    chrome-page-eval "1.3.0"
+    html-to-xlsx "github:pofider/html-to-xlsx"
+    jsreport-office "1.2.0"
+    nanoid "1.0.7"
+    node.extend.without.arrays "1.1.6"
+    opentype.js "1.1.0"
+    phantom-page-eval "1.2.0"
+
 jsreport-pdfjs@0.5.1:
   version "0.5.1"
   resolved "https://registry.yarnpkg.com/jsreport-pdfjs/-/jsreport-pdfjs-0.5.1.tgz#2330e385d5a73e170d9f81fc8c7623f911614234"
@@ -10062,6 +10175,15 @@ jsreport-sql-2@0.0.1:
   dependencies:
     lodash "^4.17.5"
     sliced "0.0.x"
+
+jsreport-sql-store@1.4.2:
+  version "1.4.2"
+  resolved "https://registry.yarnpkg.com/jsreport-sql-store/-/jsreport-sql-store-1.4.2.tgz#9eb173c9cb72bd8488619a71a0619658a6754482"
+  integrity sha512-OuJUEgqklWjryfXrV9Jbg/GeVS2MJcXs7I4dC+63asi0V2Eohmwu5MEIEYzSsE+2ekPfIdMj8tfBNLkAs43v7A==
+  dependencies:
+    bluebird "3.5.3"
+    odata-to-sql "0.10.2"
+    uuid "3.3.2"
 
 "jsreport-studio-dev@file:packages/jsreport-studio-dev":
   version "1.6.0"
@@ -11329,6 +11451,35 @@ mocha@6.2.0:
     yargs-parser "13.0.0"
     yargs-unparser "1.5.0"
 
+mocha@6.2.2:
+  version "6.2.2"
+  resolved "https://registry.yarnpkg.com/mocha/-/mocha-6.2.2.tgz#5d8987e28940caf8957a7d7664b910dc5b2fea20"
+  integrity sha512-FgDS9Re79yU1xz5d+C4rv1G7QagNGHZ+iXF81hO8zY35YZZcLEsJVfFolfsqKFWunATEvNzMK0r/CwWd/szO9A==
+  dependencies:
+    ansi-colors "3.2.3"
+    browser-stdout "1.3.1"
+    debug "3.2.6"
+    diff "3.5.0"
+    escape-string-regexp "1.0.5"
+    find-up "3.0.0"
+    glob "7.1.3"
+    growl "1.10.5"
+    he "1.2.0"
+    js-yaml "3.13.1"
+    log-symbols "2.2.0"
+    minimatch "3.0.4"
+    mkdirp "0.5.1"
+    ms "2.1.1"
+    node-environment-flags "1.0.5"
+    object.assign "4.1.0"
+    strip-json-comments "2.0.1"
+    supports-color "6.0.0"
+    which "1.3.1"
+    wide-align "1.1.3"
+    yargs "13.3.0"
+    yargs-parser "13.1.1"
+    yargs-unparser "1.6.0"
+
 mocha@7.0.0:
   version "7.0.0"
   resolved "https://registry.yarnpkg.com/mocha/-/mocha-7.0.0.tgz#c60d14bf3de9601f549b3ff5be657eb8381c54bf"
@@ -12206,6 +12357,14 @@ odata-parser@1.4.1:
   resolved "https://registry.yarnpkg.com/odata-parser/-/odata-parser-1.4.1.tgz#a2224bc749e76a6205bd47f47acd50eb1e71ed99"
   integrity sha1-oiJLx0nnamIFvUf0es1Q6x5x7Zk=
 
+odata-to-sql@0.10.2:
+  version "0.10.2"
+  resolved "https://registry.yarnpkg.com/odata-to-sql/-/odata-to-sql-0.10.2.tgz#11d37f98d2c9f42f402bbf6d12188ed1b002e0f6"
+  integrity sha512-AYsS8FF+0YIbKBMGXWGkobwsfj1FdA703f1Gc7ctB79nsy7rbVRe0qHzaxOWQBSNkEdthBW7cKLdYLt3V555RQ==
+  dependencies:
+    jsreport-sql-2 "0.0.1"
+    lodash "4.17.15"
+
 ok-file@1.5.2:
   version "1.5.2"
   resolved "https://registry.yarnpkg.com/ok-file/-/ok-file-1.5.2.tgz#b3356a28f7ac5267fc034588b58edc168d3b7a35"
@@ -12304,6 +12463,11 @@ optionator@^0.9.1:
     prelude-ls "^1.2.1"
     type-check "^0.4.0"
     word-wrap "^1.2.3"
+
+oracledb@5.1.0:
+  version "5.1.0"
+  resolved "https://registry.yarnpkg.com/oracledb/-/oracledb-5.1.0.tgz#2139469d7318a48f3fed6c00f0d98e5049bb769f"
+  integrity sha512-/IpzG729lFj8NBsA0xaOijdf6ZO3VuJbebma/hSf+VUZoIyzI/mCzBX047ramb/W8yJ1SV/HdWgs+XEczbqsXg==
 
 ordinal-number-suffix@0.1.2:
   version "0.1.2"
@@ -13403,6 +13567,24 @@ puppeteer@8.0.0:
     unbzip2-stream "^1.3.3"
     ws "^7.2.3"
 
+puppeteer@9.1.1:
+  version "9.1.1"
+  resolved "https://registry.yarnpkg.com/puppeteer/-/puppeteer-9.1.1.tgz#f74b7facf86887efd6c6b9fabb7baae6fdce012c"
+  integrity sha512-W+nOulP2tYd/ZG99WuZC/I5ljjQQ7EUw/jQGcIb9eu8mDlZxNY2SgcJXTLG9h5gRvqA3uJOe4hZXYsd3EqioMw==
+  dependencies:
+    debug "^4.1.0"
+    devtools-protocol "0.0.869402"
+    extract-zip "^2.0.0"
+    https-proxy-agent "^5.0.0"
+    node-fetch "^2.6.1"
+    pkg-dir "^4.2.0"
+    progress "^2.0.1"
+    proxy-from-env "^1.1.0"
+    rimraf "^3.0.2"
+    tar-fs "^2.0.0"
+    unbzip2-stream "^1.3.3"
+    ws "^7.2.3"
+
 qs@6.7.0:
   version "6.7.0"
   resolved "https://registry.yarnpkg.com/qs/-/qs-6.7.0.tgz#41dc1a015e3d581f1621776be31afb2876a9b1bc"
@@ -14176,6 +14358,11 @@ require_optional@^1.0.1:
   dependencies:
     resolve-from "^2.0.0"
     semver "^5.1.0"
+
+reselect@4.0.0:
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/reselect/-/reselect-4.0.0.tgz#f2529830e5d3d0e021408b246a206ef4ea4437f7"
+  integrity sha512-qUgANli03jjAyGlnbYVAV5vvnOmJnODyABz51RdBN7M4WaVu8mecZWgyQNkG8Yqe3KRGRt0l4K4B3XVEULC4CA==
 
 resolve-dir@^1.0.0, resolve-dir@^1.0.1:
   version "1.0.1"

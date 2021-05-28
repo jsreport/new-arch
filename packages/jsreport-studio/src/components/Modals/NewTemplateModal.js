@@ -230,6 +230,6 @@ function getDefaultRecipe () {
 }
 
 export default connect(
-  (state) => ({}),
+  undefined,
   { ...editorActions, ...entitiesActions }
 )(NewTemplateModal)

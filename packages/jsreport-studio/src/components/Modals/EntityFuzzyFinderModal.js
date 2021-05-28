@@ -3,7 +3,7 @@ import React, { Component } from 'react'
 import { connect } from 'react-redux'
 // TODO: uncomment this when we want to test the fuzzy finder (it is disabled because yarn problems with windows)
 // import fuzzyFilterFactory from 'react-fuzzy-filter'
-import { selectors as entitiesSelector } from '../../redux/entities'
+import { createGetNormalizedEntitiesSelector } from '../../redux/entities/selectors'
 import { actions as editorActions } from '../../redux/editor'
 import { resolveEntityTreeIconStyle } from '../EntityTree/utils'
 import { entitySets } from '../../lib/configuration'
@@ -336,8 +336,14 @@ class EntityFuzzyFinderModal extends Component {
   }
 }
 
-export default Object.assign(connect((state) => ({
-  entities: entitiesSelector.getNormalizedEntities(state)
-}), {
+function makeMapStateToProps () {
+  const getNormalizedEntities = createGetNormalizedEntitiesSelector()
+
+  return (state) => ({
+    entities: getNormalizedEntities(state)
+  })
+}
+
+export default Object.assign(connect(makeMapStateToProps, {
   openTab: editorActions.openTab
 })(EntityFuzzyFinderModal), { frameless: true })

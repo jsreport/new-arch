@@ -3,7 +3,8 @@ import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import EntityTreeButton from '../EntityTree/EntityTreeButton'
 import EntityTree from '../EntityTree/EntityTree'
-import { actions as entitiesActions, selectors as entitiesSelectors } from '../../redux/entities'
+import { createGetReferencesSelector } from '../../redux/entities/selectors'
+import { actions as entitiesActions } from '../../redux/entities'
 import storeMethods from '../../redux/methods'
 import api from '../../helpers/api'
 
@@ -320,6 +321,14 @@ class EntityTreeSelectionModal extends Component {
   }
 }
 
-export default connect((state) => ({
-  references: entitiesSelectors.getReferences(state)
-}), { addExistingEntity: entitiesActions.addExisting })(EntityTreeSelectionModal)
+function makeMapStateToProps () {
+  const getReferences = createGetReferencesSelector()
+
+  return (state) => ({
+    references: getReferences(state)
+  })
+}
+
+export default connect(makeMapStateToProps, {
+  addExistingEntity: entitiesActions.addExisting
+})(EntityTreeSelectionModal)

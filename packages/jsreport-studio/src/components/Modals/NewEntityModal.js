@@ -110,6 +110,6 @@ class NewEntityModal extends Component {
 }
 
 export default connect(
-  (state) => ({}),
+  undefined,
   { ...actions }
 )(NewEntityModal)

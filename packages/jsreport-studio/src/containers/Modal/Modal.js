@@ -2,9 +2,9 @@ import PropTypes from 'prop-types'
 import React, { Component } from 'react'
 import ReactModal from 'react-modal'
 import { connect } from 'react-redux'
-import { actions } from 'redux/modal'
+import { actions as modalActions } from 'redux/modal'
 import debounce from 'lodash/debounce'
-import { registerModalHandler } from '../../lib/configuration.js'
+import { registerModalHandler } from '../../lib/configuration'
 import style from './Modal.css'
 
 class ModalContent extends Component {
@@ -101,7 +101,7 @@ class ModalContent extends Component {
 
 class Modal extends Component {
   static propTypes = {
-    openCallback: PropTypes.func.isRequired
+    openCallback: PropTypes.func
   }
 
   constructor () {
@@ -118,7 +118,10 @@ class Modal extends Component {
 
   componentDidMount () {
     this.mounted = true
-    this.props.openCallback(this.open.bind(this))
+
+    if (this.props.openCallback != null) {
+      this.props.openCallback(this.open.bind(this))
+    }
   }
 
   componentDidUpdate (prevProps) {
@@ -257,4 +260,4 @@ export default connect((state) => ({
   contentId: state.modal.contentId,
   isOpen: state.modal.isOpen,
   text: state.modal.text
-}), { ...actions })(Modal)
+}), { ...modalActions })(Modal)

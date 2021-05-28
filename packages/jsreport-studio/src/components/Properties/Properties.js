@@ -1,87 +1,114 @@
-/* import PropTypes from 'prop-types' */
-import React, { Component } from 'react'
-import style from './Properties.css'
-import { propertiesComponents } from '../../lib/configuration.js'
+import React, { useCallback, useMemo, useState } from 'react'
+import styles from './Properties.css'
+import { createGetActiveEntitySelector, createGetActiveTabSelector } from '../../redux/editor/selectors'
+import { propertiesComponents } from '../../lib/configuration'
+import { useDispatch, useSelector } from 'react-redux'
+import { update } from '../../redux/editor/actions'
 
-class Properties extends Component {
-  /* TODO
-  static propTypes = {
-    entity: PropTypes.object,
-    entities: PropTypes.object,
-    onChange: PropTypes.func.isRequired
-  }
-  */
+function Properties () {
+  const entities = useSelector(state => state.entities)
+  const getActiveTab = useMemo(createGetActiveTabSelector, [])
+  const getActiveEntity = useMemo(createGetActiveEntitySelector, [])
+  const activeEntity = useSelector(getActiveEntity)
+  const activeTab = useSelector(getActiveTab)
+  const dispatch = useDispatch()
+  const [expanded, setExpanded] = useState({})
 
-  constructor () {
-    super()
-    this.state = {}
-  }
-
-  toggle (key) {
-    this.setState({ [key]: !this.state[key] })
-  }
-
-  renderTitle (title, entity, entities) {
-    if (typeof title === 'string') {
-      return <span>{title}</span>
+  const updateEntity = useCallback(function updateEntity (entity) {
+    if (activeTab && activeTab.readOnly) {
+      return
     }
 
-    return title(entity, entities)
-  }
+    return dispatch(update(entity))
+  }, [activeTab, dispatch])
 
-  renderOne (def, key, entity, entities, onChange) {
-    return !def.shouldDisplay(entity)
-      ? <div key={key} />
-      : (
-        <div key={key} className={style.propertyBox}>
-          <div
-            className={style.propertyTitle + ' ' + (this.state[key] ? style.expanded : '')}
-            onClick={() => this.toggle(key)}
-          >{this.renderTitle(def.title, entity, entities)}
-          </div>
-          <div className={style.propertyContentBox + ' ' + (this.state[key] ? style.expanded : '')}>
-            {React.createElement(def.component, {
-              key: key,
-              entity: entity,
-              entities: entities,
-              onChange: onChange
-            })}
-          </div>
-        </div>
-        )
-  }
+  const handleEntityNameChange = useCallback(function handleEntityNameChange (v) {
+    updateEntity({ _id: activeEntity._id, name: v.target.value })
+  }, [activeEntity, updateEntity])
 
-  renderProperties () {
-    const { entity, onChange, entities } = this.props
+  const handlePropertyToggle = useCallback(function handlePropertyToggle (propertyIdx) {
+    setExpanded((prevExpanded) => ({
+      ...expanded,
+      [propertyIdx]: !expanded[propertyIdx]
+    }))
+  }, [expanded])
 
-    return (
-      <div className={style.propertiesNodes}>
+  let propertiesContentEl = ''
+
+  if (activeEntity) {
+    propertiesContentEl = (
+      <div className={styles.propertiesNodes}>
         <div>
           <div className='form-group'>
             <label>name</label>
             <input
-              type='text' value={entity.name || ''}
-              onChange={(v) => onChange({ _id: entity._id, name: v.target.value })}
+              type='text'
+              value={activeEntity.name || ''}
+              onChange={handleEntityNameChange}
             />
           </div>
         </div>
-        {propertiesComponents.map((p, i) => this.renderOne(p, i, entity, entities, onChange))}
+        {propertiesComponents.map((def, i) => (
+          <Property
+            key={i}
+            def={def}
+            entity={activeEntity}
+            entities={entities}
+            expanded={expanded[i] === true}
+            onActiveToggle={() => handlePropertyToggle(i)}
+            onChange={updateEntity}
+          />
+        ))}
       </div>
     )
   }
 
-  render () {
-    const { entity } = this.props
-
-    return (
-      <div className={style.propertiesPanel}>
-        <div className={style.title}>Properties</div>
-        <div className={style.propertiesContainer}>
-          {entity ? this.renderProperties(entity) : ''}
-        </div>
+  return (
+    <div className={styles.propertiesPanel}>
+      <div className={styles.title}>Properties</div>
+      <div className={styles.propertiesContainer}>
+        {propertiesContentEl}
       </div>
-    )
+    </div>
+  )
+}
+
+function Property (props) {
+  const { def, entity, entities, expanded, onActiveToggle, onChange } = props
+
+  if (!def.shouldDisplay(entity)) {
+    return <div />
   }
+
+  let titleEl
+
+  if (typeof def.title === 'string') {
+    titleEl = (
+      <span>{def.title}</span>
+    )
+  } else {
+    titleEl = def.title(entity, entities)
+  }
+
+  return (
+    <div className={styles.propertyBox}>
+      <div
+        className={styles.propertyTitle + ' ' + (expanded ? styles.expanded : '')}
+        onClick={onActiveToggle}
+      >
+        {titleEl}
+      </div>
+      <div
+        className={styles.propertyContentBox + ' ' + (expanded ? styles.expanded : '')}
+      >
+        {React.createElement(def.component, {
+          entity: entity,
+          entities: entities,
+          onChange: onChange
+        })}
+      </div>
+    </div>
+  )
 }
 
 export default Properties

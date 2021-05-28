@@ -1,9 +1,15 @@
-/* import PropTypes from 'prop-types' */
+import PropTypes from 'prop-types'
 import React, { Component, Fragment } from 'react'
+import { connect } from 'react-redux'
 import Popup from '../common/Popup'
-import EntityFuzzyFinderModal from '../Modals/EntityFuzzyFinderModal.js'
-import { modalHandler, toolbarComponents, toolbarVisibilityResolver, extensions } from '../../lib/configuration.js'
+import EntityFuzzyFinderModal from '../Modals/EntityFuzzyFinderModal'
+import { createGetCanRunSelector, createGetActiveTabSelector, createGetActiveTabWithEntitySelector, createGetCanSaveSelector, createGetCanSaveAllSelector } from '../../redux/editor/selectors'
+import { actions as editorActions } from '../../redux/editor'
+import { openModal, isModalOpen } from '../../helpers/openModal'
+import runLastActiveTemplate from '../../helpers/runLastActiveTemplate'
+import openStartup from '../../helpers/openStartup'
 import resolveUrl from '../../helpers/resolveUrl'
+import { toolbarComponents, toolbarVisibilityResolver, extensions } from '../../lib/configuration'
 import style from './Toolbar.css'
 import logo from './js-logo.png'
 
@@ -28,6 +34,8 @@ class Toolbar extends Component {
   constructor () {
     super()
     this.state = {}
+    this.handleUpdate = this.handleUpdate.bind(this)
+    this.handleRun = this.handleRun.bind(this)
     this.handleShortcut = this.handleShortcut.bind(this)
     this.handleEarlyShortcut = this.handleEarlyShortcut.bind(this)
     this.handleRunMenuTrigger = this.handleRunMenuTrigger.bind(this)
@@ -50,16 +58,28 @@ class Toolbar extends Component {
     window.addEventListener('keydown', this.handleEarlyShortcut, true)
   }
 
+  handleUpdate (...params) {
+    if (this.props.activeTab && this.props.activeTab.readOnly) {
+      return
+    }
+
+    return this.props.update(...params)
+  }
+
+  handleRun (profiling = true) {
+    runLastActiveTemplate(profiling)
+  }
+
   // this place captures key events very early (capture phase) so it can work
   // across other contexts that are using keybindings too (like the Ace editor)
   handleEarlyShortcut (e) {
     // ctrl + p -> activates Entity fuzzy finder modal
     if (e.ctrlKey && e.which === 80) {
-      if (!modalHandler.isModalOpen()) {
+      if (!isModalOpen()) {
         e.preventDefault()
         e.stopPropagation()
 
-        modalHandler.open(EntityFuzzyFinderModal, {})
+        openModal(EntityFuzzyFinderModal, {})
         return false
       }
     }
@@ -67,7 +87,7 @@ class Toolbar extends Component {
     if (e.which === 119 && this.props.canRun) {
       e.preventDefault()
       e.stopPropagation()
-      this.props.onRun()
+      this.handleRun()
       return false
     }
   }
@@ -81,7 +101,7 @@ class Toolbar extends Component {
       e.preventDefault()
 
       if (this.props.canSaveAll && toolbarVisibilityResolver('SaveAll')) {
-        this.handleSave(this.props.onSaveAll)
+        this.handleSave(this.props.saveAll)
         return false
       }
     }
@@ -94,7 +114,7 @@ class Toolbar extends Component {
       e.preventDefault()
 
       if (this.props.canSave && toolbarVisibilityResolver('SaveAll')) {
-        this.handleSave(this.props.onSave)
+        this.handleSave(this.props.save)
         return false
       }
     }
@@ -175,7 +195,7 @@ class Toolbar extends Component {
   }
 
   renderRun () {
-    const { onRun, canRun } = this.props
+    const { canRun } = this.props
 
     return (
       <div
@@ -187,7 +207,7 @@ class Toolbar extends Component {
             return
           }
 
-          onRun()
+          this.handleRun()
           this.setState({ expandedRun: false })
         }}
       >
@@ -210,7 +230,7 @@ class Toolbar extends Component {
             return this.renderButton((e) => {
               e.stopPropagation()
               itemProps.closeMenu()
-              onRun(false)
+              this.handleRun(false)
             }, canRun, 'Run without profiling', 'fa fa-play-circle', 'Preview in new tab')
           }}
         </Popup>
@@ -221,9 +241,9 @@ class Toolbar extends Component {
   renderToolbarComponents (position, onCloseMenu) {
     return toolbarComponents[position].map((p, i) => React.createElement(p, {
       key: i,
-      tab: this.props.activeTab,
+      tab: this.props.activeTabWithEntity,
       closeMenu: position === 'settings' || position === 'settingsBottom' ? onCloseMenu : undefined,
-      onUpdate: this.props.onUpdate,
+      onUpdate: this.handleUpdate,
       canRun: this.props.canRun,
       canSaveAll: this.props.canSaveAll
     }))
@@ -268,7 +288,7 @@ class Toolbar extends Component {
 
   render () {
     const metaKey = isMac() ? 'CMD' : 'CTRL'
-    const { onSave, canSave, onSaveAll, canSaveAll, isPending, openStartup } = this.props
+    const { canSave, canSaveAll, save, saveAll, isPending } = this.props
 
     return (
       <div className={style.toolbar}>
@@ -279,8 +299,8 @@ class Toolbar extends Component {
           />
         </div>
         {this.renderRun()}
-        {this.renderButton(() => this.handleSave(onSave), canSave, 'Save', 'fa fa-floppy-o', `Save current tab (${metaKey}+S)`)}
-        {this.renderButton(() => this.handleSave(onSaveAll), canSaveAll, 'SaveAll', 'fa fa-floppy-o', `Save all tabs (${metaKey}+SHIFT+S`)}
+        {this.renderButton(() => this.handleSave(save), canSave, 'Save', 'fa fa-floppy-o', `Save current tab (${metaKey}+S)`)}
+        {this.renderButton(() => this.handleSave(saveAll), canSaveAll, 'SaveAll', 'fa fa-floppy-o', `Save all tabs (${metaKey}+SHIFT+S`)}
         {this.renderToolbarComponents('left')}
         <div className={style.spinner}>
           {isPending ? <i className='fa fa-spinner fa-spin fa-fw' /> : ''}
@@ -292,4 +312,25 @@ class Toolbar extends Component {
   }
 }
 
-export default Toolbar
+function makeMapStateToProps () {
+  const getActiveTab = createGetActiveTabSelector()
+  const getActiveTabWithEntity = createGetActiveTabWithEntitySelector()
+  const getCanRun = createGetCanRunSelector()
+  const getCanSave = createGetCanSaveSelector()
+  const getCanSaveAll = createGetCanSaveAllSelector()
+
+  return (state) => ({
+    isPending: state.progress.isPending,
+    canRun: getCanRun(state),
+    canSave: getCanSave(state),
+    canSaveAll: getCanSaveAll(state),
+    activeTab: getActiveTab(state),
+    activeTabWithEntity: getActiveTabWithEntity(state)
+  })
+}
+
+export default connect(makeMapStateToProps, {
+  save: editorActions.save,
+  saveAll: editorActions.saveAll,
+  update: editorActions.update
+})(Toolbar)

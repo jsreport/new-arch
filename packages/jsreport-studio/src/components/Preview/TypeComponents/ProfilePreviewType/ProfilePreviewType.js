@@ -7,8 +7,8 @@ import ProfileInspectModal from '../../../Modals/ProfileInspectModal'
 import ProfileErrorModal from '../../../Modals/ProfileErrorModal'
 import { actions as editorActions } from '../../../../redux/editor'
 import storeMethods from '../../../../redux/methods'
+import { openModal } from '../../../../helpers/openModal'
 import { findTextEditor, selectLine as selectLineInTextEditor } from '../../../../helpers/textEditorInstance'
-import { modalHandler } from '../../../../lib/configuration'
 import getStateAtProfileOperation from '../../../../helpers/getStateAtProfileOperation'
 
 function ProfilePreviewType (props) {
@@ -73,7 +73,7 @@ function ProfilePreviewType (props) {
   const handleElementClick = useCallback((meta) => {
     if (!meta.isEdge) {
       if (meta.data.error != null && meta.data.operation == null) {
-        modalHandler.open(ProfileErrorModal, { error: meta.data.error })
+        openModal(ProfileErrorModal, { error: meta.data.error })
       } else if (meta.data.error != null && meta.data.operation != null) {
         if (
           meta.data.error.entity != null &&
@@ -82,7 +82,7 @@ function ProfilePreviewType (props) {
         ) {
           openErrorLine(meta.data.error)
         } else {
-          modalHandler.open(ProfileErrorModal, { error: meta.data.error })
+          openModal(ProfileErrorModal, { error: meta.data.error })
         }
       }
 
@@ -167,7 +167,7 @@ function openInspectModal ({
   outputId,
   onClose = () => {}
 }) {
-  modalHandler.open(ProfileInspectModal, {
+  openModal(ProfileInspectModal, {
     data: {
       sourceId,
       targetId,

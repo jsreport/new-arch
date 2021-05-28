@@ -6,6 +6,7 @@ import api from '../../helpers/api'
 import * as selectors from './selectors'
 import { push } from 'connected-react-router'
 import shortid from 'shortid'
+import { openModal } from '../../helpers/openModal'
 import reformatter from '../../helpers/reformatter'
 import { openPreviewWindow, getPreviewWindowOptions } from '../../helpers/previewWindow'
 import createTemplateRenderFilesHandler from '../../helpers/createTemplateRenderFilesHandler'
@@ -24,13 +25,12 @@ import {
   runListeners,
   locationResolver,
   editorComponents,
-  concurrentUpdateModal,
-  modalHandler
+  concurrentUpdateModal
 } from '../../lib/configuration'
 
 export function closeTab (id) {
   return (dispatch, getState) => {
-    const entity = entities.selectors.getById(getState(), id, false)
+    const entity = entities.selectors.getById(getState().entities, id, false)
 
     if (entity) {
       const dependantEntityTabs = getState().editor.tabs.filter((t) => {
@@ -69,7 +69,7 @@ export function openTab (tab) {
   return async function (dispatch, getState) {
     if (tab.shortid && !tab._id) {
       try {
-        tab._id = entities.selectors.getByShortid(getState(), tab.shortid)._id
+        tab._id = entities.selectors.getByShortid(getState().entities, tab.shortid)._id
       } catch (e) {
         dispatch(push(resolveUrl('/')))
         return
@@ -78,7 +78,7 @@ export function openTab (tab) {
 
     if (tab._id) {
       await entities.actions.load(tab._id)(dispatch, getState)
-      tab.entitySet = entities.selectors.getById(getState(), tab._id).__entitySet
+      tab.entitySet = entities.selectors.getById(getState().entities, tab._id).__entitySet
     }
 
     tab.type = tab._id ? 'entity' : 'custom'
@@ -103,7 +103,7 @@ export function openNewTab ({ entitySet, entity, name }) {
 
     if (shouldClone) {
       await entities.actions.load(entity._id)(dispatch, getState)
-      clonedEntity = entities.selectors.getById(getState(), entity._id)
+      clonedEntity = entities.selectors.getById(getState().entities, entity._id)
 
       newEntity = {
         ...clonedEntity,
@@ -162,7 +162,12 @@ export function activateTab (id) {
 
 export function updateHistory () {
   return (dispatch, getState) => {
-    const { tab, entity } = selectors.getActiveTabWithEntity(getState())
+    const { tab, entity } = selectors.getActiveTabWithEntity(
+      getState().editor.activeTabKey,
+      getState().editor.tabs,
+      getState().entities
+    )
+
     let path
 
     if (tab && tab.customUrl) {
@@ -199,12 +204,12 @@ export function hierarchyMove (source, target, shouldCopy = false, replace = fal
   return async function (dispatch, getState) {
     let response
 
-    let sourceEntity = entities.selectors.getById(getState(), source.id)
+    let sourceEntity = entities.selectors.getById(getState().entities, source.id)
 
     if (sourceEntity.__isNew || sourceEntity.__isDirty) {
       dispatch(entities.actions.flushUpdates())
 
-      sourceEntity = entities.selectors.getById(getState(), source.id)
+      sourceEntity = entities.selectors.getById(getState().entities, source.id)
 
       dispatch(entities.actions.update(Object.assign({}, sourceEntity, {
         folder: target.shortid != null ? { shortid: target.shortid } : null
@@ -231,13 +236,13 @@ export function hierarchyMove (source, target, shouldCopy = false, replace = fal
 
         if (replace === true) {
           if (Array.isArray(target.children)) {
-            const sourceEntity = entities.selectors.getById(getState(), source.id, false)
+            const sourceEntity = entities.selectors.getById(getState().entities, source.id, false)
 
             let childTargetId
             const childTargetChildren = []
 
             const allFoldersInsideTarget = target.children.reduce((acu, childId) => {
-              const childEntity = entities.selectors.getById(getState(), childId, false)
+              const childEntity = entities.selectors.getById(getState().entities, childId, false)
 
               if (
                 ((target.shortid == null && childEntity.folder == null) ||
@@ -255,7 +260,7 @@ export function hierarchyMove (source, target, shouldCopy = false, replace = fal
             }, [])
 
             target.children.forEach((childId) => {
-              const childEntity = entities.selectors.getById(getState(), childId, false)
+              const childEntity = entities.selectors.getById(getState().entities, childId, false)
 
               if (childEntity.folder && allFoldersInsideTarget.indexOf(childEntity.folder.shortid) !== -1) {
                 childTargetChildren.push(childEntity._id)
@@ -289,7 +294,7 @@ export function hierarchyMove (source, target, shouldCopy = false, replace = fal
 
       if (target.updateReferences) {
         // refresh target
-        const targetEntity = entities.selectors.getByShortid(getState(), target.shortid)
+        const targetEntity = entities.selectors.getByShortid(getState().entities, target.shortid)
         await entities.actions.load(targetEntity._id, true)(dispatch, getState)
       }
 
@@ -303,7 +308,7 @@ export function save () {
     let entityId
 
     try {
-      entityId = selectors.getActiveTab(getState())._id
+      entityId = selectors.getActiveTab(getState().editor.activeTabKey, getState().editor.tabs)._id
 
       dispatch({
         type: ActionTypes.SAVE_STARTED
@@ -318,7 +323,7 @@ export function save () {
       if (e.error && e.error.code === 'CONCURRENT_UPDATE_INVALID') {
         dispatch(progress.actions.stop())
 
-        modalHandler.open(concurrentUpdateModal, {
+        openModal(concurrentUpdateModal, {
           entityId: entityId,
           modificationDate: e.error.modificationDate
         })
@@ -345,13 +350,14 @@ export function saveAll () {
       })
 
       await Promise.all(entitiesToUpdate.map((t) => {
-        const entity = entities.selectors.getById(getState(), t._id)
+        const entity = entities.selectors.getById(getState().entities, t._id)
 
         // only save for new or entities that have changed
         if (entity.__isNew || entity.__isDirty) {
           return entities.actions.save(t._id, { ignoreFailed: true })(dispatch, getState)
         }
-        return true
+
+        return null
       }))
 
       dispatch({
@@ -361,7 +367,7 @@ export function saveAll () {
       if (e.error && e.error.code === 'CONCURRENT_UPDATE_INVALID') {
         dispatch(progress.actions.stop())
 
-        modalHandler.open(concurrentUpdateModal, {
+        openModal(concurrentUpdateModal, {
           entityId: e.entityId
         })
       } else {
@@ -376,7 +382,7 @@ export function reformat (shouldThrow = false) {
     // this flushed the updates
     dispatch(entities.actions.flushUpdates())
 
-    const tab = selectors.getActiveTab(getState())
+    const tab = selectors.getActiveTab(getState().editor.activeTabKey, getState().editor.tabs)
 
     const editorReformat = editorComponents[tab.editorComponentKey || tab.entitySet].reformat
 
@@ -384,7 +390,7 @@ export function reformat (shouldThrow = false) {
       return false
     }
 
-    const activeEntity = selectors.getActiveEntity(getState())
+    const activeEntity = selectors.getActiveEntity(getState().editor.activeTabKey, getState().editor.tabs, getState().entities)
     const toUpdate = editorReformat(reformatter, activeEntity, tab)
 
     dispatch(update(Object.assign({ _id: activeEntity._id }, toUpdate)))
@@ -395,7 +401,7 @@ export function reformat (shouldThrow = false) {
 
 export function remove () {
   return async function (dispatch, getState) {
-    const tab = selectors.getActiveTab(getState())
+    const tab = selectors.getActiveTab(getState().editor.activeTabKey, getState().editor.tabs)
     await dispatch(entities.actions.remove(tab._id))
   }
 }
@@ -452,7 +458,7 @@ export function clearPreview () {
 export function run (params = {}, opts = {}) {
   return async function (dispatch, getState) {
     const supportedTargets = ['preview', 'window']
-    const template = params.template != null ? params.template : Object.assign({}, selectors.getLastActiveTemplate(getState()))
+    const template = params.template != null ? params.template : Object.assign({}, selectors.getLastActiveTemplate(getState().editor.lastActiveTemplateKey, getState().entities))
     const templateName = template.name
 
     const request = {

@@ -1,7 +1,7 @@
-import parse from '../../helpers/parseJSON.js'
+import parse from '../../helpers/parseJSON'
 
-export const getByKey = (state, key, shouldThrow = true) => {
-  const entities = Object.keys(state.settings).map((k) => state.settings[k]).filter((s) => s.key === key)
+export const getByKey = (settings, key, shouldThrow = true) => {
+  const entities = Object.keys(settings).map((k) => settings[k]).filter((s) => s.key === key)
 
   if (!entities.length && shouldThrow) {
     throw new Error(`settings with key ${key} was not found`)
@@ -20,8 +20,8 @@ export const getByKey = (state, key, shouldThrow = true) => {
     : entities[0]
 }
 
-export const getValueByKey = (state, key, shouldThrow = true) => {
-  const entry = getByKey(state, key, shouldThrow)
+export const getValueByKey = (settings, key, shouldThrow = true) => {
+  const entry = getByKey(settings, key, shouldThrow)
 
   if (!entry) {
     return
@@ -30,4 +30,4 @@ export const getValueByKey = (state, key, shouldThrow = true) => {
   return typeof entry.value === 'string' ? parse(entry.value) : entry.value
 }
 
-export const getAll = (state) => state
+export const getAll = (settings) => Object.keys(settings).map((settingKey) => settings[settingKey])

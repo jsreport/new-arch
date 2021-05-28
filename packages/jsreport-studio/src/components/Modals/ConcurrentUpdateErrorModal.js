@@ -1,8 +1,9 @@
 import PropTypes from 'prop-types'
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
-import { entitySets } from '../../lib/configuration.js'
-import { actions, selectors } from '../../redux/entities'
+import { entitySets } from '../../lib/configuration'
+import { createGetByIdSelector } from '../../redux/entities/selectors'
+import { actions as entitiesActions } from '../../redux/entities'
 
 class ConcurrentUpdateErrorModal extends Component {
   static propTypes = {
@@ -122,6 +123,15 @@ class ConcurrentUpdateErrorModal extends Component {
   }
 }
 
-export default connect((state, props) => ({
-  entity: selectors.getById(state, props.options.entityId)
-}), { ...actions })(ConcurrentUpdateErrorModal)
+function makeMapStateToProps () {
+  const getById = createGetByIdSelector()
+
+  return (state, props) => ({
+    entity: getById(state, { id: props.options.entityId })
+  })
+}
+
+export default connect(
+  makeMapStateToProps,
+  { ...entitiesActions }
+)(ConcurrentUpdateErrorModal)

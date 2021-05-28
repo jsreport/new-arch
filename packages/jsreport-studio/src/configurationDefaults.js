@@ -24,6 +24,7 @@ import RawContentPreviewType from './components/Preview/TypeComponents/RawConten
 import ReportPreviewType from './components/Preview/TypeComponents/ReportPreviewType'
 import ProfilePreviewType from './components/Preview/TypeComponents/ProfilePreviewType/ProfilePreviewType'
 import ReportProfilePreviewType from './components/Preview/TypeComponents/ReportProfilePreviewType'
+import { openModal } from './helpers/openModal'
 import openProfileFromStreamReader from './helpers/openProfileFromStreamReader'
 import { openTab } from './redux/editor/actions'
 
@@ -57,7 +58,7 @@ export default () => {
     visibleName: 'template',
     referenceAttributes: ['name', 'recipe', 'shortid'],
     entityTreePosition: 1000,
-    onNew: (options) => configuration.modalHandler.open(NewTemplateModal, options)
+    onNew: (options) => openModal(NewTemplateModal, options)
   }
 
   configuration.entitySets.folders = {
@@ -66,7 +67,7 @@ export default () => {
     visibleName: 'folder',
     visibleInTree: false,
     referenceAttributes: ['name', 'shortid'],
-    onNew: (options) => configuration.modalHandler.open(NewFolderModal, options)
+    onNew: (options) => openModal(NewFolderModal, options)
   }
 
   configuration.sharedComponents.EntityTree = EntityTree
@@ -322,7 +323,7 @@ export default () => {
   configuration.toolbarComponents.settings.push((props) => (
     <div
       onClick={() => {
-        configuration.modalHandler.open(configuration.aboutModal, {
+        openModal(configuration.aboutModal, {
           version: configuration.version,
           engines: configuration.engines,
           recipes: configuration.recipes,
@@ -339,7 +340,7 @@ export default () => {
   configuration.toolbarComponents.settings.push((props) => (
     <div
       onClick={() => {
-        configuration.modalHandler.open(ThemeModal, {
+        openModal(ThemeModal, {
           availableThemes: configuration.extensions.studio.options.availableThemes,
           availableEditorThemes: configuration.extensions.studio.options.availableEditorThemes
         })
@@ -354,7 +355,7 @@ export default () => {
   configuration.toolbarComponents.settings.push((props) => (
     <div
       onClick={() => {
-        configuration.modalHandler.open(ApiModal, { apiSpecs: configuration.apiSpecs })
+        openModal(ApiModal, { apiSpecs: configuration.apiSpecs })
         props.closeMenu()
       }}
     >

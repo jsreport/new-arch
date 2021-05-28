@@ -1,13 +1,13 @@
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import { Line } from 'react-chartjs-2'
+import NewTemplateModal from '../../components/Modals/NewTemplateModal'
 import { actions } from '../../redux/editor'
 import storeMethods from '../../redux/methods'
 import api from '../../helpers/api'
 import resolveUrl from '../../helpers/resolveUrl'
+import { openModal } from '../../helpers/openModal'
 import openProfileFromStreamReader from '../../helpers/openProfileFromStreamReader'
-import NewTemplateModal from '../../components/Modals/NewTemplateModal'
-import { modalHandler } from '../../lib/configuration'
 
 function randomColor () {
   const hue = Math.floor(Math.random() * 360)
@@ -295,7 +295,7 @@ class Startup extends Component {
       <div className='block custom-editor' style={{ overflow: 'auto', minHeight: 0, height: 'auto' }}>
         <div>
           Quick actions:
-          <button className='button confirmation' onClick={() => modalHandler.open(NewTemplateModal)}>Create template</button>
+          <button className='button confirmation' onClick={() => openModal(NewTemplateModal)}>Create template</button>
           <button className='button confirmation' onClick={() => openTab({ key: 'ProfilerPage', editorComponentKey: 'profiler', title: 'Profiler' })}>Open profiler</button>
         </div>
 

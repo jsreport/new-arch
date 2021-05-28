@@ -1,7 +1,7 @@
 /* import PropTypes from 'prop-types' */
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
-import { selectors } from '../../redux/editor'
+import { createGetActiveEntitySelector } from '../../redux/editor/selectors'
 import style from './ApiModal.css'
 
 class ApiModal extends Component {
@@ -90,4 +90,12 @@ class ApiModal extends Component {
   }
 }
 
-export default connect((state, props) => ({ entity: selectors.getActiveEntity(state) }))(ApiModal)
+function makeMapStateToProps () {
+  const getActiveEntity = createGetActiveEntitySelector()
+
+  return (state) => ({
+    entity: getActiveEntity(state)
+  })
+}
+
+export default connect(makeMapStateToProps)(ApiModal)

@@ -1,24 +1,23 @@
-import PropTypes from 'prop-types'
-import React, { Component } from 'react'
+import { Component } from 'react'
+import { connect } from 'react-redux'
 import TabTitle from './TabTitle'
+import CloseConfirmationModal from '../Modals/CloseConfirmationModal'
 import { getNodeTitleDOMId } from '../EntityTree/utils'
+import { createGetTabWithEntitiesSelector } from '../../redux/editor/selectors'
+import { activateTab, closeTab } from '../../redux/editor/actions'
 import storeMethods from '../../redux/methods'
+import { openModal } from '../../helpers/openModal'
 import { entitySets, collapseEntityHandler } from '../../lib/configuration'
 import style from './Tabs.css'
 
 const getEntityName = (e) => entitySets[e.__entitySet].nameAttribute ? e[entitySets[e.__entitySet].nameAttribute] : e.name
 
 class TabTitles extends Component {
-  static propTypes = {
-    activeTabKey: PropTypes.string,
-    activateTab: PropTypes.func.isRequired,
-    closeTab: PropTypes.func.isRequired,
-    tabs: PropTypes.array.isRequired
-  }
-
   constructor (props) {
     super(props)
     this.state = {}
+
+    this.closeTab = this.closeTab.bind(this)
     this.handleTabClick = this.handleTabClick.bind(this)
     this.handleTabContextMenu = this.handleTabContextMenu.bind(this)
   }
@@ -38,7 +37,13 @@ class TabTitles extends Component {
   }
 
   closeTab (tabKey) {
-    this.props.closeTab(tabKey)
+    const entity = storeMethods.getEntityById(tabKey, false)
+
+    if (!entity || !entity.__isDirty) {
+      return this.props.closeTab(tabKey)
+    }
+
+    openModal(CloseConfirmationModal, { _id: tabKey })
   }
 
   closeOtherTabs (tabKey) {
@@ -49,7 +54,7 @@ class TabTitles extends Component {
         return
       }
 
-      this.props.closeTab(t.tab.key)
+      this.closeTab(t.tab.key)
     })
   }
 
@@ -68,7 +73,7 @@ class TabTitles extends Component {
 
     if (currentTabIndex != null) {
       for (let i = currentTabIndex + 1; i < tabs.length; i++) {
-        this.props.closeTab(tabs[i].tab.key)
+        this.closeTab(tabs[i].tab.key)
       }
     }
   }
@@ -88,7 +93,7 @@ class TabTitles extends Component {
 
     if (currentTabIndex != null) {
       for (let i = 0; i < currentTabIndex; i++) {
-        this.props.closeTab(tabs[i].tab.key)
+        this.closeTab(tabs[i].tab.key)
       }
     }
   }
@@ -101,7 +106,7 @@ class TabTitles extends Component {
         return
       }
 
-      this.props.closeTab(t.tab.key)
+      this.closeTab(t.tab.key)
     })
   }
 
@@ -109,7 +114,7 @@ class TabTitles extends Component {
     const { tabs } = this.props
 
     tabs.forEach((t) => {
-      this.props.closeTab(t.tab.key)
+      this.closeTab(t.tab.key)
     })
   }
 
@@ -206,7 +211,7 @@ class TabTitles extends Component {
   }
 
   renderTitle (t) {
-    const { tabs, activeTabKey, closeTab } = this.props
+    const { tabs, activeTabKey } = this.props
     const { contextMenuKey } = this.state
     let complementTitle
 
@@ -240,7 +245,7 @@ class TabTitles extends Component {
         complementTitle={complementTitle}
         onClick={this.handleTabClick}
         onContextMenu={this.handleTabContextMenu}
-        onClose={closeTab}
+        onClose={this.closeTab}
       />
     )
   }
@@ -254,4 +259,16 @@ class TabTitles extends Component {
   }
 }
 
-export default TabTitles
+function makeMapStateToProps () {
+  const getTabWithEntities = createGetTabWithEntitiesSelector()
+
+  return (state) => ({
+    activeTabKey: state.editor.activeTabKey,
+    tabs: getTabWithEntities(state)
+  })
+}
+
+export default connect(makeMapStateToProps, {
+  activateTab,
+  closeTab
+})(TabTitles)

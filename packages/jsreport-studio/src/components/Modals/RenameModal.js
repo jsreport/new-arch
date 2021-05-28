@@ -1,8 +1,9 @@
 /* import PropTypes from 'prop-types' */
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
-import { actions, selectors } from '../../redux/entities'
-import api from '../../helpers/api.js'
+import { createGetByIdSelector } from '../../redux/entities/selectors'
+import entitiesActions from '../../redux/entities/actions'
+import api from '../../helpers/api'
 
 class RenameModal extends Component {
   /* TODO
@@ -96,7 +97,15 @@ class RenameModal extends Component {
   }
 }
 
+function makeMapStateToProps () {
+  const getById = createGetByIdSelector()
+
+  return (state, props) => ({
+    entity: getById(state, { id: props.options._id })
+  })
+}
+
 export default connect(
-  (state, props) => ({ entity: selectors.getById(state, props.options._id) }),
-  { ...actions }
+  makeMapStateToProps,
+  { ...entitiesActions }
 )(RenameModal)
