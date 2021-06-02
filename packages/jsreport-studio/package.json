@@ -89,13 +89,13 @@
   },
   "files": [
     "lib",
-    "jsreport.config.js",
     "shared",
     "src",
     "static",
     "webpack",
     ".babelrc",
-    "index.js"
+    "index.js",
+    "jsreport.config.js"
   ],
   "homepage": "https://github.com/jsreport/jsreport-studio",
   "keywords": [

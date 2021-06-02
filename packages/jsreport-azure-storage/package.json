@@ -20,6 +20,11 @@
   "engines": {
     "node": ">=8.9"
   },
+  "files": [
+    "lib",
+    "index.js",
+    "jsreport.config.js"
+  ],
   "author": "Jan Blaha",
   "devDependencies": {
     "eslint": "7.22.0",

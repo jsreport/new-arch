@@ -71,7 +71,6 @@
   },
   "files": [
     "lib",
-    "shared",
     "studio",
     "index.js",
     "cli.js",

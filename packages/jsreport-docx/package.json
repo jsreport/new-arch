@@ -43,10 +43,10 @@
   },
   "files": [
     "lib",
+    "static",
     "studio",
     "index.js",
-    "jsreport.config.js",
-    "static"
+    "jsreport.config.js"
   ],
   "homepage": "https://github.com/jsreport/jsreport-docx",
   "keywords": [

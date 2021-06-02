@@ -4,6 +4,7 @@
   "description": "Compile jsreport into single executable",
   "main": "index.js",
   "scripts": {
+    "start": "node ./bin/compile.js",
     "test": "mocha test/test.js --timeout 45000"
   },
   "homepage": "https://github.com/jsreport/jsreport-compile",
@@ -20,8 +21,8 @@
   "author": "Jan Blaha",
   "files": [
     "lib",
-    "index.js",
-    "bin"
+    "bin",
+    "index.js"
   ],
   "bin": {
     "jsreport-compile": "./bin/compile.js"

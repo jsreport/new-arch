@@ -21,6 +21,10 @@
     "serializator": "1.0.2",
     "uuid": "8.3.2"
   },
+  "files": [
+    "lib",
+    "index.js"
+  ],
   "standard": {
     "env": {
       "mocha": true

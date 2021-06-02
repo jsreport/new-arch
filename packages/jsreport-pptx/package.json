@@ -57,10 +57,10 @@
   },
   "files": [
     "lib",
+    "static",
     "studio",
     "index.js",
-    "jsreport.config.js",
-    "static"
+    "jsreport.config.js"
   ],
   "engines": {
     "node": ">=8.9"
