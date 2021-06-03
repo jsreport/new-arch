@@ -37,7 +37,7 @@
     }
   },
   "dependencies": {
-    "@bjrmatos/pkg": "4.7.0",
+    "@bjrmatos/pkg": "git+https://github.com/bjrmatos/pkg.git#pkg-update",
     "acorn": "5.5.0",
     "bubleify": "0.7.0",
     "debug": "2.6.3",

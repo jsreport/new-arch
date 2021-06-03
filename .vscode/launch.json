@@ -27,6 +27,16 @@
             "program": "${workspaceFolder}/server.js",
             "envFile": "${workspaceFolder}/launch.env",
             "autoAttachChildProcesses": true
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Run Compile",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "program": "${workspaceFolder}/compile.js",
+            "autoAttachChildProcesses": true
         }
     ]
 }
