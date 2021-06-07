@@ -141,7 +141,7 @@ _jsreportStudio2.default.initializeListeners.push(function () {
 
           case 9:
             _jsreportStudio2.default.openTab({ _id: lastActiveEntity._id });
-            _jsreportStudio2.default.preview();
+            _jsreportStudio2.default.run();
 
           case 11:
             _context.prev = 11;

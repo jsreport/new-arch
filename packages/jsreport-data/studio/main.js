@@ -132,7 +132,7 @@ _jsreportStudio2.default.addEditorComponent('data', _DataEditor2.default, functi
   return { dataJson: reformatter(entity.dataJson, 'js') };
 });
 
-_jsreportStudio2.default.previewListeners.push(function (request, entities) {
+_jsreportStudio2.default.runListeners.push(function (request, entities) {
   if (!request.template.data || !request.template.data.shortid) {
     return;
   }

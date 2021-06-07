@@ -1339,11 +1339,13 @@ var AssetEditor = function (_Component) {
       }
 
       if (this.isOfficeFile(entity)) {
-        return _react2.default.createElement(_jsreportStudio.Preview, {
+        var officeSrc = _jsreportStudio2.default.resolveUrl('assets/office/' + entity._id + '/content');
+
+        return _react2.default.createElement(_jsreportStudio.FramePreview, {
           onLoad: function onLoad() {
             return _this4.previewLoadFinish();
           },
-          initialSrc: _jsreportStudio2.default.resolveUrl('assets/office/' + entity._id + '/content')
+          src: officeSrc
         });
       }
 

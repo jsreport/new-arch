@@ -337,8 +337,10 @@ _jsreportStudio2.default.readyListeners.push(_asyncToGenerator( /*#__PURE__*/reg
             return React.createElement(
               'div',
               {
-                className: 'toolbar-button', onClick: function onClick() {
-                  return licenseInfoModal();
+                className: 'toolbar-button',
+                onClick: function onClick() {
+                  licenseInfoModal();
+                  props.closeMenu();
                 }
               },
               React.createElement(

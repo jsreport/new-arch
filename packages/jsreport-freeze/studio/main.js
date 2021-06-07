@@ -226,22 +226,30 @@ _jsreportStudio2.default.initializeListeners.push(function () {
     return;
   }
 
-  _jsreportStudio2.default.addToolbarComponent(function () {
+  _jsreportStudio2.default.addToolbarComponent(function (props) {
     return _jsreportStudio2.default.getSettingValueByKey('freeze', false) ? React.createElement('span', null) : React.createElement(
       'div',
       {
-        className: 'toolbar-button', onClick: freeze
+        className: 'toolbar-button',
+        onClick: function onClick() {
+          freeze();
+          props.closeMenu();
+        }
       },
       React.createElement('i', { className: 'fa fa-lock' }),
       'Freeze edits'
     );
   }, 'settings');
 
-  _jsreportStudio2.default.addToolbarComponent(function () {
+  _jsreportStudio2.default.addToolbarComponent(function (props) {
     return _jsreportStudio2.default.getSettingValueByKey('freeze', false) ? React.createElement(
       'div',
       {
-        className: 'toolbar-button', onClick: release
+        className: 'toolbar-button',
+        onClick: function onClick() {
+          release();
+          props.closeMenu();
+        }
       },
       React.createElement('i', { className: 'fa fa-unlock' }),
       'Release freeze'

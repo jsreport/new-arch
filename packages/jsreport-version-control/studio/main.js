@@ -128,6 +128,7 @@ function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, a
 
 var openDiff = function () {
   var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(change) {
+    var previewId, response;
     return regeneratorRuntime.wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
@@ -142,15 +143,53 @@ var openDiff = function () {
             }));
 
           case 2:
+            previewId = _jsreportStudio2.default.preview({
+              type: 'rawContent',
+              data: {}
+            });
+            _context.prev = 3;
+            _context.next = 6;
+            return _jsreportStudio2.default.api.post('/studio/diff-html', {
+              parseJSON: false,
+              data: {
+                patch: change.patch
+              }
+            });
 
-            _jsreportStudio2.default.customPreview('/studio/diff-html', { patch: change.patch });
+          case 6:
+            response = _context.sent;
 
-          case 3:
+
+            _jsreportStudio2.default.updatePreview(previewId, {
+              type: 'rawContent',
+              data: {
+                type: 'text/html',
+                content: response
+              },
+              completed: true
+            });
+            _context.next = 13;
+            break;
+
+          case 10:
+            _context.prev = 10;
+            _context.t0 = _context['catch'](3);
+
+            _jsreportStudio2.default.updatePreview(previewId, {
+              type: 'rawContent',
+              data: {
+                type: 'text/html',
+                content: _context.t0.stack
+              },
+              completed: true
+            });
+
+          case 13:
           case 'end':
             return _context.stop();
         }
       }
-    }, _callee, undefined);
+    }, _callee, undefined, [[3, 10]]);
   }));
 
   return function openDiff(_x) {
@@ -270,6 +309,8 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
 function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
 
+var Popup = _jsreportStudio2.default.Popup;
+
 _jsreportStudio2.default.initializeListeners.push(_asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
   var VCToolbar;
   return regeneratorRuntime.wrap(function _callee$(_context) {
@@ -291,44 +332,50 @@ _jsreportStudio2.default.initializeListeners.push(_asyncToGenerator( /*#__PURE__
           VCToolbar = function (_Component) {
             _inherits(VCToolbar, _Component);
 
-            function VCToolbar() {
+            function VCToolbar(props) {
               _classCallCheck(this, VCToolbar);
 
-              var _this = _possibleConstructorReturn(this, (VCToolbar.__proto__ || Object.getPrototypeOf(VCToolbar)).call(this));
+              var _this = _possibleConstructorReturn(this, (VCToolbar.__proto__ || Object.getPrototypeOf(VCToolbar)).call(this, props));
 
-              _this.state = {};
-              _this.tryHide = _this.tryHide.bind(_this);
+              _this.state = {
+                expandedMenu: false
+              };
+
+              _this.handleVCMenuTrigger = _this.handleVCMenuTrigger.bind(_this);
+
+              _this.vcMenuTriggerRef = _react2.default.createRef();
+              _this.vcMenuContainerRef = _react2.default.createRef();
               return _this;
             }
 
             _createClass(VCToolbar, [{
-              key: 'componentDidMount',
-              value: function componentDidMount() {
-                window.addEventListener('click', this.tryHide);
-              }
-            }, {
-              key: 'componentWillUnmount',
-              value: function componentWillUnmount() {
-                window.removeEventListener('click', this.tryHide);
-              }
-            }, {
-              key: 'tryHide',
-              value: function tryHide() {
-                this.setState({ expandedToolbar: false });
-              }
-            }, {
               key: 'openHistory',
               value: function openHistory(e) {
                 e.stopPropagation();
-                this.tryHide();
                 _jsreportStudio2.default.openTab({ key: 'versionControlHistory', editorComponentKey: 'versionControlHistory', title: 'Commits history' });
               }
             }, {
               key: 'openLocalChanges',
               value: function openLocalChanges(e) {
                 e.stopPropagation();
-                this.tryHide();
                 _jsreportStudio2.default.openTab({ key: 'versionControlLocalChanges', editorComponentKey: 'versionControlLocalChanges', title: 'Uncommited changes' });
+              }
+            }, {
+              key: 'handleVCMenuTrigger',
+              value: function handleVCMenuTrigger(e) {
+                e.stopPropagation();
+
+                if (this.vcMenuTriggerRef.current == null || this.vcMenuContainerRef.current == null) {
+                  return;
+                }
+
+                if (this.vcMenuTriggerRef.current.contains(e.target) && !this.vcMenuContainerRef.current.contains(e.target)) {
+                  this.setState(function (prevState) {
+                    return {
+                      expandedMenu: !prevState.expandedMenu
+                    };
+                  });
+                }
               }
             }, {
               key: 'render',
@@ -337,29 +384,53 @@ _jsreportStudio2.default.initializeListeners.push(_asyncToGenerator( /*#__PURE__
 
                 return _react2.default.createElement(
                   'div',
-                  { className: 'toolbar-button', onClick: function onClick(e) {
-                      return _this2.openLocalChanges(e);
-                    } },
+                  {
+                    ref: this.vcMenuTriggerRef,
+                    className: 'toolbar-button',
+                    onClick: function onClick(e) {
+                      _this2.openLocalChanges(e);
+                      _this2.setState({ expandedMenu: false });
+                    }
+                  },
                   _react2.default.createElement('i', { className: 'fa fa-history ' }),
                   'Commit',
-                  _react2.default.createElement('span', { className: _VersionControl2.default.runCaret, onClick: function onClick(e) {
-                      e.stopPropagation();_this2.setState({ expandedToolbar: !_this2.state.expandedToolbar });
-                    } }),
+                  _react2.default.createElement('span', {
+                    className: _VersionControl2.default.runCaret,
+                    onClick: this.handleVCMenuTrigger
+                  }),
                   _react2.default.createElement(
-                    'div',
-                    { className: 'popup-settings', style: { display: this.state.expandedToolbar ? 'block' : 'none' } },
-                    _react2.default.createElement(
-                      'div',
-                      { title: 'History', className: 'toolbar-button', onClick: function onClick(e) {
-                          return _this2.openHistory(e);
-                        } },
-                      _react2.default.createElement('i', { className: 'fa fa-history' }),
-                      _react2.default.createElement(
-                        'span',
-                        null,
-                        'History'
-                      )
-                    )
+                    Popup,
+                    {
+                      ref: this.vcMenuContainerRef,
+                      open: this.state.expandedMenu,
+                      position: { top: undefined, right: undefined },
+                      onRequestClose: function onRequestClose() {
+                        return _this2.setState({ expandedMenu: false });
+                      }
+                    },
+                    function (itemProps) {
+                      if (!itemProps.open) {
+                        return;
+                      }
+
+                      return _react2.default.createElement(
+                        'div',
+                        {
+                          title: 'History',
+                          className: 'toolbar-button',
+                          onClick: function onClick(e) {
+                            _this2.openHistory(e);
+                            itemProps.closeMenu();
+                          }
+                        },
+                        _react2.default.createElement('i', { className: 'fa fa-history' }),
+                        _react2.default.createElement(
+                          'span',
+                          null,
+                          'History'
+                        )
+                      );
+                    }
                   )
                 );
               }

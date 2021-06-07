@@ -111,12 +111,6 @@ _jsreportStudio2.default.addApiSpec({
   }
 });
 
-_jsreportStudio2.default.previewListeners.push(function (request) {
-  if (request.template && request.template.recipe === 'html-with-browser-client') {
-    return { disableTheming: true };
-  }
-});
-
 /***/ }),
 /* 1 */
 /***/ (function(module, exports, __webpack_require__) {

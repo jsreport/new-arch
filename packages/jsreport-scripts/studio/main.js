@@ -150,7 +150,7 @@ _jsreportStudio2.default.addApiSpec({
   }
 });
 
-_jsreportStudio2.default.previewListeners.push(function (request, entities) {
+_jsreportStudio2.default.runListeners.push(function (request, entities) {
   if (!request.template.scripts) {
     return;
   }
