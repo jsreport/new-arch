@@ -5,7 +5,6 @@ import fileSaver from 'filesaver.js-npm'
 import { actions as editorActions } from '../../redux/editor'
 import uid from '../../helpers/uid.js'
 import resolveUrl from '../../helpers/resolveUrl.js'
-import b64toBlob from '../../helpers/b64toBlob'
 
 class ProfilerInspectModal extends Component {
   constructor (props) {
@@ -23,23 +22,9 @@ class ProfilerInspectModal extends Component {
 
   componentDidMount () {
     setTimeout(() => {
-      const content = this.props.options.data.getContent()
-      let parsedReqContent
-      let parsedResMetaContent
-
-      try {
-        parsedReqContent = JSON.parse(content.reqContent)
-        parsedResMetaContent = content.resMetaContent != null && content.resMetaContent !== '' ? JSON.parse(content.resMetaContent) : {}
-      } catch (e) {
-        console.error('Unable to parse inspect content. Details:', e.message)
-        return
-      }
-
       this.setState({
         content: {
-          ...content,
-          parsedReqContent,
-          parsedResMetaContent
+          ...this.props.options.data.getContent()
         }
       })
     }, 250)
@@ -51,14 +36,14 @@ class ProfilerInspectModal extends Component {
 
   handleOpenTemplateClick () {
     const stepId = `${this.props.options.data.sourceId}-${this.props.options.data.targetId}`
-    const reqContent = this.state.content.parsedReqContent
+    const req = this.state.content.req
 
-    if (reqContent != null) {
+    if (req != null) {
       this.props.openTab({
         key: `profiler-inspect-request-template-${stepId}`,
         title: `Profiler inspect - ${this.props.options.data.template.name} (template)`,
         customUrl: this.props.options.data.template.shortid != null ? resolveUrl(`/studio/templates/${this.props.options.data.template.shortid}`) : '/',
-        getEntity: () => Object.assign({}, reqContent.template, {
+        getEntity: () => Object.assign({}, req.template, {
           _id: uid(),
           shortid: shortid.generate(),
           __entitySet: 'templates'
@@ -70,7 +55,7 @@ class ProfilerInspectModal extends Component {
 
   handleOpenDataClick () {
     const stepId = `${this.props.options.data.sourceId}-${this.props.options.data.targetId}`
-    const reqContent = this.state.content.parsedReqContent
+    const req = this.state.content.req
 
     const key = `profiler-inspect-request-template-${stepId}-data`
 
@@ -83,14 +68,14 @@ class ProfilerInspectModal extends Component {
       getProps: () => ({
         jsonId: key,
         jsonName: `${this.props.options.data.template.name} (data)`,
-        jsonContent: JSON.stringify(reqContent.data, null, 2)
+        jsonContent: JSON.stringify(req.data, null, 2)
       })
     })
   }
 
   handleOpenRequestClick () {
     const stepId = `${this.props.options.data.sourceId}-${this.props.options.data.targetId}`
-    const reqContent = this.state.content.reqContent
+    const req = this.state.content.req
 
     const key = `profiler-inspect-request-template-${stepId}-request`
 
@@ -103,48 +88,23 @@ class ProfilerInspectModal extends Component {
       getProps: () => ({
         jsonId: key,
         jsonName: `${this.props.options.data.template.name} (request)`,
-        jsonContent: reqContent
+        jsonContent: JSON.stringify(req, null, 2)
       })
     })
   }
 
   handleResponse (download) {
     const stepId = `${this.props.options.data.sourceId}-${this.props.options.data.targetId}`
-    const { resDiff, resContent } = this.state.content
-    const parsedMeta = this.state.content.parsedResMetaContent
+    const { res } = this.state.content
 
-    if (parsedMeta.contentEncoding == null) {
-      parsedMeta.contentEncoding = resDiff !== '' ? 'plain' : 'base64'
-    }
-
-    if (parsedMeta.contentType == null) {
-      parsedMeta.contentType = 'text/plain'
-    }
-
-    if (parsedMeta.fileExtension == null) {
-      parsedMeta.fileExtension = 'txt'
-    }
-
-    if (parsedMeta.reportName == null) {
-      parsedMeta.reportName = this.props.options.data.template.name
-    }
-
-    let blob
-
-    if (parsedMeta.contentEncoding === 'base64') {
-      blob = b64toBlob(resContent, parsedMeta.contentType)
-    } else if (parsedMeta.contentEncoding === 'plain') {
-      blob = new Blob([resContent], { type: parsedMeta.contentType })
-    }
-
-    if (blob == null) {
-      return
+    if (res.meta.reportName == null) {
+      res.meta.reportName = this.props.options.data.template.name
     }
 
     if (download) {
-      fileSaver.saveAs(blob, `${parsedMeta.reportName}.${parsedMeta.fileExtension}`)
+      fileSaver.saveAs(res.content, `${res.meta.reportName}.${res.meta.fileExtension}`)
     } else {
-      const responseContentURL = window.URL.createObjectURL(blob)
+      const responseContentURL = window.URL.createObjectURL(res.content)
 
       const previewURL = window.URL.createObjectURL(new Blob([`
         <html>
@@ -182,7 +142,7 @@ class ProfilerInspectModal extends Component {
   render () {
     const isLoading = this.state.content == null
     const reqActionsEnabled = this.state.content != null
-    const resActionsEnabled = this.state.content != null && this.state.content.resContent !== ''
+    const resActionsEnabled = this.state.content != null && this.state.content.res.content !== ''
 
     return (
       <div>
@@ -193,10 +153,10 @@ class ProfilerInspectModal extends Component {
           </h5>
           <div>
             <button
-              className={`button confirmation ${reqActionsEnabled ? '' : 'disabled'}`}
+              className={`button confirmation ${(reqActionsEnabled && this.state.content.req.template.recipe) ? '' : 'disabled'}`}
               style={{ marginLeft: 0 }}
               onClick={this.handleOpenTemplateClick}
-              disabled={!reqActionsEnabled}
+              disabled={!reqActionsEnabled || !this.state.content.req.template.recipe}
             >
               <i className='fa fa-file' style={{ verticalAlign: 'middle' }} /> Open Template
             </button>

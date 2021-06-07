@@ -3,7 +3,6 @@ import { useDispatch } from 'react-redux'
 import { Handle } from 'react-flow-renderer'
 import fileSaver from 'filesaver.js-npm'
 import { actions as progressActions } from '../../../../redux/progress'
-import b64toBlob from '../../../../helpers/b64toBlob'
 import styles from '../../Preview.css'
 
 const OperationNode = (props) => {
@@ -44,19 +43,8 @@ const OperationNode = (props) => {
     // this is useful when the downloaded file is a bit big
     setTimeout(() => {
       try {
-        const renderResultInfo = renderResult.getContent()
-        const parsedMeta = JSON.parse(renderResultInfo.meta)
-        let blob
-
-        if (renderResultInfo.contentEncoding === 'base64') {
-          blob = b64toBlob(renderResultInfo.content, parsedMeta.contentType)
-        } else if (renderResultInfo.contentEncoding === 'plain') {
-          blob = new Blob([renderResultInfo.content], { type: parsedMeta.contentType })
-        }
-
-        if (blob != null) {
-          fileSaver.saveAs(blob, `${parsedMeta.reportName}.${parsedMeta.fileExtension}`)
-        }
+        const { res } = renderResult.getContent()
+        fileSaver.saveAs(res.content, `${res.meta.reportName}.${res.meta.fileExtension}`)
       } finally {
         progressStop()
         setDownloading(false)

@@ -1,139 +1,71 @@
 import { applyPatch } from 'diff'
+import b64toBlob from './b64toBlob'
 
-function getStateAtProfileOperation (operations, operationId, completed = false, cache = {}) {
-  let state
-
+function getStateAtProfileOperation (operations, operationId, completed = false) {
   const operation = operations.find((op) => op.id === operationId)
-
   if (operation == null) {
     throw new Error(`Operation with id "${operationId}" not found, not able to get state`)
   }
 
-  let previousOperation
+  const allEvents = operations.map(op => [op.startEvent, op.endEvent]).flat().filter(e => e)
+  let currentEvent = completed ? operation.endEvent : operation.startEvent
+  const eventsToDiff = [currentEvent]
 
-  if (operation.previousOperationId != null) {
-    previousOperation = operations.find((op) => op.id === operation.previousOperationId)
+  while (currentEvent.previousEventId != null) {
+    currentEvent = allEvents.find((e) => e.eventId === currentEvent.previousEventId)
+    eventsToDiff.push(currentEvent)
+  }
+  eventsToDiff.reverse()
 
-    if (previousOperation == null) {
-      throw new Error(`Previous operation with id "${operation.previousOperationId}" not found`)
-    }
+  const currentState = {
+    reqContent: '',
+    resContent: '',
+    resContentEncoding: '',
+    resMetaContent: ''
   }
 
-  let previousOperationWithState
+  for (const event of eventsToDiff) {
+    currentState.reqContent = applyPatch(currentState.reqContent, event.req.diff)
+    currentState.resMetaContent = applyPatch(currentState.resMetaContent, event.res.meta.diff)
 
-  if (previousOperation != null) {
-    const cacheItem = cache[previousOperation.id]
-
-    if (
-      cacheItem == null ||
-      (previousOperation.type !== 'render' && cacheItem.completedReqState == null)
-    ) {
-      previousOperationWithState = getStateAtProfileOperation(operations, previousOperation.id, previousOperation.type !== 'render', cache)
-    } else {
-      previousOperationWithState = cacheItem
-    }
-  }
-
-  const reqState = applyPatch(previousOperationWithState != null
-    ? previousOperationWithState.type === 'render' ? previousOperationWithState.reqState : previousOperationWithState.completedReqState
-    : '', operation.req.diff)
-
-  let resState
-
-  if (previousOperationWithState != null) {
-    if (operation.res.content != null) {
-      if (operation.res.content.encoding === 'diff') {
-        resState = applyPatch(previousOperationWithState.type === 'render' ? previousOperationWithState.resState : previousOperationWithState.completedResState, operation.res.content.content)
+    if (event.res.content) {
+      currentState.resContentEncoding = event.res.content.encoding
+      if (event.res.content.encoding === 'diff') {
+        currentState.resContent = applyPatch(currentState.resContent, event.res.content.content)
       } else {
-        resState = operation.res.content.content
+        currentState.resContent = event.res.content.content
       }
-    } else {
-      resState = previousOperationWithState.type === 'render' ? previousOperationWithState.resState : previousOperationWithState.completedResState
     }
+  }
+
+  const result = { req: {}, res: {} }
+  try {
+    result.res.meta = JSON.parse(currentState.resMetaContent)
+  } catch (e) {
+    console.error('Failed to parse meta ' + currentState.resMetaContent)
+  }
+
+  if (result.res.meta.contentType == null) {
+    result.res.meta.contentType = 'text/plain'
+  }
+
+  if (result.res.meta.fileExtension == null) {
+    result.res.meta.fileExtension = 'txt'
+  }
+
+  try {
+    result.req = JSON.parse(currentState.reqContent)
+  } catch (e) {
+    console.error('Failed to parse req ' + currentState.reqContent)
+  }
+
+  if (currentState.resContentEncoding === 'base64') {
+    result.res.content = b64toBlob(currentState.resContent, result.res.meta.contentType)
   } else {
-    resState = ''
+    result.res.content = new Blob([currentState.resContent], { type: result.res.meta.contentType })
   }
 
-  const resMetaState = applyPatch(previousOperationWithState != null
-    ? previousOperationWithState.type === 'render' ? previousOperationWithState.resMetaState : previousOperationWithState.completedResMetaState
-    : '', operation.res.meta.diff)
-
-  state = {
-    ...operation,
-    reqState,
-    resState,
-    resMetaState
-  }
-
-  cache[operation.id] = state
-
-  if (completed) {
-    const completedPreviousOperation = operations.find((op) => op.id === operation.completedPreviousOperationId)
-
-    if (completedPreviousOperation == null) {
-      throw new Error(`Previous operation with id "${operation.completedPreviousOperationId}" not found`)
-    }
-
-    const isRenderOrSame = completedPreviousOperation.type === 'render' || operation.id === completedPreviousOperation.id
-    let completedPreviousOperationWithState
-
-    if (operation.id === completedPreviousOperation.id) {
-      completedPreviousOperationWithState = state
-    } else if (completedPreviousOperation.type === 'render') {
-      completedPreviousOperationWithState = cache[completedPreviousOperation.id] != null ? cache[completedPreviousOperation.id] : getStateAtProfileOperation(operations, completedPreviousOperation.id, false, cache)
-    } else {
-      const cacheItem = cache[completedPreviousOperation.id]
-
-      if (
-        cacheItem == null ||
-        (!isRenderOrSame && cacheItem.completedReqState == null)
-      ) {
-        completedPreviousOperationWithState = getStateAtProfileOperation(operations, completedPreviousOperation.id, true, cache)
-      } else {
-        completedPreviousOperationWithState = cacheItem
-      }
-    }
-
-    const completedReqState = applyPatch(
-      isRenderOrSame ? completedPreviousOperationWithState.reqState : completedPreviousOperationWithState.completed ? completedPreviousOperationWithState.completedReqState : completedPreviousOperationWithState.reqState,
-      operation.completedReq.diff
-    )
-
-    let completedResState
-
-    if (operation.completedRes.content != null) {
-      if (operation.completedRes.content.encoding === 'diff') {
-        completedResState = applyPatch(
-          isRenderOrSame
-            ? completedPreviousOperationWithState.resState
-            : completedPreviousOperationWithState.completed ? completedPreviousOperationWithState.completedResState : completedPreviousOperationWithState.resState,
-          operation.completedRes.content.content
-        )
-      } else {
-        completedResState = operation.completedRes.content.content
-      }
-    } else {
-      completedResState = completedPreviousOperationWithState.completed ? completedPreviousOperationWithState.completedResState : completedPreviousOperationWithState.resState
-    }
-
-    const completedResMetaState = applyPatch(
-      isRenderOrSame
-        ? completedPreviousOperationWithState.resMetaState
-        : completedPreviousOperationWithState.completed ? completedPreviousOperationWithState.completedResMetaState : completedPreviousOperationWithState.resMetaState,
-      operation.completedRes.meta.diff
-    )
-
-    state = {
-      ...state,
-      completedReqState,
-      completedResState,
-      completedResMetaState
-    }
-
-    cache[operation.id] = state
-  }
-
-  return state
+  return result
 }
 
 export default getStateAtProfileOperation

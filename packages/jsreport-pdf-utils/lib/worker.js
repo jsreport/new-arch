@@ -307,7 +307,8 @@ module.exports = (reporter, definition) => {
           removeHiddenMarks: !req.options.pdfUtils || req.options.pdfUtils.removeHiddenMarks !== false
         },
         reporter,
-        req
+        req,
+        res
       )
     } catch (e) {
       throw reporter.createError('Error while executing pdf-utils operations', {

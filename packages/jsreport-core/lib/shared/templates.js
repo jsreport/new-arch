@@ -1,22 +1,22 @@
 
 module.exports = (reporter) => {
   return {
-    resolveTemplate: (templateParams, req) => resolveTemplate(reporter, templateParams, req)
+    resolveTemplate: (req) => resolveTemplate(reporter, req)
   }
 }
 
-async function resolveTemplate (reporter, templateParams, req) {
+async function resolveTemplate (reporter, req) {
   let queryResult
 
-  if (templateParams._id) {
+  if (req.template._id) {
     queryResult = {
-      query: { _id: templateParams._id },
-      meta: { field: '_id', value: templateParams._id }
+      query: { _id: req.template._id },
+      meta: { field: '_id', value: req.template._id }
     }
-  } else if (templateParams.shortid) {
+  } else if (req.template.shortid) {
     queryResult = {
-      query: { shortid: templateParams.shortid },
-      meta: { field: 'shortid', value: templateParams.shortid }
+      query: { shortid: req.template.shortid },
+      meta: { field: 'shortid', value: req.template.shortid }
     }
   }
 
@@ -27,20 +27,20 @@ async function resolveTemplate (reporter, templateParams, req) {
     meta.field = queryResult.meta.field
     meta.value = queryResult.meta.value
     templates = await reporter.documentStore.collection('templates').find(queryResult.query, req)
-  } else if (templateParams.name) {
-    const nameIsPath = templateParams.name.indexOf('/') !== -1
+  } else if (req.template.name) {
+    const nameIsPath = req.template.name.indexOf('/') !== -1
 
     meta.field = 'name'
-    meta.value = templateParams.name
+    meta.value = req.template.name
 
-    if (!templateParams.name.startsWith('/') && nameIsPath) {
+    if (!req.template.name.startsWith('/') && nameIsPath) {
       throw reporter.createError('Invalid template path, path should be absolute and start with "/"', {
         statusCode: 400,
         weak: true
       })
     }
 
-    const pathParts = templateParams.name.split('/').filter((p) => p)
+    const pathParts = req.template.name.split('/').filter((p) => p)
 
     if (pathParts.length === 0) {
       throw reporter.createError('Invalid template path, path should be absolute and target something', {
@@ -54,10 +54,10 @@ async function resolveTemplate (reporter, templateParams, req) {
       // since template name resolution here does not support relative syntax we should not run
       // resolveEntityFromPath if the name is not path
       templates = await reporter.documentStore.collection('templates').find({
-        name: templateParams.name
+        name: req.template.name
       }, req)
     } else {
-      const result = await reporter.folders.resolveEntityFromPath(templateParams.name, 'templates', req)
+      const result = await reporter.folders.resolveEntityFromPath(req.template.name, 'templates', req)
 
       if (result) {
         templates = [result.entity]

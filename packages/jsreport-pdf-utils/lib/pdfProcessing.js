@@ -1,6 +1,12 @@
 const PdfManipulator = require('./utils/pdfManipulator')
 
-module.exports = async (inputs, reporter, req) => {
+module.exports = async (inputs, reporter, req, res) => {
+  const pdfUtilsProfilerOperationId = reporter.profiler.emit({
+    type: 'operationStart',
+    subtype: 'pdfUtils',
+    name: 'pdf utils'
+  }, req, res)
+
   const { pdfContent, operations, pdfMeta, pdfPassword, pdfSign, outlines, removeHiddenMarks } = inputs
 
   const runRender = async (shortidOrTemplate, data) => {
@@ -43,19 +49,49 @@ module.exports = async (inputs, reporter, req) => {
     reporter.logger.debug(`pdf-utils running pdf operation ${operation.type}`, req)
 
     if (operation.type === 'append') {
+      const profilerOperaitonId = reporter.profiler.emit({
+        type: 'operationStart',
+        subtype: 'pdfUtilsAppend',
+        name: 'pdf utils append',
+        previousOperationId: pdfUtilsProfilerOperationId
+      }, req, res)
       await manipulator.append(await runRender(templateDef, { $pdf: { pages: manipulator.parsedPdf.pages } }))
+      reporter.profiler.emit({
+        type: 'operationEnd',
+        id: profilerOperaitonId
+      }, req, res)
       continue
     }
 
     if (operation.type === 'prepend') {
+      const profilerOperaitonId = reporter.profiler.emit({
+        type: 'operationStart',
+        subtype: 'pdfUtilsPrepend',
+        name: 'pdf utils append',
+        previousOperationId: pdfUtilsProfilerOperationId
+      }, req, res)
       await manipulator.prepend(await runRender(templateDef, { $pdf: { pages: manipulator.parsedPdf.pages } }))
+      reporter.profiler.emit({
+        type: 'operationEnd',
+        id: profilerOperaitonId
+      }, req, res)
       continue
     }
 
     if (operation.type === 'merge') {
+      const profilerOperaitonId = reporter.profiler.emit({
+        type: 'operationStart',
+        subtype: 'pdfUtilsMerge',
+        name: 'pdf utils merge',
+        previousOperationId: pdfUtilsProfilerOperationId
+      }, req, res)
       if (operation.mergeWholeDocument) {
         const mergeBuffer = await runRender(templateDef, { $pdf: { pages: manipulator.parsedPdf.pages } })
         await manipulator.merge(mergeBuffer, operation.mergeToFront)
+        reporter.profiler.emit({
+          type: 'operationEnd',
+          id: profilerOperaitonId
+        }, req, res)
         continue
       }
 
@@ -89,6 +125,13 @@ module.exports = async (inputs, reporter, req) => {
     hiddenPageFields: req.context.shared.pdfUtilsHiddenPageFields
   })
   reporter.logger.debug('pdf-utils postproces end', req)
+
+  reporter.profiler.emit({
+    type: 'operationEnd',
+    id: pdfUtilsProfilerOperationId
+  }, req, res)
+
+  req.context.profiling.lastOperationId = pdfUtilsProfilerOperationId
 
   return manipulator.toBuffer()
 }

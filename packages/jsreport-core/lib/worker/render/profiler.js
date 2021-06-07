@@ -54,6 +54,9 @@ class Profiler {
     }
 
     if (req.context.profiling.isAttached && (m.type === 'operationStart' || m.type === 'operationEnd')) {
+      m.previousEventId = req.context.profiling.lastEventId
+      m.eventId = req.context.profiling.lastEventId = generateRequestId()
+
       let content = res.content
 
       if (content != null) {
@@ -96,7 +99,7 @@ class Profiler {
     let template = req.context.resolvedTemplate
 
     if (parentReq) {
-      template = await this.reporter.templates.resolveTemplate(req.template || {}, req)
+      template = await this.reporter.templates.resolveTemplate(req)
       req.context.resolvedTemplate = template
     } else {
       template = req.context.resolvedTemplate

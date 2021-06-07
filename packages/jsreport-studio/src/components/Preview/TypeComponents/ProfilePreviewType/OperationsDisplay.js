@@ -92,7 +92,7 @@ function getElementsFromOperations (operations, errors, activeElement) {
   const elements = []
   const defaultPosition = { x: 0, y: 0 }
   const mainOperation = operations.find((op) => op.type === 'render')
-  const isMainCompleted = mainOperation != null ? mainOperation.completed === true : false
+  const isMainCompleted = mainOperation != null ? mainOperation.endEvent : false
 
   if (operations.length > 0) {
     elements.push({
@@ -120,7 +120,7 @@ function getElementsFromOperations (operations, errors, activeElement) {
       }))
     }
 
-    if (operation.type === 'render' && operation.completed === true) {
+    if (operation.type === 'render' && operation.endEvent) {
       needsEndNode.push(operation)
     }
 
@@ -137,7 +137,7 @@ function getElementsFromOperations (operations, errors, activeElement) {
 
     const nodeClass = classNames('react-flow__node-default', styles.profileOperationNode, {
       [styles.active]: isOperationActive,
-      [styles.running]: !operation.completed && operation.type !== 'render' && errorSource == null,
+      [styles.running]: !operation.endEvent && operation.type !== 'render' && errorSource == null,
       [styles.error]: errorSource != null
     })
 
@@ -145,8 +145,8 @@ function getElementsFromOperations (operations, errors, activeElement) {
       id: operation.id,
       data: {
         label: operation.name,
-        time: operation.completed ? operation.completedTimestamp - operation.timestamp : null,
-        timeCost: isMainCompleted ? getTimeCost(operation.completedTimestamp - operation.timestamp, mainOperation.completedTimestamp - mainOperation.timestamp) : null,
+        time: operation.endEvent ? operation.endEvent.timestamp - operation.startEvent.timestamp : null,
+        timeCost: isMainCompleted ? getTimeCost(operation.endEvent.timestamp - operation.startEvent.timestamp, mainOperation.endEvent.timestamp - mainOperation.startEvent.timestamp) : null,
         operation,
         error: errorSource
       },
@@ -208,22 +208,12 @@ function getElementsFromOperations (operations, errors, activeElement) {
     const endNode = {
       id: endNodeId,
       data: {
-        time: operation.completedTimestamp - operation.timestamp,
-        timeCost: isMainCompleted && mainOperation.id !== operation.id ? getTimeCost(operation.completedTimestamp - operation.timestamp, mainOperation.completedTimestamp - mainOperation.timestamp) : null,
+        time: operation.endEvent.timestamp - operation.startEvent.timestamp,
+        timeCost: isMainCompleted && mainOperation.id !== operation.id ? getTimeCost(operation.endEvent.timestamp - operation.startEvent.timestamp, mainOperation.endEvent.timestamp - mainOperation.startEvent.timestamp) : null,
         error: errorInRender,
         renderResult: errorInRender == null
           ? {
-              getContent: (operations[0].req == null || operations[0].res == null)
-                ? undefined
-                : () => {
-                    const state = getStateAtProfileOperation(operations, operation.id, true)
-
-                    return {
-                      content: state.completedResState,
-                      contentEncoding: operation.completedRes.content.encoding === 'diff' ? 'plain' : operation.completedRes.content.encoding,
-                      meta: state.completedResMetaState
-                    }
-                  }
+              getContent: () => getStateAtProfileOperation(operations, operation.id, true)
             }
           : undefined,
         end: true
@@ -235,7 +225,7 @@ function getElementsFromOperations (operations, errors, activeElement) {
 
     elements.push(endNode)
 
-    elements.push(createEdge(operation.completedPreviousOperationId, endNodeId, activeElement, {
+    elements.push(createEdge(operation.endEvent.previousOperationId, endNodeId, activeElement, {
       data: {
         outputId: operation.id,
         inputId: null

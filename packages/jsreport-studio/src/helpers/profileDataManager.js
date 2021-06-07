@@ -36,27 +36,16 @@ function addOperation (data, operation) {
 
     newOperations = [...data.profileOperations.slice(0, foundIndex), {
       ...foundOperation,
-      completed: true,
-      completedTimestamp: operation.timestamp,
-      completedReq: operation.req,
-      completedRes: operation.res,
-      completedPreviousOperationId: operation.previousOperationId
+      endEvent: operation
     }, ...data.profileOperations.slice(foundIndex + 1)]
   } else {
     newOperations = [...data.profileOperations, {
       id: operation.id,
       type: operation.subtype,
       name: operation.name,
-      timestamp: operation.timestamp,
       profileId: operation.profileId,
-      req: operation.req,
-      res: operation.res,
       previousOperationId: operation.previousOperationId,
-      completed: false,
-      completedTimestamp: null,
-      completedReq: null,
-      completedRes: null,
-      completedPreviousOperationId: null
+      startEvent: operation
     }]
   }
 

@@ -58,7 +58,7 @@ module.exports = (reporter) => {
 
     let blobName = `profiles/${req.context.rootId}.log`
 
-    const template = await reporter.templates.resolveTemplate(req.template || {}, req)
+    const template = await reporter.templates.resolveTemplate(req)
 
     if (template && template._id) {
       const templatePath = await reporter.folders.resolveEntityPath(template, 'templates', req)

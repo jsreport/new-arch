@@ -103,11 +103,6 @@ function ProfilePreviewType (props) {
         return setActiveElement(null)
       }
     } else {
-      // don't open inspect modal for profile with no req/res information saved
-      if (profileOperations[0].req == null || profileOperations[0].res == null) {
-        return
-      }
-
       openInspectModal({
         operations: profileOperations,
         template,
@@ -173,38 +168,17 @@ function openInspectModal ({
       targetId,
       template,
       getContent: () => {
-        let basedOnCompletedState = false
-        let operationWithState
-        let result
+        let operationState
 
         if (outputId == null) {
-          operationWithState = getStateAtProfileOperation(operations, inputId, false)
+          operationState = getStateAtProfileOperation(operations, inputId, false)
         } else if (inputId == null) {
-          basedOnCompletedState = true
-          operationWithState = getStateAtProfileOperation(operations, outputId, true)
+          operationState = getStateAtProfileOperation(operations, outputId, true)
         } else {
-          operationWithState = getStateAtProfileOperation(operations, inputId, false)
+          operationState = getStateAtProfileOperation(operations, inputId, false)
         }
 
-        if (basedOnCompletedState) {
-          result = {
-            reqContent: operationWithState.completedReqState,
-            reqDiff: operationWithState.completedReq.diff,
-            resContent: operationWithState.completedResState,
-            resDiff: operationWithState.completedRes.content != null && operationWithState.completedRes.content.encoding === 'diff' ? operationWithState.completedRes.content.content : '',
-            resMetaContent: operationWithState.completedResMetaState
-          }
-        } else {
-          result = {
-            reqContent: operationWithState.reqState,
-            reqDiff: operationWithState.req.diff,
-            resContent: operationWithState.resState,
-            resDiff: operationWithState.res.content != null && operationWithState.res.content.encoding === 'diff' ? operationWithState.res.content.content : '',
-            resMetaContent: operationWithState.resMetaState
-          }
-        }
-
-        return result
+        return operationState
       }
     },
     onModalClose: onClose
