@@ -4,12 +4,14 @@ const childProcess = require('child_process')
 const rimraf = require('rimraf')
 const archiver = require('archiver')
 
+const packageManager = 'yarn'
+
 async function run () {
   console.log('starting exe compilation')
 
-  console.log('running fresh npm install to ensure deps are correctly installed..')
+  console.log(`running fresh ${packageManager} install to ensure deps are correctly installed..`)
 
-  childProcess.execSync('npm install', { stdio: 'inherit' })
+  childProcess.execSync(`${packageManager} install`, { stdio: 'inherit' })
 
   const duplicates = [
     'node_modules/listener-collection/node_modules/bluebird',
@@ -110,11 +112,15 @@ async function run () {
     rimraf.sync(path.join(__dirname, fpath))
   })
 
-  console.log('running "npm dedupe" after manual remove of deps..')
+  if (packageManager === 'npm') {
+    console.log('running "npm dedupe" after manual remove of deps..')
+  } else {
+    console.log('running "yarn install" again after manual remove of deps..')
+  }
 
   childProcess.execSync('npm dedupe', { stdio: 'inherit' })
 
-  console.log('copying files for executable compilation. node_modules/jsreport-cli/example.config.json -> dev.config.json, executable-license.txt -> license.txt')
+  console.log(`copying files for executable compilation. ${packageManager === 'npm' ? 'node_modules' : 'packages'}/jsreport-cli/example.config.json -> dev.config.json, executable-license.txt -> license.txt`)
 
   const configFile = {
     name: 'dev.config.json',
@@ -126,7 +132,7 @@ async function run () {
     path: path.join(__dirname, 'license.txt')
   }
 
-  fs.copyFileSync(path.join(__dirname, 'node_modules/jsreport-cli/example.config.json'), configFile.path)
+  fs.copyFileSync(path.join(__dirname, `${packageManager === 'npm' ? 'node_modules' : 'packages'}/jsreport-cli/example.config.json`), configFile.path)
   fs.copyFileSync(path.join(__dirname, 'executable-license.txt'), licenseFile.path)
 
   console.log('running compilation "npx jsreport-compile"..')
@@ -180,15 +186,15 @@ async function run () {
 
   fs.unlinkSync(licenseFile.path)
 
-  console.log('discarding changes to package-lock.json "git checkout -- package-lock.json"..')
+  console.log(`discarding changes to ${packageManager === 'npm' ? 'package-lock.json "git checkout -- package-lock.json"' : 'yarn.lock "git checkout -- yarn.lock"'}..`)
 
-  childProcess.execSync('git checkout -- package-lock.json', { stdio: 'inherit' })
+  childProcess.execSync(`git checkout -- ${packageManager === 'npm' ? 'package-lock.json' : 'yarn.lock'}`, { stdio: 'inherit' })
 
   console.log('compilation finished')
 
-  console.log('running fresh npm install again to ensure deps are left as original before compilation..')
+  console.log(`running fresh ${packageManager} install again to ensure deps are left as original before compilation..`)
 
-  childProcess.execSync('npm install', { stdio: 'inherit' })
+  childProcess.execSync(`${packageManager} install`, { stdio: 'inherit' })
 
   console.log('done!')
 }

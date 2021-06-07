@@ -54,7 +54,7 @@ module.exports = (reporter) => {
       this.availableExtensions.sort(sorter)
 
       // filter out duplicated extensions
-      // this can easilly happen when you install jsreport and jsreport-cli into global modules
+      // this can easily happen when you install jsreport and jsreport-cli into global modules
       this.availableExtensions = this.extensions.filter((v, i) => {
         if (!v.name) {
           return true

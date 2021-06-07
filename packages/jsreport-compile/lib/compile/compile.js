@@ -174,7 +174,7 @@ async function copyTempResourcesToProject (resources) {
   }))
 }
 
-// finaly run nexe to produce the exe
+// finally run pkg to produce the exe
 async function compileExe (label, config, options) {
   debug(`Compiling ${label} executable`)
 
@@ -187,19 +187,149 @@ async function compileExe (label, config, options) {
   execArgs.push('--target')
   execArgs.push(`node${options.nodeVersion}`)
 
+  const scripts = []
+  const assets = []
+
+  // add the main and worker entry points of extensions, it needs to be done this way
+  // to tell pkg that these files should be analyzable and inspect its require calls, etc
+  config.extensions.forEach((ext) => {
+    const rootDir = path.relative(process.cwd(), ext.directory)
+
+    if (fs.existsSync(path.join(rootDir, 'jsreport.config.js'))) {
+      const conf = require(path.join(process.cwd(), rootDir, 'jsreport.config.js'))
+
+      if (conf.main) {
+        scripts.push(path.relative(process.cwd(), path.join(rootDir, conf.main)))
+      }
+
+      if (conf.worker) {
+        scripts.push(path.relative(process.cwd(), path.join(rootDir, conf.worker)))
+      }
+    }
+  })
+
+  let filesToIgnore = []
+
+  const ignoredConfigFiles = [
+    'Jenkinsfile',
+    'Makefile',
+    'Gulpfile.js',
+    'Gruntfile.js',
+    'gulpfile.js',
+    '.DS_Store',
+    '.tern-project',
+    '.gitattributes',
+    '.editorconfig',
+    '.eslintrc',
+    '.eslintrc.js',
+    '.eslintrc.json',
+    '.eslintrc.yml',
+    '.eslintignore',
+    '.stylelintrc',
+    'stylelint.config.js',
+    '.stylelintrc.json',
+    '.stylelintrc.yaml',
+    '.stylelintrc.yml',
+    '.stylelintrc.js',
+    '.htmllintrc',
+    '.lint',
+    '.npmrc',
+    '.npmignore',
+    '.jshintrc',
+    '.flowconfig',
+    '.documentup.json',
+    '.yarn-metadata.json',
+    '.travis.yml',
+    'appveyor.yml',
+    '.gitlab-ci.yml',
+    'circle.yml',
+    '.coveralls.yml',
+    'CHANGES',
+    'changelog',
+    'LICENSE.txt',
+    'LICENSE',
+    'LICENSE-MIT',
+    'LICENSE-MIT.txt',
+    'LICENSE.BSD',
+    'license',
+    'LICENCE.txt',
+    'LICENCE',
+    'LICENCE-MIT',
+    'LICENCE-MIT.txt',
+    'LICENCE.BSD',
+    'licence',
+    'AUTHORS',
+    'VERSION',
+    'CONTRIBUTORS',
+    '.yarn-integrity',
+    '.yarnclean',
+    '_config.yml',
+    '.babelrc',
+    '.yo-rc.json',
+    'jest.config.js',
+    'karma.conf.js',
+    'wallaby.js',
+    'wallaby.conf.js',
+    '.prettierrc',
+    '.prettierrc.yml',
+    '.prettierrc.toml',
+    '.prettierrc.js',
+    '.prettierrc.json',
+    'prettier.config.js',
+    '.appveyor.yml',
+    'tsconfig.json',
+    'tslint.json'
+  ]
+
+  filesToIgnore.push(`node_modules/**/{${ignoredConfigFiles.join(',')}}`)
+  filesToIgnore.push('node_modules/**/*.{markdown,md,mkd,ts,d.ts,coffee,swp,tgz,map,css.map,js.map,min.js.map}')
+  filesToIgnore.push('node_modules/**/{test,tests,.idea,.vscode,.github}/**/*')
+  filesToIgnore.push('node_modules/bluebird/js/browser')
+  filesToIgnore.push('node_modules/mingo/dist')
+  filesToIgnore.push('!node_modules/mingo/dist/mingo.js')
+  filesToIgnore.push('!node_modules/diff2html/dist')
+  filesToIgnore.push('node_modules/**/async/dist/async.min.js')
+  filesToIgnore.push('node_modules/pako/dist')
+  filesToIgnore.push('node_modules/ajv/dist')
+  filesToIgnore.push('node_modules/handlebars/bin')
+  filesToIgnore.push('node_modules/handlebars/lib')
+  filesToIgnore.push('!node_modules/handlebars/lib/index.js')
+  filesToIgnore.push('node_modules/handlebars/dist')
+  filesToIgnore.push('!node_modules/handlebars/dist/cjs')
+  filesToIgnore.push('node_modules/silent-spawn/WinRun.exe')
+
+  filesToIgnore = config.extensions.reduce((acu, ext) => {
+    const rootDir = path.relative(process.cwd(), ext.directory)
+
+    acu.push(path.join(rootDir, 'studio'))
+    acu.push(`!${path.join(rootDir, 'studio/main.js')}`)
+    acu.push(`!${path.join(rootDir, 'studio/main.css')}`)
+
+    if (ext.name === 'studio') {
+      acu.push(path.join(rootDir, 'src'))
+      acu.push(path.join(rootDir, 'webpack'))
+    }
+
+    return acu
+  }, filesToIgnore)
+
   if (Object.keys(config.resources).length > 0) {
-    const scripts = Object.keys(config.resources).filter((rName) => {
+    Object.keys(config.resources).filter((rName) => {
       return config.resources[rName].script === true
-    }).map((rName) => {
+    }).forEach((rName) => {
       const resource = config.resources[rName]
 
       // the path in pkg configuration should be relative to project dir
-      return path.relative(process.cwd(), resource.path)
+      const newPath = path.relative(process.cwd(), resource.path)
+
+      if (!scripts.includes(newPath)) {
+        scripts.push(newPath)
+      }
     })
 
-    const assets = Object.keys(config.resources).filter((rName) => {
+    Object.keys(config.resources).filter((rName) => {
       return config.resources[rName].script !== true
-    }).map((rName) => {
+    }).forEach((rName) => {
       const resource = config.resources[rName]
       let pathToUse
 
@@ -210,143 +340,22 @@ async function compileExe (label, config, options) {
       }
 
       // the path in pkg configuration should be relative to project dir
-      return path.relative(process.cwd(), pathToUse)
+      assets.push(path.relative(process.cwd(), pathToUse))
     })
-
-    const pkfConfigJSONPath = path.join(process.cwd(), 'jsreportPkgConfig.json')
-
-    let filesToIgnore = []
-
-    filesToIgnore.push('node_modules/**/Jenkinsfile')
-    filesToIgnore.push('node_modules/**/Makefile')
-    filesToIgnore.push('node_modules/**/Gulpfile.js')
-    filesToIgnore.push('node_modules/**/Gruntfile.js')
-    filesToIgnore.push('node_modules/**/gulpfile.js')
-    filesToIgnore.push('node_modules/**/.DS_Store')
-    filesToIgnore.push('node_modules/**/.tern-project')
-    filesToIgnore.push('node_modules/**/.gitattributes')
-    filesToIgnore.push('node_modules/**/.editorconfig')
-    filesToIgnore.push('node_modules/**/.eslintrc')
-    filesToIgnore.push('node_modules/**/.eslintrc.js')
-    filesToIgnore.push('node_modules/**/.eslintrc.json')
-    filesToIgnore.push('node_modules/**/.eslintrc.yml')
-    filesToIgnore.push('node_modules/**/.eslintignore')
-    filesToIgnore.push('node_modules/**/.stylelintrc')
-    filesToIgnore.push('node_modules/**/stylelint.config.js')
-    filesToIgnore.push('node_modules/**/.stylelintrc.json')
-    filesToIgnore.push('node_modules/**/.stylelintrc.yaml')
-    filesToIgnore.push('node_modules/**/.stylelintrc.yml')
-    filesToIgnore.push('node_modules/**/.stylelintrc.js')
-    filesToIgnore.push('node_modules/**/.htmllintrc')
-    filesToIgnore.push('node_modules/**/.lint')
-    filesToIgnore.push('node_modules/**/.npmrc')
-    filesToIgnore.push('node_modules/**/.npmignore')
-    filesToIgnore.push('node_modules/**/.jshintrc')
-    filesToIgnore.push('node_modules/**/.flowconfig')
-    filesToIgnore.push('node_modules/**/.documentup.json')
-    filesToIgnore.push('node_modules/**/.yarn-metadata.json')
-    filesToIgnore.push('node_modules/**/.travis.yml')
-    filesToIgnore.push('node_modules/**/appveyor.yml')
-    filesToIgnore.push('node_modules/**/.gitlab-ci.yml')
-    filesToIgnore.push('node_modules/**/circle.yml')
-    filesToIgnore.push('node_modules/**/.coveralls.yml')
-    filesToIgnore.push('node_modules/**/CHANGES')
-    filesToIgnore.push('node_modules/**/changelog')
-    filesToIgnore.push('node_modules/**/LICENSE.txt')
-    filesToIgnore.push('node_modules/**/LICENSE')
-    filesToIgnore.push('node_modules/**/LICENSE-MIT')
-    filesToIgnore.push('node_modules/**/LICENSE-MIT.txt')
-    filesToIgnore.push('node_modules/**/LICENSE.BSD')
-    filesToIgnore.push('node_modules/**/license')
-    filesToIgnore.push('node_modules/**/LICENCE.txt')
-    filesToIgnore.push('node_modules/**/LICENCE')
-    filesToIgnore.push('node_modules/**/LICENCE-MIT')
-    filesToIgnore.push('node_modules/**/LICENCE-MIT.txt')
-    filesToIgnore.push('node_modules/**/LICENCE.BSD')
-    filesToIgnore.push('node_modules/**/licence')
-    filesToIgnore.push('node_modules/**/AUTHORS')
-    filesToIgnore.push('node_modules/**/VERSION')
-    filesToIgnore.push('node_modules/**/CONTRIBUTORS')
-    filesToIgnore.push('node_modules/**/.yarn-integrity')
-    filesToIgnore.push('node_modules/**/.yarnclean')
-    filesToIgnore.push('node_modules/**/_config.yml')
-    filesToIgnore.push('node_modules/**/.babelrc')
-    filesToIgnore.push('node_modules/**/.yo-rc.json')
-    filesToIgnore.push('node_modules/**/jest.config.js')
-    filesToIgnore.push('node_modules/**/karma.conf.js')
-    filesToIgnore.push('node_modules/**/wallaby.js')
-    filesToIgnore.push('node_modules/**/wallaby.conf.js')
-    filesToIgnore.push('node_modules/**/.prettierrc')
-    filesToIgnore.push('node_modules/**/.prettierrc.yml')
-    filesToIgnore.push('node_modules/**/.prettierrc.toml')
-    filesToIgnore.push('node_modules/**/.prettierrc.js')
-    filesToIgnore.push('node_modules/**/.prettierrc.json')
-    filesToIgnore.push('node_modules/**/prettier.config.js')
-    filesToIgnore.push('node_modules/**/.appveyor.yml')
-    filesToIgnore.push('node_modules/**/tsconfig.json')
-    filesToIgnore.push('node_modules/**/tslint.json')
-
-    filesToIgnore.push('node_modules/**/*.markdown')
-    filesToIgnore.push('node_modules/**/*.md')
-    filesToIgnore.push('node_modules/**/*.mkd')
-    filesToIgnore.push('node_modules/**/*.ts')
-    filesToIgnore.push('node_modules/**/*.d.ts')
-    filesToIgnore.push('node_modules/**/*.jst')
-    filesToIgnore.push('node_modules/**/*.coffee')
-    filesToIgnore.push('node_modules/**/*.swp')
-    filesToIgnore.push('node_modules/**/*.tgz')
-
-    filesToIgnore.push('node_modules/**/*.map')
-    filesToIgnore.push('node_modules/**/*.css.map')
-    filesToIgnore.push('node_modules/**/*.js.map')
-    filesToIgnore.push('node_modules/**/*.min.js.map')
-
-    filesToIgnore.push('node_modules/**/test/**/*')
-    filesToIgnore.push('node_modules/**/tests/**/*')
-    filesToIgnore.push('node_modules/**/.idea/**/*')
-    filesToIgnore.push('node_modules/**/.vscode/**/*')
-    filesToIgnore.push('node_modules/**/.github/**/*')
-
-    filesToIgnore.push('node_modules/bluebird/js/browser')
-    filesToIgnore.push('node_modules/mingo/dist')
-    filesToIgnore.push('!node_modules/mingo/dist/mingo.js')
-    filesToIgnore.push('!node_modules/diff2html/dist')
-    filesToIgnore.push('node_modules/**/async/dist/async.min.js')
-    filesToIgnore.push('node_modules/pako/dist')
-    filesToIgnore.push('node_modules/ajv/dist')
-    filesToIgnore.push('node_modules/handlebars/bin')
-    filesToIgnore.push('node_modules/handlebars/lib')
-    filesToIgnore.push('!node_modules/handlebars/lib/index.js')
-    filesToIgnore.push('node_modules/handlebars/dist')
-    filesToIgnore.push('!node_modules/handlebars/dist/cjs')
-    filesToIgnore.push('node_modules/silent-spawn/WinRun.exe')
-
-    filesToIgnore = config.extensions.reduce((acu, ext) => {
-      const rootDir = path.relative(process.cwd(), ext.directory)
-
-      acu.push(path.join(rootDir, 'studio'))
-      acu.push(`!${path.join(rootDir, 'studio/main.js')}`)
-      acu.push(`!${path.join(rootDir, 'studio/main.css')}`)
-
-      if (ext.name === 'studio') {
-        acu.push(path.join(rootDir, 'src'))
-        acu.push(path.join(rootDir, 'webpack'))
-      }
-
-      return acu
-    }, filesToIgnore)
-
-    await writeFileAsync(pkfConfigJSONPath, JSON.stringify({
-      pkg: {
-        scripts,
-        assets,
-        ignore: filesToIgnore
-      }
-    }, null, 2))
-
-    execArgs.push('--config')
-    execArgs.push(pkfConfigJSONPath)
   }
+
+  const pkfConfigJSONPath = path.join(process.cwd(), 'jsreportPkgConfig.json')
+
+  await writeFileAsync(pkfConfigJSONPath, JSON.stringify({
+    pkg: {
+      scripts,
+      assets,
+      ignore: filesToIgnore
+    }
+  }, null, 2))
+
+  execArgs.push('--config')
+  execArgs.push(pkfConfigJSONPath)
 
   if (options.debug) {
     execArgs.push('--vfsOutput')
@@ -362,7 +371,7 @@ async function compileExe (label, config, options) {
 
   await pkg.exec(execArgs)
 
-  debug(`Compile ${label} sucessfull, the output can be found at ${path.join(process.cwd(), options.output)}`)
+  debug(`Compile ${label} successful, the output can be found at ${path.join(process.cwd(), options.output)}`)
 }
 
 async function prepareJsreport (id, options) {
