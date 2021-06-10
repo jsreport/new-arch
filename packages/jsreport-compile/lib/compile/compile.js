@@ -93,7 +93,9 @@ async function writeStartup (config, options) {
 
   // append static require of the extensions detected: jsreport.use(require('jsreport-templates')())
   const extensions = `function requireExtensions() { return [\n${
-    config.extensions.length === 0 ? '' : config.extensions.map((e) => {
+    config.extensions.length === 0
+    ? ''
+    : config.extensions.map((e) => {
       const extWithCommands = config.extensionsCommands.find((ex) => ex.extension === e.name)
 
       let cliModulePath
@@ -104,14 +106,19 @@ async function writeStartup (config, options) {
 
       return `Object.assign(require('./${
         path.relative(process.cwd(), e.directory).replace(/\\/g, '/')
-      }'), { source: '${e.source}', version: '${e.version}', cliModule: ${cliModulePath == null ? 'false' : `require('./${
+      }'), { source: '${e.source}', version: '${e.version}', cliModule: ${
+        cliModulePath == null
+        ? 'false'
+        : `require('./${
         path.relative(process.cwd(), cliModulePath).replace(/\\/g, '/')
       }')`} })`
     }).join(',\n')
   }\n] }`
 
   const cliExtensionsCommands = `function requireCliExtensionsCommands() { return [\n${
-    config.extensionsCommands.length === 0 ? '' : config.extensionsCommands.map((e) => {
+    config.extensionsCommands.length === 0
+    ? ''
+    : config.extensionsCommands.map((e) => {
       const cliModulePath = e.cliModulePath
 
       return `require('./${
@@ -123,8 +130,8 @@ async function writeStartup (config, options) {
   let content = fs.readFileSync(path.join(__dirname, './startupTemplate.js'))
 
   content = content.toString()
-  .replace('$originalProjectDir', JSON.stringify(process.cwd()))
-  .replace('$shortid', config.shortid)
+    .replace('$originalProjectDir', JSON.stringify(process.cwd()))
+    .replace('$shortid', config.shortid)
     .replace('$version', config.version)
     .replace('$resources', JSON.stringify(config.resources))
     .replace('$handleArguments', options.handleArguments !== false)
@@ -178,7 +185,7 @@ async function copyTempResourcesToProject (resources) {
 async function compileExe (label, config, options) {
   debug(`Compiling ${label} executable`)
 
-  let execArgs = [options.exeInput]
+  const execArgs = [options.exeInput]
 
   if (options.debug) {
     execArgs.push('--debug')
@@ -218,6 +225,8 @@ async function compileExe (label, config, options) {
     'gulpfile.js',
     '.DS_Store',
     '.tern-project',
+    '.gitignore',
+    '.gitkeep',
     '.gitattributes',
     '.editorconfig',
     '.eslintrc',
@@ -244,8 +253,10 @@ async function compileExe (label, config, options) {
     '.gitlab-ci.yml',
     'circle.yml',
     '.coveralls.yml',
+    'README',
     'CHANGES',
     'changelog',
+    'usage.txt',
     'LICENSE.txt',
     'LICENSE',
     'LICENSE-MIT',
@@ -261,11 +272,13 @@ async function compileExe (label, config, options) {
     'AUTHORS',
     'VERSION',
     'CONTRIBUTORS',
+    'yarn.lock',
     '.yarn-integrity',
     '.yarnclean',
     '_config.yml',
     '.babelrc',
     '.yo-rc.json',
+    'mocha.opts',
     'jest.config.js',
     'karma.conf.js',
     'wallaby.js',
@@ -281,22 +294,35 @@ async function compileExe (label, config, options) {
     'tslint.json'
   ]
 
-  filesToIgnore.push(`node_modules/**/{${ignoredConfigFiles.join(',')}}`)
-  filesToIgnore.push('node_modules/**/*.{markdown,md,mkd,ts,d.ts,coffee,swp,tgz,map,css.map,js.map,min.js.map}')
-  filesToIgnore.push('node_modules/**/{test,tests,.idea,.vscode,.github}/**/*')
-  filesToIgnore.push('node_modules/bluebird/js/browser')
-  filesToIgnore.push('node_modules/mingo/dist')
-  filesToIgnore.push('!node_modules/mingo/dist/mingo.js')
-  filesToIgnore.push('!node_modules/diff2html/dist')
-  filesToIgnore.push('node_modules/**/async/dist/async.min.js')
-  filesToIgnore.push('node_modules/pako/dist')
-  filesToIgnore.push('node_modules/ajv/dist')
-  filesToIgnore.push('node_modules/handlebars/bin')
-  filesToIgnore.push('node_modules/handlebars/lib')
-  filesToIgnore.push('!node_modules/handlebars/lib/index.js')
-  filesToIgnore.push('node_modules/handlebars/dist')
-  filesToIgnore.push('!node_modules/handlebars/dist/cjs')
-  filesToIgnore.push('node_modules/silent-spawn/WinRun.exe')
+  filesToIgnore.push(`**/node_modules/**/{${ignoredConfigFiles.join(',')}}`)
+  filesToIgnore.push('**/node_modules/**/*.{markdown,md,mkd,ts,d.ts,js.flow,coffee,swp,tgz,sh}')
+  filesToIgnore.push('**/*.{map,css.map,js.map,min.js.map}')
+  filesToIgnore.push('**/node_modules/**/{test,bin,tests,__tests__,test_files,.idea,.vscode,.github}/**/*')
+  filesToIgnore.push('**/node_modules/@types/**')
+  filesToIgnore.push('**/node_modules/bluebird/js/browser/**')
+  filesToIgnore.push('**/node_modules/buble/bin/**')
+  filesToIgnore.push('**/node_modules/pkg-fetch/**')
+  filesToIgnore.push('**/node_modules/@bjrmatos/pkg/**')
+  filesToIgnore.push('**/node_modules/socket.io-client/dist/**')
+  filesToIgnore.push('**/node_modules/jsreport-exceljs/dist/**')
+  filesToIgnore.push('**/node_modules/mingo/dist/**')
+  filesToIgnore.push('!**/node_modules/mingo/dist/mingo.js')
+  filesToIgnore.push('**/node_modules/hdr-histogram-js/dist/**')
+  filesToIgnore.push('**/node_modules/hdr-histogram-js/benchmark/**')
+  filesToIgnore.push('**/node_modules/hdr-histogram-js/**/*.spec.js')
+  filesToIgnore.push('**/node_modules/opentype.js/dist/**')
+  filesToIgnore.push('!**/node_modules/opentype.js/dist/opentype.js')
+  filesToIgnore.push('**/node_modules/diff2html/dist/**')
+  filesToIgnore.push('**/node_modules/source-map/dist/**')
+  filesToIgnore.push('**/node_modules/buble/dist/buble.es.js')
+  filesToIgnore.push('**/node_modules/async/dist/async.min.js')
+  filesToIgnore.push('**/node_modules/pako/dist/**')
+  filesToIgnore.push('**/node_modules/ajv/dist/**')
+  filesToIgnore.push('**/node_modules/handlebars/{bin,lib,print-script}')
+  filesToIgnore.push('!**/node_modules/handlebars/lib/index.js')
+  filesToIgnore.push('**/node_modules/handlebars/dist/**')
+  filesToIgnore.push('!**/node_modules/handlebars/dist/cjs')
+  filesToIgnore.push('**/node_modules/silent-spawn/WinRun.exe')
 
   filesToIgnore = config.extensions.reduce((acu, ext) => {
     const rootDir = path.relative(process.cwd(), ext.directory)

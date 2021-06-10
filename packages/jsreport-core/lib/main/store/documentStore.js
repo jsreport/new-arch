@@ -1,6 +1,6 @@
 const events = require('events')
 const { nanoid } = require('nanoid')
-const uuidv4 = require('uuid/v4')
+const { v4: uuidv4 } = require('uuid')
 const ListenerCollection = require('listener-collection')
 const { resolvePropDefinition, typeDefToJSONSchema } = require('./typeUtils')
 const { findReferencePropertiesInType, findLinkedEntitiesForReferenceValue, existsReferenceValue, updateReferenceValue } = require('./referenceUtils')

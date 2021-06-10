@@ -1,6 +1,6 @@
 const OdataSql = require('odata-to-sql')
 const Promise = require('bluebird')
-const uuid = require('uuid').v4
+const { v4: uuidv4 } = require('uuid')
 
 class Cursor {
   constructor (entitySet, odataSql, executeQuery, query, fields, opts) {
@@ -78,7 +78,7 @@ module.exports = (options, dialect, executeQuery, transactionManager = {}) => ({
   },
   insert: async function (entitySet, doc, opts = {}) {
     opts.entitySet = opts
-    doc._id = doc._id || uuid()
+    doc._id = doc._id || uuidv4()
     var q = this.odataSql.insert(entitySet, doc)
     await executeQuery(q, opts)
     return doc

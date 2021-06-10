@@ -2,8 +2,8 @@ const Promise = require('bluebird')
 const path = require('path')
 const S3 = require('aws-sdk/clients/s3')
 const SQS = require('aws-sdk/clients/sqs')
-const uuid = require('uuid')
-const instanceId = uuid()
+const { v4: uuidv4 } = require('uuid')
+const instanceId = uuidv4()
 
 module.exports = ({ logger, accessKeyId, secretAccessKey, bucket, lock = {}, s3Options = {} }) => {
   if (!bucket) {
@@ -176,7 +176,7 @@ module.exports = ({ logger, accessKeyId, secretAccessKey, bucket, lock = {}, s3O
       }
 
       const start = Date.now()
-      const lockId = uuid()
+      const lockId = uuidv4()
 
       const waitForMessage = async () => {
         if (start + 10000 < Date.now()) {

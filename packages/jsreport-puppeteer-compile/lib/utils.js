@@ -30,15 +30,7 @@ module.exports.decompress = async (zipPath) => {
     throw new Error(`Temporary extract directory "${extractTmpPath}" exists`)
   }
 
-  await new Promise((resolve, reject) => {
-    extract(zipPath, { dir: extractTmpPath, defaultFileMode: 0o777 }, (err) => {
-      if (err) {
-        return reject(err)
-      }
-
-      resolve()
-    })
-  })
+  await extract(zipPath, { dir: extractTmpPath, defaultFileMode: 0o777 })
 
   // when everything is saved into the extract temp directory we check the original directory
   // if it is empty then we rename the extract temp directory to the path

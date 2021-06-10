@@ -127,8 +127,16 @@ module.exports.getRootSchemaOptions = () => ({
       properties: {}
     },
     extensionsList: {
-      type: 'array',
-      items: { type: 'string' }
+      anyOf: [
+        {
+          type: 'string',
+          '$jsreport-constantOrArray': []
+        },
+        {
+          type: 'array',
+          items: { type: 'string' }
+        }
+      ]
     },
     migrateEntitySetsToFolders: {
       type: 'boolean',

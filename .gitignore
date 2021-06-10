@@ -120,5 +120,6 @@ dev.config.json
 jsreportPkgConfig.json
 jsreportStartup.js
 exe-temp-resources
+compileDetection
 vfs.json
 # end exe compilation

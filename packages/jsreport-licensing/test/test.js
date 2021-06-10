@@ -1,7 +1,7 @@
 const JsReport = require('jsreport-core')
 const http = require('http')
 const fs = require('fs')
-const uuid = require('uuid').v4
+const { v4: uuidv4 } = require('uuid')
 const path = require('path')
 require('should')
 let licenseJsonFilePath = path.join(__dirname, '../', 'jsreport.license.json')
@@ -69,7 +69,7 @@ describe('licensing', () => {
   })
 
   it('should load license key from license-key.txt file', async () => {
-    const key = uuid()
+    const key = uuidv4()
     fs.writeFileSync(path.join(__dirname, '../', 'license-key.txt'), key)
     await insertTemplates(6)
 
@@ -89,7 +89,7 @@ describe('licensing', () => {
   })
 
   it('should create jsreport.license.json file with successfull check', async () => {
-    jsreport.options.licenseKey = uuid()
+    jsreport.options.licenseKey = uuidv4()
     await insertTemplates(6)
     await createServer((req, res) => {
       res.end(JSON.stringify({
@@ -143,7 +143,7 @@ describe('licensing', () => {
 
   it('should mask license key in the logs', async () => {
     const messages = []
-    const key = uuid()
+    const key = uuidv4()
     jsreport.logger.log = (level, m) => {
       messages.push(m)
     }

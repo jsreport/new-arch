@@ -14,7 +14,7 @@ const argv = require('yargs')
     desc: 'Enables debugging mode which includes more logs and does not delete intermediate startup script'
   })
   .options('i', {
-    demand: true,
+    demandOption: true,
     alias: 'input',
     desc: 'Script bootstraping jsreport.',
     default: 'server.js'

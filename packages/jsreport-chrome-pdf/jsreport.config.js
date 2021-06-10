@@ -35,5 +35,5 @@ module.exports = {
       'chrome-pdf': { ...chromeSchema }
     }
   },
-  dependencies: []
+  dependencies: ['puppeteer-compile']
 }

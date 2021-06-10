@@ -24,7 +24,7 @@
   },
   "license": "MIT",
   "dependencies": {
-    "azure-storage": "2.10.2"
+    "azure-storage": "2.10.4"
   },
   "author": "Jan Blaha",
   "devDependencies": {

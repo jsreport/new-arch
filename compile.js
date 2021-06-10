@@ -1,124 +1,29 @@
 const path = require('path')
 const fs = require('fs')
+const fsAsync = require('fs/promises')
 const childProcess = require('child_process')
-const rimraf = require('rimraf')
 const archiver = require('archiver')
 
 const packageManager = 'yarn'
 
+run().catch((err) => {
+  console.error('Error while running compile script:', err)
+  process.exit(1)
+})
+
 async function run () {
   console.log('starting exe compilation')
 
-  console.log(`running fresh ${packageManager} install to ensure deps are correctly installed..`)
+  const packageJsonContent = await fsAsync.readFile('./package.json')
+  const originalPackageJson = JSON.parse(packageJsonContent)
+
+  originalPackageJson.resolutions = getResolutionsForDuplicatedPackages()
+
+  await fsAsync.writeFile('./package.json', JSON.stringify(originalPackageJson, null, 2))
+
+  console.log(`running ${packageManager} install with packages resolutions set to ensure deps are correctly de-duplicated..`)
 
   childProcess.execSync(`${packageManager} install`, { stdio: 'inherit' })
-
-  const duplicates = [
-    'node_modules/listener-collection/node_modules/bluebird',
-    'node_modules/nconf/node_modules/yargs',
-    'node_modules/jsreport-scheduling/node_modules/moment',
-    'node_modules/extract-zip/node_modules/yauzl',
-    'node_modules/uglify-js/node_modules/source-map',
-    'node_modules/jsreport-fs-store/node_modules/mingo',
-    'node_modules/jsreport-cli/node_modules/semver',
-    'node_modules/cross-spawn/node_modules/semver',
-    'node_modules/fsevents/node_modules/semver',
-    'node_modules/extract-zip/node_modules/concat-stream',
-    'node_modules/cfb/node_modules/commander',
-    'node_modules/uglify-js/node_modules/commander',
-    'node_modules/commander',
-    'node_modules/external-editor/node_modules/iconv-lite',
-    'node_modules/fsevents/node_modules/iconv-lite',
-    'node_modules/html-to-xlsx/node_modules/uuid',
-    'node_modules/fsevents/node_modules/rimraf',
-    'node_modules/fsevents/node_modules/mkdirp',
-    'node_modules/hogan.js/node_modules/mkdirp',
-    'node_modules/xml2js-preserve-spaces/node_modules/xmlbuilder',
-    'node_modules/msexcel-builder-extended/node_modules/xmlbuilder',
-    'node_modules/send/node_modules/statuses',
-    'node_modules/finalhandler/node_modules/statuses',
-    'node_modules/express/node_modules/statuses',
-    'node_modules/fsevents/node_modules/object-assign',
-    'node_modules/minimist',
-    'node_modules/fsevents/node_modules/minimist',
-    'node_modules/fsevents/node_modules/rc/node_modules/minimist',
-    'node_modules/unicode-trie/node_modules/pako',
-    'node_modules/htmlparser2/node_modules/readable-stream',
-    'node_modules/dicer/node_modules/readable-stream',
-    'node_modules/busboy/node_modules/readable-stream',
-    'node_modules/fsevents/node_modules/readable-stream',
-    'node_modules/serve-favicon/node_modules/safe-buffer',
-    'node_modules/simple-odata-server/node_modules/safe-buffer',
-    'node_modules/fsevents/node_modules/safe-buffer',
-    'node_modules/msexcel-builder-extended/node_modules/archiver',
-    'node_modules/fsevents/node_modules/sax',
-    'node_modules/dicer/node_modules/string_decoder',
-    'node_modules/busboy/node_modules/string_decoder',
-    'node_modules/fsevents/node_modules/string_decoder',
-    'node_modules/jsreport-core/node_modules/json-schema-traverse',
-    'node_modules/msexcel-builder-extended/node_modules/zip-stream',
-    'node_modules/fsevents/node_modules/set-blocking',
-    'node_modules/fsevents/node_modules/ini',
-    'node_modules/fsevents/node_modules/strip-json-comments',
-    'node_modules/fsevents/node_modules/glob',
-    'node_modules/fsevents/node_modules/yallist',
-    'node_modules/fsevents/node_modules/balanced-match',
-    'node_modules/fsevents/node_modules/brace-expansion',
-    'node_modules/fsevents/node_modules/path-is-absolute',
-    'node_modules/fsevents/node_modules/core-util-is',
-    'node_modules/fsevents/node_modules/os-homedir',
-    'node_modules/fsevents/node_modules/os-tmpdir',
-    'node_modules/fsevents/node_modules/signal-exit',
-    'node_modules/fsevents/node_modules/fs.realpath',
-    'node_modules/fsevents/node_modules/inflight',
-    'node_modules/fsevents/node_modules/inherits',
-    'node_modules/fsevents/node_modules/process-nextick-args',
-    'node_modules/fsevents/node_modules/abbrev',
-    'node_modules/snapdragon/node_modules/extend-shallow',
-    'node_modules/braces/node_modules/extend-shallow',
-    'node_modules/fill-range/node_modules/extend-shallow',
-    'node_modules/expand-brackets/node_modules/extend-shallow',
-    'node_modules/extglob/node_modules/extend-shallow',
-    'node_modules/set-value/node_modules/extend-shallow',
-    'node_modules/compress-commons/node_modules/normalize-path',
-    'node_modules/anymatch/node_modules/normalize-path',
-    'node_modules/socket.io-client/node_modules/component-emitter',
-    'node_modules/engine.io-client/node_modules/component-emitter',
-    'node_modules/socket.io-parser/node_modules/component-emitter',
-    'node_modules/winston/node_modules/colors',
-    'node_modules/fsevents/node_modules/isarray',
-    'node_modules/busboy/node_modules/isarray',
-    'node_modules/dicer/node_modules/isarray',
-    'node_modules/isarray',
-    'node_modules/reap2/node_modules/bytes',
-    'node_modules/is-accessor-descriptor',
-    'node_modules/is-data-descriptor',
-    'node_modules/is-descriptor',
-    'node_modules/is-extendable',
-    'node_modules/snapdragon-node/node_modules/define-property',
-    'node_modules/snapdragon/node_modules/define-property',
-    'node_modules/class-utils/node_modules/define-property',
-    'node_modules/static-extend/node_modules/define-property',
-    'node_modules/object-copy/node_modules/define-property',
-    'node_modules/base/node_modules/define-property',
-    'node_modules/expand-brackets/node_modules/define-property',
-    'node_modules/extglob/node_modules/define-property'
-  ]
-
-  console.log('removing duplicated deps..')
-
-  // removing duplicated deps that we are sure that not break code
-  duplicates.forEach((fpath) => {
-    rimraf.sync(path.join(__dirname, fpath))
-  })
-
-  if (packageManager === 'npm') {
-    console.log('running "npm dedupe" after manual remove of deps..')
-  } else {
-    console.log('running "yarn install" again after manual remove of deps..')
-  }
-
-  childProcess.execSync('npm dedupe', { stdio: 'inherit' })
 
   console.log(`copying files for executable compilation. ${packageManager === 'npm' ? 'node_modules' : 'packages'}/jsreport-cli/example.config.json -> dev.config.json, executable-license.txt -> license.txt`)
 
@@ -137,7 +42,7 @@ async function run () {
 
   console.log('running compilation "npx jsreport-compile"..')
 
-  childProcess.execSync('npx jsreport-compile', { stdio: 'inherit' })
+  childProcess.execSync('npx jsreport-compile', { stdio: 'inherit', env: { ...process.env, extensionsList: getExtensionsList().join(',') } })
 
   const exeFile = {
     name: process.platform === 'win32' ? 'jsreport.exe' : 'jsreport',
@@ -186,20 +91,129 @@ async function run () {
 
   fs.unlinkSync(licenseFile.path)
 
-  console.log(`discarding changes to ${packageManager === 'npm' ? 'package-lock.json "git checkout -- package-lock.json"' : 'yarn.lock "git checkout -- yarn.lock"'}..`)
-
-  childProcess.execSync(`git checkout -- ${packageManager === 'npm' ? 'package-lock.json' : 'yarn.lock'}`, { stdio: 'inherit' })
-
   console.log('compilation finished')
 
-  console.log(`running fresh ${packageManager} install again to ensure deps are left as original before compilation..`)
+  await fsAsync.writeFile('./package.json', packageJsonContent)
+
+  console.log(`running ${packageManager} install again to ensure deps are left as original before compilation..`)
 
   childProcess.execSync(`${packageManager} install`, { stdio: 'inherit' })
 
   console.log('done!')
 }
 
-run().catch((err) => {
-  console.error('Error while running compile script:', err)
-  process.exit(1)
-})
+function getResolutionsForDuplicatedPackages () {
+  return {
+    'md5.js': '1.3.5',
+    'component-emitter': '1.3.0',
+    'fd-slicer': '1.1.0',
+    querystring: '0.2.1',
+    semver: '7.3.5',
+    bluebird: '3.7.2',
+    extsprintf: '1.4.0',
+    yauzl: '2.10.0',
+    colors: '1.4.0',
+    'sprintf-js': '1.1.2',
+    'socket.io-parser': '3.4.1',
+    util: '0.11.1',
+    'mime-db': '1.48.0',
+    'mime-types': '2.1.31',
+    'invert-kv': '2.0.0',
+    'crc32-stream': '3.0.1',
+    estraverse: '5.2.0',
+    'bn.js': '5.2.0',
+    'get-stream': '5.2.0',
+    fsevents: '2.3.2',
+    chokidar: '3.5.1',
+    cookie: '0.4.1',
+    qs: '6.10.1',
+    'http-errors': '1.8.0',
+    'form-data': '3.0.1',
+    archiver: '3.1.1',
+    lodash: '4.17.21',
+    inherits: '2.0.4',
+    bytes: '3.1.0',
+    isarray: '2.0.5',
+    'supports-color': '8.1.1',
+    'source-map': '0.6.1',
+    'define-property': '2.0.2',
+    domelementtype: '2.2.0',
+    pify: '4.0.1',
+    'extend-shallow': '3.0.2',
+    'is-extendable': '1.0.1',
+    'safe-buffer': '5.2.1',
+    'kind-of': '6.0.3',
+    rimraf: '3.0.2',
+    string_decoder: '1.3.0',
+    'source-map-support': '0.5.19',
+    'strip-ansi': '6.0.0',
+    minimist: '1.2.5',
+    mkdirp: '0.5.5',
+    debug: '4.3.2',
+    ms: '2.1.3',
+    'ansi-styles': '4.3.0',
+    'pkg-dir': '4.2.0',
+    xmlbuilder: '11.0.1',
+    'find-up': '5.0.0',
+    domutils: '2.7.0',
+    'has-values': '1.0.0',
+    '@babel/helper-validator-identifier': '7.14.5',
+    'is-number': '7.0.0',
+    'has-value': '1.0.0',
+    'to-regex-range': '5.0.1',
+    'for-in': '1.0.2',
+    'mimic-fn': '2.1.0',
+    'make-dir': '2.1.0',
+    'to-fast-properties': '2.0.0',
+    globals: '13.9.0',
+    'base64-js': '1.5.1',
+    'emojis-list': '3.0.0',
+    'fill-range': '7.0.1',
+    tmp: '0.1.0',
+    lcid: '2.0.0',
+    decamelize: '4.0.0',
+    'regenerator-runtime': '0.13.7',
+    'find-cache-dir': '2.1.0',
+    json5: '2.2.0',
+    'ansi-regex': '5.0.0',
+    buffer: '5.7.1',
+    pump: '3.0.0',
+    braces: '3.0.2',
+    'mute-stream': '0.0.8',
+    'memory-fs': '0.5.0'
+  }
+}
+
+function getExtensionsList () {
+  return [
+    'assets',
+    'authentication',
+    'authorization',
+    'base',
+    'child-templates',
+    'chrome-pdf',
+    'cli',
+    'core',
+    'data',
+    'docx',
+    'express',
+    'freeze',
+    'fs-store',
+    'handlebars',
+    'html-to-xlsx',
+    'import-export',
+    'jsrender',
+    'pdf-utils',
+    'puppeteer-compile',
+    'pptx',
+    'reports',
+    'sample-template',
+    'scheduling',
+    'scripts',
+    'studio',
+    'studio-theme-dark',
+    'text',
+    'version-control',
+    'xlsx'
+  ]
+}
