@@ -1,6 +1,9 @@
 const supertest = require('supertest')
 const JsReport = require('jsreport-core')
 const axios = require('axios')
+const extract = require('extract-zip')
+const path = require('path')
+const fs = require('fs')
 require('should')
 
 describe('express', () => {
@@ -121,6 +124,7 @@ describe('express', () => {
     setTimeout(() => {
       cancelTokenSource.cancel()
     }, 100)
+
     await resPromise.should.be.rejected()
     await new Promise((resolve) => setTimeout(resolve, 100))
     renderError.message.should.containEql('aborted')
@@ -208,6 +212,39 @@ describe('express', () => {
       }
     })
     res.content.toString().should.be.eql('hello')
+  })
+
+  it('should include profileId in response header', async () => {
+    const renderRes = await supertest(jsreport.express.app)
+      .post('/api/report')
+      .send({ template: { content: 'hello', engine: 'none', recipe: 'html' } })
+
+    renderRes.headers['profile-id'].should.be.ok()
+    renderRes.headers['profile-location'].should.be.ok()
+    renderRes.headers['profile-logs-location'].should.be.ok()
+  })
+
+  it('should be able to download and unzip profile', async () => {
+    const res = await jsreport.render({
+      template: {
+        content: 'hello',
+        engine: 'none',
+        recipe: 'html'
+      }
+    })
+    const profileLocationRes = await axios({
+      url: `http://localhost:5488/api/profile/${res.meta.profileId}/content`,
+      responseType: 'arraybuffer',
+      method: 'get'
+    })
+
+    const targetPath = path.join(jsreport.options.tempAutoCleanupDirectory, 'profile')
+    const zipPath = path.join(jsreport.options.tempAutoCleanupDirectory, 'profile.zip')
+    fs.writeFileSync(zipPath, profileLocationRes.data)
+    await extract(zipPath, { dir: targetPath })
+    fs.existsSync(path.join(targetPath, 'messages.log')).should.be.true()
+    fs.existsSync(path.join(targetPath, 'profile.json')).should.be.true()
+    fs.existsSync(path.join(targetPath, 'metadata.json')).should.be.true()
   })
 })
 

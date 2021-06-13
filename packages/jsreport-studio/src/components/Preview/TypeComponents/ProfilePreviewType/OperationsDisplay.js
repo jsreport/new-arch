@@ -35,7 +35,7 @@ const OperationsDisplay = (props) => {
 
   const elements = useMemo(() => getElementsFromOperations(operations, errors, activeElement), [operations, errors, activeElement])
   const mainOperation = operations.find((op) => op.type === 'render')
-  const isMainCompleted = mainOperation != null ? mainOperation.completed === true : false
+  const isMainCompleted = mainOperation != null && mainOperation.endEvent
 
   useEffect(() => {
     if (graphInstanceRef.current == null) {
@@ -53,7 +53,7 @@ const OperationsDisplay = (props) => {
     }, 200)
   }, [isMainCompleted])
 
-  const mainError = isMainCompleted ? getMainError(errors) : undefined
+  const mainError = getMainError(errors)
 
   return (
     <div className={styles.profileOperations}>

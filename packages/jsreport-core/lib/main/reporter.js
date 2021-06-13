@@ -313,7 +313,7 @@ class MainReporter extends Reporter {
       if (options.abortEmitter) {
         options.abortEmitter.once('abort', () => {
           workerAborted = true
-          worker.release(req)
+          worker.release(req).catch((e) => this.logger.error('Failed to release worker ' + e))
         })
       }
     }

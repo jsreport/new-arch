@@ -79,8 +79,7 @@ function addError (data, errorInfo) {
 
       newProfileOperations = [...data.profileOperations.slice(0, foundIndex), {
         ...foundOperation,
-        completedTimestamp: errorInfo.timestamp,
-        completedPreviousOperationId: errorInfo.previousOperationId
+        errorEvent: errorInfo
       }, ...data.profileOperations.slice(foundIndex + 1)]
     }
   } else if (errorInfo.type === 'globalError') {

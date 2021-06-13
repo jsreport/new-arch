@@ -1,10 +1,11 @@
-const { Readable, pipeline } = require('stream')
+const { pipeline } = require('stream')
 const omit = require('lodash.omit')
 const serveStatic = require('serve-static')
 const handleError = require('./handleError')
 const FormData = require('./formDataStream')
 const odata = require('./odata')
 const EventEmitter = require('events')
+const archiver = require('archiver')
 const oneMonth = 31 * 86400000
 
 module.exports = (app, reporter, exposedOptions) => {
@@ -54,11 +55,12 @@ module.exports = (app, reporter, exposedOptions) => {
     }
 
     const abortEmitter = new EventEmitter()
-    req.on('close', () => {
+    req.connection.once('close', () => {
       abortEmitter.emit('abort')
     })
 
     reporter.render(renderRequest, { abortEmitter }).then((renderResponse) => {
+      abortEmitter.removeAllListeners('abort')
       if (stream) {
         form.append('report', renderResponse.stream, {
           filename: `${renderResponse.meta.reportName}.${renderResponse.meta.fileExtension}`,
@@ -74,6 +76,7 @@ module.exports = (app, reporter, exposedOptions) => {
         for (const key in renderResponse.meta.headers) {
           res.setHeader(key, renderResponse.meta.headers[key])
         }
+
         pipeline(renderResponse.stream, res, (pipeErr) => {
           if (pipeErr) {
             return next(pipeErr)
@@ -83,6 +86,7 @@ module.exports = (app, reporter, exposedOptions) => {
         })
       }
     }).catch((renderErr) => {
+      abortEmitter.removeAllListeners('abort')
       if (!stream) {
         next(renderErr)
       } else {
@@ -164,11 +168,20 @@ module.exports = (app, reporter, exposedOptions) => {
       }
 
       const blobContentBuf = await reporter.blobStorage.read(profile.blobName)
-      const blobReadable = Readable.from(blobContentBuf)
 
-      res.type('text/plain')
+      const archive = archiver('zip')
+      archive.append(JSON.stringify(profile, null, 2), { name: 'profile.json' })
+      archive.append(blobContentBuf, { name: 'messages.log' })
+      archive.append(JSON.stringify({
+        reporterVersion: reporter.version,
+        createdAt: new Date().getTime()
+      }, null, 2), { name: 'metadata.json' })
 
-      pipeline(blobReadable, res, (pipeErr) => {
+      res.type('application/zip')
+
+      archive.finalize()
+
+      pipeline(archive, res, (pipeErr) => {
         if (pipeErr) {
           next(pipeErr)
         }

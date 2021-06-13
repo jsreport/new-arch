@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import SplitPane from '../../../common/SplitPane/SplitPane'
 import OperationsDisplay from './OperationsDisplay'
 import { useDispatch } from 'react-redux'
@@ -12,11 +12,15 @@ import { findTextEditor, selectLine as selectLineInTextEditor } from '../../../.
 import getStateAtProfileOperation from '../../../../helpers/getStateAtProfileOperation'
 
 function ProfilePreviewType (props) {
-  const { data } = props
+  const { data, id } = props
   const { template, profileLogs, profileOperations, profileErrors } = data
   const [showErrorModal, setShowErrorModal] = useState(true)
   const [activeElement, setActiveElement] = useState(null)
   const dispatch = useDispatch()
+
+  useEffect(() => {
+    setShowErrorModal(true)
+  }, [id])
 
   const openErrorLine = useCallback((error) => {
     dispatch(editorActions.openTab({ shortid: error.entity.shortid })).then(() => {

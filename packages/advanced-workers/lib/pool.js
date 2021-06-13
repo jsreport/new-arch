@@ -1,16 +1,19 @@
 module.exports = ({
   createWorker,
-  numberOfWorkers
+  numberOfWorkers,
+  initTimeout
 }) => {
   return {
     init () {
       this.workers = []
       this.tasksQueue = []
+      this._pendingInitializedWorkersToEventualyCleanup = []
 
       const workersCreateFn = []
       for (let i = 0; i < numberOfWorkers; i++) {
         workersCreateFn.push(async () => {
-          const worker = await createWorker({ timeout: this.initTimeout })
+          const worker = createWorker()
+          await worker.init({ timeout: initTimeout })
           this.workers.push(worker)
         })
       }
@@ -30,11 +33,14 @@ module.exports = ({
         return {
           release: async () => {
             if (worker.needRestart || worker.running) {
+              this.workers = this.workers.filter(w => w !== worker)
               worker.close()
-              const workerIndes = this.workers.indexOf(worker)
-              this.workers[workerIndes] = await createWorker({ timeout: this.initTimeout })
+              const newWorker = createWorker()
+              this.workers.push(newWorker)
+              await newWorker.init({ timeout: initTimeout })
+            } else {
+              worker.isBusy = false
             }
-            worker.isBusy = false
             this._flushTasksQueue()
           },
 

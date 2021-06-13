@@ -255,6 +255,20 @@ describe('profiler', () => {
     await reporter.documentStore.collection('profiles').remove({})
     return reporter.blobStorage.read(profile.blobName).should.be.rejectedWith(/found/)
   })
+
+  it('response meta should include profileId', async () => {
+    const res = await reporter.render({
+      template: {
+        engine: 'none',
+        recipe: 'html',
+        content: 'Hello'
+      }
+    })
+
+    res.meta.profileId.should.be.ok()
+    const profile = await reporter.documentStore.collection('profiles').findOne({ _id: res.meta.profileId })
+    profile.should.be.ok()
+  })
 })
 
 describe('profiler with timeout', () => {

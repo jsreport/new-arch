@@ -9,7 +9,7 @@ module.exports = (userOptions, {
   numberOfWorkers,
   resourceLimits
 }) => {
-  async function createWorker ({ timeout }) {
+  function createWorker () {
     const worker = new Worker(path.join(__dirname, 'workerHandler.js'), {
       workerData: {
         systemData: {
@@ -20,21 +20,19 @@ module.exports = (userOptions, {
       resourceLimits
     })
 
-    const threadWorker = ThreadWorker({
+    return ThreadWorker({
       worker
     })
-    await threadWorker.init({ timeout })
-    return threadWorker
   }
 
   return {
     async init ({
       timeout = 0
     } = { }) {
-      this.initTimeout = timeout
       this.pool = pool({
         createWorker: () => createWorker({ timeout: this.initTimeout }),
-        numberOfWorkers
+        numberOfWorkers,
+        initTimeout: timeout
       })
       return this.pool.init()
     },

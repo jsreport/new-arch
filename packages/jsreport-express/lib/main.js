@@ -270,6 +270,14 @@ module.exports = function (reporter, definition) {
       res.meta.headers = {}
     })
 
+    reporter.afterRenderListeners.add('express', (req, res) => {
+      res.meta.profileId = res.meta.headers['Profile-Id'] = res.meta.profileId
+      if (req.context.http) {
+        res.meta.headers['Profile-Location'] = `${req.context.http.baseUrl}/api/profile/${res.meta.profileId}/content`
+        res.meta.headers['Profile-Logs-Location'] = `${req.context.http.baseUrl}/api/profile/${res.meta.profileId}/logs`
+      }
+    })
+
     function logStart () {
       if (reporter.options.httpsPort) {
         reporter.logger.info('jsreport server successfully started on https port: ' + reporter.options.httpsPort)

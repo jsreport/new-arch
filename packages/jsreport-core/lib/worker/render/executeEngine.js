@@ -73,11 +73,11 @@ module.exports = (reporter) => {
         }
       }, req)
     } catch (e) {
+      const nestedErrorWithEntity = e.entity != null
+
       const templatePath = req.template._id ? await reporter.folders.resolveEntityPath(req.template, 'templates', req) : 'anonymous'
-
-      if (templatePath !== 'anonymous') {
+      if (templatePath !== 'anonymous' && !nestedErrorWithEntity) {
         const templateFound = await reporter.folders.resolveEntityFromPath(templatePath, 'templates', req)
-
         if (templateFound != null) {
           e.entity = {
             shortid: templateFound.entity.shortid,
@@ -89,10 +89,11 @@ module.exports = (reporter) => {
 
       e.message = `Error when evaluating engine ${engine.name} for template ${templatePath}\n` + e.message
 
-      if (e.property !== 'content') {
+      if (!nestedErrorWithEntity && e.property !== 'content') {
         e.property = 'helpers'
       }
 
+      console.log('resolved entity', e.entity, req.template)
       throw e
     }
   }

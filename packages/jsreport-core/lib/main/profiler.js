@@ -84,6 +84,7 @@ module.exports = (reporter) => {
   })
 
   reporter.afterRenderListeners.add('profiler', async (req, res) => {
+    res.meta.profileId = req.context.profiling?.entity?._id
     profilersMap.delete(req.context.rootId)
 
     await reporter.documentStore.collection('profiles').update({
@@ -98,6 +99,8 @@ module.exports = (reporter) => {
 
   reporter.renderErrorListeners.add('profiler', async (req, res, e) => {
     try {
+      res.meta.profileId = req.context.profiling?.entity?._id
+
       if (req.context.profiling?.entity != null) {
         await reporter.documentStore.collection('profiles').update({
           _id: req.context.profiling.entity._id
