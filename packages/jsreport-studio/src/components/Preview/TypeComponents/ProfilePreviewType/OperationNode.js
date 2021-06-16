@@ -14,9 +14,7 @@ const OperationNode = (props) => {
     sourcePosition = 'bottom'
   } = props
 
-  const { time, timeCost, operation, error, renderResult, end } = data
-  const showExecutionTime = end ? time != null : (operation.type !== 'render' && time != null)
-  const showTimeCost = end ? timeCost != null : (operation.type !== 'render' && timeCost != null)
+  const { time, timeCost, error, renderResult, end } = data
 
   const dispatch = useDispatch()
 
@@ -73,7 +71,7 @@ const OperationNode = (props) => {
             )}
       </div>
       <Handle type='source' position={sourcePosition} isConnectable={isConnectable} />
-      {showTimeCost && (
+      {true && (
         <div
           className={`${styles.profileExecutionTimeCost} ${getTimeCostCategoryClass(timeCost * 100)}`}
           style={{ width: `${timeCost * 100}%` }}
@@ -81,7 +79,7 @@ const OperationNode = (props) => {
           &nbsp;
         </div>
       )}
-      {showExecutionTime && (
+      {true && (
         // eslint-disable-next-line
         <Fragment>
           <div className={styles.profileExecutionTime}>

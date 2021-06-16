@@ -1,9 +1,9 @@
 const supertest = require('supertest')
 const JsReport = require('jsreport-core')
 const axios = require('axios')
-const extract = require('extract-zip')
-const path = require('path')
+const { unzipFiles } = require('../lib/helpers')
 const fs = require('fs')
+const path = require('path')
 require('should')
 
 describe('express', () => {
@@ -127,7 +127,7 @@ describe('express', () => {
 
     await resPromise.should.be.rejected()
     await new Promise((resolve) => setTimeout(resolve, 100))
-    renderError.message.should.containEql('aborted')
+    renderError.message.should.containEql('cancelled')
   })
 
   it('/odata/$metadata should return 200', () => {
@@ -233,18 +233,33 @@ describe('express', () => {
       }
     })
     const profileLocationRes = await axios({
-      url: `http://localhost:5488/api/profile/${res.meta.profileId}/content`,
+      url: `http://localhost:5488/api/profile/${res.meta.profileId}`,
       responseType: 'arraybuffer',
       method: 'get'
     })
 
-    const targetPath = path.join(jsreport.options.tempAutoCleanupDirectory, 'profile')
-    const zipPath = path.join(jsreport.options.tempAutoCleanupDirectory, 'profile.zip')
-    fs.writeFileSync(zipPath, profileLocationRes.data)
-    await extract(zipPath, { dir: targetPath })
-    fs.existsSync(path.join(targetPath, 'messages.log')).should.be.true()
-    fs.existsSync(path.join(targetPath, 'profile.json')).should.be.true()
-    fs.existsSync(path.join(targetPath, 'metadata.json')).should.be.true()
+    const entries = await unzipFiles(profileLocationRes.data)
+    entries['messages.log'].should.be.ok()
+    entries['profile.json'].should.be.ok()
+    entries['metadata.json'].should.be.ok()
+  })
+
+  it('should be able to upload profile and get back messages', async () => {
+    const FormData = require('form-data')
+
+    const form = new FormData()
+    form.append('profile.jsrprofile', fs.createReadStream(path.join(__dirname, 'test.jsrprofile')))
+
+    const eventsRes = await axios({
+      url: `http://localhost:5488/api/profile/events`,
+      responseType: 'arraybuffer',
+      method: 'POST',
+      data: form,
+      headers: form.getHeaders()
+    })
+
+    const events = eventsRes.data.toString().split('\n').filter(l => l).map(l => JSON.parse(l))
+    events.length.should.be.greaterThan(0)
   })
 })
 

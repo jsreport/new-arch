@@ -41,8 +41,8 @@ class ProfilerInspectModal extends Component {
     if (req != null) {
       this.props.openTab({
         key: `profiler-inspect-request-template-${stepId}`,
-        title: `Profiler inspect - ${this.props.options.data.template.name} (template)`,
-        customUrl: this.props.options.data.template.shortid != null ? resolveUrl(`/studio/templates/${this.props.options.data.template.shortid}`) : '/',
+        title: `Profiler inspect - ${req.template.name} (template)`,
+        customUrl: req.template.shortid != null ? resolveUrl(`/studio/templates/${req.template.shortid}`) : '/',
         getEntity: () => Object.assign({}, req.template, {
           _id: uid(),
           shortid: shortid.generate(),
@@ -61,13 +61,13 @@ class ProfilerInspectModal extends Component {
 
     this.props.openTab({
       key,
-      title: `Profiler inspect - ${this.props.options.data.template.name} (data)`,
-      customUrl: this.props.options.data.template.shortid != null ? resolveUrl(`/studio/templates/${this.props.options.data.template.shortid}`) : '/',
+      title: `Profiler inspect - ${req.template.name} (data)`,
+      customUrl: req.shortid != null ? resolveUrl(`/studio/templates/${req.template.shortid}`) : '/',
       editorComponentKey: 'inspectJSON',
       readOnly: true,
       getProps: () => ({
         jsonId: key,
-        jsonName: `${this.props.options.data.template.name} (data)`,
+        jsonName: `${req.template.name} (data)`,
         jsonContent: JSON.stringify(req.data, null, 2)
       })
     })
@@ -81,13 +81,13 @@ class ProfilerInspectModal extends Component {
 
     this.props.openTab({
       key,
-      title: `Profiler inspect - ${this.props.options.data.template.name} (request)`,
-      customUrl: this.props.options.data.template.shortid != null ? resolveUrl(`/studio/templates/${this.props.options.data.template.shortid}`) : '/',
+      title: `Profiler inspect - ${req.template.name} (request)`,
+      customUrl: req.template.shortid != null ? resolveUrl(`/studio/templates/${req.template.shortid}`) : '/',
       editorComponentKey: 'inspectJSON',
       readOnly: true,
       getProps: () => ({
         jsonId: key,
-        jsonName: `${this.props.options.data.template.name} (request)`,
+        jsonName: `${req.template.name} (request)`,
         jsonContent: JSON.stringify(req, null, 2)
       })
     })
@@ -95,10 +95,10 @@ class ProfilerInspectModal extends Component {
 
   handleResponse (download) {
     const stepId = `${this.props.options.data.sourceId}-${this.props.options.data.targetId}`
-    const { res } = this.state.content
+    const { res, req } = this.state.content
 
     if (res.meta.reportName == null) {
-      res.meta.reportName = this.props.options.data.template.name
+      res.meta.reportName = req.template.name
     }
 
     if (download) {
@@ -109,7 +109,7 @@ class ProfilerInspectModal extends Component {
       const previewURL = window.URL.createObjectURL(new Blob([`
         <html>
           <head>
-            <title>Profiler inspect - ${this.props.options.data.template.name} (response)</title>
+            <title>Profiler inspect - ${req.template.name} (response)</title>
             <style>
               html, body {
                 margin: 0px;

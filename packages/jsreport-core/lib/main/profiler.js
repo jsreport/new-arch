@@ -19,11 +19,6 @@ module.exports = (reporter) => {
   const profilersMap = new Map()
 
   async function emitProfile (m, req, writeToLogger = true) {
-    // we need this just for errors not handled in worker
-    if (m.type === 'operationStart') {
-      req.context.profilerLastOperationId = m.id
-    }
-
     if (m.type === 'log' && writeToLogger) {
       reporter.logger[m.level](m.message, { ...req, ...m.meta, timestamp: m.timestamp })
     }
@@ -113,22 +108,12 @@ module.exports = (reporter) => {
         }, req)
 
         await emitProfile({
-          type: 'log',
-          timestamp: new Date().getTime(),
-          id: generateRequestId(),
-          level: 'error',
-          message: e.stack,
-          previousOperationId: req.context.profilerLastOperationId
-        }, req, false)
-
-        await emitProfile({
           type: 'error',
           timestamp: new Date().getTime(),
           ...e,
           id: generateRequestId(),
           stack: e.stack,
-          message: e.message,
-          previousOperationId: req.context.profilerLastOperationId
+          message: e.message
         }, req)
       }
     } finally {

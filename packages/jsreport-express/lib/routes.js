@@ -6,10 +6,14 @@ const FormData = require('./formDataStream')
 const odata = require('./odata')
 const EventEmitter = require('events')
 const archiver = require('archiver')
+const { unzipFiles, parseMultipart } = require('./helpers')
 const oneMonth = 31 * 86400000
+const Multer = require('multer')
+let multer
 
 module.exports = (app, reporter, exposedOptions) => {
   reporter.emit('export-public-route', '/api/ping')
+  multer = Multer({ dest: reporter.options.tempAutoCleanupDirectory })
 
   const handleErrorMiddleware = handleError(reporter)
 
@@ -157,12 +161,12 @@ module.exports = (app, reporter, exposedOptions) => {
     res.send('pong')
   })
 
-  app.get('/api/profile/:id/content', async (req, res, next) => {
+  app.get('/api/profile/:id', async (req, res, next) => {
     try {
       const profile = await reporter.documentStore.collection('profiles').findOne({ _id: req.params.id }, req)
 
       if (!profile) {
-        throw this.reporter.createError(`Profile ${req.params.id} not found`, {
+        throw reporter.createError(`Profile ${req.params.id} not found`, {
           statusCode: 404
         })
       }
@@ -188,6 +192,53 @@ module.exports = (app, reporter, exposedOptions) => {
       })
     } catch (e) {
       next(e)
+    }
+  })
+
+  app.get('/api/profile/:id/events', async (req, res, next) => {
+    try {
+      const profile = await reporter.documentStore.collection('profiles').findOne({ _id: req.params.id }, req)
+
+      if (!profile) {
+        throw reporter.createError(`Profile ${req.params.id} not found`, {
+          statusCode: 404
+        })
+      }
+
+      const blobContentBuf = await reporter.blobStorage.read(profile.blobName)
+      res.send(blobContentBuf.toString())
+    } catch (e) {
+      next(e)
+    }
+  })
+
+  app.get('/api/profile/:id/logs', async (req, res, next) => {
+    try {
+      const profile = await reporter.documentStore.collection('profiles').findOne({ _id: req.params.id }, req)
+
+      if (!profile) {
+        throw reporter.createError(`Profile ${req.params.id} not found`, {
+          statusCode: 404
+        })
+      }
+
+      const blobContentBuf = await reporter.blobStorage.read(profile.blobName)
+      const events = blobContentBuf.toString().split('/n')
+      res.send(events.filter(e => e.type === 'log').map(e => JSON.stringify(e)).join('/n'))
+    } catch (e) {
+      next(e)
+    }
+  })
+
+  app.post('/api/profile/events', async (req, res, next) => {
+    try {
+      const content = await parseMultipart(multer)(req, res)
+      const entries = await unzipFiles(content)
+      res.send(entries['messages.log'])
+    } catch (e) {
+      next(reporter.createError('Unable to parse jsrprofile file', {
+        original: e
+      }))
     }
   })
 }

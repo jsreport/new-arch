@@ -1,23 +1,22 @@
 import { useRef } from 'react'
 import resolveUrl from '../../../helpers/resolveUrl'
 
-const DownloadProfileAction = ({ completed, data, closeMenu }) => {
-  const { profileOperations, profileErrors } = data
-  const mainOperation = profileOperations.find((op) => op.type === 'render')
-  const enabled = completed && (profileErrors == null || profileErrors.global == null)
+const DownloadProfileAction = ({ data, closeMenu }) => {
+  const { profileOperations } = data
+  const mainRenderOperation = profileOperations.find((op) => op.startEvent.subtype === 'render')
   const containerRef = useRef(null)
 
   return (
     <div
       ref={containerRef}
-      className={enabled ? '' : 'disabled'}
+      className={mainRenderOperation ? '' : 'disabled'}
       title='Download profile'
       onClick={() => {
-        if (!enabled) {
+        if (!mainRenderOperation) {
           return
         }
 
-        handleDownload(containerRef, mainOperation.profileId)
+        handleDownload(containerRef, mainRenderOperation.startEvent.profileId)
         closeMenu()
       }}
     >
@@ -30,7 +29,7 @@ function handleDownload (containerRef, profileId) {
   const downloadEl = document.createElement('a')
 
   downloadEl.style.display = 'none'
-  downloadEl.href = `${window.location.origin}${resolveUrl(`/api/profile/${profileId}/content`)}`
+  downloadEl.href = `${window.location.origin}${resolveUrl(`/api/profile/${profileId}`)}`
   downloadEl.download = `${profileId}.jsrprofile`
 
   containerRef.current.appendChild(downloadEl)

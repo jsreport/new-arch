@@ -14,9 +14,7 @@ import executeTemplateRender from '../../helpers/executeTemplateRender'
 import resolveUrl from '../../helpers/resolveUrl'
 
 import {
-  addLog as addProfileLog,
-  addOperation as addProfileOperation,
-  addError as addProfileError
+  addEvent as addProfileEvent
 } from '../../helpers/profileDataManager'
 
 import {
@@ -508,7 +506,6 @@ export function run (params = {}, opts = {}) {
     if (profiling) {
       previewData.profileOperations = []
       previewData.profileLogs = []
-      previewData.profileErrors = { global: null, general: null, operations: [] }
     }
 
     dispatch({ type: ActionTypes.RUN })
@@ -532,14 +529,14 @@ export function run (params = {}, opts = {}) {
         onFile: createTemplateRenderFilesHandler({
           profiling,
           onLog: (log) => {
-            previewData = addProfileLog(previewData, log)
+            previewData = addProfileEvent(previewData, log)
 
             dispatch(updatePreview(previewId, {
               data: previewData
             }))
           },
           onOperation: (operation) => {
-            previewData = addProfileOperation(previewData, operation)
+            previewData = addProfileEvent(previewData, operation)
 
             dispatch(updatePreview(previewId, {
               data: previewData
@@ -547,7 +544,7 @@ export function run (params = {}, opts = {}) {
           },
           onError: (errorInfo) => {
             if (profiling) {
-              previewData = addProfileError(previewData, errorInfo)
+              previewData = addProfileEvent(previewData, errorInfo)
 
               dispatch(updatePreview(previewId, {
                 data: previewData
@@ -602,8 +599,8 @@ export function run (params = {}, opts = {}) {
       })
     } catch (error) {
       if (targetType === 'preview' && profiling) {
-        previewData = addProfileError(previewData, {
-          type: 'globalError',
+        previewData = addProfileEvent(previewData, {
+          type: 'error',
           message: error.message,
           stack: error.stack
         })

@@ -1,6 +1,7 @@
 import { useRef } from 'react'
 import FileInput from '../../common/FileInput/FileInput'
 import openProfileFromStreamReader from '../../../helpers/openProfileFromStreamReader'
+import api from '../../../helpers/api'
 
 const UploadProfileAction = ({ completed, closeMenu }) => {
   const uploadProfileInputRef = useRef(null)
@@ -33,15 +34,20 @@ const UploadProfileAction = ({ completed, closeMenu }) => {
   )
 }
 
-function handleUploadProfile (file) {
-  const profileName = file.name
+async function handleUploadProfile (file) {
+  try {
+    const responseBlob = await api.post('api/profile/events', {
+      attach: { filename: 'profile.jsrprofile', file },
+      responseType: 'blob'
+    })
 
-  openProfileFromStreamReader(() => file.stream().getReader(), {
-    name: 'anonymous',
-    shortid: null
-  }).catch((err) => {
-    console.error(`Unable to upload profile "${profileName}"`, err)
-  })
+    await openProfileFromStreamReader(() => responseBlob.stream().getReader(), {
+      name: 'anonymous',
+      shortid: null
+    })
+  } catch (err) {
+    console.error(`Unable to upload profile "${file.name}"`, err)
+  }
 }
 
 export default UploadProfileAction

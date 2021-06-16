@@ -13,7 +13,7 @@ import getStateAtProfileOperation from '../../../../helpers/getStateAtProfileOpe
 
 function ProfilePreviewType (props) {
   const { data, id } = props
-  const { template, profileLogs, profileOperations, profileErrors } = data
+  const { profileOperations, profileLogs, profileErrorEvent } = data
   const [showErrorModal, setShowErrorModal] = useState(true)
   const [activeElement, setActiveElement] = useState(null)
   const dispatch = useDispatch()
@@ -57,7 +57,6 @@ function ProfilePreviewType (props) {
                     className='button confirmation'
                     onClick={() => {
                       openErrorLine(error)
-                      setShowErrorModal(false)
                     }}
                   >
                     Go to error line
@@ -93,8 +92,7 @@ function ProfilePreviewType (props) {
       // click on start node should open inspector
       if (meta.id === 'preview-start') {
         openInspectModal({
-          operations: profileOperations,
-          template,
+          profileOperations: profileOperations,
           sourceId: meta.data.id,
           targetId: 'none',
           inputId: profileOperations[0].id,
@@ -108,8 +106,7 @@ function ProfilePreviewType (props) {
       }
     } else {
       openInspectModal({
-        operations: profileOperations,
-        template,
+        profileOperations: profileOperations,
         sourceId: meta.data.edge.source,
         targetId: meta.data.edge.target,
         inputId: meta.data.edge.data.inputId,
@@ -125,7 +122,7 @@ function ProfilePreviewType (props) {
 
       return meta
     })
-  }, [profileOperations, template, openErrorLine])
+  }, [profileOperations, openErrorLine])
 
   let activeOperation
   if (activeElement != null && !activeElement.isEdge) {
@@ -142,8 +139,8 @@ function ProfilePreviewType (props) {
       >
         <OperationsDisplay
           activeElement={activeElement}
-          operations={profileOperations}
-          errors={profileErrors}
+          profileOperations={profileOperations}
+          profileErrorEvent={profileErrorEvent}
           onCanvasClick={handleCanvasClick}
           onElementClick={handleElementClick}
           renderErrorModal={showErrorModal ? renderErrorModal : undefined}
@@ -158,8 +155,7 @@ function ProfilePreviewType (props) {
 }
 
 function openInspectModal ({
-  operations,
-  template,
+  profileOperations,
   sourceId,
   targetId,
   inputId,
@@ -170,16 +166,15 @@ function openInspectModal ({
     data: {
       sourceId,
       targetId,
-      template,
       getContent: () => {
         let operationState
 
         if (outputId == null) {
-          operationState = getStateAtProfileOperation(operations, inputId, false)
+          operationState = getStateAtProfileOperation(profileOperations, inputId, false)
         } else if (inputId == null) {
-          operationState = getStateAtProfileOperation(operations, outputId, true)
+          operationState = getStateAtProfileOperation(profileOperations, outputId, true)
         } else {
-          operationState = getStateAtProfileOperation(operations, inputId, false)
+          operationState = getStateAtProfileOperation(profileOperations, inputId, false)
         }
 
         return operationState

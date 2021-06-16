@@ -93,7 +93,6 @@ module.exports = (reporter) => {
         e.property = 'helpers'
       }
 
-      console.log('resolved entity', e.entity, req.template)
       throw e
     }
   }

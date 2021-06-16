@@ -18,9 +18,9 @@ const edgeTypes = {
 }
 
 const OperationsDisplay = (props) => {
-  const { activeElement, operations, errors, onCanvasClick, onElementClick, renderErrorModal } = props
-  const graphInstanceRef = useRef(null)
+  const { activeElement, profileOperations, profileErrorEvent, onCanvasClick, onElementClick, renderErrorModal } = props
 
+  const graphInstanceRef = useRef(null)
   const handleLoad = useCallback((reactFlowInstance) => {
     graphInstanceRef.current = reactFlowInstance
   }, [])
@@ -33,9 +33,10 @@ const OperationsDisplay = (props) => {
     }
   }, [onElementClick])
 
-  const elements = useMemo(() => getElementsFromOperations(operations, errors, activeElement), [operations, errors, activeElement])
-  const mainOperation = operations.find((op) => op.type === 'render')
-  const isMainCompleted = mainOperation != null && mainOperation.endEvent
+  const elements = useMemo(() => getElementsFromOperations(profileOperations, profileErrorEvent, activeElement), [profileOperations, profileErrorEvent, activeElement])
+
+  const mainRenderOperation = profileOperations.find(o => o.startEvent && o.startEvent.subtype === 'render')
+  const isCompleted = mainRenderOperation && (mainRenderOperation.endEvent || profileErrorEvent)
 
   useEffect(() => {
     if (graphInstanceRef.current == null) {
@@ -47,20 +48,18 @@ const OperationsDisplay = (props) => {
         return
       }
 
-      if (isMainCompleted) {
+      if (isCompleted) {
         graphInstanceRef.current.fitView()
       }
     }, 200)
-  }, [isMainCompleted])
-
-  const mainError = getMainError(errors)
+  }, [isCompleted])
 
   return (
     <div className={styles.profileOperations}>
-      {mainError && renderErrorModal != null && (
+      {profileErrorEvent && renderErrorModal != null && (
         <div className={styles.profileOperationsErrorModal}>
           <div className={styles.profileOperationsErrorModalContent}>
-            {renderErrorModal(mainError)}
+            {renderErrorModal(profileErrorEvent)}
           </div>
         </div>
       )}
@@ -88,11 +87,25 @@ const OperationsDisplay = (props) => {
   )
 }
 
-function getElementsFromOperations (operations, errors, activeElement) {
+function getElementsFromOperations (operations, errorEvent, activeElement) {
+  const mainRenderOperation = operations.find(o => o.startEvent && o.startEvent.subtype === 'render')
+  if (!mainRenderOperation) {
+    return []
+  }
+
+  const allEvents = [errorEvent, ...operations.map(o => o.startEvent), ...operations.map(o => o.endEvent)].filter(e => e)
+  allEvents.sort((a, b) => (a.timestamp - b.timestamp))
+  const lastEvent = allEvents[allEvents.length - 1]
+  const startTimestamp = mainRenderOperation.startEvent.timestamp
+  const endTimestamp = lastEvent.timestamp
+
+  let erroredOperation
+  if (errorEvent && errorEvent.previousOperationId) {
+    erroredOperation = operations.find(o => o.id === errorEvent.previousOperationId)
+  }
+
   const elements = []
   const defaultPosition = { x: 0, y: 0 }
-  const mainOperation = operations.find((op) => op.type === 'render')
-  const isMainCompleted = mainOperation != null ? mainOperation.endEvent : false
 
   if (operations.length > 0) {
     elements.push({
@@ -109,7 +122,6 @@ function getElementsFromOperations (operations, errors, activeElement) {
   for (let i = 0; i < operations.length; i++) {
     const operation = operations[i]
     const isOperationActive = activeElement != null ? operation.id === activeElement.id : false
-    let errorSource
 
     if (operation.previousOperationId != null) {
       elements.push(createEdge(operation.previousOperationId, operation.id, activeElement, {
@@ -120,35 +132,26 @@ function getElementsFromOperations (operations, errors, activeElement) {
       }))
     }
 
-    if (operation.type === 'render' && operation.endEvent) {
+    if (operation.startEvent.subtype === 'render' && operation.endEvent) {
       needsEndNode.push(operation)
-    }
-
-    if (errors.operations != null) {
-      // eslint-disable-next-line
-      for (const errorKey of Object.keys(errors.operations)) {
-        // error.id is equal to the id of the operation "render" which it belongs
-        if (errorKey === operation.id) {
-          errorSource = errors.operations[errorKey]
-          break
-        }
-      }
     }
 
     const nodeClass = classNames('react-flow__node-default', styles.profileOperationNode, {
       [styles.active]: isOperationActive,
-      [styles.running]: !operation.endEvent && operation.type !== 'render' && errorSource == null,
-      [styles.error]: errorSource != null
+      // constant blinking of the render operation is a bit annoying, so we dont do that
+      // the global error with uknown operation is typically a timeout, so we keep blinking what was running
+      [styles.running]: !operation.endEvent && operation.subtype !== 'render' && erroredOperation == null,
+      [styles.error]: erroredOperation === operation
     })
 
     const node = {
       id: operation.id,
       data: {
         label: operation.name,
-        time: operation.endEvent ? operation.endEvent.timestamp - operation.startEvent.timestamp : null,
-        timeCost: isMainCompleted ? getTimeCost(operation.endEvent.timestamp - operation.startEvent.timestamp, mainOperation.endEvent.timestamp - mainOperation.startEvent.timestamp) : null,
+        time: getTime(operation, endTimestamp),
+        timeCost: getTimeCost(operation, startTimestamp, endTimestamp),
         operation,
-        error: errorSource
+        error: errorEvent
       },
       position: defaultPosition,
       type: 'operation',
@@ -168,54 +171,18 @@ function getElementsFromOperations (operations, errors, activeElement) {
   }
 
   // eslint-disable-next-line
-  for (const operation of needsEndNode) {
-    const classArgs = ['react-flow__node-default', styles.profileOperationNode]
-    const isMainRender = operation.previousOperationId == null
-    let errorSource
-    let errorInRender
-
-    if (isMainRender) {
-      errorSource = errors.general
-    }
-
-    if (errorSource != null) {
-      classArgs.push({
-        [styles.error]: errorSource != null
-      })
-    }
-
-    if (errorSource != null) {
-      errorInRender = errorSource
-    } else if (errors.operations != null) {
-      // eslint-disable-next-line
-      for (const errorKey of Object.keys(errors.operations)) {
-        const error = errors.operations[errorKey]
-
-        // error.id is equal to the id of the operation "render" which it belongs
-        if (error.id === operation.id) {
-          errorInRender = error
-          break
-        }
-      }
-    }
-
-    const endNodeClass = classNames(...classArgs, styles.profileEndNode, {
-      [styles.renderError]: errorInRender != null
-    })
-
+  for (const operation of needsEndNode) {  
+    const endNodeClass = classNames('react-flow__node-default', styles.profileOperationNode, styles.profileEndNode)
     const endNodeId = `${operation.id}-end`
 
     const endNode = {
       id: endNodeId,
       data: {
-        time: operation.endEvent.timestamp - operation.startEvent.timestamp,
-        timeCost: isMainCompleted && mainOperation.id !== operation.id ? getTimeCost(operation.endEvent.timestamp - operation.startEvent.timestamp, mainOperation.endEvent.timestamp - mainOperation.startEvent.timestamp) : null,
-        error: errorInRender,
-        renderResult: errorInRender == null
-          ? {
-              getContent: () => getStateAtProfileOperation(operations, operation.id, true)
-            }
-          : undefined,
+        time: getTime(operation, endTimestamp),
+        timeCost: getTimeCost(operation, startTimestamp, endTimestamp),
+        renderResult: {
+          getContent: () => getStateAtProfileOperation(operations, operation.id, true)
+        },
         end: true
       },
       position: defaultPosition,
@@ -253,7 +220,6 @@ function getElementsFromOperations (operations, errors, activeElement) {
   })
 
   dagre.layout(dagreGraph)
-
   return elements.map((el) => {
     if (isNode(el)) {
       const nodeWithPosition = dagreGraph.node(el.id)
@@ -271,28 +237,6 @@ function getElementsFromOperations (operations, errors, activeElement) {
 
     return el
   })
-}
-
-function getMainError (errors) {
-  if (errors == null) {
-    return
-  }
-
-  if (errors.global != null) {
-    return errors.global
-  }
-
-  if (errors.general != null) {
-    return errors.general
-  }
-
-  if (errors.operations != null) {
-    const lastKey = Object.keys(errors.operations).pop()
-
-    if (lastKey != null) {
-      return errors.operations[lastKey]
-    }
-  }
 }
 
 function createEdge (sourceId, targetId, activeElement, opts = {}) {
@@ -315,7 +259,13 @@ function createEdge (sourceId, targetId, activeElement, opts = {}) {
   return edge
 }
 
-function getTimeCost (cost, totalCost) {
+function getTime (operation, endTimestamp) {
+  return (operation.endEvent ? operation.endEvent.timestamp : endTimestamp) - operation.startEvent.timestamp
+}
+
+function getTimeCost (operation, startTimestamp, endTimestamp) {
+  const totalCost = endTimestamp - startTimestamp
+  const cost = (operation.endEvent ? operation.endEvent.timestamp : endTimestamp) - operation.startEvent.timestamp
   return cost / totalCost
 }
 

@@ -382,10 +382,17 @@ class MainReporter extends Reporter {
     } catch (err) {
       if (err.code === 'WORKER_TIMEOUT') {
         err.message = 'Report timeout'
+        err.weak = true
+      }
+
+      if (err.code === 'WORKER_ABORTED') {
+        err.message = 'Report cancelled'
+        err.weak = true
       }
 
       if (!err.logged) {
-        this.logger.error(`Report render failed: ${err.message}${err.stack != null ? ' ' + err.stack : ''}`, req)
+        const logFn = err.weak ? this.logger.warn : this.logger.error
+        logFn(`Report render failed: ${err.message}${err.stack != null ? ' ' + err.stack : ''}`, req)
       }
       await this.renderErrorListeners.fire(req, res, err)
       throw err

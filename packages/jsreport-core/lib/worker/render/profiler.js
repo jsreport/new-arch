@@ -123,8 +123,10 @@ class Profiler {
     req.context.profiling.renderOperationId = await this.emit(profilerMessage, req, res)
   }
 
-  async renderEnd (req, res, err) {
-    if (!err) {
+  async renderEnd (req, res, e) {
+    if (e) {
+      e.previousOperationId = e.previousOperationId || req.context.profiling.lastOperationId
+    } else {
       await this.emit({
         type: 'operationEnd',
         subtype: 'render',

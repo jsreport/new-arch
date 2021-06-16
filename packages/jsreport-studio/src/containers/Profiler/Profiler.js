@@ -80,7 +80,7 @@ class Profiler extends Component {
   async openProfile (p) {
     try {
       await openProfileFromStreamReader(async () => {
-        const getBlobUrl = resolveUrl(`/api/profile/${p._id}/content`)
+        const getBlobUrl = resolveUrl(`/api/profile/${p._id}/events`)
 
         const response = await window.fetch(getBlobUrl, {
           method: 'GET',
