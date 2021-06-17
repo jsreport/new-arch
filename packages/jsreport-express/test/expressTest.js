@@ -239,12 +239,12 @@ describe('express', () => {
     })
 
     const entries = await unzipFiles(profileLocationRes.data)
-    entries['messages.log'].should.be.ok()
+    entries['events.log'].should.be.ok()
     entries['profile.json'].should.be.ok()
     entries['metadata.json'].should.be.ok()
   })
 
-  it('should be able to upload profile and get back messages', async () => {
+  it('should be able to upload profile and get back events', async () => {
     const FormData = require('form-data')
 
     const form = new FormData()

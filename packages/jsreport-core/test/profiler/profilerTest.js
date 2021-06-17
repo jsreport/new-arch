@@ -13,7 +13,7 @@ describe('profiler', () => {
 
   afterEach(() => reporter.close())
 
-  it('should emit profile messages', async () => {
+  it('should emit profile events', async () => {
     const renderReq = {
       template: {
         content: 'Hello',
@@ -24,49 +24,49 @@ describe('profiler', () => {
     }
 
     const profiler = reporter.attachProfiler(renderReq)
-    const messages = []
-    profiler.on('profile', (m) => messages.push(m))
+    const events = []
+    profiler.on('profile', (m) => events.push(m))
 
     await reporter.render(renderReq)
 
     // evry operation start should have a matching end
-    for (const message of messages.filter(m => m.type === 'operationStart')) {
-      messages.find(m => m.operationId === message.operationId && m.type === 'operationEnd').should.be.ok()
+    for (const event of events.filter(m => m.type === 'operationStart')) {
+      events.find(m => m.operationId === event.operationId && m.type === 'operationEnd').should.be.ok()
     }
 
-    should(messages[0].previousOperationId).be.null()
+    should(events[0].previousOperationId).be.null()
 
     // evry operation start except first one should have valid previousOperationId
-    for (const message of messages.filter(m => m.type === 'operationStart').slice(1)) {
-      messages.find(m => m.operationId === message.previousOperationId).should.be.ok()
-      message.operationId.should.not.be.eql(message.previousOperationId)
+    for (const event of events.filter(m => m.type === 'operationStart').slice(1)) {
+      events.find(m => m.operationId === event.previousOperationId).should.be.ok()
+      event.operationId.should.not.be.eql(event.previousOperationId)
     }
 
     // all operations should produce valid req json after patch apply
     let currentReqStr = ''
-    for (const message of messages) {
-      if (message.type === 'operationStart' || message.type === 'operationEnd') {
-        currentReqStr = applyPatch(currentReqStr, message.req.diff)
+    for (const event of events) {
+      if (event.type === 'operationStart' || event.type === 'operationEnd') {
+        currentReqStr = applyPatch(currentReqStr, event.req.diff)
         JSON.parse(currentReqStr)
       }
     }
 
     // should produce proper result after applying diffs
     let currentResBuffer = Buffer.from('')
-    for (const message of messages) {
-      if (message.type === 'operationStart' || message.type === 'operationEnd') {
-        if (message.res.content == null) {
+    for (const event of events) {
+      if (event.type === 'operationStart' || event.type === 'operationEnd') {
+        if (event.res.content == null) {
           continue
         }
 
-        currentResBuffer = Buffer.from(applyPatch(currentResBuffer.toString(), message.res.content.content))
+        currentResBuffer = Buffer.from(applyPatch(currentResBuffer.toString(), event.res.content.content))
       }
     }
     currentResBuffer.toString().should.be.eql('Hello')
-    messages.find(m => m.type === 'log' && m.message.includes('foo') && m.previousOperationId != null).should.be.ok()
+    events.find(m => m.type === 'log' && m.message.includes('foo') && m.previousOperationId != null).should.be.ok()
   })
 
-  it('should produce messages with base64 encoded binary res', async () => {
+  it('should produce events with base64 encoded binary res', async () => {
     reporter.tests.beforeRenderEval((req, res, { reporter }) => {
       reporter.extensionsManager.recipes.push({
         name: 'profilerRecipe',
@@ -85,22 +85,22 @@ describe('profiler', () => {
     }
 
     const profiler = reporter.attachProfiler(renderReq)
-    const messages = []
-    profiler.on('profile', (m) => messages.push(m))
+    const events = []
+    profiler.on('profile', (m) => events.push(m))
 
     await reporter.render(renderReq)
 
     let currentResBuffer = Buffer.from('')
-    for (const message of messages) {
-      if (message.type === 'operationStart' || message.type === 'operationEnd') {
-        if (message.res.content == null) {
+    for (const event of events) {
+      if (event.type === 'operationStart' || event.type === 'operationEnd') {
+        if (event.res.content == null) {
           continue
         }
 
-        if (message.res.content.encoding === 'diff') {
-          currentResBuffer = Buffer.from(applyPatch(currentResBuffer.toString(), message.res.content.content))
+        if (event.res.content.encoding === 'diff') {
+          currentResBuffer = Buffer.from(applyPatch(currentResBuffer.toString(), event.res.content.content))
         } else {
-          currentResBuffer = Buffer.from(message.res.content.content, 'base64')
+          currentResBuffer = Buffer.from(event.res.content.content, 'base64')
         }
       }
     }
@@ -130,12 +130,12 @@ describe('profiler', () => {
     }
 
     const profiler = reporter.attachProfiler(renderReq)
-    const messages = []
-    profiler.on('profile', (m) => messages.push(m))
+    const events = []
+    profiler.on('profile', (m) => events.push(m))
 
     await reporter.render(renderReq)
-    const childRenderStart = messages.slice(1).find(m => m.type === 'operationStart' && m.subtype === 'render')
-    childRenderStart.previousOperationId.should.be.eql(messages[0].operationId)
+    const childRenderStart = events.slice(1).find(m => m.type === 'operationStart' && m.subtype === 'render')
+    childRenderStart.previousOperationId.should.be.eql(events[0].operationId)
   })
 
   it('should persist profiles without req/res', async () => {
@@ -155,12 +155,12 @@ describe('profiler', () => {
 
     const content = await reporter.blobStorage.read(profile.blobName)
 
-    const messages = content.toString().split('\n').filter(l => l).map(JSON.parse)
-    for (const m of messages) {
+    const events = content.toString().split('\n').filter(l => l).map(JSON.parse)
+    for (const m of events) {
       should(m.req).not.be.ok()
     }
 
-    messages.find(m => m.type === 'log' && m.message.includes('Executing recipe')).should.be.ok()
+    events.find(m => m.type === 'log' && m.message.includes('Executing recipe')).should.be.ok()
   })
 
   it('should persist profiles when request errors', async () => {
@@ -184,8 +184,8 @@ describe('profiler', () => {
     profile.state.should.be.eql('error')
 
     const content = await reporter.blobStorage.read(profile.blobName)
-    const messages = content.toString().split('\n').filter(l => l).map(JSON.parse)
-    const errorMesage = messages.find(m => m.type === 'error')
+    const events = content.toString().split('\n').filter(l => l).map(JSON.parse)
+    const errorMesage = events.find(m => m.type === 'error')
     should(errorMesage).be.ok()
   })
 
@@ -210,8 +210,8 @@ describe('profiler', () => {
     profile.state.should.be.eql('error')
 
     const content = await reporter.blobStorage.read(profile.blobName)
-    const messages = content.toString().split('\n').filter(l => l).map(JSON.parse)
-    const errorMesage = messages.find(m => m.type === 'error')
+    const events = content.toString().split('\n').filter(l => l).map(JSON.parse)
+    const errorMesage = events.find(m => m.type === 'error')
     should(errorMesage).be.ok()
   })
 
@@ -236,8 +236,8 @@ describe('profiler', () => {
     const profile = await reporter.documentStore.collection('profiles').findOne({})
     const content = await reporter.blobStorage.read(profile.blobName)
 
-    const messages = content.toString().split('\n').filter(l => l).map(JSON.parse)
-    for (const m of messages.filter(m => m.type !== 'log')) {
+    const events = content.toString().split('\n').filter(l => l).map(JSON.parse)
+    for (const m of events.filter(m => m.type !== 'log')) {
       should(m.req).be.ok()
     }
   })
@@ -306,8 +306,8 @@ describe('profiler with timeout', () => {
     profile.state.should.be.eql('error')
 
     const content = await reporter.blobStorage.read(profile.blobName)
-    const messages = content.toString().split('\n').filter(l => l).map(JSON.parse)
-    const errorMesage = messages.find(m => m.type === 'error')
+    const events = content.toString().split('\n').filter(l => l).map(JSON.parse)
+    const errorMesage = events.find(m => m.type === 'error')
     should(errorMesage).be.ok()
   })
 })

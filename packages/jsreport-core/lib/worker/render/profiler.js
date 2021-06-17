@@ -16,7 +16,7 @@ class Profiler {
     })
 
     this.profiledRequestsMap = new Map()
-    const profileMessagesFushInterval = setInterval(async () => {
+    const profileEventsFushInterval = setInterval(async () => {
       for (const id of [...this.profiledRequestsMap.keys()]) {
         const profilingInfo = this.profiledRequestsMap.get(id)
         if (profilingInfo) {
@@ -26,11 +26,11 @@ class Profiler {
         }
       }
     }, 100)
-    profileMessagesFushInterval.unref()
+    profileEventsFushInterval.unref()
 
     this.reporter.closeListeners.add('profiler', this, () => {
-      if (profileMessagesFushInterval) {
-        clearInterval(profileMessagesFushInterval)
+      if (profileEventsFushInterval) {
+        clearInterval(profileEventsFushInterval)
       }
     })
   }
@@ -114,7 +114,7 @@ class Profiler {
       templateName = template.name
     }
 
-    const profilerMessage = {
+    const profilerEvent = {
       type: 'operationStart',
       subtype: 'render',
       name: templateName,
@@ -122,10 +122,10 @@ class Profiler {
     }
 
     if (!req.context.isChildRequest) {
-      profilerMessage.profileId = req.context.profiling.entity._id
+      profilerEvent.profileId = req.context.profiling.entity._id
     }
 
-    return this.emit(profilerMessage, req, res)
+    return this.emit(profilerEvent, req, res)
   }
 
   async renderEnd (operationId, req, res, err) {

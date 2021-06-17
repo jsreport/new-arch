@@ -175,7 +175,7 @@ module.exports = (app, reporter, exposedOptions) => {
 
       const archive = archiver('zip')
       archive.append(JSON.stringify(profile, null, 2), { name: 'profile.json' })
-      archive.append(blobContentBuf, { name: 'messages.log' })
+      archive.append(blobContentBuf, { name: 'events.log' })
       archive.append(JSON.stringify({
         reporterVersion: reporter.version,
         createdAt: new Date().getTime()
@@ -234,7 +234,7 @@ module.exports = (app, reporter, exposedOptions) => {
     try {
       const content = await parseMultipart(multer)(req, res)
       const entries = await unzipFiles(content)
-      res.send(entries['messages.log'])
+      res.send(entries['events.log'])
     } catch (e) {
       next(reporter.createError('Unable to parse jsrprofile file', {
         original: e
