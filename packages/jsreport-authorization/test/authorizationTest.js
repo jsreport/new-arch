@@ -15,6 +15,8 @@ describe('authorization', () => {
     return reporter.init()
   })
 
+  afterEach(() => reporter.close())
+
   function createTemplate (req) {
     return reporter.documentStore.collection('templates').insert({ content: 'foo', name: 'foo', engine: 'none', recipe: 'html' }, req)
   }

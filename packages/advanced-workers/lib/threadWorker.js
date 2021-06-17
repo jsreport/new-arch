@@ -108,6 +108,7 @@ module.exports = ({
     })
   })
 
+  worker.unref()
   return {
     init: () => {
       return postAndWait({
