@@ -18,14 +18,14 @@ function addEvent (data, ev) {
       ...data,
       profileOperations: [...data.profileOperations, {
         startEvent: ev,
-        id: ev.id,
+        id: ev.operationId,
         previousOperationId: ev.previousOperationId,
         name: ev.name
       }]
     }
   }
 
-  const operationIndex = data.profileOperations.findIndex(op => op.id === ev.id)
+  const operationIndex = data.profileOperations.findIndex(op => op.id === ev.operationId)
   const newOperations = [...data.profileOperations.slice(0, operationIndex), {
     ...data.profileOperations[operationIndex],
     endEvent: ev

@@ -489,7 +489,7 @@ describe('render', () => {
       }
     }, {
       abortEmitter
-    }).should.be.rejectedWith(/aborted/)
+    }).should.be.rejectedWith(/cancelled/)
   })
 })
 

@@ -1,7 +1,7 @@
 const PdfManipulator = require('./utils/pdfManipulator')
 
 module.exports = async (inputs, reporter, req, res) => {
-  const pdfUtilsProfilerOperationId = reporter.profiler.emit({
+  const pdfUtilsProfilerEvent = reporter.profiler.emit({
     type: 'operationStart',
     subtype: 'pdfUtils',
     name: 'pdf utils'
@@ -53,7 +53,7 @@ module.exports = async (inputs, reporter, req, res) => {
         type: 'operationStart',
         subtype: 'pdfUtilsAppend',
         name: 'pdf utils append',
-        previousOperationId: pdfUtilsProfilerOperationId
+        previousOperationId: pdfUtilsProfilerEvent.operationId
       }, req, res)
       await manipulator.append(await runRender(templateDef, { $pdf: { pages: manipulator.parsedPdf.pages } }))
       reporter.profiler.emit({
@@ -68,7 +68,7 @@ module.exports = async (inputs, reporter, req, res) => {
         type: 'operationStart',
         subtype: 'pdfUtilsPrepend',
         name: 'pdf utils append',
-        previousOperationId: pdfUtilsProfilerOperationId
+        previousOperationId: pdfUtilsProfilerEvent.operationId
       }, req, res)
       await manipulator.prepend(await runRender(templateDef, { $pdf: { pages: manipulator.parsedPdf.pages } }))
       reporter.profiler.emit({
@@ -83,7 +83,7 @@ module.exports = async (inputs, reporter, req, res) => {
         type: 'operationStart',
         subtype: 'pdfUtilsMerge',
         name: 'pdf utils merge',
-        previousOperationId: pdfUtilsProfilerOperationId
+        previousOperationId: pdfUtilsProfilerEvent.operationId
       }, req, res)
       if (operation.mergeWholeDocument) {
         const mergeBuffer = await runRender(templateDef, { $pdf: { pages: manipulator.parsedPdf.pages } })
@@ -128,10 +128,10 @@ module.exports = async (inputs, reporter, req, res) => {
 
   reporter.profiler.emit({
     type: 'operationEnd',
-    id: pdfUtilsProfilerOperationId
+    operationId: pdfUtilsProfilerEvent.operationId
   }, req, res)
 
-  req.context.profiling.lastOperationId = pdfUtilsProfilerOperationId
+  req.context.profiling.lastOperationId = pdfUtilsProfilerEvent.operationId
 
   return manipulator.toBuffer()
 }

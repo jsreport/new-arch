@@ -29,9 +29,9 @@ class Scripts {
   async handleBeforeRender (req, res) {
     req.context.scriptsCache = await this._findScripts(req)
 
-    let scriptsProfilerOperationId
+    let scriptsProfilerEvent
     if (req.context.scriptsCache.length) {
-      scriptsProfilerOperationId = this.reporter.profiler.emit({
+      scriptsProfilerEvent = this.reporter.profiler.emit({
         type: 'operationStart',
         subtype: 'scriptsBeforeRender',
         name: 'scripts beforeRender'
@@ -39,15 +39,15 @@ class Scripts {
     }
 
     for (const script of req.context.scriptsCache) {
-      await this._runScript(req, res, script, 'beforeRender', scriptsProfilerOperationId)
+      await this._runScript(req, res, script, 'beforeRender', scriptsProfilerEvent)
     }
 
-    if (scriptsProfilerOperationId) {
+    if (scriptsProfilerEvent) {
       this.reporter.profiler.emit({
         type: 'operationEnd',
-        id: scriptsProfilerOperationId
+        operationId: scriptsProfilerEvent.operationId
       }, req, res)
-      req.context.profiling.lastOperationId = scriptsProfilerOperationId
+      req.context.profiling.lastOperationId = scriptsProfilerEvent.operaitonId
     }
   }
 
@@ -76,12 +76,12 @@ class Scripts {
     }
   }
 
-  async _runScript (req, res, script, method, profilerOperationId) {
+  async _runScript (req, res, script, method, scriptsProfilerEvent) {
     let scriptsProfilerOperationId = this.reporter.profiler.emit({
       type: 'operationStart',
       subtype: 'script',
       name: `scripts ${script.name || 'anonymous'}`,
-      previousOperationId: profilerOperationId
+      previousOperationId: scriptsProfilerEvent.opertionId
     }, req, res)
 
     this.reporter.logger.debug(`Executing script ${(script.name || script.shortid || 'anonymous')} (${method})`, req)

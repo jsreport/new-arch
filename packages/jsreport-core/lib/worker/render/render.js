@@ -49,7 +49,7 @@ module.exports = (reporter) => {
       })
     }
 
-    const engineProfileId = reporter.profiler.emit({
+    const engineProfilerEvent = reporter.profiler.emit({
       type: 'operationStart',
       subtype: 'engine',
       name: request.template.engine
@@ -65,7 +65,7 @@ module.exports = (reporter) => {
 
     reporter.profiler.emit({
       type: 'operationEnd',
-      id: engineProfileId
+      operationId: engineProfilerEvent.operationId
     }, request, response)
 
     await reporter.afterTemplatingEnginesExecutedListeners.fire(request, response)
@@ -84,7 +84,7 @@ module.exports = (reporter) => {
       })
     }
 
-    const recipeProfileId = reporter.profiler.emit({
+    const recipeProfilerEvent = reporter.profiler.emit({
       type: 'operationStart',
       subtype: 'recipe',
       name: request.template.recipe
@@ -95,7 +95,7 @@ module.exports = (reporter) => {
     await recipe.execute(request, response)
     reporter.profiler.emit({
       type: 'operationEnd',
-      id: recipeProfileId
+      operationId: recipeProfilerEvent.operationId
     }, request, response)
   }
 
@@ -111,13 +111,13 @@ module.exports = (reporter) => {
   return async (req, parentReq) => {
     const request = Request(req, parentReq)
     const response = { meta: {} }
-
+    let renderStartProfilerEvent
     try {
       if (request.context.id == null) {
         request.context.id = generateRequestId()
       }
 
-      await reporter.profiler.renderStart(request, parentReq, response)
+      renderStartProfilerEvent = await reporter.profiler.renderStart(request, parentReq, response)
       request.data = resolveReferences(request.data) || {}
 
       if (request.options.reportName) {
@@ -157,7 +157,7 @@ module.exports = (reporter) => {
         parentReq.context.shared = extend(true, parentReq.context.shared, request.context.shared)
       }
 
-      await reporter.profiler.renderEnd(request, response)
+      await reporter.profiler.renderEnd(renderStartProfilerEvent.operationId, request, response)
 
       return response
     } catch (e) {
@@ -185,7 +185,7 @@ module.exports = (reporter) => {
 
       e.logged = true
 
-      await reporter.profiler.renderEnd(request, response, e)
+      await reporter.profiler.renderEnd(renderStartProfilerEvent.operationId, request, response, e)
 
       throw e
     } finally {

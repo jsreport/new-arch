@@ -43,20 +43,25 @@ class Profiler {
       return this.reporter.executeMainAction('log', m, req)
     }
 
-    m.id = m.id || generateRequestId()
+    m.id = generateRequestId()
+    if (m.previousEventId == null && req.context.profiling.lastEventId) {
+      m.previousEventId = req.context.profiling.lastEventId
+    }
 
+    if (m.type !== 'log') {
+      req.context.profiling.lastEventId = m.id
+    }
+
+    m.operationId = m.operationId || generateRequestId()
     if (m.previousOperationId == null && req.context.profiling.lastOperationId) {
       m.previousOperationId = req.context.profiling.lastOperationId
     }
 
     if (m.type === 'operationStart') {
-      req.context.profiling.lastOperationId = m.id
+      req.context.profiling.lastOperationId = m.operationId
     }
 
     if (req.context.profiling.isAttached && (m.type === 'operationStart' || m.type === 'operationEnd')) {
-      m.previousEventId = req.context.profiling.lastEventId
-      m.eventId = req.context.profiling.lastEventId = generateRequestId()
-
       let content = res.content
 
       if (content != null) {
@@ -91,7 +96,7 @@ class Profiler {
     }
 
     this.profiledRequestsMap.get(req.context.rootId).batch.push(m)
-    return m.id
+    return m
   }
 
   async renderStart (req, parentReq, res) {
@@ -120,17 +125,17 @@ class Profiler {
       profilerMessage.profileId = req.context.profiling.entity._id
     }
 
-    req.context.profiling.renderOperationId = await this.emit(profilerMessage, req, res)
+    return this.emit(profilerMessage, req, res)
   }
 
-  async renderEnd (req, res, e) {
-    if (e) {
-      e.previousOperationId = e.previousOperationId || req.context.profiling.lastOperationId
+  async renderEnd (operationId, req, res, err) {
+    if (err) {
+      err.previousOperationId = err.previousOperationId || req.context.profiling.lastOperationId
     } else {
       await this.emit({
         type: 'operationEnd',
         subtype: 'render',
-        id: req.context.profiling.renderOperationId
+        operationId
       }, req, res)
     }
 

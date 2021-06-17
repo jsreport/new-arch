@@ -31,15 +31,15 @@ describe('profiler', () => {
 
     // evry operation start should have a matching end
     for (const message of messages.filter(m => m.type === 'operationStart')) {
-      messages.find(m => m.id === message.id && m.type === 'operationEnd').should.be.ok()
+      messages.find(m => m.operationId === message.operationId && m.type === 'operationEnd').should.be.ok()
     }
 
     should(messages[0].previousOperationId).be.null()
 
     // evry operation start except first one should have valid previousOperationId
     for (const message of messages.filter(m => m.type === 'operationStart').slice(1)) {
-      messages.find(m => m.id === message.previousOperationId).should.be.ok()
-      message.id.should.not.be.eql(message.previousOperationId)
+      messages.find(m => m.operationId === message.previousOperationId).should.be.ok()
+      message.operationId.should.not.be.eql(message.previousOperationId)
     }
 
     // all operations should produce valid req json after patch apply
@@ -135,7 +135,7 @@ describe('profiler', () => {
 
     await reporter.render(renderReq)
     const childRenderStart = messages.slice(1).find(m => m.type === 'operationStart' && m.subtype === 'render')
-    childRenderStart.previousOperationId.should.be.eql(messages[0].id)
+    childRenderStart.previousOperationId.should.be.eql(messages[0].operationId)
   })
 
   it('should persist profiles without req/res', async () => {
