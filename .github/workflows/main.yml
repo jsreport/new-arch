@@ -18,6 +18,11 @@ jobs:
         with:
           node-version: '14.x'
 
+      - name: Start MongoDB
+        uses: supercharge/mongodb-github-action@1.5.0
+        with:
+          mongodb-version: '4.2'
+
       - run: npm install --global yarn
       - run: yarn install
       - run: yarn test
