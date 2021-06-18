@@ -9,6 +9,11 @@
   },
   "author": "Jan Blaha",
   "license": "MIT",
+  "files": [
+    "lib",
+    "index.js",
+    "jsreport.config.js"
+  ],
   "dependencies": {
     "axios": "0.21.1",
     "bluebird": "3.7.2",

@@ -15,11 +15,16 @@
     "azure"
   ],
   "dependencies": {
-    "azure-storage": "2.10.3"
+    "azure-storage": "2.10.4"
   },
   "engines": {
     "node": ">=8.9"
   },
+  "files": [
+    "lib",
+    "index.js",
+    "jsreport.config.js"
+  ],
   "author": "Jan Blaha",
   "devDependencies": {
     "eslint": "7.22.0",

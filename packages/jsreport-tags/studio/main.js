@@ -1996,11 +1996,11 @@ var EntityTreeTagOrganizer = function (_Component) {
     }
   }, {
     key: 'addItemsByTag',
-    value: function addItemsByTag(newItems, entitySetsNames, allTagEntities, currentTagEntities, entitiesByTagAndType, entitiesByTypeWithoutTag, getEntityTypeNameAttr) {
+    value: function addItemsByTag(newItems, entitySetsNames, allTagEntities, currentTagEntities, entitiesByTagAndType, entitiesByTypeWithoutTag) {
       var tagsWithNoEntities = [];
 
       allTagEntities.forEach(function (tag) {
-        var tagName = getEntityTypeNameAttr(tag.__entitySet, tag);
+        var tagName = tag.name;
         var entitiesByType = entitiesByTagAndType[tagName];
         var typesInTag = Object.keys(entitiesByType);
 
@@ -2050,7 +2050,7 @@ var EntityTreeTagOrganizer = function (_Component) {
 
           entities.forEach(function (entity) {
             typeItem.items.push({
-              name: getEntityTypeNameAttr(entity.__entitySet, entity),
+              name: entity.name,
               data: entity
             });
           });
@@ -2061,7 +2061,7 @@ var EntityTreeTagOrganizer = function (_Component) {
 
       tagsWithNoEntities.forEach(function (tag) {
         var tagItem = {
-          name: getEntityTypeNameAttr(tag.__entitySet, tag),
+          name: tag.name,
           isGroup: true,
           data: tag,
           items: []
@@ -2104,7 +2104,7 @@ var EntityTreeTagOrganizer = function (_Component) {
         if (entities) {
           entities.forEach(function (entity) {
             item.items.push({
-              name: getEntityTypeNameAttr(entity.__entitySet, entity),
+              name: entity.name,
               data: entity
             });
           });
@@ -2124,7 +2124,7 @@ var EntityTreeTagOrganizer = function (_Component) {
       if (currentTagEntities) {
         currentTagEntities.forEach(function (tag) {
           tagsItem.items.push({
-            name: getEntityTypeNameAttr(tag.__entitySet, tag),
+            name: tag.name,
             data: tag
           });
         });
@@ -2134,16 +2134,16 @@ var EntityTreeTagOrganizer = function (_Component) {
     }
   }, {
     key: 'groupEntityByTagAndType',
-    value: function groupEntityByTagAndType(collection, allTagEntities, entity, getEntityTypeNameAttr) {
+    value: function groupEntityByTagAndType(collection, allTagEntities, entity) {
       if (entity.__entitySet === 'tags') {
-        var name = getEntityTypeNameAttr(entity.__entitySet, entity);
+        var name = entity.name;
         collection[name] = collection[name] || {};
       } else if (entity.tags != null) {
         entity.tags.forEach(function (tag) {
           var tagFound = (0, _findTagInSet2.default)(allTagEntities, tag.shortid);
 
           if (tagFound) {
-            var _name = getEntityTypeNameAttr(tagFound.__entitySet, tagFound);
+            var _name = tagFound.name;
             collection[_name] = collection[_name] || [];
             collection[_name][entity.__entitySet] = collection[_name][entity.__entitySet] || [];
             collection[_name][entity.__entitySet].push(entity);
@@ -2153,7 +2153,7 @@ var EntityTreeTagOrganizer = function (_Component) {
     }
   }, {
     key: 'groupEntitiesByTag',
-    value: function groupEntitiesByTag(entitySetsNames, entities, getEntityTypeNameAttr) {
+    value: function groupEntitiesByTag(entitySetsNames, entities) {
       var _this2 = this;
 
       var newItems = [];
@@ -2163,7 +2163,7 @@ var EntityTreeTagOrganizer = function (_Component) {
 
       // initialize all tag groups based on all tag entities
       allTagEntities.forEach(function (entityTag) {
-        _this2.groupEntityByTagAndType(entitiesByTagAndType, allTagEntities, entityTag, getEntityTypeNameAttr);
+        _this2.groupEntityByTagAndType(entitiesByTagAndType, allTagEntities, entityTag);
       });
 
       entitySetsNames.forEach(function (entitySetName) {
@@ -2183,7 +2183,7 @@ var EntityTreeTagOrganizer = function (_Component) {
           var entity = entitiesInSet[j];
 
           if (entity.tags != null) {
-            _this2.groupEntityByTagAndType(entitiesByTagAndType, allTagEntities, entity, getEntityTypeNameAttr);
+            _this2.groupEntityByTagAndType(entitiesByTagAndType, allTagEntities, entity);
           } else {
             entitiesByTypeWithoutTag[entity.__entitySet] = entitiesByTypeWithoutTag[entity.__entitySet] || [];
             entitiesByTypeWithoutTag[entity.__entitySet].push(entity);
@@ -2191,7 +2191,7 @@ var EntityTreeTagOrganizer = function (_Component) {
         }
       });
 
-      this.addItemsByTag(newItems, entitySetsNames, allTagEntities, entities.tags, entitiesByTagAndType, entitiesByTypeWithoutTag, getEntityTypeNameAttr);
+      this.addItemsByTag(newItems, entitySetsNames, allTagEntities, entities.tags, entitiesByTagAndType, entitiesByTypeWithoutTag);
 
       return newItems;
     }
@@ -2210,7 +2210,6 @@ var EntityTreeTagOrganizer = function (_Component) {
           var renderDefaultTree = _ref.renderDefaultTree,
               renderTree = _ref.renderTree,
               getSetsToRender = _ref.getSetsToRender,
-              getEntityTypeNameAttr = _ref.getEntityTypeNameAttr,
               entitySets = _ref.entitySets,
               entities = _ref.entities;
           var organizeByTags = _this3.state.organizeByTags;
@@ -2220,7 +2219,7 @@ var EntityTreeTagOrganizer = function (_Component) {
             return renderDefaultTree(entitySets, entities);
           }
 
-          return renderTree(_this3.groupEntitiesByTag(getSetsToRender(entitySets), entities, getEntityTypeNameAttr));
+          return renderTree(_this3.groupEntitiesByTag(getSetsToRender(entitySets), entities));
         })
       );
     }

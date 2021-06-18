@@ -36,5 +36,10 @@
   },
   "engines": {
     "node": ">=8.9"
-  }
+  },
+  "files": [
+    "lib",
+    "index.js",
+    "jsreport.config.js"
+  ]
 }

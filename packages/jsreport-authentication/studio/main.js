@@ -514,8 +514,10 @@ var LogoutSettingsButton = function (_Component) {
           'div',
           {
             onClick: function onClick() {
-              return _this2.logoutRef.current.click();
-            }, style: { cursor: 'pointer' }
+              _this2.logoutRef.current.click();
+              _this2.props.closeMenu();
+            },
+            style: { cursor: 'pointer' }
           },
           _react2.default.createElement(
             'form',
@@ -555,7 +557,7 @@ var _jsreportStudio2 = _interopRequireDefault(_jsreportStudio);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-exports.default = function (props) {
+var ChangePasswordSettingsButton = function ChangePasswordSettingsButton(props) {
   if (_jsreportStudio2.default.authentication.user.isAdmin) {
     return React.createElement('span', null);
   }
@@ -565,15 +567,21 @@ exports.default = function (props) {
     null,
     React.createElement(
       'a',
-      { id: 'changePassword', onClick: function onClick() {
-          return _jsreportStudio2.default.openModal(_ChangePasswordModal2.default, { entity: _jsreportStudio2.default.authentication.user });
-        }, style: { cursor: 'pointer' } },
-      ' ',
+      {
+        id: 'changePassword',
+        onClick: function onClick() {
+          _jsreportStudio2.default.openModal(_ChangePasswordModal2.default, { entity: _jsreportStudio2.default.authentication.user });
+          props.closeMenu();
+        },
+        style: { cursor: 'pointer' }
+      },
       React.createElement('i', { className: 'fa fa-key' }),
       'Change password'
     )
   );
 };
+
+exports.default = ChangePasswordSettingsButton;
 
 /***/ }),
 /* 7 */

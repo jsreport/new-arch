@@ -496,7 +496,7 @@ _jsreportStudio2.default.addPropertiesComponent(_XlsxTemplateProperties2.default
   return entity.__entitySet === 'templates' && entity.recipe === 'xlsx';
 });
 
-_jsreportStudio2.default.previewListeners.push(function (request, entities) {
+_jsreportStudio2.default.runListeners.push(function (request, entities) {
   if (request.template.recipe !== 'xlsx') {
     return;
   }

@@ -111,3 +111,15 @@ logs
 node_modules
 
 tools/snapshots
+
+# jsreport extra config files
+prod.config.json
+dev.config.json
+
+# exe compilation
+jsreportPkgConfig.json
+jsreportStartup.js
+exe-temp-resources
+compileDetection
+vfs.json
+# end exe compilation

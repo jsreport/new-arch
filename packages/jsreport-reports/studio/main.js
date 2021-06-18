@@ -203,7 +203,14 @@ var ReportEditor = function (_Component) {
 
                 if (state === 'success') {
                   if (r.contentType === 'text/html' || r.contentType === 'text/plain' || r.contentType === 'application/pdf' || r.contentType && r.contentType.indexOf('image') !== -1) {
-                    _jsreportStudio2.default.setPreviewFrameSrc(_jsreportStudio2.default.rootUrl + '/reports/' + r._id + '/content');
+                    _jsreportStudio2.default.preview({
+                      type: 'rawContent',
+                      data: {
+                        type: 'url',
+                        content: _jsreportStudio2.default.rootUrl + '/reports/' + r._id + '/content'
+                      },
+                      completed: true
+                    });
                   } else {
                     window.open(_jsreportStudio2.default.rootUrl + '/reports/' + r._id + '/attachment', '_self');
                   }
@@ -211,7 +218,15 @@ var ReportEditor = function (_Component) {
                   this.setState({ active: r._id });
                   this.ActiveReport = r;
                 } else if (state === 'error') {
-                  _jsreportStudio2.default.setPreviewFrameSrc('data:text/html;charset=utf-8,' + encodeURI(r.error || r.state));
+                  _jsreportStudio2.default.preview({
+                    type: 'rawContent',
+                    data: {
+                      type: 'text/html',
+                      content: r.error || r.state
+                    },
+                    completed: true
+                  });
+
                   this.setState({ active: null });
                   this.ActiveReport = null;
                 }
@@ -571,9 +586,12 @@ var ReportsButton = function (_Component) {
 
       return _react2.default.createElement(
         'div',
-        { onClick: function onClick() {
-            return _this2.openReports();
-          } },
+        {
+          onClick: function onClick() {
+            _this2.openReports();
+            _this2.props.closeMenu();
+          }
+        },
         _react2.default.createElement('i', { className: 'fa fa-folder-open-o' }),
         'Reports'
       );

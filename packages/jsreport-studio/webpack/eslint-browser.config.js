@@ -2,7 +2,7 @@ const path = require('path')
 
 const assetsPath = path.resolve(__dirname, '../static/dist')
 
-const sepRe = `\\${path.sep}`; // path separator regex
+const sepRe = `\\${path.sep}` // path separator regex
 
 const babelLoaderOptions = {
   presets: [

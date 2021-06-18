@@ -24,7 +24,7 @@
     "mocha": "7.2.0",
     "should": "13.2.3",
     "standard": "11.0.1",
-    "uuid": "8.3.0"
+    "uuid": "8.3.2"
   },
   "engines": {
     "node": ">=8.9"

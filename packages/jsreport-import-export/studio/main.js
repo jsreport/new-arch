@@ -122,9 +122,13 @@ function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, a
 _jsreportStudio2.default.addToolbarComponent(function (props) {
   return React.createElement(
     'div',
-    { className: 'toolbar-button', onClick: function onClick() {
-        return _jsreportStudio2.default.openModal(_ExportModal2.default);
-      } },
+    {
+      className: 'toolbar-button',
+      onClick: function onClick() {
+        _jsreportStudio2.default.openModal(_ExportModal2.default);
+        props.closeMenu();
+      }
+    },
     React.createElement('i', { className: 'fa fa-download' }),
     'Export'
   );
@@ -133,9 +137,13 @@ _jsreportStudio2.default.addToolbarComponent(function (props) {
 _jsreportStudio2.default.addToolbarComponent(function (props) {
   return React.createElement(
     'div',
-    { className: 'toolbar-button', onClick: function onClick() {
-        return _jsreportStudio2.default.openModal(_ImportModal2.default);
-      } },
+    {
+      className: 'toolbar-button',
+      onClick: function onClick() {
+        _jsreportStudio2.default.openModal(_ImportModal2.default);
+        props.closeMenu();
+      }
+    },
     React.createElement('i', { className: 'fa fa-upload' }),
     'Import'
   );

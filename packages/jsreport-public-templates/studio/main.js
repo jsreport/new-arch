@@ -114,9 +114,13 @@ _jsreportStudio2.default.addToolbarComponent(function (props) {
 
   return React.createElement(
     'div',
-    { className: 'toolbar-button', onClick: function onClick() {
-        return _jsreportStudio2.default.openModal(_ShareModal2.default, { entity: props.tab.entity });
-      } },
+    {
+      className: 'toolbar-button',
+      onClick: function onClick() {
+        _jsreportStudio2.default.openModal(_ShareModal2.default, { entity: props.tab.entity });
+        props.closeMenu();
+      }
+    },
     React.createElement('i', { className: 'fa fa-unlock' }),
     'Share'
   );

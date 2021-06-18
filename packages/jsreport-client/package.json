@@ -19,7 +19,7 @@
     "eslint": "4.18.1",
     "eslint-plugin-babel": "4.1.2",
     "jsreport-authentication": "2.4.2",
-    "jsreport-core": "2.8.1",
+    "jsreport-core": "2.10.1",
     "jsreport-express": "2.6.0",
     "jsreport-jsrender": "2.1.1",
     "mocha": "5.0.1",
@@ -29,6 +29,10 @@
   "engines": {
     "node": ">=8.9"
   },
+  "files": [
+    "lib",
+    "index.js"
+  ],
   "homepage": "https://github.com/jsreport/nodejs-client",
   "licence": "MIT",
   "main": "index.js",

@@ -14,7 +14,7 @@
     "mkdirp": "0.5.5",
     "msexcel-builder-extended": "0.0.8",
     "node.extend.without.arrays": "1.1.6",
-    "uuid": "3.3.3",
+    "uuid": "8.3.2",
     "xml2js-preserve-spaces": "0.0.1"
   },
   "deprecated": false,

@@ -161,7 +161,7 @@ var pendingModalsInterval = setInterval(function () {
   }
 }, 200);
 
-_jsreportStudio2.default.previewListeners.push(function (request, entities) {
+_jsreportStudio2.default.runListeners.push(function (request, entities) {
   if (request.template.recipe !== 'pptx') {
     return;
   }
@@ -195,7 +195,7 @@ _jsreportStudio2.default.previewListeners.push(function (request, entities) {
   pendingModalsLaunch.push(launchBetaModal);
 });
 
-_jsreportStudio2.default.previewListeners.push(function (request, entities) {
+_jsreportStudio2.default.runListeners.push(function (request, entities) {
   if (request.template.recipe !== 'pptx') {
     return;
   }

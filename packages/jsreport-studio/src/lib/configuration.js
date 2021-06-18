@@ -2,7 +2,7 @@
 export let version = null
 export let engines = []
 export let recipes = []
-export let previewTypes = {}
+export let previewComponents = {}
 export let initializeListeners = []
 export let readyListeners = []
 export let runListeners = []

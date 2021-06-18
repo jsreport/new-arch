@@ -5,7 +5,7 @@
  * auth tokens.
  */
 
-const uuid = require('uuid').v4
+const { v4: uuidv4 } = require('uuid')
 
 async function generateSharingToken (reporter, shortid, req) {
   const template = await reporter.documentStore.collection('templates').findOne({ shortid: shortid }, req)
@@ -16,7 +16,7 @@ async function generateSharingToken (reporter, shortid, req) {
     })
   }
 
-  const token = uuid()
+  const token = uuidv4()
 
   template.readSharingToken = token
 

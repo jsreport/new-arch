@@ -13,6 +13,11 @@
   "engines": {
     "node": ">=8.9"
   },
+  "files": [
+    "lib",
+    "index.js",
+    "jsreport.config.js"
+  ],
   "homepage": "https://github.com/jsreport/jsreport-aws-s3-storage",
   "keywords": [
     "jsreport",

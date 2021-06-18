@@ -19,7 +19,7 @@ module.exports = {
   devtool: 'hidden-source-map',
   context: path.resolve(__dirname, '..'),
   entry: {
-    'main': [
+    main: [
       './src/client.js',
       'font-awesome-webpack-4!./src/theme/font-awesome.config.prod.js'
     ]
