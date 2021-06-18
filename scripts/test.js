@@ -19,6 +19,8 @@ const jsreportPackages = [
   'jsreport-jsrender',
   'jsreport-licensing',
   'jsreport-mongodb-store',
+  'jsreport-mssql-store',
+  'jsreport-postgres-store',
   'jsreport-pdf-utils',
   'jsreport-pptx',
   'jsreport-reports',

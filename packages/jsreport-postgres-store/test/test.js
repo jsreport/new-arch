@@ -12,8 +12,8 @@ describe('common store tests', () => {
       'host': 'localhost',
       'port': 5432,
       'database': 'jsreport',
-      'user': 'postgres',
-      'password': 'password'
+      'user': 'jsreport',
+      'password': 'foo'
     })).use(() => {
       instance.documentStore.registerEntityType('InstanceCustomType', {
         name: { type: 'Edm.String' },

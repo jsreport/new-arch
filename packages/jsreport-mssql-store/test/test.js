@@ -2,7 +2,7 @@ require('should')
 process.env.DEBUG = 'jsreport'
 const jsreport = require('jsreport-core')
 
-const USE_DOCKER_CONNECTION = process.env.USE_DOCKER_CONNECTION != null
+const USE_DOCKER_CONNECTION = process.env.USE_DOCKER_CONNECTION !== 'false'
 
 describe('common store tests', () => {
   let reporter

@@ -33,5 +33,19 @@ jobs:
         uses: supercharge/mongodb-github-action@1.5.0
         with:
           mongodb-version: '4.2'
-   
+
+      - name: Start PostgreSQL
+        run: |
+          sudo systemctl start postgresql.service
+          pg_isready        
+          sudo -u postgres psql --command="CREATE USER jsreport PASSWORD 'foo'" --command="\du" 
+          sudo -u postgres createdb --owner=jsreport jsreport
+          PGPASSWORD=foo psql --username=jsreport --host=localhost --list jsreport
+
+      - name: Start MSSQL
+        run: |
+            docker pull mcr.microsoft.com/mssql/server:2019-GA-ubuntu-16.04
+            docker run -d --name sql_server -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=reallyStrongPwd123' -p 1433:1433 mcr.microsoft.com/mssql/server:2019-GA-ubuntu-16.04            
+            docker exec sql_server /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P "reallyStrongPwd123" -Q 'CREATE DATABASE jsreport; ALTER DATABASE jsreport SET READ_COMMITTED_SNAPSHOT ON;'
+      
       - run: yarn test
