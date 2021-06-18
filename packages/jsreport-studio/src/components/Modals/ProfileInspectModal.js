@@ -142,7 +142,7 @@ class ProfilerInspectModal extends Component {
   render () {
     const isLoading = this.state.content == null
     const reqActionsEnabled = this.state.content != null
-    const resActionsEnabled = this.state.content != null && this.state.content.res.content !== ''
+    const resActionsEnabled = this.state.content != null && this.state.content.res != null && this.state.content.res.content !== null && this.state.content.res.content.size > 0
 
     return (
       <div>

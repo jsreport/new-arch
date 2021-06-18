@@ -71,25 +71,21 @@ const OperationNode = (props) => {
             )}
       </div>
       <Handle type='source' position={sourcePosition} isConnectable={isConnectable} />
-      {true && (
-        <div
-          className={`${styles.profileExecutionTimeCost} ${getTimeCostCategoryClass(timeCost * 100)}`}
-          style={{ width: `${timeCost * 100}%` }}
-        >
+      <div
+        className={`${styles.profileExecutionTimeCost} ${getTimeCostCategoryClass(timeCost * 100)}`}
+        style={{ width: `${timeCost * 100}%` }}
+      >
+        &nbsp;
+      </div>
+      {/* eslint-disable-next-line */}
+      <Fragment>
+        <div className={styles.profileExecutionTime}>
+          <span className={styles.profileExecutionTimeLabel}>{time}ms</span>
+        </div>
+        <div className={styles.profileExecutionTimeCover} title={`${time}ms`}>
           &nbsp;
         </div>
-      )}
-      {true && (
-        // eslint-disable-next-line
-        <Fragment>
-          <div className={styles.profileExecutionTime}>
-            <span className={styles.profileExecutionTimeLabel}>{time}ms</span>
-          </div>
-          <div className={styles.profileExecutionTimeCover} title={`${time}ms`}>
-            &nbsp;
-          </div>
-        </Fragment>
-      )}
+      </Fragment>
     </Fragment>
   )
 }
