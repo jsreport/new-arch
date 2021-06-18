@@ -108,12 +108,13 @@ module.exports = ({
     })
   })
 
-  worker.unref()
   return {
     init: () => {
       return postAndWait({
         systemAction: 'init'
-      }, { timeout: initTimeout })
+      }, { timeout: initTimeout }).finally(() => {
+        worker.unref()
+      })
     },
     execute: (userData, { executeMain, timeout }) => {
       return postAndWait({
