@@ -34,4 +34,4 @@ jobs:
         with:
           mongodb-version: '4.2'
    
-      # - run: yarn test
+      - run: yarn test
