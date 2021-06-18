@@ -20,20 +20,24 @@ jobs:
 
       - name: Get yarn cache directory path
         id: yarn-cache-dir-path
-        run: echo "::set-output name=dir::$(yarn cache dir)"
-
+        run: echo "::set-output name=dir::$(yarn config get cacheFolder)"
       - uses: actions/cache@v2
         id: yarn-cache
         with:
           path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          key: yarn-${{ hashFiles('yarn.lock') }}
           restore-keys: |
-            ${{ runner.os }}-yarn-          
+            yarn-
+      - name: 'Check or update Yarn cache (fix w/ "yarn install")'
+        env:
+          YARN_ENABLE_SCRIPTS: false # disable post-install scripts
+          YARN_NODE_LINKER: pnp # use pnp linker for better linking performance: it's meant to update yarn cache only
+        run: |
+          yarn install --immutable --skip-builds
 
       - name: Start MongoDB
         uses: supercharge/mongodb-github-action@1.5.0
         with:
           mongodb-version: '4.2'
-
-      - run: yarn install
+   
       # - run: yarn test
