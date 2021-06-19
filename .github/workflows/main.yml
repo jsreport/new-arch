@@ -51,12 +51,16 @@ jobs:
       - name: Start Oracle
         run: |
             docker pull pvargacl/oracle-xe-18.4.0:latest
-            docker run -d --name oracle_database -p 1521:1521 -e ORACLE_PWD=oracle -v ${PWD}/oracle-setup:/docker-entrypoint-initdb.d/startup pvargacl/oracle-xe-18.4.0:latest            
+            docker run -d --name oracle_database -p 1521:1521 -e ORACLE_PWD=oracle -v ${PWD}/packages/jsreport-oracle-store/oracle-setup:/docker-entrypoint-initdb.d/startup pvargacl/oracle-xe-18.4.0:latest            
             wget https://download.oracle.com/otn_software/linux/instantclient/185000/oracle-instantclient18.5-basic-18.5.0.0.0-3.x86_64.rpm
             sudo apt-get install alien
             sudo alien -i oracle-instantclient18.5-*.rpm      
             echo "/usr/lib/oracle/18.5/client64/bin" >> $GITHUB_PATH
             echo "ORACLE_HOME=/usr/lib/oracle/18.5/client64" >> $GITHUB_ENV
             echo "LD_LIBRARY_PATH=/usr/lib/oracle/18.5/client64/lib" >> $GITHUB_ENV
+
+      - name: unoconv
+        run: |
+            apt-get -y install unoconv    
       
       - run: yarn test
