@@ -61,6 +61,6 @@ jobs:
 
       - name: unoconv
         run: |
-            apt-get -y install unoconv    
+            sudo apt-get -y install unoconv    
       
       - run: yarn test
