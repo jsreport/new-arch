@@ -4,8 +4,7 @@
   "description": "Extension allowing to store template in Oracle Database",
   "main": "index.js",
   "scripts": {
-    "test": "standard",
-    "test-with-db": "mocha test/test.js --timeout=18000 && standard"
+    "test": "mocha test/test.js --timeout=18000 && standard"
   },
   "standard": {
     "env": [

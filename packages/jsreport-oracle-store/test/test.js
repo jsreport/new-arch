@@ -2,16 +2,16 @@ require('should')
 process.env.DEBUG = 'jsreport'
 const jsreport = require('jsreport-core')
 
-const USE_DOCKER_CONNECTION = process.env.USE_DOCKER_CONNECTION != null
+const USE_DOCKER_CONNECTION = process.env.USE_DOCKER_CONNECTION !== 'false'
 
 describe('common store tests', () => {
   let reporter
 
   async function createReporter () {
     const localOpts = {
-      user: 'system',
-      password: 'oracle',
-      connectionString: 'localhost:1521/xe',
+      user: 'jsreport',
+      password: 'jsreport',
+      connectionString: 'localhost:1521/XEPDB1',
       poolMin: 0,
       poolMax: 20,
       poolIncrement: 1
@@ -56,6 +56,5 @@ describe('common store tests', () => {
 
   afterEach(() => reporter.close())
 
-  jsreport.tests.blobStorage()(() => reporter.blobStorage)
   jsreport.tests.documentStore()(() => reporter.documentStore)
 })
