@@ -47,14 +47,14 @@ class Scripts {
         type: 'operationEnd',
         operationId: scriptsProfilerEvent.operationId
       }, req, res)
-      req.context.profiling.lastOperationId = scriptsProfilerEvent.operaitonId
+      req.context.profiling.lastOperationId = scriptsProfilerEvent.operationId
     }
   }
 
   async handleAfterRender (req, res) {
-    let scriptsProfilerOperationId
+    let scriptsProfilerEvent
     if (req.context.scriptsCache.find(s => s.shouldRunAfteRender)) {
-      scriptsProfilerOperationId = this.reporter.profiler.emit({
+      scriptsProfilerEvent = this.reporter.profiler.emit({
         type: 'operationStart',
         subtype: 'scriptsAfterRender',
         name: 'scripts afterRender'
@@ -63,25 +63,25 @@ class Scripts {
 
     for (const script of req.context.scriptsCache) {
       if (script.shouldRunAfteRender) {
-        await this._runScript(req, res, script, 'afterRender', scriptsProfilerOperationId)
+        await this._runScript(req, res, script, 'afterRender', scriptsProfilerEvent)
       }
     }
 
-    if (scriptsProfilerOperationId) {
+    if (scriptsProfilerEvent) {
       this.reporter.profiler.emit({
         type: 'operationEnd',
-        id: scriptsProfilerOperationId
+        operationId: scriptsProfilerEvent.operationId
       }, req, res)
-      req.context.profiling.lastOperationId = scriptsProfilerOperationId
+      req.context.profiling.lastOperationId = scriptsProfilerEvent.operationId
     }
   }
 
   async _runScript (req, res, script, method, scriptsProfilerEvent) {
-    let scriptsProfilerOperationId = this.reporter.profiler.emit({
+    let scriptProfilerEvent = this.reporter.profiler.emit({
       type: 'operationStart',
       subtype: 'script',
       name: `scripts ${script.name || 'anonymous'}`,
-      previousOperationId: scriptsProfilerEvent.opertionId
+      previousOperationId: scriptsProfilerEvent.operationId
     }, req, res)
 
     this.reporter.logger.debug(`Executing script ${(script.name || script.shortid || 'anonymous')} (${method})`, req)
@@ -140,7 +140,7 @@ class Scripts {
 
     this.reporter.profiler.emit({
       type: 'operationEnd',
-      id: scriptsProfilerOperationId
+      operationId: scriptProfilerEvent.operationId
     }, req, res)
 
     return res

@@ -49,7 +49,7 @@ module.exports = async (inputs, reporter, req, res) => {
     reporter.logger.debug(`pdf-utils running pdf operation ${operation.type}`, req)
 
     if (operation.type === 'append') {
-      const profilerOperaitonId = reporter.profiler.emit({
+      const profilerEvent = reporter.profiler.emit({
         type: 'operationStart',
         subtype: 'pdfUtilsAppend',
         name: 'pdf utils append',
@@ -58,13 +58,13 @@ module.exports = async (inputs, reporter, req, res) => {
       await manipulator.append(await runRender(templateDef, { $pdf: { pages: manipulator.parsedPdf.pages } }))
       reporter.profiler.emit({
         type: 'operationEnd',
-        id: profilerOperaitonId
+        operationId: profilerEvent.operationId
       }, req, res)
       continue
     }
 
     if (operation.type === 'prepend') {
-      const profilerOperaitonId = reporter.profiler.emit({
+      const profilerEvent = reporter.profiler.emit({
         type: 'operationStart',
         subtype: 'pdfUtilsPrepend',
         name: 'pdf utils append',
@@ -73,13 +73,13 @@ module.exports = async (inputs, reporter, req, res) => {
       await manipulator.prepend(await runRender(templateDef, { $pdf: { pages: manipulator.parsedPdf.pages } }))
       reporter.profiler.emit({
         type: 'operationEnd',
-        id: profilerOperaitonId
+        operationId: profilerEvent.operationId
       }, req, res)
       continue
     }
 
     if (operation.type === 'merge') {
-      const profilerOperaitonId = reporter.profiler.emit({
+      const profilerEvent = reporter.profiler.emit({
         type: 'operationStart',
         subtype: 'pdfUtilsMerge',
         name: 'pdf utils merge',
@@ -90,7 +90,7 @@ module.exports = async (inputs, reporter, req, res) => {
         await manipulator.merge(mergeBuffer, operation.mergeToFront)
         reporter.profiler.emit({
           type: 'operationEnd',
-          id: profilerOperaitonId
+          operationId: profilerEvent.operationId
         }, req, res)
         continue
       }
