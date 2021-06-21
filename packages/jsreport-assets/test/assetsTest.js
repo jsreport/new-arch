@@ -1128,6 +1128,82 @@ describe('assets', function () {
   })
 })
 
+describe('isAssetPathValid', () => {
+  it('* match test.js', () => {
+    isAssetPathValid('**/*.*', '../test.js', '/data/root/test.js').should.be.true()
+  })
+
+  it('test.js should not match foo.js', () => {
+    isAssetPathValid('test.js', '../foo.js', '/data/root/foo.js').should.be.false()
+  })
+
+  it('**/test.js should match data/test.js', () => {
+    isAssetPathValid('**/test.js', 'data/test.js', '/foo/data/test.js').should.be.true()
+  })
+
+  it('data/test.js should match data/test.js', () => {
+    isAssetPathValid('data/test.js', 'data/test.js', '/foo/data/test.js').should.be.true()
+  })
+
+  it('+(bar|foo)/test.js should match both bar/test.js and foo/test.js but not data/test.js', () => {
+    isAssetPathValid('+(bar|foo)/test.js', 'bar/test.js', '/foo/bar/test.js').should.be.true()
+    isAssetPathValid('+(bar|foo)/test.js', 'foo/test.js', '/foo/fioo/test.js').should.be.true()
+    isAssetPathValid('+(bar|foo)/test.js', 'data/test.js', '/foo/data/test.js').should.be.false()
+  })
+
+  it('+(bar|foo)/+(*.js|*.css) should match both bar/test.js and foo/test.css but not bar/test.txt', () => {
+    isAssetPathValid('+(bar|foo)/+(*.js|*.css)', 'bar/test.js', '/foo/bar/test.js').should.be.true()
+    isAssetPathValid('+(bar|foo)/+(*.js|*.css)', 'foo/test.css', '/foo/fioo/test.css').should.be.true()
+    isAssetPathValid('+(bar|foo)/+(*.js|*.css)', 'bar/test.txt', 'foo/bar/test.txt').should.be.false()
+  })
+
+  it('undefined allowedFiles should not match', () => {
+    isAssetPathValid(undefined, 'test/test.html', 'E:\\work\\jsreport\\jsreport-assets\\test\\test.html').should.be.false()
+  })
+})
+
+describe('assets with allowLocalFilesAccess', () => {
+  let reporter
+
+  beforeEach(() => {
+    reporter = Reporter({
+      rootDirectory: process.cwd(),
+      allowLocalFilesAccess: true
+    })
+      .use(require('jsreport-jsrender')())
+      .use(require('../')())
+
+    return reporter.init()
+  })
+
+  afterEach(() => reporter.close())
+
+  it('should be able to require an npm module from inside proxy.asset.require', async () => {
+    await reporter.documentStore.collection('assets').insert({
+      name: 'foo.js',
+      content: `      
+      module.exports.fn = () => typeof require('moment')
+    `
+    })
+
+    const res = await reporter.render({
+      template: {
+        content: '{{:~helper()}}',
+        recipe: 'html',
+        engine: 'jsrender',
+        helpers: `         
+        const jsreport = require('jsreport-proxy')
+        const foo = await jsreport.assets.require('foo.js')
+        function helper() {
+          return foo.fn()
+        }
+      `
+      }
+    })
+    res.content.toString().should.be.eql('function')
+  })
+})
+
 describe('assets with express', function () {
   let reporter
 
@@ -1295,39 +1371,5 @@ describe('assets with express', function () {
       .expect(200)
 
     response.text.should.be.eql('http://localhost/reporting/assets/content/foo.html')
-  })
-})
-
-describe('isAssetPathValid', () => {
-  it('* match test.js', () => {
-    isAssetPathValid('**/*.*', '../test.js', '/data/root/test.js').should.be.true()
-  })
-
-  it('test.js should not match foo.js', () => {
-    isAssetPathValid('test.js', '../foo.js', '/data/root/foo.js').should.be.false()
-  })
-
-  it('**/test.js should match data/test.js', () => {
-    isAssetPathValid('**/test.js', 'data/test.js', '/foo/data/test.js').should.be.true()
-  })
-
-  it('data/test.js should match data/test.js', () => {
-    isAssetPathValid('data/test.js', 'data/test.js', '/foo/data/test.js').should.be.true()
-  })
-
-  it('+(bar|foo)/test.js should match both bar/test.js and foo/test.js but not data/test.js', () => {
-    isAssetPathValid('+(bar|foo)/test.js', 'bar/test.js', '/foo/bar/test.js').should.be.true()
-    isAssetPathValid('+(bar|foo)/test.js', 'foo/test.js', '/foo/fioo/test.js').should.be.true()
-    isAssetPathValid('+(bar|foo)/test.js', 'data/test.js', '/foo/data/test.js').should.be.false()
-  })
-
-  it('+(bar|foo)/+(*.js|*.css) should match both bar/test.js and foo/test.css but not bar/test.txt', () => {
-    isAssetPathValid('+(bar|foo)/+(*.js|*.css)', 'bar/test.js', '/foo/bar/test.js').should.be.true()
-    isAssetPathValid('+(bar|foo)/+(*.js|*.css)', 'foo/test.css', '/foo/fioo/test.css').should.be.true()
-    isAssetPathValid('+(bar|foo)/+(*.js|*.css)', 'bar/test.txt', 'foo/bar/test.txt').should.be.false()
-  })
-
-  it('undefined allowedFiles should not match', () => {
-    isAssetPathValid(undefined, 'test/test.html', 'E:\\work\\jsreport\\jsreport-assets\\test\\test.html').should.be.false()
   })
 })

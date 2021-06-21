@@ -11,7 +11,7 @@ module.exports = (reporter) => {
     onRequire,
     propertiesConfig
   }, req) => {
-    const jsreportProxy = reporter.createProxy({ req })
+    let jsreportProxy = null
 
     context.executionFn = executionFn
     context.__appDirectory = reporter.options.appDirectory
@@ -52,6 +52,8 @@ module.exports = (reporter) => {
         }
       }
     })
+
+    jsreportProxy = reporter.createProxy({ req, runInSandbox: run })
 
     sandbox.__restore = restore
 

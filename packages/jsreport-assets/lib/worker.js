@@ -114,7 +114,9 @@ module.exports = (reporter, definition) => {
     }
   })
 
-  reporter.extendProxy((proxy, req) => {
+  reporter.extendProxy((proxy, req, {
+    runInSandbox
+  }) => {
     proxy.assets = {
       read: async (path, encoding) => {
         const r = await readAsset(reporter, definition, null, path, encoding, req)
@@ -123,10 +125,23 @@ module.exports = (reporter, definition) => {
 
       require: async (path) => {
         const r = await readAsset(reporter, definition, null, path, 'utf8', req)
-        const m = { exports: { } }
-        /* eslint-disable no-new-func */
-        new Function('module', r.content)(m)
-        return m.exports
+
+        const userCode = `
+        ;(() => {
+          function moduleWrap(exports, require, module, __filename, __dirname) {
+            ${r.content}
+          };
+          const m = { exports: { }};
+          const r = moduleWrap(m.exports, require, m);
+          return m.exports;
+        })()       
+        `
+
+        return runInSandbox(userCode, {
+          mainFilename: path,
+          filename: path,
+          mainSource: userCode
+        })
       }
     }
   })
