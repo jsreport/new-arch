@@ -7,7 +7,7 @@ import { previewComponents } from '../../lib/configuration'
 
 const MainPreview = () => {
   const preview = useSelector((state) => state.editor.preview)
-  const tabs = [...(previewComponents[preview.type].tabs || [])]
+  const tabs = useMemo(() => ([...(previewComponents[preview.type].tabs || [])]), [preview.type])
 
   const actions = useMemo(() => {
     return [

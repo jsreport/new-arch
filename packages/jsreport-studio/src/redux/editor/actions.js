@@ -60,6 +60,8 @@ export function closeTab (id) {
     if (entity) {
       dispatch(entities.actions.unload(id))
     }
+
+    dispatch(updateHistory())
   }
 }
 
@@ -155,6 +157,8 @@ export function activateTab (id) {
       type: ActionTypes.ACTIVATE_TAB,
       key: id
     })
+
+    dispatch(updateHistory())
   }
 }
 

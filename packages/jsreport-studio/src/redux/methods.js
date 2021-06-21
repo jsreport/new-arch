@@ -1,5 +1,5 @@
 import { getById, getByShortid, resolveEntityPath as resolveEPath } from './entities/selectors'
-import { getCanSaveAll } from './editor/selectors'
+import { getCanSaveAll, getActiveTabWithEntity, getLastActiveTemplate } from './editor/selectors'
 import { clearPreview, openTab, preview, run, updatePreview } from './editor/actions'
 import { start as progressStart, stop as progressStop } from './progress/actions'
 import { getValueByKey } from './settings/selectors'
@@ -19,8 +19,17 @@ const methods = {
   getSettingsByKey (key, shouldThrow = true) {
     return getValueByKey(store.getState().settings, key, shouldThrow)
   },
+  getEditorUndockMode () {
+    return store.getState().editor.undockMode
+  },
   getEditorCanSaveAll () {
     return getCanSaveAll(store.getState().editor.tabs, store.getState().entities)
+  },
+  getEditorActiveTabWithEntity () {
+    return getActiveTabWithEntity(store.getState().editor.activeTabKey, store.getState().editor.tabs, store.getState().entities)
+  },
+  getEditorLastActiveTemplate () {
+    return getLastActiveTemplate(store.getState().editor.lastActiveTemplateKey, store.getState().entities)
   },
   openEditorTab (...args) {
     return store.dispatch(openTab(...args))
