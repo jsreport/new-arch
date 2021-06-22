@@ -1125,6 +1125,36 @@ describe('assets', function () {
       })
       res.content.toString().should.be.eql('hello')
     })
+
+    it('should throw error with lineNumber when code in proxy.asset.require fails', async () => {
+      await reporter.documentStore.collection('assets').insert({
+        name: 'foo.js',
+        content: `module.exports.fn = () => {       
+          throw new Error('xxx')
+        }`
+      })
+
+      try {
+        await reporter.render({
+          template: {
+            content: '{{:~helper()}}',
+            recipe: 'html',
+            engine: 'jsrender',
+            helpers: `
+              const jsreport = require('jsreport-proxy')
+              const foo = await jsreport.assets.require('foo.js')
+              function helper() {
+                return foo.fn()
+              }
+            `
+          }
+        })
+        throw new Error('should have failed')
+      } catch (e) {
+        e.message.should.containEql('throw new Error')
+        e.lineNumber.should.be.eql(2)
+      }
+    })
   })
 })
 

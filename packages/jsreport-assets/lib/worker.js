@@ -115,7 +115,8 @@ module.exports = (reporter, definition) => {
   })
 
   reporter.extendProxy((proxy, req, {
-    runInSandbox
+    runInSandbox,
+    context
   }) => {
     proxy.assets = {
       read: async (path, encoding) => {
@@ -126,7 +127,11 @@ module.exports = (reporter, definition) => {
       require: async (path) => {
         const r = await readAsset(reporter, definition, null, path, 'utf8', req)
 
-        const userCode = `
+        // here we are outside of the vm2, so we cant simply do new Function(userCode)
+
+        // APPROACH 1 - use existing vm2
+        // problem is that the error dosnt rise here but in the outer vm2 script, so we don't het proper error message
+        /* const userCode = `
         ;(() => {
           function moduleWrap(exports, require, module, __filename, __dirname) {
             ${r.content}
@@ -134,14 +139,38 @@ module.exports = (reporter, definition) => {
           const m = { exports: { }};
           const r = moduleWrap(m.exports, require, m);
           return m.exports;
-        })()       
+        })()
         `
 
-        return runInSandbox(userCode, {
-          mainFilename: path,
-          filename: path,
-          mainSource: userCode
-        })
+        try {
+          return await runInSandbox(userCode, {
+            mainFilename: path,
+            filename: path,
+            mainSource: userCode
+          })
+        } catch (e) {
+          console.log('yyy')
+        } */
+
+        // I tried also the "nesting" option for the vm2, but it didnt solve the problem, although I may used it wrongly
+
+        // APPROACH 2 - use new v2
+        // same problem as the previous approach
+        // the nodejs vm doesn't have this problem, when I run one script that calls dynamic code creating another script which throws, I am still able to catch the inner one
+        const userCode = `function evaluate() { function moduleWrap(exports, require, module, __filename, __dirname) { ${r.content} };
+          const m = { exports: { }};
+          const r = moduleWrap(m.exports, require, m);
+          return m.exports;
+        }
+        `
+
+        return await reporter.runInSandbox({
+          context,
+          userCode,
+          executionFn: ({ topLevelFunctions }) => {
+            return topLevelFunctions.evaluate()
+          }
+        }, req)
       }
     }
   })

@@ -1,5 +1,7 @@
 const LRU = require('lru-cache')
 const safeSandbox = require('./safeSandbox')
+const { customAlphabet } = require('nanoid')
+const nanoid = customAlphabet('abcdefghijklmnopqrstuvwxyz', 10)
 
 module.exports = (reporter) => {
   const functionsCache = LRU({ max: 100 })
@@ -13,7 +15,10 @@ module.exports = (reporter) => {
   }, req) => {
     let jsreportProxy = null
 
-    context.executionFn = executionFn
+    // we use dynamic name because of the potential nested vm2 execution in the jsreportProxy.assets.require
+    // it may turn out it is a bad approach in assets so we gonna delete it here
+    const execitionFnName = nanoid() + '_executionFn'
+    context[execitionFnName] = executionFn
     context.__appDirectory = reporter.options.appDirectory
     context.__rootDirectory = reporter.options.rootDirectory
     context.__parentModuleDirectory = reporter.options.parentModuleDirectory
@@ -53,7 +58,7 @@ module.exports = (reporter) => {
       }
     })
 
-    jsreportProxy = reporter.createProxy({ req, runInSandbox: run })
+    jsreportProxy = reporter.createProxy({ req, runInSandbox: run, context: sandbox })
 
     sandbox.__restore = restore
 
@@ -61,7 +66,7 @@ module.exports = (reporter) => {
 
     const functionsCode = `return {${functionNames.map(h => `"${h}": ${h}`).join(',')}}`
     const executionCode = `;(async () => { ${userCode}; ${functionsCode} })()
-        .then((topLevelFunctions) => executionFn({ 
+        .then((topLevelFunctions) => ${execitionFnName}({ 
             topLevelFunctions,
             require,
             console,
