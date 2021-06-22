@@ -114,7 +114,7 @@ const FrameDisplay = React.forwardRef(function FrameDisplay (props, externalRef)
 })
 
 function applyStylesToIframe (containerNode, iframeNode, styles) {
-  if (!containerNode || !iframeNode) {
+  if (!containerNode || !iframeNode || !iframeNode.contentDocument || !iframeNode.contentDocument.head) {
     return
   }
 

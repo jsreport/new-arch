@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react'
+import React, { useState, useCallback, useEffect } from 'react'
 import SplitPane from '../../../common/SplitPane/SplitPane'
 import OperationsDisplay from './OperationsDisplay'
 import { useDispatch } from 'react-redux'
@@ -11,7 +11,7 @@ import { openModal } from '../../../../helpers/openModal'
 import { findTextEditor, selectLine as selectLineInTextEditor } from '../../../../helpers/textEditorInstance'
 import getStateAtProfileOperation from '../../../../helpers/getStateAtProfileOperation'
 
-function ProfilePreviewType (props) {
+const ProfilePreviewType = React.memo((props) => {
   const { data, id } = props
   const { profileOperations, profileLogs, profileErrorEvent } = data
   const [showErrorModal, setShowErrorModal] = useState(true)
@@ -152,7 +152,7 @@ function ProfilePreviewType (props) {
       </SplitPane>
     </div>
   )
-}
+})
 
 function openInspectModal ({
   profileOperations,

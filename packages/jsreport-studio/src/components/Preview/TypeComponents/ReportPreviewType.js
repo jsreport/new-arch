@@ -1,8 +1,8 @@
-import { useMemo, useRef } from 'react'
+import React, { useMemo, useRef } from 'react'
 import FrameDisplay from '../FrameDisplay'
 import { reportPreviewStyleResolvers } from '../../../lib/configuration'
 
-const ReportPreviewType = (props) => {
+const ReportPreviewType = React.memo((props) => {
   const { data } = props
   const { reportSrc, reportFile } = data
   const iframeRef = useRef(null)
@@ -36,6 +36,6 @@ const ReportPreviewType = (props) => {
       />
     </div>
   )
-}
+})
 
 export default ReportPreviewType

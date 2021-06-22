@@ -23,13 +23,13 @@ function ReportProfilePreviewType (props) {
         className='block'
         style={activeTab === 'report' ? undefined : { ...inactiveStyles }}
       >
-        <ReportPreviewType {...props} />
+        <ReportPreviewType id={props.id} data={props.data} />
       </div>
       <div
         className='block'
         style={activeTab === 'profile' ? undefined : { ...inactiveStyles }}
       >
-        <ProfilePreviewType {...props} />
+        <ProfilePreviewType id={props.id} data={props.data} />
       </div>
     </Fragment>
   )

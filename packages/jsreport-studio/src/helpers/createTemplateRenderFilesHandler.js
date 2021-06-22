@@ -1,25 +1,35 @@
 
 function createTemplateRenderFilesHandler (opts) {
-  const { onLog, onOperation, onError, onReport, profiling = true } = opts
+  const { onLog, onOperation, onError, onReport, batchCompleted, profiling = true } = opts
 
   const logHandler = createExecutionHandler('log', onLog, { disabled: !profiling })
   const operationHandler = createExecutionHandler('operation', onOperation, { disabled: !profiling })
   const reportHandler = createExecutionHandler('report', onReport, { parse: false })
   const errorHandler = createExecutionHandler('error', onError)
 
-  const processFile = (fileInfo) => {
-    if (fileInfo.name === 'report') {
-      reportHandler(fileInfo)
-    } else if (fileInfo.name === 'log') {
-      logHandler(fileInfo)
-    } else if (fileInfo.name === 'operationStart' || fileInfo.name === 'operationEnd') {
-      operationHandler(fileInfo)
-    } else if (fileInfo.name === 'error') {
-      errorHandler(fileInfo)
+  const processFiles = (files) => {
+    for (const fileInfo of files) {
+      try {
+        if (fileInfo.name === 'report') {
+          reportHandler(fileInfo)
+        } else if (fileInfo.name === 'log') {
+          logHandler(fileInfo)
+        } else if (fileInfo.name === 'operationStart' || fileInfo.name === 'operationEnd') {
+          operationHandler(fileInfo)
+        } else if (fileInfo.name === 'error') {
+          errorHandler(fileInfo)
+        }
+      } catch (e) {
+        console.error(`Error during file callback of "${fileInfo.name}" entry`, e)
+      }
+    }
+
+    if (batchCompleted) {
+      batchCompleted()
     }
   }
 
-  return processFile
+  return processFiles
 }
 
 function createExecutionHandler (type, handler, { parse = true, disabled = false } = {}) {

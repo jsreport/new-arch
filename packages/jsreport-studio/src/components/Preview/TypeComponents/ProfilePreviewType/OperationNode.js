@@ -1,11 +1,11 @@
-import { Fragment, useState, useCallback } from 'react'
+import React, { Fragment, useState, useCallback } from 'react'
 import { useDispatch } from 'react-redux'
 import { Handle } from 'react-flow-renderer'
 import fileSaver from 'filesaver.js-npm'
 import { actions as progressActions } from '../../../../redux/progress'
 import styles from '../../Preview.css'
 
-const OperationNode = (props) => {
+const OperationNode = React.memo((props) => {
   const {
     id,
     data,
@@ -88,7 +88,7 @@ const OperationNode = (props) => {
       </Fragment>
     </Fragment>
   )
-}
+})
 
 function getTimeCostCategoryClass (percentageCost) {
   if (percentageCost < 20) {

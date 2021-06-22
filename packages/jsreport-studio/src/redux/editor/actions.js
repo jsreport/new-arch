@@ -507,6 +507,8 @@ export function run (params = {}, opts = {}) {
       reportFile: null
     }
 
+    let storedPreviewData
+
     if (profiling) {
       previewData.profileOperations = []
       previewData.profileLogs = []
@@ -515,6 +517,8 @@ export function run (params = {}, opts = {}) {
     dispatch({ type: ActionTypes.RUN })
 
     if (targetType === 'preview') {
+      storedPreviewData = previewData
+
       previewId = dispatch(preview({
         type: profiling ? 'report-profile' : 'report',
         data: previewData
@@ -530,29 +534,28 @@ export function run (params = {}, opts = {}) {
             previewWindow.focus()
           }
         },
-        onFile: createTemplateRenderFilesHandler({
+        onFiles: createTemplateRenderFilesHandler({
           profiling,
-          onLog: (log) => {
-            previewData = addProfileEvent(previewData, log)
+          batchCompleted: () => {
+            if (storedPreviewData === previewData) {
+              return
+            }
+
+            storedPreviewData = previewData
 
             dispatch(updatePreview(previewId, {
               data: previewData
             }))
           },
+          onLog: (log) => {
+            previewData = addProfileEvent(previewData, log)
+          },
           onOperation: (operation) => {
             previewData = addProfileEvent(previewData, operation)
-
-            dispatch(updatePreview(previewId, {
-              data: previewData
-            }))
           },
           onError: (errorInfo) => {
             if (profiling) {
               previewData = addProfileEvent(previewData, errorInfo)
-
-              dispatch(updatePreview(previewId, {
-                data: previewData
-              }))
             }
 
             const reportSrc = URL.createObjectURL(
@@ -568,10 +571,6 @@ export function run (params = {}, opts = {}) {
                 ...previewData,
                 reportSrc
               }
-
-              dispatch(updatePreview(previewId, {
-                data: previewData
-              }))
             }
           },
           onReport: (reportFileInfo) => {
@@ -581,22 +580,18 @@ export function run (params = {}, opts = {}) {
               })
             )
 
-            previewData = {
-              ...previewData,
-              reportSrc,
-              reportFile: {
-                filename: reportFileInfo.filename,
-                rawData: reportFileInfo.rawData,
-                contentType: reportFileInfo.contentType
-              }
-            }
-
             if (targetType === 'window') {
               previewWindow.location.href = reportSrc
             } else {
-              dispatch(updatePreview(previewId, {
-                data: previewData
-              }))
+              previewData = {
+                ...previewData,
+                reportSrc,
+                reportFile: {
+                  filename: reportFileInfo.filename,
+                  rawData: reportFileInfo.rawData,
+                  contentType: reportFileInfo.contentType
+                }
+              }
             }
           }
         })

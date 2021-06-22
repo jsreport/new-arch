@@ -138,8 +138,8 @@ function getElementsFromOperations (operations, errorEvent, activeElement) {
 
     const nodeClass = classNames('react-flow__node-default', styles.profileOperationNode, {
       [styles.active]: isOperationActive,
-      // constant blinking of the render operation is a bit annoying, so we dont do that
-      // the global error with uknown operation is typically a timeout, so we keep blinking what was running
+      // constant blinking of the render operation is a bit annoying, so we don't do that
+      // the global error with unknown operation is typically a timeout, so we keep blinking what was running
       [styles.running]: !operation.endEvent && operation.subtype !== 'render' && erroredOperation == null,
       [styles.error]: erroredOperation === operation
     })
@@ -171,7 +171,7 @@ function getElementsFromOperations (operations, errorEvent, activeElement) {
   }
 
   // eslint-disable-next-line
-  for (const operation of needsEndNode) {  
+  for (const operation of needsEndNode) {
     const endNodeClass = classNames('react-flow__node-default', styles.profileOperationNode, styles.profileEndNode)
     const endNodeId = `${operation.id}-end`
 

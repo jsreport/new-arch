@@ -1,9 +1,9 @@
 import classNames from 'classnames'
-import { Fragment, useEffect } from 'react'
+import React, { Fragment, useEffect } from 'react'
 import { getSmoothStepPath, getMarkerEnd } from 'react-flow-renderer'
 import styles from '../../Preview.css'
 
-const DefaultEdge = (props) => {
+const DefaultEdge = React.memo((props) => {
   const {
     id,
     sourceX,
@@ -52,6 +52,6 @@ const DefaultEdge = (props) => {
       />
     </Fragment>
   )
-}
+})
 
 export default DefaultEdge
