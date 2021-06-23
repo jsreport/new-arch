@@ -2,7 +2,7 @@ import React, { useMemo, useRef } from 'react'
 import FrameDisplay from '../FrameDisplay'
 import { reportPreviewStyleResolvers } from '../../../lib/configuration'
 
-const ReportPreviewType = React.memo((props) => {
+const ReportPreviewType = React.memo(function ReportPreviewType (props) {
   const { data } = props
   const { reportSrc, reportFile } = data
   const iframeRef = useRef(null)

@@ -2,7 +2,7 @@ import React, { useCallback, useEffect } from 'react'
 import classNames from 'classnames'
 import styles from '../../Preview.css'
 
-const LogsDisplay = React.memo((props) => {
+const LogsDisplay = React.memo(function LogsDisplay (props) {
   const { activeOperation, logs } = props
 
   const getLogNodeId = useCallback((id) => {

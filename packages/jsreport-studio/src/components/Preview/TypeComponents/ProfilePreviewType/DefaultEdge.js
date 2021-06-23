@@ -3,7 +3,7 @@ import React, { Fragment, useEffect } from 'react'
 import { getSmoothStepPath, getMarkerEnd } from 'react-flow-renderer'
 import styles from '../../Preview.css'
 
-const DefaultEdge = React.memo((props) => {
+const DefaultEdge = React.memo(function DefaultEdge (props) {
   const {
     id,
     sourceX,

@@ -269,17 +269,11 @@ export default () => {
     }
   })
 
-  configuration.entityTreeToolbarComponents.single.push((props) => (
-    <EntityTreeNewButton {...props} />
-  ))
+  configuration.entityTreeToolbarComponents.single.push(EntityTreeNewButton)
 
-  configuration.entityTreeToolbarComponents.single.push((props) => (
-    <EntityTreeInputSearch {...props} />
-  ))
+  configuration.entityTreeToolbarComponents.single.push(EntityTreeInputSearch)
 
-  configuration.entityTreeToolbarComponents.single.push((props) => (
-    <EntityTreeNavigateButton {...props} />
-  ))
+  configuration.entityTreeToolbarComponents.single.push(EntityTreeNavigateButton)
 
   configuration.toolbarComponents.settings.push(connect(
     undefined,
@@ -304,7 +298,7 @@ export default () => {
   // eslint-disable-next-line
   configuration.aboutModal = AboutModal
 
-  configuration.toolbarComponents.left.push((props) => {
+  configuration.toolbarComponents.left.push(function LinkButton (props) {
     if (!props.tab || !props.tab.tab || props.tab.tab.type !== 'entity' || !props.tab.entity || props.tab.entity.__entitySet !== 'templates') {
       return <span />
     }

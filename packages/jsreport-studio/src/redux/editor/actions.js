@@ -536,16 +536,24 @@ export function run (params = {}, opts = {}) {
         },
         onFiles: createTemplateRenderFilesHandler({
           profiling,
-          batchCompleted: () => {
+          batchCompleted: (pendingFiles) => {
             if (storedPreviewData === previewData) {
               return
             }
 
             storedPreviewData = previewData
 
-            dispatch(updatePreview(previewId, {
+            const completed = pendingFiles.length === 0
+
+            const updateChanges = {
               data: previewData
-            }))
+            }
+
+            if (completed) {
+              updateChanges.completed = completed
+            }
+
+            dispatch(updatePreview(previewId, updateChanges))
           },
           onLog: (log) => {
             previewData = addProfileEvent(previewData, log)
@@ -603,10 +611,6 @@ export function run (params = {}, opts = {}) {
           message: error.message,
           stack: error.stack
         })
-
-        dispatch(updatePreview(previewId, {
-          data: previewData
-        }))
       }
 
       const errorURLBlob = URL.createObjectURL(new Blob([`${error.message}\n\n${error.stack}`], { type: 'text/plain' }))
@@ -618,14 +622,10 @@ export function run (params = {}, opts = {}) {
           ...previewData,
           reportSrc: errorURLBlob
         }
-
-        dispatch(updatePreview(previewId, {
-          data: previewData
-        }))
       }
-    } finally {
+
       if (targetType === 'preview') {
-        dispatch(updatePreview(previewId, { completed: true }))
+        dispatch(updatePreview(previewId, { data: previewData, completed: true }))
       }
     }
   }

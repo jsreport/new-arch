@@ -92,7 +92,7 @@ async function streamRender (request, { onStart, onFiles } = {}) {
             toProcess.push(fileInfo)
             // when the report is found, resume the processing sometime later giving the
             // browser some time to finish the paint of report
-            nextInterval = 250
+            nextInterval = 100
           } else {
             if (!parsing) {
               let count = 0
@@ -127,7 +127,7 @@ async function streamRender (request, { onStart, onFiles } = {}) {
           }
 
           // eslint-disable-next-line
-          onFiles(toProcess)
+          onFiles(toProcess, files)
         }
 
         shouldContinue = parsing || files.length > 0

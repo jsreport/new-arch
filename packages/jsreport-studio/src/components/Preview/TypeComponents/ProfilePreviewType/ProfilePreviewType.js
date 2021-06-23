@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react'
+import React, { useState, useCallback } from 'react'
 import SplitPane from '../../../common/SplitPane/SplitPane'
 import OperationsDisplay from './OperationsDisplay'
 import { useDispatch } from 'react-redux'
@@ -11,16 +11,12 @@ import { openModal } from '../../../../helpers/openModal'
 import { findTextEditor, selectLine as selectLineInTextEditor } from '../../../../helpers/textEditorInstance'
 import getStateAtProfileOperation from '../../../../helpers/getStateAtProfileOperation'
 
-const ProfilePreviewType = React.memo((props) => {
-  const { data, id } = props
-  const { profileOperations, profileLogs, profileErrorEvent } = data
+const ProfilePreviewType = React.memo(function ProfilePreviewType (props) {
+  const { data } = props
+  const { template, profileOperations, profileLogs, profileErrorEvent } = data
   const [showErrorModal, setShowErrorModal] = useState(true)
   const [activeElement, setActiveElement] = useState(null)
   const dispatch = useDispatch()
-
-  useEffect(() => {
-    setShowErrorModal(true)
-  }, [id])
 
   const openErrorLine = useCallback((error) => {
     dispatch(editorActions.openTab({ shortid: error.entity.shortid })).then(() => {
@@ -125,6 +121,7 @@ const ProfilePreviewType = React.memo((props) => {
   }, [profileOperations, openErrorLine])
 
   let activeOperation
+
   if (activeElement != null && !activeElement.isEdge) {
     activeOperation = activeElement
   }
@@ -138,6 +135,7 @@ const ProfilePreviewType = React.memo((props) => {
         defaultSize={(window.innerHeight * 0.2) + 'px'}
       >
         <OperationsDisplay
+          templateShortid={template.shortid}
           activeElement={activeElement}
           profileOperations={profileOperations}
           profileErrorEvent={profileErrorEvent}

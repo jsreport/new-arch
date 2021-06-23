@@ -7,7 +7,7 @@ function createTemplateRenderFilesHandler (opts) {
   const reportHandler = createExecutionHandler('report', onReport, { parse: false })
   const errorHandler = createExecutionHandler('error', onError)
 
-  const processFiles = (files) => {
+  const processFiles = (files, pendingFiles) => {
     for (const fileInfo of files) {
       try {
         if (fileInfo.name === 'report') {
@@ -25,7 +25,7 @@ function createTemplateRenderFilesHandler (opts) {
     }
 
     if (batchCompleted) {
-      batchCompleted()
+      batchCompleted(pendingFiles)
     }
   }
 

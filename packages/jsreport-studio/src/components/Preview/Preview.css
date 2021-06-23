@@ -49,6 +49,10 @@
   margin-right: 2px;
 }
 
+.previewContent {
+  position: relative;
+}
+
 .profileOperations {
   position: relative;
   width: 100%;

@@ -87,7 +87,7 @@ const Preview = (props) => {
           )}
         </div>
       )}
-      <div className='block'>
+      <div className={`block ${styles.previewContent}`}>
         {children}
       </div>
     </div>
