@@ -18,8 +18,23 @@ module.exports = async (reporter, definition) => {
           throw new Error('localize expects key paramenter')
         }
 
-        folder = folder != null ? folder : 'localization'
-        const language = req.options.localization ? req.options.localization.language : req.options.language
+        if (folder == null) {
+          throw new Error('localize expects path to folder with localization assets as second parameter')
+        }
+
+        if (req.options.language) {
+          reporter.logger.warn('options.language is deprecated, use options.localization.language instead', req)
+        }
+
+        let language = req.options.localization ? req.options.localization.language : req.options.language
+        if (!language) {
+          language = req.template.localization ? req.template.localization.language : null
+        }
+
+        if (!language) {
+          throw new Error('Can\'t call localize without specified language')
+        }
+
         const localizationDataPath = `${folder}/${language || 'en'}.json`
         const resolvedValue = await proxy.folders.resolveEntityFromPath(localizationDataPath, 'assets')
 

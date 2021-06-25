@@ -33,36 +33,7 @@ describe('localization', () => {
 
     const res = await reporter.render({
       template: {
-        content: "{{localize 'message'}}",
-        engine: 'handlebars',
-        recipe: 'html'
-      },
-      options: {
-        language: 'en'
-      }
-    })
-    res.content.toString().should.be.eql('Hello')
-  })
-
-  it('should provide localize helper and support custom folder', async () => {
-    await reporter.documentStore.collection('folders').insert({
-      name: 'myfolder',
-      shortid: 'myfolder'
-    })
-
-    await reporter.documentStore.collection('assets').insert({
-      name: 'en.json',
-      content: Buffer.from(JSON.stringify({
-        message: 'Hello'
-      })),
-      folder: {
-        shortid: 'myfolder'
-      }
-    })
-
-    const res = await reporter.render({
-      template: {
-        content: "{{localize 'message' 'myfolder'}}",
+        content: "{{localize 'message' 'localization'}}",
         engine: 'handlebars',
         recipe: 'html'
       },
@@ -80,7 +51,7 @@ describe('localization', () => {
     })
 
     await reporter.documentStore.collection('templates').insert({
-      content: "{{localize 'message'}}",
+      content: "{{localize 'message' 'localization'}}",
       engine: 'handlebars',
       recipe: 'html',
       name: 'template',
