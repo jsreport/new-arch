@@ -11,14 +11,31 @@ function childTemplateParseData (dataStr) {
 }
 
 async function childTemplate (templateNameOrObject, data, options, opts) {
+  const isHandlebars = typeof arguments[arguments.length - 1].lookupProperty === 'function'
+  const isJsRender = this.tmpl && this.tmpl && typeof this.tmpl.fn === 'function'  
+
+  let currentContext
+  if (isHandlebars) {
+    currentContext = this
+  }
+
+  if (isJsRender) {
+    currentContext = this.data
+  }
+
+  const dataFromParam = (data && typeof data.lookupProperty === 'function') ? null : data
+
   const jsreport = require('jsreport-proxy')
   const res = await jsreport.render({
     template: typeof templateNameOrObject === 'string' ? {
       name: templateNameOrObject
     } : templateNameOrObject,
-    data,
+    data: dataFromParam || currentContext,
     options
   })
+  if (res.meta.contentType && !res.meta.contentType.includes('text')) {
+    throw new Error(`Child template result needs to be a text. Consider changing recipe to a text based recipe like html.`)
+  }
   return res.content.toString()
 }
 
