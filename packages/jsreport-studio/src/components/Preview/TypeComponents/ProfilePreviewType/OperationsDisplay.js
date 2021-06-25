@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useCallback, useMemo } from 'react'
+import React, { useEffect, useLayoutEffect, useRef, useCallback, useMemo } from 'react'
 import classNames from 'classnames'
 import ReactFlow, { ReactFlowProvider, Controls, isNode } from 'react-flow-renderer'
 import dagre from 'dagre'
@@ -17,8 +17,9 @@ const edgeTypes = {
   customDefault: DefaultEdge
 }
 
-const OperationsDisplay = (props) => {
-  const { templateShortid, activeElement, profileOperations, profileErrorEvent, onCanvasClick, onElementClick, renderErrorModal } = props
+const OperationsDisplay = React.memo(function OperationsDisplay (props) {
+  console.log('render operations display...')
+  const { templateShortid, profileOperations, profileErrorEvent, onCanvasClick, onElementClick, renderErrorModal } = props
   const lastFitViewDisplayRef = useRef(null)
   const graphInstanceRef = useRef(null)
 
@@ -51,7 +52,7 @@ const OperationsDisplay = (props) => {
     }
   }, [onElementClick])
 
-  const elements = useMemo(() => getElementsFromOperations(profileOperations, profileErrorEvent, activeElement), [profileOperations, profileErrorEvent, activeElement])
+  const elements = useMemo(() => getElementsFromOperations(profileOperations, profileErrorEvent), [profileOperations, profileErrorEvent])
 
   const mainRenderOperation = profileOperations.find(o => o.startEvent && o.startEvent.subtype === 'render')
   const isCompleted = mainRenderOperation && (mainRenderOperation.endEvent || profileErrorEvent)
@@ -136,9 +137,9 @@ const OperationsDisplay = (props) => {
       </ReactFlowProvider>
     </div>
   )
-}
+})
 
-function getElementsFromOperations (operations, errorEvent, activeElement) {
+function getElementsFromOperations (operations, errorEvent) {
   const mainRenderOperation = operations.find(o => o.startEvent && o.startEvent.subtype === 'render')
 
   if (!mainRenderOperation) {
@@ -176,10 +177,9 @@ function getElementsFromOperations (operations, errorEvent, activeElement) {
 
   for (let i = 0; i < operations.length; i++) {
     const operation = operations[i]
-    const isOperationActive = activeElement != null ? operation.id === activeElement.id : false
 
     if (operation.previousOperationId != null) {
-      elements.push(createEdge(operation.previousOperationId, operation.id, activeElement, {
+      elements.push(createEdge(operation.previousOperationId, operation.id, {
         data: {
           outputId: operation.previousOperationId,
           inputId: operation.id
@@ -192,7 +192,6 @@ function getElementsFromOperations (operations, errorEvent, activeElement) {
     }
 
     const nodeClass = classNames('react-flow__node-default', styles.profileOperationNode, {
-      [styles.active]: isOperationActive,
       // constant blinking of the render operation is a bit annoying, so we don't do that
       // the global error with unknown operation is typically a timeout, so we keep blinking what was running
       [styles.running]: !operation.endEvent && operation.startEvent.subtype !== 'render' && erroredOperation == null,
@@ -216,7 +215,7 @@ function getElementsFromOperations (operations, errorEvent, activeElement) {
     elements.push(node)
 
     if (i === 0) {
-      elements.push(createEdge('preview-start', operation.id, activeElement, {
+      elements.push(createEdge('preview-start', operation.id, {
         data: {
           outputId: null,
           inputId: operation.id
@@ -247,7 +246,7 @@ function getElementsFromOperations (operations, errorEvent, activeElement) {
 
     elements.push(endNode)
 
-    elements.push(createEdge(operation.endEvent.previousOperationId, endNodeId, activeElement, {
+    elements.push(createEdge(operation.endEvent.previousOperationId, endNodeId, {
       data: {
         outputId: operation.id,
         inputId: null
@@ -295,19 +294,15 @@ function getElementsFromOperations (operations, errorEvent, activeElement) {
   })
 }
 
-function createEdge (sourceId, targetId, activeElement, opts = {}) {
+function createEdge (sourceId, targetId, opts = {}) {
   const edgeId = `${sourceId}-edge-${targetId}`
-
-  const edgeClass = classNames(styles.profileOperationEdge, {
-    [styles.active]: activeElement != null && edgeId === activeElement.id
-  })
 
   const edge = {
     id: edgeId,
     source: sourceId,
     target: targetId,
     type: 'customDefault',
-    className: edgeClass,
+    className: styles.profileOperationEdge,
     arrowHeadType: 'arrowclosed',
     ...opts
   }
