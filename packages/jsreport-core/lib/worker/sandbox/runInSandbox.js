@@ -17,8 +17,8 @@ module.exports = (reporter) => {
 
     // we use dynamic name because of the potential nested vm2 execution in the jsreportProxy.assets.require
     // it may turn out it is a bad approach in assets so we gonna delete it here
-    const execitionFnName = nanoid() + '_executionFn'
-    context[execitionFnName] = executionFn
+    const executionFnName = nanoid() + '_executionFn'
+    context[executionFnName] = executionFn
     context.__appDirectory = reporter.options.appDirectory
     context.__rootDirectory = reporter.options.rootDirectory
     context.__parentModuleDirectory = reporter.options.parentModuleDirectory
@@ -66,18 +66,17 @@ module.exports = (reporter) => {
 
     const functionsCode = `return {${functionNames.map(h => `"${h}": ${h}`).join(',')}}`
     const executionCode = `;(async () => { ${userCode}; ${functionsCode} })()
-        .then((topLevelFunctions) => ${execitionFnName}({ 
+        .then((topLevelFunctions) => ${executionFnName}({
             topLevelFunctions,
             require,
             console,
             restore: __restore,
-            context: this                   
+            context: this
         })).catch(__handleError);`
 
     return run(executionCode, {
-      mainFilename: 'sandbox.js',
       filename: 'sandbox.js',
-      mainSource: userCode
+      source: userCode
     })
   }
 }

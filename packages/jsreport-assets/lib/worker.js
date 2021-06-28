@@ -127,37 +127,31 @@ module.exports = (reporter, definition) => {
       require: async (path) => {
         const r = await readAsset(reporter, definition, null, path, 'utf8', req)
 
-        // here we are outside of the vm2, so we cant simply do new Function(userCode)
+        // here we are outside of the vm2, so we can't simply do new Function(userCode)
 
         // APPROACH 1 - use existing vm2
-        // problem is that the error dosnt rise here but in the outer vm2 script, so we don't het proper error message
-        /* const userCode = `
-        ;(() => {
-          function moduleWrap(exports, require, module, __filename, __dirname) {
-            ${r.content}
-          };
-          const m = { exports: { }};
+        // problem is that the error doesn't rise here but in the outer vm2 script, so we don't get proper error message
+        const userCode = [
+          `;(() => { function moduleWrap(exports, require, module, __filename, __dirname) { ${r.content} \n};\n`,
+          `const m = { exports: { }};
           const r = moduleWrap(m.exports, require, m);
           return m.exports;
-        })()
-        `
+          })()`
+        ].join('')
 
-        try {
-          return await runInSandbox(userCode, {
-            mainFilename: path,
-            filename: path,
-            mainSource: userCode
-          })
-        } catch (e) {
-          console.log('yyy')
-        } */
+        const result = await runInSandbox(userCode, {
+          filename: path,
+          source: userCode
+        })
 
-        // I tried also the "nesting" option for the vm2, but it didnt solve the problem, although I may used it wrongly
+        return result
+
+        // I tried also the "nesting" option for the vm2, but it didn't solve the problem, although I may used it wrongly
 
         // APPROACH 2 - use new v2
         // same problem as the previous approach
         // the nodejs vm doesn't have this problem, when I run one script that calls dynamic code creating another script which throws, I am still able to catch the inner one
-        const userCode = `function evaluate() { function moduleWrap(exports, require, module, __filename, __dirname) { ${r.content} };
+        /* const userCode = `function evaluate() { function moduleWrap(exports, require, module, __filename, __dirname) { ${r.content} };
           const m = { exports: { }};
           const r = moduleWrap(m.exports, require, m);
           return m.exports;
@@ -170,7 +164,7 @@ module.exports = (reporter, definition) => {
           executionFn: ({ topLevelFunctions }) => {
             return topLevelFunctions.evaluate()
           }
-        }, req)
+        }, req) */
       }
     }
   })
