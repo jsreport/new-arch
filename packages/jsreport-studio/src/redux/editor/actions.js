@@ -60,6 +60,8 @@ export function closeTab (id) {
     if (entity) {
       dispatch(entities.actions.unload(id))
     }
+
+    dispatch(updateHistory())
   }
 }
 
@@ -155,6 +157,8 @@ export function activateTab (id) {
       type: ActionTypes.ACTIVATE_TAB,
       key: id
     })
+
+    dispatch(updateHistory())
   }
 }
 
@@ -503,6 +507,8 @@ export function run (params = {}, opts = {}) {
       reportFile: null
     }
 
+    let storedPreviewData
+
     if (profiling) {
       previewData.profileOperations = []
       previewData.profileLogs = []
@@ -511,6 +517,8 @@ export function run (params = {}, opts = {}) {
     dispatch({ type: ActionTypes.RUN })
 
     if (targetType === 'preview') {
+      storedPreviewData = previewData
+
       previewId = dispatch(preview({
         type: profiling ? 'report-profile' : 'report',
         data: previewData
@@ -526,29 +534,36 @@ export function run (params = {}, opts = {}) {
             previewWindow.focus()
           }
         },
-        onFile: createTemplateRenderFilesHandler({
+        onFiles: createTemplateRenderFilesHandler({
           profiling,
+          batchCompleted: (pendingFiles) => {
+            if (storedPreviewData === previewData) {
+              return
+            }
+
+            storedPreviewData = previewData
+
+            const completed = pendingFiles.length === 0
+
+            const updateChanges = {
+              data: previewData
+            }
+
+            if (completed) {
+              updateChanges.completed = completed
+            }
+
+            dispatch(updatePreview(previewId, updateChanges))
+          },
           onLog: (log) => {
             previewData = addProfileEvent(previewData, log)
-
-            dispatch(updatePreview(previewId, {
-              data: previewData
-            }))
           },
           onOperation: (operation) => {
             previewData = addProfileEvent(previewData, operation)
-
-            dispatch(updatePreview(previewId, {
-              data: previewData
-            }))
           },
           onError: (errorInfo) => {
             if (profiling) {
               previewData = addProfileEvent(previewData, errorInfo)
-
-              dispatch(updatePreview(previewId, {
-                data: previewData
-              }))
             }
 
             const reportSrc = URL.createObjectURL(
@@ -564,10 +579,6 @@ export function run (params = {}, opts = {}) {
                 ...previewData,
                 reportSrc
               }
-
-              dispatch(updatePreview(previewId, {
-                data: previewData
-              }))
             }
           },
           onReport: (reportFileInfo) => {
@@ -577,22 +588,18 @@ export function run (params = {}, opts = {}) {
               })
             )
 
-            previewData = {
-              ...previewData,
-              reportSrc,
-              reportFile: {
-                filename: reportFileInfo.filename,
-                rawData: reportFileInfo.rawData,
-                contentType: reportFileInfo.contentType
-              }
-            }
-
             if (targetType === 'window') {
               previewWindow.location.href = reportSrc
             } else {
-              dispatch(updatePreview(previewId, {
-                data: previewData
-              }))
+              previewData = {
+                ...previewData,
+                reportSrc,
+                reportFile: {
+                  filename: reportFileInfo.filename,
+                  rawData: reportFileInfo.rawData,
+                  contentType: reportFileInfo.contentType
+                }
+              }
             }
           }
         })
@@ -604,10 +611,6 @@ export function run (params = {}, opts = {}) {
           message: error.message,
           stack: error.stack
         })
-
-        dispatch(updatePreview(previewId, {
-          data: previewData
-        }))
       }
 
       const errorURLBlob = URL.createObjectURL(new Blob([`${error.message}\n\n${error.stack}`], { type: 'text/plain' }))
@@ -619,14 +622,10 @@ export function run (params = {}, opts = {}) {
           ...previewData,
           reportSrc: errorURLBlob
         }
-
-        dispatch(updatePreview(previewId, {
-          data: previewData
-        }))
       }
-    } finally {
+
       if (targetType === 'preview') {
-        dispatch(updatePreview(previewId, { completed: true }))
+        dispatch(updatePreview(previewId, { data: previewData, completed: true }))
       }
     }
   }

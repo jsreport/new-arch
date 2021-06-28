@@ -1,6 +1,6 @@
-import { useEffect, useRef, useCallback, useMemo } from 'react'
+import React, { useEffect, useLayoutEffect, useRef, useCallback, useMemo } from 'react'
 import classNames from 'classnames'
-import ReactFlow, { Controls, isNode } from 'react-flow-renderer'
+import ReactFlow, { ReactFlowProvider, Controls, isNode } from 'react-flow-renderer'
 import dagre from 'dagre'
 import StartNode from './StartNode'
 import OperationNode from './OperationNode'
@@ -17,13 +17,32 @@ const edgeTypes = {
   customDefault: DefaultEdge
 }
 
-const OperationsDisplay = (props) => {
-  const { activeElement, profileOperations, profileErrorEvent, onCanvasClick, onElementClick, renderErrorModal } = props
-
+const OperationsDisplay = React.memo(function OperationsDisplay (props) {
+  console.log('render operations display...')
+  const { templateShortid, profileOperations, profileErrorEvent, onCanvasClick, onElementClick, renderErrorModal } = props
+  const lastFitViewDisplayRef = useRef(null)
   const graphInstanceRef = useRef(null)
+
   const handleLoad = useCallback((reactFlowInstance) => {
     graphInstanceRef.current = reactFlowInstance
-  }, [])
+    lastFitViewDisplayRef.current = null
+
+    let storedViewInfo = window.sessionStorage.getItem('profileCanvasView')
+
+    if (storedViewInfo == null) {
+      lastFitViewDisplayRef.current = Date.now()
+      return
+    }
+
+    storedViewInfo = JSON.parse(storedViewInfo)
+
+    if (storedViewInfo.templateShortid === templateShortid) {
+      graphInstanceRef.current.setTransform({ x: storedViewInfo.x, y: storedViewInfo.y, zoom: storedViewInfo.zoom })
+    } else {
+      window.sessionStorage.removeItem('profileCanvasView')
+      lastFitViewDisplayRef.current = Date.now()
+    }
+  }, [templateShortid])
 
   const handleElementClick = useCallback((ev, element) => {
     if (isNode(element)) {
@@ -33,26 +52,57 @@ const OperationsDisplay = (props) => {
     }
   }, [onElementClick])
 
-  const elements = useMemo(() => getElementsFromOperations(profileOperations, profileErrorEvent, activeElement), [profileOperations, profileErrorEvent, activeElement])
+  const elements = useMemo(() => getElementsFromOperations(profileOperations, profileErrorEvent), [profileOperations, profileErrorEvent])
 
   const mainRenderOperation = profileOperations.find(o => o.startEvent && o.startEvent.subtype === 'render')
   const isCompleted = mainRenderOperation && (mainRenderOperation.endEvent || profileErrorEvent)
 
+  // handle progressive fit to view in canvas when the profile operations display take long
+  useLayoutEffect(() => {
+    if (elements.length === 0 || lastFitViewDisplayRef.current == null || isCompleted) {
+      return
+    }
+
+    const now = Date.now()
+    const elapsedTime = now - lastFitViewDisplayRef.current
+
+    if (elapsedTime >= 300) {
+      lastFitViewDisplayRef.current = now
+      graphInstanceRef.current.fitView({ padding: 0.25 })
+    }
+  }, [elements, isCompleted])
+
+  // handle the last fit to view when the operations are completed, it also
+  // remembers the final canvas view information that the operations produced,
+  // so the next preview of same template will start with the same canvas view information
   useEffect(() => {
     if (graphInstanceRef.current == null) {
       return
     }
 
-    setTimeout(() => {
+    const timeoutId = setTimeout(() => {
       if (graphInstanceRef.current == null) {
         return
       }
 
       if (isCompleted) {
         graphInstanceRef.current.fitView()
+
+        const viewInfo = graphInstanceRef.current.toObject()
+
+        window.sessionStorage.setItem('profileCanvasView', JSON.stringify({
+          templateShortid,
+          x: viewInfo.position[0],
+          y: viewInfo.position[1],
+          zoom: viewInfo.zoom
+        }))
       }
     }, 200)
-  }, [isCompleted])
+
+    return () => {
+      clearTimeout(timeoutId)
+    }
+  }, [isCompleted, templateShortid])
 
   return (
     <div className={styles.profileOperations}>
@@ -63,43 +113,49 @@ const OperationsDisplay = (props) => {
           </div>
         </div>
       )}
-      <ReactFlow
-        elements={elements}
-        nodesDraggable={false}
-        nodesConnectable={false}
-        elementsSelectable={false}
-        zoomOnScroll={false}
-        zoomOnPinch={false}
-        panOnScroll
-        selectNodesOnDrag={false}
-        onlyRenderVisibleElements={false}
-        minZoom={0}
-        defaultZoom={0.8}
-        onLoad={handleLoad}
-        onElementClick={handleElementClick}
-        onPaneClick={onCanvasClick}
-        nodeTypes={nodeTypes}
-        edgeTypes={edgeTypes}
-      >
-        <Controls showInteractive={false} />
-      </ReactFlow>
+      <ReactFlowProvider>
+        <ReactFlow
+          elements={elements}
+          nodesDraggable={false}
+          nodesConnectable={false}
+          elementsSelectable={false}
+          zoomOnScroll={false}
+          zoomOnPinch={false}
+          panOnScroll
+          selectNodesOnDrag={false}
+          onlyRenderVisibleElements={false}
+          minZoom={0}
+          defaultZoom={0.8}
+          onLoad={handleLoad}
+          onElementClick={handleElementClick}
+          onPaneClick={onCanvasClick}
+          nodeTypes={nodeTypes}
+          edgeTypes={edgeTypes}
+        >
+          <Controls showInteractive={false} />
+        </ReactFlow>
+      </ReactFlowProvider>
     </div>
   )
-}
+})
 
-function getElementsFromOperations (operations, errorEvent, activeElement) {
+function getElementsFromOperations (operations, errorEvent) {
   const mainRenderOperation = operations.find(o => o.startEvent && o.startEvent.subtype === 'render')
+
   if (!mainRenderOperation) {
     return []
   }
 
   const allEvents = [errorEvent, ...operations.map(o => o.startEvent), ...operations.map(o => o.endEvent)].filter(e => e)
+
   allEvents.sort((a, b) => (a.timestamp - b.timestamp))
+
   const lastEvent = allEvents[allEvents.length - 1]
   const startTimestamp = mainRenderOperation.startEvent.timestamp
   const endTimestamp = lastEvent.timestamp
 
   let erroredOperation
+
   if (errorEvent && errorEvent.previousOperationId) {
     erroredOperation = operations.find(o => o.id === errorEvent.previousOperationId)
   }
@@ -121,10 +177,9 @@ function getElementsFromOperations (operations, errorEvent, activeElement) {
 
   for (let i = 0; i < operations.length; i++) {
     const operation = operations[i]
-    const isOperationActive = activeElement != null ? operation.id === activeElement.id : false
 
     if (operation.previousOperationId != null) {
-      elements.push(createEdge(operation.previousOperationId, operation.id, activeElement, {
+      elements.push(createEdge(operation.previousOperationId, operation.id, {
         data: {
           outputId: operation.previousOperationId,
           inputId: operation.id
@@ -137,10 +192,9 @@ function getElementsFromOperations (operations, errorEvent, activeElement) {
     }
 
     const nodeClass = classNames('react-flow__node-default', styles.profileOperationNode, {
-      [styles.active]: isOperationActive,
-      // constant blinking of the render operation is a bit annoying, so we dont do that
-      // the global error with uknown operation is typically a timeout, so we keep blinking what was running
-      [styles.running]: !operation.endEvent && operation.subtype !== 'render' && erroredOperation == null,
+      // constant blinking of the render operation is a bit annoying, so we don't do that
+      // the global error with unknown operation is typically a timeout, so we keep blinking what was running
+      [styles.running]: !operation.endEvent && operation.startEvent.subtype !== 'render' && erroredOperation == null,
       [styles.error]: erroredOperation === operation
     })
 
@@ -161,7 +215,7 @@ function getElementsFromOperations (operations, errorEvent, activeElement) {
     elements.push(node)
 
     if (i === 0) {
-      elements.push(createEdge('preview-start', operation.id, activeElement, {
+      elements.push(createEdge('preview-start', operation.id, {
         data: {
           outputId: null,
           inputId: operation.id
@@ -171,7 +225,7 @@ function getElementsFromOperations (operations, errorEvent, activeElement) {
   }
 
   // eslint-disable-next-line
-  for (const operation of needsEndNode) {  
+  for (const operation of needsEndNode) {
     const endNodeClass = classNames('react-flow__node-default', styles.profileOperationNode, styles.profileEndNode)
     const endNodeId = `${operation.id}-end`
 
@@ -192,7 +246,7 @@ function getElementsFromOperations (operations, errorEvent, activeElement) {
 
     elements.push(endNode)
 
-    elements.push(createEdge(operation.endEvent.previousOperationId, endNodeId, activeElement, {
+    elements.push(createEdge(operation.endEvent.previousOperationId, endNodeId, {
       data: {
         outputId: operation.id,
         inputId: null
@@ -220,6 +274,7 @@ function getElementsFromOperations (operations, errorEvent, activeElement) {
   })
 
   dagre.layout(dagreGraph)
+
   return elements.map((el) => {
     if (isNode(el)) {
       const nodeWithPosition = dagreGraph.node(el.id)
@@ -239,19 +294,15 @@ function getElementsFromOperations (operations, errorEvent, activeElement) {
   })
 }
 
-function createEdge (sourceId, targetId, activeElement, opts = {}) {
+function createEdge (sourceId, targetId, opts = {}) {
   const edgeId = `${sourceId}-edge-${targetId}`
-
-  const edgeClass = classNames(styles.profileOperationEdge, {
-    [styles.active]: activeElement != null && edgeId === activeElement.id
-  })
 
   const edge = {
     id: edgeId,
     source: sourceId,
     target: targetId,
     type: 'customDefault',
-    className: edgeClass,
+    className: styles.profileOperationEdge,
     arrowHeadType: 'arrowclosed',
     ...opts
   }

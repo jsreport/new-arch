@@ -7,7 +7,7 @@ import { previewComponents } from '../../lib/configuration'
 
 const MainPreview = () => {
   const preview = useSelector((state) => state.editor.preview)
-  const tabs = [...(previewComponents[preview.type].tabs || [])]
+  const tabs = useMemo(() => ([...(previewComponents[preview.type].tabs || [])]), [preview.type])
 
   const actions = useMemo(() => {
     return [
@@ -44,6 +44,7 @@ const MainPreview = () => {
   }, [actions, preview])
 
   const previewContent = React.createElement(previewComponents[preview.type].component, {
+    key: preview.id,
     id: preview.id,
     type: preview.type,
     data: preview.data,

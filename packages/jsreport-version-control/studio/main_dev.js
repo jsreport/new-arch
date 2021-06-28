@@ -103,5 +103,5 @@ Studio.initializeListeners.push(async () => {
     }
   }
 
-  Studio.addToolbarComponent((props) => <VCToolbar />)
+  Studio.addToolbarComponent(VCToolbar)
 })

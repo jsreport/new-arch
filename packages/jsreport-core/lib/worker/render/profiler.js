@@ -44,7 +44,8 @@ class Profiler {
     }
 
     m.id = generateRequestId()
-    if (m.previousEventId == null && req.context.profiling.lastEventId) {
+
+    if (m.previousEventId == null && req.context.profiling.lastEventId && m.type !== 'log') {
       m.previousEventId = req.context.profiling.lastEventId
     }
 

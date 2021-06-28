@@ -2,7 +2,7 @@ import React, { useRef, useEffect } from 'react'
 import composeRefs from '@seznam/compose-react-refs'
 import styles from './Popup.css'
 
-const Popup = React.forwardRef((props, externalRef) => {
+const Popup = React.forwardRef(function Popup (props, externalRef) {
   const { open, onRequestClose, position = {}, children } = props
   const containerRef = useRef(null)
 

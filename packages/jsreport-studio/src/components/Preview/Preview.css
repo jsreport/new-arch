@@ -49,6 +49,10 @@
   margin-right: 2px;
 }
 
+.previewContent {
+  position: relative;
+}
+
 .profileOperations {
   position: relative;
   width: 100%;
@@ -207,12 +211,12 @@
   margin-bottom: 0;
 }
 
-.profileLogItem.notActive {
+.profileLogs.active .profileLogItem:not(.active) {
   opacity: 0.6;
 }
 
 .profileLogItem.active {
-  opacity: 1;
+  opacity: 1 !important;
   border-bottom: 1px dashed $primary-selection-backgroundColor;
 }
 

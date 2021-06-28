@@ -1129,7 +1129,7 @@ describe('assets', function () {
     it('should throw error with lineNumber when code in proxy.asset.require fails', async () => {
       await reporter.documentStore.collection('assets').insert({
         name: 'foo.js',
-        content: `module.exports.fn = () => {       
+        content: `module.exports.fn = () => {
           throw new Error('xxx')
         }`
       })
@@ -1211,7 +1211,7 @@ describe('assets with allowLocalFilesAccess', () => {
   it('should be able to require an npm module from inside proxy.asset.require', async () => {
     await reporter.documentStore.collection('assets').insert({
       name: 'foo.js',
-      content: `      
+      content: `
       module.exports.fn = () => typeof require('moment')
     `
     })
@@ -1221,7 +1221,7 @@ describe('assets with allowLocalFilesAccess', () => {
         content: '{{:~helper()}}',
         recipe: 'html',
         engine: 'jsrender',
-        helpers: `         
+        helpers: `
         const jsreport = require('jsreport-proxy')
         const foo = await jsreport.assets.require('foo.js')
         function helper() {

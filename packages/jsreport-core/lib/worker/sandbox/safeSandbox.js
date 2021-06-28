@@ -146,6 +146,8 @@ module.exports = (_sandbox, options = {}) => {
     }
   })
 
+  const sourceFilesInfo = new Map()
+
   return {
     sandbox: vm._context,
     console: _console,
@@ -161,8 +163,12 @@ module.exports = (_sandbox, options = {}) => {
     unproxyValue: (value) => {
       return getOriginalFromProxy(proxiesInVM, customProxies, value)
     },
-    run: async (code, { filename, mainFilename, mainSource } = {}) => {
+    run: async (code, { filename, source } = {}) => {
       const script = new VMScript(code, filename)
+
+      if (filename != null && source != null) {
+        sourceFilesInfo.set(filename, { filename, source })
+      }
 
       // NOTE: if we need to upgrade vm2 we will need to check the source of this function
       // in vm2 repo and see if we need to change this,
@@ -181,10 +187,7 @@ module.exports = (_sandbox, options = {}) => {
         const result = await vm.run(script)
         return result
       } catch (e) {
-        decorateErrorMessage(e, {
-          mainFilename,
-          mainSource
-        })
+        decorateErrorMessage(e, sourceFilesInfo)
 
         throw e
       }
@@ -268,8 +271,10 @@ function doRequire (moduleName, requirePaths = [], modulesCache) {
   return result
 }
 
-function decorateErrorMessage (e, { mainFilename, mainSource } = {}) {
-  if (mainFilename != null && mainSource != null) {
+function decorateErrorMessage (e, sourceFilesInfo) {
+  const filesCount = sourceFilesInfo.size
+
+  if (filesCount > 0) {
     const trace = stackTrace.parse(e)
     let suffix = ''
 
@@ -284,18 +289,21 @@ function decorateErrorMessage (e, { mainFilename, mainSource } = {}) {
       }
 
       if (
-        current.getFileName() === mainFilename &&
-        i === 0 && current.getLineNumber() != null
+        sourceFilesInfo.has(current.getFileName()) &&
+        current.getLineNumber() != null
       ) {
-        e.lineNumber = current.getLineNumber()
-        suffix = `(line ${current.getLineNumber()}:${current.getColumnNumber()})`
+        if (i === 0) {
+          e.lineNumber = current.getLineNumber()
+        }
+        suffix += `(${current.getFileName()} line ${current.getLineNumber()}:${current.getColumnNumber()})`
       }
 
       if (
-        current.getFileName() === mainFilename &&
+        sourceFilesInfo.has(current.getFileName()) &&
         current.getLineNumber() != null
       ) {
-        const codeFrame = codeFrameColumns(mainSource, {
+        const source = sourceFilesInfo.get(current.getFileName()).source
+        const codeFrame = codeFrameColumns(source, {
           // we don't check if there is column because if it returns empty value then
           // the code frame is still generated normally, just without column mark
           start: { line: current.getLineNumber(), column: current.getColumnNumber() }
@@ -304,13 +312,11 @@ function decorateErrorMessage (e, { mainFilename, mainSource } = {}) {
         if (codeFrame !== '') {
           suffix += `\n\n${codeFrame}\n\n`
         }
-
-        break
       }
     }
 
     if (suffix !== '') {
-      e.message = `${e.message} ${suffix}`
+      e.message = `${e.message}\n\n${suffix}`
     }
   }
 

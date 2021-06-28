@@ -18,7 +18,7 @@ export default async function (request, target) {
   }
 }
 
-async function streamRender (request, { onStart, onFile } = {}) {
+async function streamRender (request, { onStart, onFiles } = {}) {
   const templateName = request.template.name
 
   let url = templateName ? resolveUrl(`/api/report/${encodeURIComponent(templateName)}`) : resolveUrl('/api/report')
@@ -81,6 +81,7 @@ async function streamRender (request, { onStart, onFile } = {}) {
 
       setTimeout(function processFile () {
         let shouldContinue = parsing || files.length > 0
+        let nextInterval = processFileInterval
 
         if (files.length > 0) {
           const toProcess = []
@@ -89,51 +90,50 @@ async function streamRender (request, { onStart, onFile } = {}) {
           if (files[files.length - 1].name === 'report') {
             const fileInfo = files.pop()
             toProcess.push(fileInfo)
+            // when the report is found, resume the processing sometime later giving the
+            // browser some time to finish the paint of report
+            nextInterval = 100
           } else {
-            let stop = false
+            if (!parsing) {
+              let count = 0
+              // if parsing is done then we process all pending files
+              let pendingFile
 
-            do {
-              const fileInfo = files.shift()
+              do {
+                pendingFile = files.shift()
 
-              toProcess.push(fileInfo)
+                if (pendingFile != null) {
+                  toProcess.push(pendingFile)
+                  count++
+                }
+              } while (pendingFile != null && count < 100)
+            } else {
+              let stop = false
 
-              if (
-                fileInfo.rawData.length > 2000 ||
-                files.length === 0 ||
-                files[0].rawData.length > 2000
-              ) {
-                stop = true
-              }
-            } while (!stop)
-          }
+              do {
+                const fileInfo = files.shift()
 
-          if (!parsing) {
-            // if parsing is done then we process all pending files
-            let pendingFile
+                toProcess.push(fileInfo)
 
-            do {
-              pendingFile = files.shift()
-
-              if (pendingFile != null) {
-                toProcess.push(pendingFile)
-              }
-            } while (pendingFile != null)
+                if (
+                  fileInfo.rawData.length > 2000 ||
+                  files.length === 0 ||
+                  files[0].rawData.length > 2000
+                ) {
+                  stop = true
+                }
+              } while (!stop)
+            }
           }
 
           // eslint-disable-next-line
-          for (const fileInfo of toProcess) {
-            try {
-              onFile(fileInfo)
-            } catch (e) {
-              console.error(`Error during onFile callback of "${fileInfo.name}" entry`, e)
-            }
-          }
+          onFiles(toProcess, files)
         }
 
         shouldContinue = parsing || files.length > 0
 
         if (shouldContinue) {
-          setTimeout(processFile, processFileInterval)
+          setTimeout(processFile, nextInterval)
         } else {
           filesProcessingExecution.resolve()
         }

@@ -1,8 +1,8 @@
-import { useRef, useEffect } from 'react'
+import React, { useRef, useEffect } from 'react'
 import { Handle } from 'react-flow-renderer'
 import styles from '../../Preview.css'
 
-const StartNode = (props) => {
+const StartNode = React.memo(function StartNode (props) {
   const {
     id,
     isConnectable,
@@ -25,6 +25,6 @@ const StartNode = (props) => {
       <Handle type='source' position={sourcePosition} isConnectable={isConnectable} />
     </div>
   )
-}
+})
 
 export default StartNode

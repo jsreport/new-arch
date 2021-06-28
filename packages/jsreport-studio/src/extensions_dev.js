@@ -1,6 +1,5 @@
 
 
-
 import '../../jsreport-data/studio/main_dev.js'
 
 import '../../jsreport-freeze/studio/main_dev.js'
@@ -9,7 +8,6 @@ import '../../jsreport-fs-store/studio/main_dev.js'
 import '../../jsreport-import-export/studio/main_dev.js'
 
 import '../../jsreport-pdf-utils/studio/main_dev.js'
-
 import '../../jsreport-reports/studio/main_dev.js'
 import '../../jsreport-text/studio/main_dev.js'
 import '../../jsreport-version-control/studio/main_dev.js'

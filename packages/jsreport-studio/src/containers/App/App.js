@@ -11,8 +11,7 @@ import Toolbar from '../../components/Toolbar/Toolbar'
 import SplitPane from '../../components/common/SplitPane/SplitPane'
 import EditorTabs from '../../components/Tabs/EditorTabs'
 import TabTitles from '../../components/Tabs/TabTitles'
-import { openTab, updateHistory, activateUndockMode, desactivateUndockMode } from '../../redux/editor/actions'
-import { createGetActiveTabWithEntitySelector, createGetLastActiveTemplateSelector } from '../../redux/editor/selectors'
+import { openTab, activateUndockMode, desactivateUndockMode } from '../../redux/editor/actions'
 import storeMethods from '../../redux/methods'
 import Modal from '../Modal/Modal'
 import RestoreDockConfirmationModal from '../../components/Modals/RestoreDockConfirmationModal'
@@ -73,12 +72,9 @@ class App extends Component {
     openStartup()
   }
 
-  componentDidUpdate () {
-    this.props.updateHistory()
-  }
-
   isPreviewUndockeable () {
-    const { activeTabWithEntity, undockMode } = this.props
+    const undockMode = storeMethods.getEditorUndockMode()
+    const activeTabWithEntity = storeMethods.getEditorActiveTabWithEntity()
 
     // if we are in undock mode the pane return true
     if (undockMode) {
@@ -93,7 +89,9 @@ class App extends Component {
   }
 
   handlePreviewCollapsing (collapsed) {
-    if (!this.props.undockMode) {
+    const undockMode = storeMethods.getEditorUndockMode()
+
+    if (!undockMode) {
       return true
     }
 
@@ -123,7 +121,8 @@ class App extends Component {
   }
 
   handlePreviewUndocking () {
-    const { lastActiveTemplate, activeTabWithEntity } = this.props
+    const activeTabWithEntity = storeMethods.getEditorActiveTabWithEntity()
+    const lastActiveTemplate = storeMethods.getEditorLastActiveTemplate()
 
     if (
       activeTabWithEntity &&
@@ -196,20 +195,8 @@ class App extends Component {
   }
 }
 
-function makeMapStateToProps () {
-  const getActiveTabWithEntity = createGetActiveTabWithEntitySelector()
-  const getLastActiveTemplate = createGetLastActiveTemplateSelector()
-
-  return (state) => ({
-    undockMode: state.editor.undockMode,
-    activeTabWithEntity: getActiveTabWithEntity(state),
-    lastActiveTemplate: getLastActiveTemplate(state)
-  })
-}
-
-export default connect(makeMapStateToProps, {
+export default connect(undefined, {
   openTab,
-  updateHistory,
   activateUndockMode,
   desactivateUndockMode
 })(App)
