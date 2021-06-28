@@ -1,8 +1,9 @@
 import isObject from 'lodash/isObject'
 import parseStreamingMultipart from './parseStreamingMultipart'
 import { getPreviewWindowName } from './previewWindow'
-import resolveUrl from './resolveUrl.js'
-import { extensions } from '../lib/configuration.js'
+import resolveUrl from './resolveUrl'
+import processItemsInInterval from './processItemsInInterval'
+import { extensions } from '../lib/configuration'
 
 export default async function (request, target) {
   delete request.template._id
@@ -67,40 +68,34 @@ async function streamRender (request, { onStart, onFiles } = {}) {
       }
 
       const files = []
-
       let parsing = true
 
-      const filesProcessingExecution = {}
-
-      filesProcessingExecution.promise = new Promise((resolve, reject) => {
-        filesProcessingExecution.resolve = resolve
-        filesProcessingExecution.reject = reject
-      })
-
-      const processFileInterval = 16
-
-      setTimeout(function processFile () {
-        let shouldContinue = parsing || files.length > 0
-        let nextInterval = processFileInterval
-
-        if (files.length > 0) {
+      const filesProcessingPromise = processItemsInInterval({
+        baseInterval: 16,
+        queue: files,
+        fulfilledCheck: () => {
+          return parsing === false
+        },
+        handler: (pending, isFulfilled) => {
           const toProcess = []
+          let nextInterval
 
           // if the report is already available we process it immediately
-          if (files[files.length - 1].name === 'report') {
-            const fileInfo = files.pop()
+          if (pending[pending.length - 1].name === 'report') {
+            const fileInfo = pending.pop()
             toProcess.push(fileInfo)
             // when the report is found, resume the processing sometime later giving the
             // browser some time to finish the paint of report
             nextInterval = 100
           } else {
-            if (!parsing) {
+            if (isFulfilled) {
               let count = 0
               // if parsing is done then we process all pending files
+              // in batches
               let pendingFile
 
               do {
-                pendingFile = files.shift()
+                pendingFile = pending.shift()
 
                 if (pendingFile != null) {
                   toProcess.push(pendingFile)
@@ -111,14 +106,14 @@ async function streamRender (request, { onStart, onFiles } = {}) {
               let stop = false
 
               do {
-                const fileInfo = files.shift()
+                const fileInfo = pending.shift()
 
                 toProcess.push(fileInfo)
 
                 if (
                   fileInfo.rawData.length > 2000 ||
-                  files.length === 0 ||
-                  files[0].rawData.length > 2000
+                  pending.length === 0 ||
+                  pending[0].rawData.length > 2000
                 ) {
                   stop = true
                 }
@@ -126,18 +121,11 @@ async function streamRender (request, { onStart, onFiles } = {}) {
             }
           }
 
-          // eslint-disable-next-line
-          onFiles(toProcess, files)
-        }
+          onFiles(toProcess, pending)
 
-        shouldContinue = parsing || files.length > 0
-
-        if (shouldContinue) {
-          setTimeout(processFile, nextInterval)
-        } else {
-          filesProcessingExecution.resolve()
+          return nextInterval
         }
-      }, processFileInterval)
+      })
 
       let parseErr
 
@@ -145,14 +133,12 @@ async function streamRender (request, { onStart, onFiles } = {}) {
         await parseStreamingMultipart(response, (fileInfo) => {
           files.push(fileInfo)
         })
-
-        parsing = false
       } catch (err) {
         parseErr = err
-        parsing = false
       }
 
-      await filesProcessingExecution.promise
+      parsing = false
+      await filesProcessingPromise
 
       if (parseErr) {
         throw parseErr

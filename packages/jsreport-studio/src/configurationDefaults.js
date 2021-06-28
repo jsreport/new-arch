@@ -25,7 +25,6 @@ import ReportPreviewType from './components/Preview/TypeComponents/ReportPreview
 import ProfilePreviewType from './components/Preview/TypeComponents/ProfilePreviewType/ProfilePreviewType'
 import ReportProfilePreviewType from './components/Preview/TypeComponents/ReportProfilePreviewType'
 import { openModal } from './helpers/openModal'
-import openProfileFromStreamReader from './helpers/openProfileFromStreamReader'
 import { openTab } from './redux/editor/actions'
 
 export default () => {
@@ -360,17 +359,6 @@ export default () => {
   configuration.toolbarComponents.settings.push((props) => {
     const uploadProfileInputRef = useRef(null)
 
-    const handleUploadProfile = (file) => {
-      const profileName = file.name
-
-      openProfileFromStreamReader(() => file.stream().getReader(), {
-        name: 'anonymous',
-        shortid: null
-      }).catch((err) => {
-        console.error(`Unable to upload profile "${profileName}"`, err)
-      })
-    }
-
     return (
       <div
         onClick={() => {
@@ -384,7 +372,7 @@ export default () => {
           <FileInput
             ref={uploadProfileInputRef}
             onFileSelect={(file) => {
-              handleUploadProfile(file)
+              UploadProfilePreviewAction.handleUploadProfile(file)
               props.closeMenu()
             }}
           />

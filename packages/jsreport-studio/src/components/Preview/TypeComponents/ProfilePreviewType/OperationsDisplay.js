@@ -18,7 +18,6 @@ const edgeTypes = {
 }
 
 const OperationsDisplay = React.memo(function OperationsDisplay (props) {
-  console.log('render operations display...')
   const { templateShortid, profileOperations, profileErrorEvent, onCanvasClick, onElementClick, renderErrorModal } = props
   const lastFitViewDisplayRef = useRef(null)
   const graphInstanceRef = useRef(null)

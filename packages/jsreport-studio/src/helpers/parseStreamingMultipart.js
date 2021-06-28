@@ -30,25 +30,10 @@ async function parseStreamingMultipart (response, onFile) {
     finalDelimiterBuf: new TextEncoder().encode(finalDelimiter)
   }
 
-  window.LAST_CHUNKS = []
-
   return reader.read().then(async function sendNext ({ value, done }) {
     if (done) {
       return
     }
-
-    window.LAST_CHUNKS.push(value)
-
-    // NOTE: this piece of code make the render to fail with invalid chunk.
-    // its main purpose is to show how the stream chunks are corrupted if you
-    // block the main thread for too long
-    // if (window.LAST_CHUNKS.length === 100) {
-    //   const start = new Date().getTime()
-    //
-    //   while ((new Date().getTime() - start) < 5000) {
-    //
-    //   }
-    // }
 
     try {
       parseMultipartHttp(parsingProgress, textDecoder, value, boundaryInfo, onFile)

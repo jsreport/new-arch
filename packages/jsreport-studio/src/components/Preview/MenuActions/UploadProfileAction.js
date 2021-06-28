@@ -36,7 +36,7 @@ const UploadProfileAction = ({ completed, closeMenu }) => {
 
 async function handleUploadProfile (file) {
   try {
-    const responseBlob = await api.post('api/profile/events', {
+    const responseBlob = await api.post('/api/profile/events', {
       attach: { filename: 'profile.jsrprofile', file },
       responseType: 'blob'
     })
@@ -49,5 +49,7 @@ async function handleUploadProfile (file) {
     console.error(`Unable to upload profile "${file.name}"`, err)
   }
 }
+
+UploadProfileAction.handleUploadProfile = handleUploadProfile
 
 export default UploadProfileAction

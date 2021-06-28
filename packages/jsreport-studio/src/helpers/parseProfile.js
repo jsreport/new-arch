@@ -4,16 +4,7 @@ async function parseProfile (profileStreamReader, onProfileMessage) {
   let pending = ''
 
   const handleMessage = (rawMessage) => {
-    let message
-
-    try {
-      message = JSON.parse(rawMessage)
-    } catch (e) {
-      console.error(`Unable to parse profile message. raw: ${rawMessage}`, e)
-      return
-    }
-
-    onProfileMessage(message)
+    onProfileMessage(rawMessage)
   }
 
   await profileStreamReader.read().then(function sendNext ({ value, done }) {
