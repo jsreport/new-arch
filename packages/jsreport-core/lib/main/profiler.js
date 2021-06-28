@@ -17,23 +17,28 @@ module.exports = (reporter) => {
   })
 
   const profilersMap = new Map()
+  const profilerAppendChain = new Map()
 
-  async function emitProfile (m, req, writeToLogger = true) {
-    if (m.type === 'log' && writeToLogger) {
-      reporter.logger[m.level](m.message, { ...req, ...m.meta, timestamp: m.timestamp })
+  async function emitProfiles (events, req) {
+    for (const m of events) {
+      if (m.type === 'log') {
+        reporter.logger[m.level](m.message, { ...req, ...m.meta, timestamp: m.timestamp })
+      }
+
+      if (profilersMap.has(req.context.rootId)) {
+        profilersMap.get(req.context.rootId).emit('profile', m)
+      }
     }
 
-    if (profilersMap.has(req.context.rootId)) {
-      profilersMap.get(req.context.rootId).emit('profile', m)
-    }
-
-    await reporter.blobStorage.append(req.context.profiling.entity.blobName, Buffer.from(JSON.stringify(m) + '\n'), req)
+    profilerAppendChain.set(req.context.rootId, profilerAppendChain.get(req.context.rootId).then(() => {
+      return reporter.blobStorage.append(req.context.profiling.entity.blobName, Buffer.from(events.map(m => JSON.stringify(m)).join('\n') + '\n'), req).catch(e => {
+        reporter.logger.error('Failed to append to profile blob', e)
+      })
+    }))
   }
 
   reporter.registerMainAction('profile', async (events, req) => {
-    for (const event of events) {
-      await emitProfile(event, req)
-    }
+    return emitProfiles(events, req)
   })
 
   reporter.attachProfiler = (req) => {
@@ -49,6 +54,8 @@ module.exports = (reporter) => {
   }
 
   reporter.beforeRenderListeners.add('profiler', async (req, res) => {
+    profilerAppendChain.set(req.context.rootId, Promise.resolve())
+
     req.context.profiling = req.context.profiling || {}
 
     let blobName = `profiles/${req.context.rootId}.log`
@@ -81,6 +88,7 @@ module.exports = (reporter) => {
   reporter.afterRenderListeners.add('profiler', async (req, res) => {
     res.meta.profileId = req.context.profiling?.entity?._id
     profilersMap.delete(req.context.rootId)
+    profilerAppendChain.delete(req.context.rootId)
 
     await reporter.documentStore.collection('profiles').update({
       _id: req.context.profiling.entity._id
@@ -107,17 +115,18 @@ module.exports = (reporter) => {
           }
         }, req)
 
-        await emitProfile({
+        await emitProfiles([{
           type: 'error',
           timestamp: new Date().getTime(),
           ...e,
           id: generateRequestId(),
           stack: e.stack,
           message: e.message
-        }, req)
+        }], req)
       }
     } finally {
       profilersMap.delete(req.context.rootId)
+      profilerAppendChain.delete(req.context.rootId)
     }
   })
 
