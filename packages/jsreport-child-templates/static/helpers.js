@@ -12,7 +12,7 @@ function childTemplateParseData (dataStr) {
 
 async function childTemplate (templateNameOrObject, data, options, opts) {
   const isHandlebars = typeof arguments[arguments.length - 1].lookupProperty === 'function'
-  const isJsRender = this.tmpl && this.tmpl && typeof this.tmpl.fn === 'function'  
+  const isJsRender = this.tmpl && this.tmpl && typeof this.tmpl.fn === 'function'
 
   let currentContext
   if (isHandlebars) {

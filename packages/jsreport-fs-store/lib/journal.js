@@ -5,6 +5,7 @@ const MAX_JOURNAL_ITEM_AGE = 60000
 module.exports = ({
   fs,
   transaction,
+  queue,
   reload,
   logger
 }) => {
@@ -12,10 +13,10 @@ module.exports = ({
   return {
     async init () {
       this.lastSync = new Date()
-      this.cleanInterval = setInterval(() => lock(fs, () => this.clean().catch((e) => logger.warn('Error when cleaning fs journal', e))), 60000)
+      this.cleanInterval = setInterval(() => queue.push(() => lock(fs, () => this.clean().catch((e) => logger.warn('Error when cleaning fs journal', e)))), 60000)
       this.cleanInterval.unref()
 
-      this.syncInterval = setInterval(() => lock(fs, () => this.sync()), 10000)
+      this.syncInterval = setInterval(() => queue.push(() => lock(fs, () => this.sync())), 10000)
       this.syncInterval.unref()
     },
 

@@ -59,13 +59,15 @@ module.exports = ({
         resolveFileExtension
       })
 
-      this.transaction = Transaction({ queue: Queue(persistenceQueueWaitingTimeout), persistence: this.persistence, fs: this.fs, logger })
+      this.queue = Queue(persistenceQueueWaitingTimeout)
+      this.transaction = Transaction({ queue: this.queue, persistence: this.persistence, fs: this.fs, logger })
 
       this.journal = Journal({
         fs: this.fs,
         transaction: this.transaction,
         reload: this.reload.bind(this),
-        logger
+        logger,
+        queue: this.queue
       })
 
       if (externalModificationsSync) {

@@ -387,6 +387,8 @@ describe.only('docker manager', () => {
       })
     ])
 
+    // warming next old container is async
+    await new Promise((resolve) => setTimeout(resolve, 200))
     containers[0].numberOfRestarts.should.be.eql(1)
   })
 

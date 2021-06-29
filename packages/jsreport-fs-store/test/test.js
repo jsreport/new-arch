@@ -370,7 +370,7 @@ describe('provider', () => {
       })
 
       const promises = []
-      for (let i = 0; i < 100; i++) {
+      for (let i = 0; i < 10; i++) {
         promises.push((async () => {
           await store.collection('templates').insert({ name: 'test' + i, recipe: 'foo' })
           return store.collection('templates').update({ name: 'test' + i, recipe: 'foo' }, { $set: { recipe: 'foo2' } })
