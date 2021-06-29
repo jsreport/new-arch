@@ -364,28 +364,26 @@ describe.only('docker manager', () => {
   })
 
   it('should restart last used worker after process', async () => {
-    await Promise.all([
-      reporter.render({
-        template: {
-          recipe: 'html',
-          engine: 'none',
-          content: 'hello'
-        },
-        context: {
-          tenant: 'a'
-        }
-      }),
-      reporter.render({
-        template: {
-          recipe: 'html',
-          engine: 'none',
-          content: 'hello'
-        },
-        context: {
-          tenant: 'b'
-        }
-      })
-    ])
+    await reporter.render({
+      template: {
+        recipe: 'html',
+        engine: 'none',
+        content: 'hello'
+      },
+      context: {
+        tenant: 'a'
+      }
+    })
+    await reporter.render({
+      template: {
+        recipe: 'html',
+        engine: 'none',
+        content: 'hello'
+      },
+      context: {
+        tenant: 'b'
+      }
+    })
 
     // warming next old container is async
     await new Promise((resolve) => setTimeout(resolve, 200))
