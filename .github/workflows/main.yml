@@ -18,15 +18,8 @@ jobs:
         with:
           node-version: '14.x'
 
-      - name: Get yarn cache directory path
-        id: yarn-cache-dir-path
-        run: echo "::set-output name=dir::$(yarn config get cacheFolder)"
-      - uses: actions/cache@v2
-        with:
-          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
-          key: yarn-${{ hashFiles('yarn.lock') }}
-      - name: Install
-        run: |
-          yarn install 
+      - uses: c-hive/gha-yarn-cache@v2
+      - name: Install JS dependencies
+        run: yarn install
       
       - run: set DEBUG=jsreport&&yarn workspace jsreport-fs-store test
