@@ -20,7 +20,7 @@ jobs:
    
       - name: Restore yarn workspaces
         id: yarn-cache
-        uses: actions/cache@v2
+        uses: pat-s/always-upload-cache@v2.1.5
         with:
           path: |
             node_modules
