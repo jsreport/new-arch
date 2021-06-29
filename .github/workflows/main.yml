@@ -29,8 +29,5 @@ jobs:
       - name: Install dependencies
         if: steps.yarn-cache.outputs.cache-hit != 'true'
         run: yarn install --no-progress --non-interactive    
-      - name: Run postinstall if cached
-        if: steps.yarn-cache.outputs.cache-hit == 'true'
-        run: yarn postinstall    
       
       - run: set DEBUG=jsreport&&yarn workspace jsreport-fs-store test
