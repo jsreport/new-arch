@@ -9,9 +9,24 @@ module.exports = ({
   reload,
   logger
 }) => {
+  async function loadVersion () {
+    const fileExists = await fs.exists('fs.version')
+
+    if (!fileExists) {
+      return 0
+    }
+
+    const versionInFile = (await fs.readFile('fs.version')).toString()
+
+    return parseInt(versionInFile, 10)
+  }
+
   // TODO THROW ERRORS when updating modified entity in the meantime
   return {
     async init () {
+      const version = await lock(fs, loadVersion)
+
+      this.lastVersion = version
       this.lastSync = new Date()
       this.cleanInterval = setInterval(() => queue.push(() => lock(fs, () => this.clean().catch((e) => logger.warn('Error when cleaning fs journal', e)))), 60000)
       this.cleanInterval.unref()
@@ -50,10 +65,10 @@ module.exports = ({
 
     async sync () {
       if (this.lastSync.getTime() + MAX_JOURNAL_ITEM_AGE < new Date().getTime()) {
-        logger.debug('fs journal wasnt synced for a while, need full reload')
+        logger.debug('fs journal was not synced for a while, need full reload')
         // some journal items could have been already cleaned
         this.lastSync = new Date()
-        return reload()
+        return this._reloadAndSetVersion()
       }
 
       if (!(await fs.exists('fs.journal'))) {
@@ -61,8 +76,14 @@ module.exports = ({
         return
       }
 
-      const journalStat = await fs.stat('fs.journal')
-      if (journalStat.mtime < this.lastSync) {
+      if (!(await fs.exists('fs.version'))) {
+        this.lastSync = new Date()
+        return
+      }
+
+      const currentVersion = parseInt((await fs.readFile('fs.version')).toString(), 10)
+
+      if (currentVersion === this.lastVersion) {
         // we don't have to read the journal because the last write is from this server
         this.lastSync = new Date()
         return
@@ -71,6 +92,8 @@ module.exports = ({
       try {
         const journalContent = await fs.readFile('fs.journal')
         const lines = journalContent.toString().split('\n')
+        let needsReload = false
+
         for (const line of lines) {
           if (line === '') {
             continue
@@ -78,7 +101,7 @@ module.exports = ({
 
           const item = parse(line)
 
-          if (item.timestamp < this.lastSync) {
+          if (item.version <= this.lastVersion) {
             continue
           }
 
@@ -97,16 +120,32 @@ module.exports = ({
           }
 
           if (item.operation === 'reload') {
-            return reload()
+            needsReload = true
+            break
           }
         }
+
+        if (needsReload) {
+          return this._reloadAndSetVersion()
+        }
+
+        this.lastVersion = currentVersion
+        await fs.writeFile('fs.version', this.lastVersion.toString())
       } catch (e) {
         logger.warn('fs journal is corrupted, reloading', e)
+
+        const currentVersion = parseInt((await fs.readFile('fs.version')).toString(), 10)
+        this.lastVersion = currentVersion + 1
+
         await fs.writeFile('fs.journal', serialize({
           operation: 'reload',
-          timestamp: new Date()
+          timestamp: new Date(),
+          version: this.lastVersion
         }, false) + '\n')
-        return reload()
+
+        await fs.writeFile('fs.version', this.lastVersion.toString())
+
+        return this._reloadAndSetVersion()
       } finally {
         this.lastSync = new Date()
       }
@@ -119,15 +158,26 @@ module.exports = ({
 
     async _appendToJournal (operation, doc) {
       await this.sync()
+
+      this.lastVersion += 1
+
       await fs.appendFile('fs.journal', serialize({
         operation,
         timestamp: new Date(),
+        version: this.lastVersion,
         doc
       }, false) + '\n')
 
-      await new Promise((resolve) => setTimeout(resolve, 1))
+      await fs.writeFile('fs.version', this.lastVersion.toString())
 
       this.lastSync = new Date()
+    },
+
+    async _reloadAndSetVersion () {
+      return reload(async () => {
+        const currentVersion = await loadVersion()
+        this.lastVersion = currentVersion
+      })
     },
 
     async clean () {

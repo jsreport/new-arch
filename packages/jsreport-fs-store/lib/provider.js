@@ -103,14 +103,19 @@ module.exports = ({
       logger.info('fs store is initialized successfully')
     },
 
-    async reload () {
+    async reload (executeFn) {
       logger.info('fs store is loading data')
 
       return this.transaction.operation(async (documents) => {
         const _documents = await this.persistence.load()
+
         Object.keys(documents).forEach(k => delete documents[k])
         Object.keys(this.documentsModel.entitySets).forEach(e => (documents[e] = []))
         _documents.forEach(d => documents[d.$entitySet].push(d))
+
+        if (executeFn) {
+          await executeFn()
+        }
       })
     },
 

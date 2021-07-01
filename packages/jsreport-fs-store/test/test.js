@@ -21,16 +21,22 @@ const AssetType = {
   folder: { type: 'jsreport.FolderRefType' }
 }
 
-function createDefaultStore () {
+function createDefaultStore (label) {
   const validator = new SchemaValidator()
+
+  const getLevelWithLabel = (level) => {
+    return `${level}${label != null ? ` (${label})` : ''}`
+  }
+
+  const debugLoggerEnabled = process.env.STORE_LOGGER != null
 
   const store = DocumentStore(
     {
       logger: {
-        info: () => {},
-        error: () => {},
-        warn: () => {},
-        debug: () => {}
+        info: (...args) => { debugLoggerEnabled && console.log(getLevelWithLabel('INFO'), ...args) },
+        error: (...args) => { debugLoggerEnabled && console.error(getLevelWithLabel('ERROR'), ...args) },
+        warn: (...args) => { debugLoggerEnabled && console.warn(getLevelWithLabel('WARN'), ...args) },
+        debug: (...args) => { debugLoggerEnabled && console.log(getLevelWithLabel('DEBUG'), ...args) }
       }
     },
     validator
@@ -713,7 +719,7 @@ describe('load cleanup inconsistent transaction', () => {
     return store.provider.close()
   })
 
-  it('should remove ~.tran and dont copy to root', () => {
+  it('should remove ~.tran and don\'t copy to root', () => {
     fs.existsSync(path.join(__dirname, 'tranDataToCleanupCopy', '~.tran')).should.be.false()
     fs.existsSync(path.join(__dirname, 'tranDataToCleanupCopy', 'b')).should.be.false()
   })
@@ -727,8 +733,8 @@ describe('cluster', () => {
   beforeEach(async () => {
     await rimrafAsync(tmpData)
 
-    store1 = createDefaultStore()
-    store2 = createDefaultStore()
+    store1 = createDefaultStore('store1')
+    store2 = createDefaultStore('store2')
 
     addCommonTypes(store1)
     addCommonTypes(store2)
@@ -751,7 +757,7 @@ describe('cluster', () => {
         blobStorageDirectory,
         externalModificationsSync: true,
         persistence: { provider: 'fs' },
-        logger: store1.options.logger,
+        logger: store2.options.logger,
         createError: m => new Error(m),
         resolveFileExtension: () => null
       })
@@ -773,6 +779,7 @@ describe('cluster', () => {
     })
     await store2.provider.sync()
     const doc = await store2.collection('templates').findOne({})
+    should.exists(doc)
     doc.name.should.be.eql('a')
   })
 
@@ -853,7 +860,7 @@ describe('cluster', () => {
     store1.provider.journal.lastSync = new Date(new Date().getTime() - 120000)
     await store1.provider.sync()
     const doc = await store1.collection('templates').findOne({})
-    should(doc).be.ok()
+    should.exists(doc)
   })
 
   it('corrupted journal should cause reload', async () => {

@@ -31,7 +31,7 @@ module.exports = ({
       })
     }, 800)
 
-    const ignored = ['**/fs.journal', '**/fs.lock', '**/~*', '**/.git/**', '**/.tran', '**/.DS_Store']
+    const ignored = ['**/fs.journal', '**/fs.version', '**/fs.lock', '**/~*', '**/.git/**', '**/.tran', '**/.DS_Store']
 
     if (blobStorageDirectory && blobStorageDirectory.startsWith(dataDirectory)) {
       ignored.push(blobStorageDirectory.replace(/\\/g, '/'))
