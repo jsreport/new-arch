@@ -39,12 +39,13 @@ module.exports = ({ queue, persistence, fs, logger }) => {
     },
 
     async operation (opts, fn) {
+      const immediate = opts.immediate === true
       if (fn == null) {
         fn = opts
       }
 
       if (opts.transaction) {
-        return queue.push(() => {
+        const transactionExecute = () => {
           // the transaction operations shouldn't do real writes to the disk, just memory changes
           // we store the function call so we can replay it during commit to the disk
           const persistenceStub = {
@@ -55,10 +56,24 @@ module.exports = ({ queue, persistence, fs, logger }) => {
 
           opts.transaction.operations.push(fn)
           return fn(opts.transaction.documents, persistenceStub)
-        })
+        }
+
+        if (immediate) {
+          return transactionExecute()
+        }
+
+        return queue.push(transactionExecute)
       }
 
-      return queue.push(() => lock(fs, () => fn(commitedDocuments, persistence)))
+      const execute = () => {
+        return fn(commitedDocuments, persistence)
+      }
+
+      if (immediate) {
+        return execute()
+      }
+
+      return queue.push(() => lock(fs, execute))
     },
 
     async commit (transaction) {

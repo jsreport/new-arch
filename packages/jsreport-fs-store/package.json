@@ -62,7 +62,7 @@
     "prepublish": "in-publish && jsreport-studio-build || not-in-publish",
     "run": "npm run build && jsreport-studio-start --httpPort 5488 --run-only",
     "start": "jsreport-studio-start --httpPort 5488",
-    "test": "set DEBUG=jsreport && mocha --timeout 15000 test &&standard"
+    "test": "set DEBUG=jsreport && mocha --timeout 15000 test && standard"
   },
   "standard": {
     "ignore": [

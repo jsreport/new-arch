@@ -813,13 +813,29 @@ describe('cluster', () => {
     should(doc).be.null()
   })
 
+  it('the first server should skip its own change', async () => {
+    await store1.collection('templates').insert({
+      name: 'a'
+    })
+    store1.provider.journal.lastVersion.should.be.eql(1)
+    await store1.provider.sync()
+    store1.provider.journal.lastVersion.should.be.eql(1)
+    const docs = await store1.collection('templates').find({})
+    docs.should.have.length(1)
+  })
+
   it('the first server should skip its own changes', async () => {
     await store1.collection('templates').insert({
       name: 'a'
     })
+    await store1.collection('templates').insert({
+      name: 'b'
+    })
+    store1.provider.journal.lastVersion.should.be.eql(2)
     await store1.provider.sync()
+    store1.provider.journal.lastVersion.should.be.eql(2)
     const docs = await store1.collection('templates').find({})
-    docs.should.have.length(1)
+    docs.should.have.length(2)
   })
 
   it('transaction commit should cause reload on the second server', async () => {
@@ -859,6 +875,19 @@ describe('cluster', () => {
     store1.provider.transaction.getCurrentDocuments().templates = []
     store1.provider.journal.lastSync = new Date(new Date().getTime() - 120000)
     await store1.provider.sync()
+    const doc = await store1.collection('templates').findOne({})
+    should.exists(doc)
+  })
+
+  it('journal sync from interval should cause reload and able to complete normally', async () => {
+    // this tests that nested locks don't occur
+    await store1.collection('templates').insert({
+      name: 'a'
+    })
+    // we want to trigger a reload here, so we set the last sync so long time ago
+    store1.provider.journal.lastSync = new Date(new Date().getTime() - 120000)
+    // wait and sync is the sync api that is execute in the interval (that uses the queue and lock)
+    await store1.provider.journal.waitAndSync()
     const doc = await store1.collection('templates').findOne({})
     should.exists(doc)
   })
