@@ -5,6 +5,7 @@ import resolveUrl from '../../helpers/resolveUrl'
 import openProfileFromStreamReader from '../../helpers/openProfileFromStreamReader'
 import storeMethods from '../../redux/methods'
 import { actions as settingsActions } from '../../redux/settings'
+import moment from 'moment'
 
 class Profiler extends Component {
   constructor () {
@@ -42,15 +43,38 @@ class Profiler extends Component {
     clearInterval(this._interval)
   }
 
+  stateStyle (state) {
+    const style = {
+      fontSize: '0.8rem',
+      padding: '0.3rem',
+      display: 'inline-block',
+      textAlign: 'center',
+      minWidth: '4rem',
+      color: 'white'
+    }
+
+    if (state === 'success') {
+      style.backgroundColor = '#4CAF50'
+    }
+
+    if (state === 'error') {
+      style.backgroundColor = '#da532c'
+    }
+
+    if (state === 'running') {
+      style.backgroundColor = '#007acc'
+    }
+
+    return style
+  }
+
   renderProfiles (profiles) {
     const { openTab } = this.props
 
     return (
       <div>
-        <h2><i className='fa fa-spinner fa-spin fa-fw' /> profiling {storeMethods.getSettingsByKey('fullProfilerRunning', false) ? 'with request data' : ''} ...</h2>
-
         <div>
-          <table className='table'>
+          <table className='table' style={{ marginTop: '1rem' }}>
             <thead>
               <tr>
                 <th>template</th>
@@ -66,8 +90,13 @@ class Profiler extends Component {
                       {p.template.path}
                     </a>
                   </td>
-                  <td>{new Date(p.timestamp).toLocaleString()}</td>
-                  <td>{p.state}</td>
+                  <td>{
+                    (new Date().getTime() - new Date(p.timestamp).getTime()) > (1000 * 60 * 60 * 24)
+                      ? new Date(p.timestamp).toLocaleString()
+                      : moment.duration(moment(new Date()).diff(moment(new Date(p.timestamp)))).humanize() + ' ago'
+                      }
+                  </td>
+                  <td><span style={this.stateStyle(p.state)}>{p.state}</span></td>
                 </tr>
               ))}
             </tbody>
@@ -117,10 +146,14 @@ class Profiler extends Component {
   render () {
     return (
       <div className='block custom-editor' style={{ overflow: 'auto', minHeight: 0, height: 'auto' }}>
-        <div>
-          {storeMethods.getSettingsByKey('fullProfilerRunning', false)
-            ? <button className='button danger' onClick={() => this.stopFullRequestProfiling()}>Stop full requests profiling</button>
-            : <button className='button danger' onClick={() => this.startFullRequestProfiling()}>Start full requests profiling</button>}
+        <div title='Profiler now automatically pops up running requests. Use button "Start full requests profiling" to collect full information about the running requests like input data and output report. Note this slightly degrades the requests performance and should not be enabled constantly.'>
+          <h2><i className='fa fa-spinner fa-spin fa-fw' /> profiling {storeMethods.getSettingsByKey('fullProfilerRunning', false) ? 'with request data' : ''}... <i className='fa fa-info-circle' />
+          </h2>
+          <div>
+            {storeMethods.getSettingsByKey('fullProfilerRunning', false)
+              ? <button className='button danger' style={{ marginLeft: '0rem' }} onClick={() => this.stopFullRequestProfiling()}> Stop full requests profiling</button>
+              : <button className='button danger' style={{ marginLeft: '0rem' }} onClick={() => this.startFullRequestProfiling()}>Start full requests profiling</button>}
+          </div>
         </div>
         {this.renderProfiles(this.state.profiles)}
       </div>
