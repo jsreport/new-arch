@@ -31,7 +31,9 @@ module.exports = ({
       this.cleanInterval = setInterval(() => queue.push(() => lock(fs, () => this.clean().catch((e) => logger.warn('Error when cleaning fs journal', e)))), 60000)
       this.cleanInterval.unref()
 
-      this.syncInterval = setInterval(() => queue.push(() => lock(fs, () => this.sync())), 10000)
+      this.waitAndSync = () => queue.push(() => lock(fs, () => this.sync(true)))
+
+      this.syncInterval = setInterval(this.waitAndSync, 10000)
       this.syncInterval.unref()
     },
 
@@ -63,12 +65,12 @@ module.exports = ({
       return this._appendToJournal('reload', { })
     },
 
-    async sync () {
+    async sync (immediate = false) {
       if (this.lastSync.getTime() + MAX_JOURNAL_ITEM_AGE < new Date().getTime()) {
         logger.debug('fs journal was not synced for a while, need full reload')
         // some journal items could have been already cleaned
         this.lastSync = new Date()
-        return this._reloadAndSetVersion()
+        return this._reloadAndSetVersion(immediate)
       }
 
       if (!(await fs.exists('fs.journal'))) {
@@ -126,7 +128,7 @@ module.exports = ({
         }
 
         if (needsReload) {
-          return this._reloadAndSetVersion()
+          return this._reloadAndSetVersion(immediate)
         }
 
         this.lastVersion = currentVersion
@@ -145,7 +147,7 @@ module.exports = ({
 
         await fs.writeFile('fs.version', this.lastVersion.toString())
 
-        return this._reloadAndSetVersion()
+        return this._reloadAndSetVersion(immediate)
       } finally {
         this.lastSync = new Date()
       }
@@ -173,10 +175,13 @@ module.exports = ({
       this.lastSync = new Date()
     },
 
-    async _reloadAndSetVersion () {
-      return reload(async () => {
-        const currentVersion = await loadVersion()
-        this.lastVersion = currentVersion
+    async _reloadAndSetVersion (immediate = false) {
+      return reload({
+        immediate,
+        afterCb: async () => {
+          const currentVersion = await loadVersion()
+          this.lastVersion = currentVersion
+        }
       })
     },
 
