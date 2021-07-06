@@ -91,9 +91,7 @@ class MainReporter extends Reporter {
       silentLogs(this.logger)
     }
 
-    this.logger.info(`Initializing jsreport@${this.version} in ${this.options.mode} mode${
-      this.options.loadConfig ? ` using configuration file: ${appliedConfigFile || 'none'}` : ''
-    }`)
+    this.logger.info(`Initializing jsreport (version: ${this.version}, mode: ${this.options.mode}, configuration file: ${appliedConfigFile || 'none'}, nodejs: ${process.versions.node})`)
 
     await this.extensionsManager.load(opts)
 
