@@ -1,6 +1,8 @@
 module.exports = {
-  name: 'test',
+  name: 'ext',
   main: 'main.js',
   dependencies: [],
-  hasPublicPart: false
+  requires: {
+    core: 'd.x.x'
+  }
 }

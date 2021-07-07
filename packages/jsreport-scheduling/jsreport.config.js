@@ -1,7 +1,7 @@
 module.exports = {
-  'name': 'scheduling',
-  'main': 'lib/main.js',
-  'optionsSchema': {
+  name: 'scheduling',
+  main: 'lib/main.js',
+  optionsSchema: {
     extensions: {
       scheduling: {
         type: 'object',
@@ -33,6 +33,11 @@ module.exports = {
       }
     }
   },
-  'dependencies': ['reports'],
-  'skipInExeRender': true
+  dependencies: ['reports'],
+  requires: {
+    core: '2.x.x',
+    studio: '2.x.x',
+    reports: '2.x.x'
+  },
+  skipInExeRender: true
 }

@@ -15,6 +15,10 @@ module.exports = {
     }
   },
   dependencies: ['data', 'chrome-pdf'],
+  requires: {
+    core: '2.x.x',
+    studio: '2.x.x'
+  },
   hasPublicPart: false,
   skipInExeRender: true
 }

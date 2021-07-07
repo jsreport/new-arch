@@ -4,6 +4,9 @@ module.exports = {
   main: 'lib/main.js',
   worker: 'lib/worker.js',
   dependencies: [],
+  requires: {
+    core: '2.x.x'
+  },
   hasPublicPart: false,
   optionsSchema: {
     extensions: {

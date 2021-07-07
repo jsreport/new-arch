@@ -16,5 +16,5 @@ module.exports.Request = Request
 module.exports.tests = {
   documentStore: () => require('./test/store/common.js'),
   blobStorage: () => require('./test/blobStorage/common.js'),
-  listeners: () => require('./test/extensions/listeners/jsreport.config')
+  listeners: () => require('./test/extensions/validExtensions/listeners/jsreport.config')
 }

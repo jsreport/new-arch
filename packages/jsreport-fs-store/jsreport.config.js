@@ -60,5 +60,9 @@ module.exports = {
       }
     }
   },
-  dependencies: []
+  dependencies: [],
+  requires: {
+    core: '2.x.x',
+    studio: '2.x.x'
+  }
 }

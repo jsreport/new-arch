@@ -4,9 +4,9 @@ const schema = {
 }
 
 module.exports = {
-  'name': 'licensing',
-  'main': 'lib/licensing.js',
-  'optionsSchema': {
+  name: 'licensing',
+  main: 'lib/licensing.js',
+  optionsSchema: {
     'license-key': { ...schema },
     licenseKey: { ...schema },
     extensions: {
@@ -19,6 +19,10 @@ module.exports = {
       }
     }
   },
-  'dependencies': [],
-  'skipInExeRender': true
+  dependencies: [],
+  requires: {
+    core: '2.x.x',
+    studio: '2.x.x'
+  },
+  skipInExeRender: true
 }

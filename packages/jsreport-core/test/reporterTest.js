@@ -224,7 +224,7 @@ describe('reporter', () => {
   })
 
   it('should auto discover extensions when no use called', async () => {
-    reporter = core({ rootDirectory: __dirname, useExtensionsLocationCache: false })
+    reporter = core({ rootDirectory: path.join(__dirname, 'extensions/validExtensions'), useExtensionsLocationCache: false })
     await reporter.init()
     reporter.testExtensionInitialized.should.be.eql(true)
   })
@@ -610,6 +610,7 @@ describe('reporter', () => {
     fs.writeFileSync(path.join(__dirname, 'dev.config.json'), JSON.stringify({ test: 'dev' }))
     process.env.NODE_ENV = 'development'
     reporter = core({
+      discover: false,
       rootDirectory: path.join(__dirname),
       loadConfig: true
     })
@@ -623,6 +624,7 @@ describe('reporter', () => {
     process.env.NODE_ENV = 'production'
     process.env.mode = 'production'
     reporter = core({
+      discover: false,
       rootDirectory: path.join(__dirname),
       loadConfig: true
     })
@@ -634,6 +636,7 @@ describe('reporter', () => {
   it('should parse jsreport.config.json when loadConfig and no ENV config files exist', async () => {
     fs.writeFileSync(path.join(__dirname, 'jsreport.config.json'), JSON.stringify({ test: 'jsreport' }))
     reporter = core({
+      discover: false,
       rootDirectory: path.join(__dirname),
       loadConfig: true
     })
@@ -647,6 +650,7 @@ describe('reporter', () => {
     fs.writeFileSync(path.join(__dirname, 'dev.config.json'), JSON.stringify({ test: 'dev' }))
     fs.writeFileSync(path.join(__dirname, 'jsreport.config.json'), JSON.stringify({ test: 'jsreport' }))
     reporter = core({
+      discover: false,
       rootDirectory: path.join(__dirname),
       loadConfig: true
     })
@@ -658,6 +662,7 @@ describe('reporter', () => {
   it('should parse config from absolute configFile option when loadConfig', async () => {
     fs.writeFileSync(path.join(__dirname, 'custom.config.json'), JSON.stringify({ test: 'custom' }))
     reporter = core({
+      discover: false,
       rootDirectory: path.join(__dirname),
       configFile: path.join(__dirname, 'custom.config.json'),
       loadConfig: true
@@ -671,6 +676,7 @@ describe('reporter', () => {
     fs.writeFileSync(path.join(__dirname, 'custom.config.json'), JSON.stringify({ test: 'custom' }))
     fs.writeFileSync(path.join(__dirname, 'jsreport.config.json'), JSON.stringify({ test: 'jsreport' }))
     reporter = core({
+      discover: false,
       rootDirectory: path.join(__dirname),
       configFile: 'custom.config.json',
       loadConfig: true
@@ -682,6 +688,7 @@ describe('reporter', () => {
 
   it('should throw when configFile not found and loadConfig', (done) => {
     reporter = core({
+      discover: false,
       rootDirectory: path.join(__dirname),
       configFile: 'custom.config.json',
       loadConfig: true
@@ -700,6 +707,7 @@ describe('reporter', () => {
     process.env.httpPort = 4000
     process.env.NODE_ENV = 'development'
     reporter = core({
+      discover: false,
       rootDirectory: path.join(__dirname),
       loadConfig: true
     })
@@ -712,6 +720,7 @@ describe('reporter', () => {
     process.env.allowLocalFilesAccess = 'true'
     process.env.NODE_ENV = 'development'
     reporter = core({
+      discover: false,
       rootDirectory: path.join(__dirname),
       loadConfig: true
     })
@@ -728,6 +737,7 @@ describe('reporter', () => {
     process.env['another:object'] = 'another'
 
     reporter = core({
+      discover: false,
       rootDirectory: path.join(__dirname),
       loadConfig: true
     })
@@ -741,6 +751,7 @@ describe('reporter', () => {
     delete process.env.httpPort
     process.env.NODE_ENV = 'development'
     reporter = core({
+      discover: false,
       rootDirectory: path.join(__dirname),
       loadConfig: true,
       httpPort: 6000
@@ -754,6 +765,7 @@ describe('reporter', () => {
     process.env['extensions:custom-extension:cookieSession:secret'] = 'secret'
 
     reporter = core({
+      discover: false,
       rootDirectory: path.join(__dirname),
       loadConfig: true
     })
@@ -775,6 +787,7 @@ describe('reporter', () => {
 
   it('should support camel case alias for configuration of extensions', async () => {
     reporter = core({
+      discover: false,
       rootDirectory: path.join(__dirname),
       extensions: {
         customExtension: {
@@ -801,6 +814,7 @@ describe('reporter', () => {
     fs.writeFileSync(path.join(__dirname, 'jsreport.config.json'), JSON.stringify({ extensions: { 'custom-extension': { foo: 'fromfile' } } }))
     process.env.extensions_customExtension_foo = 'fromenv'
     reporter = core({
+      discover: false,
       rootDirectory: path.join(__dirname),
       loadConfig: true
     })
@@ -824,6 +838,7 @@ describe('reporter', () => {
 
     process.env.extensions_customExtension_foo = 'fromenv'
     reporter = core({
+      discover: false,
       rootDirectory: path.join(__dirname),
       loadConfig: true
     })
@@ -850,6 +865,7 @@ describe('reporter', () => {
     process.argv.push('fromarg2-camel')
 
     reporter = core({
+      discover: false,
       rootDirectory: path.join(__dirname),
       loadConfig: true
     })
@@ -869,13 +885,13 @@ describe('reporter', () => {
   })
 
   it('should skip extension with enabled === false in config', async () => {
-    reporter = core({ rootDirectory: __dirname, extensions: { test: { enabled: false } } })
+    reporter = core({ rootDirectory: path.join(__dirname, 'extensions/validExtensions'), extensions: { test: { enabled: false } } })
     await reporter.init()
     should(reporter.testExtensionInitialized).not.eql(true)
   })
 
   it('should use both discovered and used extensions if discover true', async () => {
-    reporter = core({ rootDirectory: path.join(__dirname) })
+    reporter = core({ rootDirectory: path.join(__dirname, 'extensions/validExtensions') })
     let extensionInitialized = false
     reporter.discover()
     reporter.use({
@@ -892,7 +908,7 @@ describe('reporter', () => {
   })
 
   it('should accept plain functions in use', async () => {
-    reporter = core()
+    reporter = core({ rootDirectory: path.join(__dirname, 'extensions/validExtensions') })
 
     let extensionInitialized = false
 
@@ -905,7 +921,7 @@ describe('reporter', () => {
   })
 
   it('should fire closeListeners on close', async () => {
-    reporter = core({ rootDirectory: path.join(__dirname) })
+    reporter = core({ rootDirectory: path.join(__dirname, 'extensions/validExtensions') })
     await reporter.init()
     let fired = false
     reporter.closeListeners.add('test', () => (fired = true))
@@ -914,7 +930,7 @@ describe('reporter', () => {
   })
 
   it('should reject second init', async () => {
-    reporter = core({ rootDirectory: path.join(__dirname) })
+    reporter = core({ rootDirectory: path.join(__dirname, 'extensions/validExtensions') })
     await reporter.init()
     return reporter.init().should.be.rejected()
   })
@@ -923,7 +939,7 @@ describe('reporter', () => {
     const tempDirectory = path.join(__dirname, 'tmp')
 
     reporter = core({
-      rootDirectory: path.join(__dirname),
+      rootDirectory: path.join(__dirname, 'extensions/validExtensions'),
       tempDirectory
     })
 
@@ -938,7 +954,7 @@ describe('reporter', () => {
 
   it('should throw error when try to use ensureTempDirectoryExists but instance is not initialized', async () => {
     reporter = core({
-      rootDirectory: path.join(__dirname)
+      rootDirectory: path.join(__dirname, 'extensions/validExtensions')
     })
 
     return should(reporter.ensureTempDirectoryExists()).be.rejectedWith(/Can not use ensureTempDirectoryExists/)
@@ -946,7 +962,7 @@ describe('reporter', () => {
 
   it('should create temp file using writeTempFile', async () => {
     reporter = core({
-      rootDirectory: path.join(__dirname)
+      rootDirectory: path.join(__dirname, 'extensions/validExtensions')
     })
 
     await reporter.init()
@@ -959,7 +975,7 @@ describe('reporter', () => {
 
   it('should throw error when try to use writeTempFile but instance is not initialized', async () => {
     reporter = core({
-      rootDirectory: path.join(__dirname)
+      rootDirectory: path.join(__dirname, 'extensions/validExtensions')
     })
 
     return should(reporter.writeTempFile((uuid) => `something-${uuid}.txt`, 'testing')).be.rejectedWith(/Can not use writeTempFile/)
@@ -967,7 +983,7 @@ describe('reporter', () => {
 
   it('should throw error when filenameFn passed to writeTempFile does not return filename', async () => {
     reporter = core({
-      rootDirectory: path.join(__dirname)
+      rootDirectory: path.join(__dirname, 'extensions/validExtensions')
     })
 
     await reporter.init()
@@ -979,7 +995,7 @@ describe('reporter', () => {
     const tempDirectory = path.join(__dirname, 'tmp')
 
     reporter = core({
-      rootDirectory: path.join(__dirname),
+      rootDirectory: path.join(__dirname, 'extensions/validExtensions'),
       tempDirectory
     })
 
@@ -995,7 +1011,7 @@ describe('reporter', () => {
 
   it('should create temp file using writeTempFileStream', async () => {
     reporter = core({
-      rootDirectory: path.join(__dirname)
+      rootDirectory: path.join(__dirname, 'extensions/validExtensions')
     })
 
     await reporter.init()
@@ -1014,7 +1030,7 @@ describe('reporter', () => {
 
   it('should throw error when try to use writeTempFileStream but instance is not initialized', async () => {
     reporter = core({
-      rootDirectory: path.join(__dirname)
+      rootDirectory: path.join(__dirname, 'extensions/validExtensions')
     })
 
     return should(reporter.writeTempFileStream((uuid) => `something-${uuid}.txt`)).be.rejectedWith(/Can not use writeTempFileStream/)
@@ -1022,7 +1038,7 @@ describe('reporter', () => {
 
   it('should throw error when filenameFn passed to writeTempFileStream does not return filename', async () => {
     reporter = core({
-      rootDirectory: path.join(__dirname)
+      rootDirectory: path.join(__dirname, 'extensions/validExtensions')
     })
 
     await reporter.init()
@@ -1034,7 +1050,7 @@ describe('reporter', () => {
     const tempDirectory = path.join(__dirname, 'tmp')
 
     reporter = core({
-      rootDirectory: path.join(__dirname),
+      rootDirectory: path.join(__dirname, 'extensions/validExtensions'),
       tempDirectory
     })
 
@@ -1056,7 +1072,7 @@ describe('reporter', () => {
 
   it('should read temp file using readTempFile', async () => {
     reporter = core({
-      rootDirectory: path.join(__dirname)
+      rootDirectory: path.join(__dirname, 'extensions/validExtensions')
     })
 
     await reporter.init()
@@ -1071,7 +1087,7 @@ describe('reporter', () => {
 
   it('should throw error when try to use readTempFile but instance is not initialized', async () => {
     reporter = core({
-      rootDirectory: path.join(__dirname)
+      rootDirectory: path.join(__dirname, 'extensions/validExtensions')
     })
 
     return should(reporter.readTempFile('something.txt')).be.rejectedWith(/Can not use readTempFile/)
@@ -1079,7 +1095,7 @@ describe('reporter', () => {
 
   it('should read temp file using readTempFileStream', async () => {
     reporter = core({
-      rootDirectory: path.join(__dirname)
+      rootDirectory: path.join(__dirname, 'extensions/validExtensions')
     })
 
     await reporter.init()
@@ -1110,7 +1126,7 @@ describe('reporter', () => {
 
   it('should throw error when try to use readTempFileStream but instance is not initialized', async () => {
     reporter = core({
-      rootDirectory: path.join(__dirname)
+      rootDirectory: path.join(__dirname, 'extensions/validExtensions')
     })
 
     return should(reporter.readTempFileStream('something.txt')).be.rejectedWith(/Can not use readTempFileStream/)

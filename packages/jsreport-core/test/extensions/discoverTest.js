@@ -1,5 +1,6 @@
-const core = require('../../index')
 const os = require('os')
+const path = require('path')
+const core = require('../../index')
 const should = require('should')
 
 describe('discover', () => {
@@ -9,7 +10,7 @@ describe('discover', () => {
     reporter = core({
       discover: true,
       useExtensionsLocationCache: false,
-      rootDirectory: __dirname,
+      rootDirectory: path.join(__dirname, 'validExtensions'),
       tempCoreDirectory: os.tmpdir()
     })
   })

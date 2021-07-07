@@ -8,14 +8,18 @@ const schema = {
 }
 
 module.exports = {
-  'name': 'version-control',
-  'main': 'lib/main/main.js',
-  'worker': 'lib/worker/worker.js',
-  'optionsSchema': {
+  name: 'version-control',
+  main: 'lib/main/main.js',
+  worker: 'lib/worker/worker.js',
+  optionsSchema: {
     versionControl: schema,
     extensions: {
       'version-control': schema
     }
   },
-  'dependencies': []
+  dependencies: [],
+  requires: {
+    core: '2.x.x',
+    studio: '2.x.x'
+  }
 }

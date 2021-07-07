@@ -2,7 +2,11 @@
 module.exports = {
   name: 'tags',
   main: './lib/tags.js',
-  'optionsSchema': {
+  requires: {
+    core: '2.x.x',
+    studio: '2.x.x'
+  },
+  optionsSchema: {
     extensions: {
       tags: {
         type: 'object',

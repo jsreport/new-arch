@@ -1,8 +1,11 @@
 module.exports = {
-  'name': 'mongodb-store',
-  'main': './lib/main.js',
-  'dependencies': [],
-  'optionsSchema': {
+  name: 'mongodb-store',
+  main: './lib/main.js',
+  dependencies: [],
+  requires: {
+    core: '2.x.x'
+  },
+  optionsSchema: {
     store: {
       type: 'object',
       properties: {
@@ -44,6 +47,6 @@ module.exports = {
       }
     }
   },
-  'skipInExeRender': true,
-  'hasPublicPart': false
+  skipInExeRender: true,
+  hasPublicPart: false
 }

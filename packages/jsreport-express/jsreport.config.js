@@ -25,6 +25,10 @@ module.exports = {
   name: 'express',
   main: 'lib/main.js',
   worker: 'lib/worker.js',
+  requires: {
+    core: '2.x.x',
+    studio: '2.x.x'
+  },
   optionsSchema: {
     ...schemaProperties,
     extensions: {

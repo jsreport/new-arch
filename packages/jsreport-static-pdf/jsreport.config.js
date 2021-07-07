@@ -1,6 +1,9 @@
 
 module.exports = {
-  'name': 'static-pdf',
-  'dependencies': ['assets'],
-  'main': 'lib/main.js'
+  name: 'static-pdf',
+  main: 'lib/main.js',
+  dependencies: ['assets'],
+  requires: {
+    core: '2.x.x'
+  }
 }
