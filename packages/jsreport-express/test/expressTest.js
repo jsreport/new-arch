@@ -221,7 +221,6 @@ describe('express', () => {
 
     renderRes.headers['profile-id'].should.be.ok()
     renderRes.headers['profile-location'].should.be.ok()
-    renderRes.headers['profile-logs-location'].should.be.ok()
   })
 
   it('should be able to download and unzip profile', async () => {

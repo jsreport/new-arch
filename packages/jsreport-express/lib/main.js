@@ -274,8 +274,6 @@ module.exports = function (reporter, definition) {
       res.meta.profileId = res.meta.headers['Profile-Id'] = res.meta.profileId
       if (req.context.http) {
         res.meta.headers['Profile-Location'] = `${req.context.http.baseUrl}/api/profile/${res.meta.profileId}`
-        res.meta.headers['Profile-Location-Events'] = `${req.context.http.baseUrl}/api/profile/${res.meta.profileId}/events`
-        res.meta.headers['Profile-Logs-Location'] = `${req.context.http.baseUrl}/api/profile/${res.meta.profileId}/logs`
       }
     })
 

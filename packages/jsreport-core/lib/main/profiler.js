@@ -7,6 +7,7 @@ module.exports = (reporter) => {
     timestamp: { type: 'Edm.DateTimeOffset', schema: { type: 'null' } },
     finishedOn: { type: 'Edm.DateTimeOffset', schema: { type: 'null' } },
     state: { type: 'Edm.String' },
+    blobPersisted: { type: 'Edm.Boolean' },
     blobName: { type: 'Edm.String' },
     error: { type: 'Edm.String' }
   })
@@ -88,6 +89,7 @@ module.exports = (reporter) => {
   reporter.afterRenderListeners.add('profiler', async (req, res) => {
     res.meta.profileId = req.context.profiling?.entity?._id
     profilersMap.delete(req.context.rootId)
+    const profilerBlobPersistPromise = profilerAppendChain.get(req.context.rootId)
     profilerAppendChain.delete(req.context.rootId)
 
     await reporter.documentStore.collection('profiles').update({
@@ -98,11 +100,21 @@ module.exports = (reporter) => {
         finishedOn: new Date()
       }
     }, req)
+    profilerBlobPersistPromise.finally(() => {
+      reporter.documentStore.collection('profiles').update({
+        _id: req.context.profiling.entity._id
+      }, {
+        $set: {
+          blobPersisted: true
+        }
+      }, req).catch((e) => reporter.logger.error('Failed to update profile blobPersisted', e))
+    })
   })
 
   reporter.renderErrorListeners.add('profiler', async (req, res, e) => {
     try {
       res.meta.profileId = req.context.profiling?.entity?._id
+      const profilerBlobPersistPromise = profilerAppendChain.get(req.context.rootId)
 
       if (req.context.profiling?.entity != null) {
         await reporter.documentStore.collection('profiles').update({
@@ -123,6 +135,16 @@ module.exports = (reporter) => {
           stack: e.stack,
           message: e.message
         }], req)
+
+        profilerBlobPersistPromise.finally(() => {
+          reporter.documentStore.collection('profiles').update({
+            _id: req.context.profiling.entity._id
+          }, {
+            $set: {
+              blobPersisted: true
+            }
+          }, req).catch((e) => reporter.logger.error('Failed to update profile blobPersisted', e))
+        })
       }
     } finally {
       profilersMap.delete(req.context.rootId)
