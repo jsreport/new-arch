@@ -10,17 +10,19 @@ import moment from 'moment'
 class Profiler extends Component {
   constructor () {
     super()
-    this.state = { profiles: [] }
+    this.state = { profiles: [], fullProfilingEnabled: false }
   }
 
   componentDidMount () {
     this.loadProfiles()
     this._interval = setInterval(() => this.loadProfiles(), 5000)
+    this.setState({
+      fullProfilingEnabled: storeMethods.getSettingsByKey('fullProfilerRunning', false)
+    })
   }
 
   async loadProfiles () {
     const response = await api.get('/odata/profiles?$orderby=timestamp desc')
-
     this.setState({
       profiles: response.value.map(p => {
         let template = storeMethods.getEntityByShortid(p.templateShortid, false)
@@ -137,22 +139,49 @@ class Profiler extends Component {
 
   startFullRequestProfiling () {
     this.props.update('fullProfilerRunning', true)
+    this.setState({
+      fullProfilingEnabled: true
+    })
   }
 
   stopFullRequestProfiling () {
     this.props.update('fullProfilerRunning', false)
+    this.setState({
+      fullProfilingEnabled: false
+    })
   }
 
   render () {
     return (
       <div className='block custom-editor' style={{ overflow: 'auto', minHeight: 0, height: 'auto' }}>
-        <div title='Profiler now automatically pops up running requests. Use button "Start full requests profiling" to collect full information about the running requests like input data and output report. Note this slightly degrades the requests performance and should not be enabled constantly.'>
-          <h2><i className='fa fa-spinner fa-spin fa-fw' /> profiling {storeMethods.getSettingsByKey('fullProfilerRunning', false) ? 'with request data' : ''}... <i className='fa fa-info-circle' />
-          </h2>
-          <div>
-            {storeMethods.getSettingsByKey('fullProfilerRunning', false)
-              ? <button className='button danger' style={{ marginLeft: '0rem' }} onClick={() => this.stopFullRequestProfiling()}> Stop full requests profiling</button>
-              : <button className='button danger' style={{ marginLeft: '0rem' }} onClick={() => this.startFullRequestProfiling()}>Start full requests profiling</button>}
+        <div>
+          <h2><i className='fa fa-spinner fa-spin fa-fw' /> profiling</h2>
+          <small>
+            Profiler now automatically pops up running requests. You can select "Full profiling" to collect additional information like input data and the output report. Note this slightly degrades the request performance and should not be enabled in production permanently.
+          </small>
+          <div style={{ paddingTop: '0.8rem' }}>
+            <label>
+              <input
+                type='radio'
+                value='full'
+                checked={!this.state.fullProfilingEnabled}
+                onChange={(ev) => {
+                  ev.target.checked && this.stopFullRequestProfiling()
+                }}
+              />
+              <span>Standard profiling</span>
+            </label>
+            <label style={{ paddingLeft: '1rem' }}>
+              <input
+                type='radio'
+                value='simple'
+                checked={this.state.fullProfilingEnabled}
+                onChange={(ev) => {
+                  ev.target.checked && this.startFullRequestProfiling()
+                }}
+              />
+              <span>Full profiling</span>
+            </label>
           </div>
         </div>
         {this.renderProfiles(this.state.profiles)}
