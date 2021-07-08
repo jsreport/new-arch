@@ -93,8 +93,6 @@ export let locationResolver = null
 
 export let extensions = []
 
-export let apiSpecs = {}
-
 export function rootPath () {
   let _rootPath = window.location.pathname.indexOf('/studio') === -1 ? window.location.pathname : window.location.pathname.substring(0, window.location.pathname.indexOf('/studio'))
   return _rootPath[_rootPath.length - 1] === '/' ? _rootPath.substring(0, _rootPath.length - 1) : _rootPath

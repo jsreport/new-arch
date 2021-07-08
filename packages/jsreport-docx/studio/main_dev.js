@@ -25,18 +25,6 @@ Studio.entityEditorComponentKeyResolvers.push((entity) => {
   }
 })
 
-Studio.addApiSpec({
-  template: {
-    docx: {
-      templateAsset: {
-        encoding: '...',
-        content: '...'
-      },
-      templateAssetShortid: '...'
-    }
-  }
-})
-
 const pendingModalsLaunch = []
 
 const pendingModalsInterval = setInterval(() => {

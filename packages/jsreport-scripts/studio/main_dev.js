@@ -17,15 +17,6 @@ Studio.addPropertiesComponent(ScriptProperties.title, ScriptProperties, (entity)
 
 Studio.addEditorComponent('scripts', ScriptEditor, (reformatter, entity) => ({ content: reformatter(entity.content, 'js') }))
 
-Studio.addApiSpec({
-  template: {
-    scripts: [{
-      shortid: '...',
-      content: 'function beforeRender...'
-    }]
-  }
-})
-
 Studio.runListeners.push((request, entities) => {
   if (!request.template.scripts) {
     return

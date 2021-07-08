@@ -6,7 +6,6 @@ import ReactList from 'react-list'
 import superagent from 'superagent'
 import shortid from 'shortid'
 import fileSaver from 'filesaver.js-npm'
-import _merge from 'lodash/merge'
 import api, { methods } from './helpers/api'
 import { getCurrentTheme, setCurrentTheme } from './helpers/theme'
 import SplitPane from './components/common/SplitPane/SplitPane'
@@ -325,14 +324,6 @@ class Studio {
   setAboutModal (AboutModalComponent) {
     // eslint-disable-next-line no-import-assign
     configuration.aboutModal = AboutModalComponent
-  }
-
-  /**
-   * Merges in the object defining the api which is used in api fialog
-   * @param {Object} obj
-   */
-  addApiSpec (obj) {
-    _merge(configuration.apiSpecs, obj)
   }
 
   /** /initial configuration **/

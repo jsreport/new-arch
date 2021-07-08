@@ -6,6 +6,8 @@
   font-weight: lighter;
   font-size: 0.8rem;
   margin-right: 0.5rem;
+  width: 5rem;
+  display: inline-block
 }
 
 .label.minor {
@@ -17,7 +19,7 @@
 }
 
 .row {
-  margin: 0.7rem 0 0.7rem 0;
+  margin: 0.2rem 0 0.2rem 0;
 }
 
 .string { color: green; }

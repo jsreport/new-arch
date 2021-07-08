@@ -71,20 +71,6 @@ export default () => {
 
   configuration.sharedComponents.EntityTree = EntityTree
 
-  // eslint-disable-next-line
-  configuration.apiSpecs = {
-    template: {
-      content: '...',
-      helpers: '...',
-      engine: '...',
-      recipe: '...'
-    },
-    data: {
-      aProperty: '...'
-    },
-    options: {}
-  }
-
   // default filter by name strategy
   configuration.entityTreeFilterItemResolvers.push((entity, entitySets, filterInfo) => {
     const { name } = filterInfo
@@ -348,7 +334,7 @@ export default () => {
   configuration.toolbarComponents.settings.push((props) => (
     <div
       onClick={() => {
-        openModal(ApiModal, { apiSpecs: configuration.apiSpecs })
+        openModal(ApiModal, { })
         props.closeMenu()
       }}
     >

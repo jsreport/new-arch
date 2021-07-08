@@ -25,18 +25,6 @@ Studio.entityEditorComponentKeyResolvers.push((entity) => {
   }
 })
 
-Studio.addApiSpec({
-  template: {
-    pptx: {
-      templateAsset: {
-        encoding: '...',
-        content: '...'
-      },
-      templateAssetShortid: '...'
-    }
-  }
-})
-
 const pendingModalsLaunch = []
 
 const pendingModalsInterval = setInterval(() => {

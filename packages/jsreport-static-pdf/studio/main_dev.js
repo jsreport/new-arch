@@ -27,12 +27,3 @@ Studio.entityEditorComponentKeyResolvers.push((entity) => {
     }
   }
 })
-
-Studio.addApiSpec({
-  template: {
-    staticPdf: {
-      rawContent: '<...base64 PDF...>',
-      pdfAssetShortid: '...'
-    }
-  }
-})

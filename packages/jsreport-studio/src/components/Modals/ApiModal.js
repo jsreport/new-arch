@@ -43,15 +43,11 @@ class ApiModal extends Component {
   }
 
   render () {
-    const { entity } = this.props
-    const { apiSpecs } = this.props.options
-
-    const shortid = (entity && entity.__entitySet === 'templates') ? entity.shortid : 'shortid'
-    const body = { template: { shortid: shortid }, data: { aProperty: 'value' } }
+    const body = { template: { name: 'name or path' }, data: { aProperty: 'value' } }
 
     return (
       <div>
-        <h3>Render and stream back report </h3>
+        <h3>Render report using REST API </h3>
 
         <div className={style.row}>
           <span className={style.label}>POST: </span><a className={style.url}>{this.getRootUrl() + '/api/report'}</a>
@@ -64,13 +60,18 @@ class ApiModal extends Component {
           <span className={style.label + ' ' + style.minor}>BODY:</span>
           <code dangerouslySetInnerHTML={{ __html: this.syntaxHighlight(JSON.stringify(body)) }} />
         </div>
-        <br />
-        <small>You can also identify template with name instead of shortid.</small>
-        <br />
+        <h3>Use one of the jsreport clients </h3>
+        <div>
+          <a href='https://jsreport.net/learn/dotnet-client' target='_blank' rel='noreferrer'><button style={{ marginLeft: '0rem' }} className='button confirmation'>.NET</button></a>
+          <a href='https://github.com/hedonCZ/jsreport-javaclient' target='_blank' rel='noreferrer'><button className='button confirmation'>Java</button></a>
+          <a href='https://jsreport.net/learn/nodejs-client' target='_blank' rel='noreferrer'><button className='button confirmation'>nodejs</button></a>
+          <a href='https://jsreport.net/learn/browser-client' target='_blank' rel='noreferrer'><button className='button confirmation'>browser</button></a>
+          <a href='https://jsreport.net/learn/cli' target='_blank' rel='noreferrer'><button className='button confirmation'>CLI</button></a>
+        </div>
         <br />
         <div>
           <a className={style.link} href='http://jsreport.net/learn/api' target='_blank' rel='noreferrer'>
-            <i className='fa fa-lightbulb-o' /> open documentation
+            <i className='fa fa-lightbulb-o' /> open API documentation
           </a>
         </div>
 
@@ -78,12 +79,6 @@ class ApiModal extends Component {
           <a className={style.link} href={this.getRootUrl() + '/odata/$metadata'} target='_blank' rel='noreferrer'>
             <i className='fa fa-lightbulb-o' /> open odata metadata
           </a>
-        </div>
-
-        <h3>all possible overrides</h3>
-
-        <div className={style.overridesBox}>
-          <pre dangerouslySetInnerHTML={{ __html: this.syntaxHighlight(JSON.stringify(apiSpecs, null, 2)) }} />
         </div>
       </div>
     )
