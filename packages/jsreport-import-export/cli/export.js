@@ -16,8 +16,8 @@ exports.configuration = {
 exports.builder = (yargs) => {
   const examples = getExamples(`jsreport ${command}`)
 
-  examples.forEach((examp) => {
-    yargs.example(examp[0], examp[1])
+  examples.forEach((example) => {
+    yargs.example(example[0], example[1])
   })
 
   const commandOptions = {
@@ -123,52 +123,8 @@ exports.handler = async (argv) => {
   }
 
   const cwd = context.cwd
-  const workerSockPath = context.workerSockPath
   const getInstance = context.getInstance
   const initInstance = context.initInstance
-  const daemonHandler = context.daemonHandler
-  const findProcessByCWD = daemonHandler.findProcessByCWD
-
-  logger.debug('looking for previously daemonized instance in:', workerSockPath, 'cwd:', cwd)
-
-  // first, try to look up if there is an existing process
-  // "daemonized" before in the CWD
-  let processInfo
-
-  try {
-    processInfo = await findProcessByCWD(workerSockPath, cwd)
-  } catch (processLookupErr) {
-    return onCriticalError(processLookupErr)
-  }
-
-  // if process was found, just connect to it,
-  // otherwise just continue processing
-  if (processInfo) {
-    logger.debug(`using instance daemonized previously (pid: ${processInfo.pid})..`)
-
-    const adminAuthentication = processInfo.adminAuthentication || {}
-
-    try {
-      const result = await startExport(null, {
-        logger,
-        exportOptions: options.export,
-        output: zipFilePath,
-        remote: {
-          url: processInfo.url,
-          user: adminAuthentication.username,
-          password: adminAuthentication.password
-        }
-      })
-
-      result.fromDaemon = true
-
-      return result
-    } catch (e) {
-      return onCriticalError(e)
-    }
-  }
-
-  logger.debug('there is no previously daemonized instance in:', workerSockPath, 'cwd:', cwd)
 
   try {
     logger.debug('trying to start an instance in cwd:', cwd)
