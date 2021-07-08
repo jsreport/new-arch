@@ -71,7 +71,7 @@ describe('childTemplates', () => {
     res.content.toString().should.be.eql('foofoo')
   })
 
-  it('should throw when there is rendering cycle in templates', async () => {
+  it.skip('should throw when there is rendering cycle in templates', async () => {
     await reporter.documentStore.collection('templates').insert({
       content: '{#child t2}',
       engine: 'jsrender',

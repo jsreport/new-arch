@@ -309,6 +309,16 @@ describe('templating', function () {
     }
   })
 
+  it.skip('should prevent simple cycles', async () => {
+    await jsreport.documentStore.collection('templates').insert({ content: 'foo', name: 'A', engine: 'none', recipe: 'html' })
+
+    jsreport.tests.afterRenderEval(async (req, res, { reporter }) => {
+      await reporter.render({ template: { name: 'A' } }, req)
+    })
+
+    return jsreport.render({ template: { name: 'A' } }).should.be.rejectedWith(/cycle/)
+  })
+
   it('should not catch cycles when same template rendered multiple times at the same hierarchy level', async () => {
     await jsreport.documentStore.collection('templates').insert({ content: 'foo', name: 'A', engine: 'none', recipe: 'html' })
     await jsreport.documentStore.collection('templates').insert({ content: 'foo', name: 'B', engine: 'none', recipe: 'html' })
