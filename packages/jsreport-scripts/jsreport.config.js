@@ -22,5 +22,9 @@ module.exports = {
     }
   },
   dependencies: ['data'],
+  requires: {
+    core: '2.x.x',
+    studio: '2.x.x'
+  },
   embeddedSupport: true
 }

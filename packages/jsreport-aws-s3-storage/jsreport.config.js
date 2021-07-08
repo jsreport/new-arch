@@ -2,6 +2,9 @@ module.exports = {
   name: 'aws-s3-storage',
   main: 'lib/main.js',
   dependencies: [],
+  requires: {
+    core: '2.x.x'
+  },
   optionsSchema: {
     blobStorage: {
       type: 'object',

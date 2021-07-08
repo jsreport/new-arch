@@ -1,3 +1,4 @@
+const path = require('path')
 const jsreport = require('../../index')
 require('should')
 
@@ -5,8 +6,10 @@ describe('listeners extension', () => {
   let reporter
 
   beforeEach(() => {
-    reporter = jsreport()
-    reporter.use(require('./listeners/jsreport.config.js'))
+    reporter = jsreport({
+      rootDirectory: path.join(__dirname, 'validExtensions')
+    })
+    reporter.use(require('./validExtensions/listeners/jsreport.config.js'))
     return reporter.init()
   })
 

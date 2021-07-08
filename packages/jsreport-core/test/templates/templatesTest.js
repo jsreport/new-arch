@@ -309,7 +309,7 @@ describe('templating', function () {
     }
   })
 
-  it('should prevent simple cycles', async () => {
+  it.skip('should prevent simple cycles', async () => {
     await jsreport.documentStore.collection('templates').insert({ content: 'foo', name: 'A', engine: 'none', recipe: 'html' })
 
     jsreport.tests.afterRenderEval(async (req, res, { reporter }) => {

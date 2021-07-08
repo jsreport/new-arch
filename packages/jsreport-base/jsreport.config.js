@@ -1,9 +1,9 @@
 
 module.exports = {
-  'name': 'base',
-  'main': 'lib/main.js',
-  'worker': 'lib/worker.js',
-  'optionsSchema': {
+  name: 'base',
+  main: 'lib/main.js',
+  worker: 'lib/worker.js',
+  optionsSchema: {
     extensions: {
       base: {
         type: 'object',
@@ -13,6 +13,9 @@ module.exports = {
       }
     }
   },
-  'dependencies': [],
-  'hasPublicPart': false
+  dependencies: [],
+  requires: {
+    core: '2.x.x'
+  },
+  hasPublicPart: false
 }

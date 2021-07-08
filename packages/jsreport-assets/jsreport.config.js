@@ -17,5 +17,9 @@ module.exports = {
       }
     }
   },
-  dependencies: ['scripts']
+  dependencies: ['scripts'],
+  requires: {
+    core: '2.x.x',
+    studio: '2.x.x'
+  }
 }

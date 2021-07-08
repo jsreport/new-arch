@@ -356,7 +356,7 @@ const DocumentStore = (options, validator, encryption) => {
     async close () {
       transactions.clear()
 
-      if (this.provider.close) {
+      if (this.provider && this.provider.close) {
         await this.provider.close()
       }
     },

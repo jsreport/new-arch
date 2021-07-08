@@ -3,6 +3,9 @@ module.exports = {
   name: 'fs-store-aws-s3-persistence',
   main: 'lib/main.js',
   dependencies: ['fs-store'],
+  requires: {
+    core: '2.x.x'
+  },
   optionsSchema: {
     extensions: {
       'fs-store': {

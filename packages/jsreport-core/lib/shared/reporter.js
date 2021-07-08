@@ -21,7 +21,10 @@ class Reporter extends EventEmitter {
     // a way to detect possible memory leaks from extensions
     this.setMaxListeners(Infinity)
 
-    this.version = require('../../package.json').version
+    const coreVersion = require('../../package.json').version
+
+    this.version = coreVersion
+    this.coreVersion = coreVersion
 
     this.initializeListeners = this.createListenerCollection()
     this.afterRenderListeners = this.createListenerCollection()

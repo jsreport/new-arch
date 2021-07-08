@@ -22,5 +22,9 @@ module.exports = {
       xlsx: { ...schema }
     }
   }),
-  dependencies: ['data']
+  dependencies: ['data'],
+  requires: {
+    core: '2.x.x',
+    studio: '2.x.x'
+  }
 }

@@ -1,8 +1,11 @@
 
 module.exports = {
-  'name': 'postgres-store',
-  'main': './lib/main.js',
-  'optionsSchema': {
+  name: 'postgres-store',
+  main: './lib/main.js',
+  requires: {
+    core: '2.x.x'
+  },
+  optionsSchema: {
     store: {
       type: 'object',
       properties: {

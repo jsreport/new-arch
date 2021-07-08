@@ -727,7 +727,7 @@ describe('scripts', () => {
         await reporter.render(request)
         throw new Error('It should have failed')
       } catch (e) {
-        e.message.should.containEql('cycle')
+        e.message.should.containEql('Report timeout')
       }
     })
 

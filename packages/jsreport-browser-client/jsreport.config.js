@@ -1,8 +1,8 @@
 
 module.exports = {
-  'name': 'browser-client',
-  'main': 'lib/browser.js',
-  'optionsSchema': {
+  name: 'browser-client',
+  main: 'lib/browser.js',
+  optionsSchema: {
     extensions: {
       'browser-client': {
         type: 'object',
@@ -12,5 +12,9 @@ module.exports = {
       }
     }
   },
-  'dependencies': []
+  dependencies: [],
+  requires: {
+    core: '2.x.x',
+    studio: '2.x.x'
+  }
 }

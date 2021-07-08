@@ -3,6 +3,10 @@ module.exports = {
   name: 'docker-workers',
   main: 'lib/main.js',
   dependencies: ['express'],
+  requires: {
+    core: '2.x.x',
+    express: '2.x.x'
+  },
   optionsSchema: {
     ip: { type: 'string' },
     stack: { type: 'string', default: 'default' },

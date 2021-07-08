@@ -28,7 +28,7 @@ module.exports = (reporter) => {
     const template = req.context.resolvedTemplate
 
     if (!template && !req.template.content) {
-      throw reporter.createError(`Unable to find specified template or user doesnt have permissions to read it: ${
+      throw reporter.createError(`Unable to find specified template or user does not have permissions to read it: ${
         (req.template._id || req.template.shortid || req.template.name)
       }`, {
         weak: true,
@@ -39,24 +39,6 @@ module.exports = (reporter) => {
     req.context.renderHierarchy = req.context.renderHierarchy || []
 
     if (template && template._id != null) {
-      if (req.context.renderHierarchy.length > 0 && req.context.renderHierarchy.some((tid) => tid === template._id)) {
-        const hierarchyPaths = await Promise.all(req.context.renderHierarchy.map(async (tid) => {
-          const t = await reporter.documentStore.collection('templates').findOne({ _id: tid }, req)
-          const cp = await reporter.folders.resolveEntityPath(t, 'templates', req)
-          return cp
-        }))
-
-        const currentT = await reporter.documentStore.collection('templates').findOne({ _id: template._id }, req)
-        const currentPath = await reporter.folders.resolveEntityPath(currentT, 'templates', req)
-        const hierarchyMsg = `${[...hierarchyPaths, currentPath].join(' -> ')}`
-        const duplicatedTemplateMsg = `${currentPath}`
-
-        throw reporter.createError(`Render cycle detected. Template at ${duplicatedTemplateMsg} was rendered previously in this render request (hierarchy: ${hierarchyMsg}). Please verify that reporter.render is not causing cycle`, {
-          weak: true,
-          statusCode: 403
-        })
-      }
-
       req.context.renderHierarchy.push(template._id)
     }
 

@@ -416,7 +416,9 @@ class MainReporter extends Reporter {
   async close () {
     this.logger.info('Closing jsreport instance')
 
-    await this.monitoring.close()
+    if (this.monitoring) {
+      await this.monitoring.close()
+    }
 
     if (this._reaperTimerRef) {
       clearInterval(this._reaperTimerRef)

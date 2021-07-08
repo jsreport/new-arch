@@ -2,6 +2,9 @@
 module.exports = {
   name: 'mssql-store',
   main: './lib/main.js',
+  requires: {
+    core: '2.x.x'
+  },
   optionsSchema: {
     store: {
       type: 'object',

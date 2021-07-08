@@ -107,7 +107,11 @@ module.exports = {
       }
     }
   },
-  dependencies: ['express']
+  dependencies: ['express'],
+  requires: {
+    core: '2.x.x',
+    express: '2.x.x'
+  }
 }
 
 function getThemeVariablesSchema (themeVarsDefinition) {

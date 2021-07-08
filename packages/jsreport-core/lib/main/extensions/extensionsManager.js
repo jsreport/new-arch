@@ -10,6 +10,7 @@ const extend = require('node.extend.without.arrays')
 const camelCase = require('camelcase')
 const discover = require('./discover')
 const findVersion = require('./findVersion')
+const validateMinimalVersion = require('./validateMinimalVersion')
 const sorter = require('./sorter')
 
 module.exports = (reporter) => {
@@ -46,8 +47,8 @@ module.exports = (reporter) => {
 
       if (opts.onlyLocation !== true) {
         this.availableExtensions = await Promise.all(this.availableExtensions.map(async (e) => {
-          const { version, source } = await findVersion(e)
-          return Object.assign(e, { source, version })
+          const { version, pkgVersion, source } = await findVersion(e)
+          return Object.assign(e, { source, version, pkgVersion })
         }))
       }
 
@@ -94,8 +95,39 @@ module.exports = (reporter) => {
     },
 
     async _useMany (extensions) {
+      const toValidateGroups = new Map()
+
       for (const e of extensions) {
-        await this._useOne(e)
+        const activated = await this._useOne(e)
+
+        if (!activated) {
+          continue
+        }
+
+        const extensionRequires = Object.assign({}, e.requires)
+        // core already validated here
+        delete extensionRequires.core
+
+        for (const baseExtName of Object.keys(extensionRequires)) {
+          if (!toValidateGroups.has(baseExtName)) {
+            toValidateGroups.set(baseExtName, [])
+          }
+
+          const deps = toValidateGroups.get(baseExtName)
+          deps.push(e)
+        }
+      }
+
+      for (const [baseExtName, deps] of toValidateGroups.entries()) {
+        const baseExt = extensions.find((ext) => ext.name === baseExtName)
+
+        if (baseExt == null || baseExt.pkgVersion == null) {
+          continue
+        }
+
+        for (const ext of deps) {
+          validateMinimalVersion({ name: baseExtName, version: baseExt.pkgVersion }, ext)
+        }
       }
     },
 
@@ -122,8 +154,10 @@ module.exports = (reporter) => {
             reporter.logger.debug(`Extension ${getExtensionDisplayName(extension)} is disabled, skipping`)
           }
 
-          return
+          return false
         }
+
+        validateMinimalVersion({ name: 'core', version: reporter.coreVersion }, extension)
 
         if (!extension.name) {
           reporter.logger.info(`Using anonymous extension${extension.directory != null ? ` at ${extension.directory}` : ''}`)
@@ -202,6 +236,8 @@ module.exports = (reporter) => {
             reporter.logger.debug(`Extension ${getExtensionDisplayName(extension)} was disabled`)
           }
         }
+
+        return extension.options.enabled !== false
       } catch (e) {
         let errorMsg
 
@@ -210,8 +246,6 @@ module.exports = (reporter) => {
         } else {
           errorMsg = `Error when loading extension ${getExtensionDisplayName(extension)}${os.EOL}${e.stack}`
         }
-
-        reporter.logger.error(errorMsg)
 
         throw new Error(errorMsg)
       }

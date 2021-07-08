@@ -1,10 +1,10 @@
 const office = require('jsreport-office')
 
 module.exports = {
-  'name': 'pptx',
-  'main': 'lib/main.js',
-  'worker': 'lib/worker.js',
-  'optionsSchema': office.extendSchema('pptx', {
+  name: 'pptx',
+  main: 'lib/main.js',
+  worker: 'lib/worker.js',
+  optionsSchema: office.extendSchema('pptx', {
     type: 'object',
     properties: {
       beta: {
@@ -15,5 +15,10 @@ module.exports = {
       }
     }
   }),
-  'dependencies': ['assets']
+  dependencies: ['assets'],
+  requires: {
+    core: '2.x.x',
+    studio: '2.x.x',
+    assets: '1.x.x'
+  }
 }

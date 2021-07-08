@@ -19,7 +19,7 @@
     "office"
   ],
   "scripts": {
-    "test": "mocha test --timeout 8000 && standard",
+    "test": "mocha test --timeout 10000 && standard",
     "build": "jsreport-studio-build",
     "prepublishOnly": "jsreport-studio-build"
   },

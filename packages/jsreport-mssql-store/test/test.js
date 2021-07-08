@@ -20,7 +20,7 @@ describe('common store tests', () => {
     const localOpts = {
       user: 'jsreport',
       password: 'password',
-      server: 'localhot',
+      server: 'localhost',
       database: 'jsreport'
     }
 
@@ -58,7 +58,7 @@ describe('common store tests', () => {
     await jsreport.tests.documentStore().clean(() => reporter.documentStore)
   })
 
-  afterEach(() => reporter.close())
+  afterEach(() => reporter && reporter.close())
 
   jsreport.tests.documentStore()(() => reporter.documentStore)
   jsreport.tests.blobStorage()(() => reporter.blobStorage)

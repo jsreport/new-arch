@@ -1,9 +1,12 @@
 
 module.exports = {
-  'name': 'azure-storage',
-  'main': './lib/main.js',
-  'dependencies': [],
-  'optionsSchema': {
+  name: 'azure-storage',
+  main: './lib/main.js',
+  dependencies: [],
+  requires: {
+    core: '2.x.x'
+  },
+  optionsSchema: {
     blobStorage: {
       type: 'object',
       properties: {
