@@ -41,6 +41,14 @@ class MainReporter extends Reporter {
 
     this._initialized = false
     this._initializing = false
+
+    this._initExecution = {}
+
+    this._initExecution.promise = new Promise((resolve, reject) => {
+      this._initExecution.resolve = resolve
+      this._initExecution.reject = resolve
+    })
+
     this._mainActions = new Map()
 
     this.settings = new Settings()
@@ -128,6 +136,10 @@ class MainReporter extends Reporter {
   afterConfigLoaded (fn) {
     this._fnAfterConfigLoaded = fn
     return this
+  }
+
+  async waitForInit () {
+    await this._initExecution.promise
   }
 
   /**
@@ -247,9 +259,11 @@ class MainReporter extends Reporter {
 
       this.logger.info('reporter initialized')
       this._initialized = true
+      this._initExecution.resolve()
       return this
     } catch (e) {
-      this.logger.error(`Error occured during reporter init: ${e.stack}`)
+      this.logger.error(`Error occurred during reporter init: ${e.stack}`)
+      this._initExecution.reject(new Error(`Reporter initialization failed. ${e.message}`))
       throw e
     }
   }

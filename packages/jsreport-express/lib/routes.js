@@ -116,10 +116,20 @@ module.exports = (app, reporter, exposedOptions) => {
    * Main entry point for invoking report rendering
    */
   app.post('/api/report/:name?', (req, res, next) => {
-    if (req.query.profilerDebug === 'true') {
-      reporter.express.streamRender(req.body, req, res, next)
+    const executeRender = () => {
+      if (req.query.profilerDebug === 'true') {
+        reporter.express.streamRender(req.body, req, res, next)
+      } else {
+        reporter.express.render(req.body, req, res, next)
+      }
+    }
+
+    if (!reporter._initialized) {
+      reporter.waitForInit().then(() => {
+        executeRender()
+      }, (err) => next(err))
     } else {
-      reporter.express.render(req.body, req, res, next)
+      executeRender()
     }
   })
 
