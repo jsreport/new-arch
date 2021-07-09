@@ -111,14 +111,6 @@ _jsreportStudio2.default.addPropertiesComponent('html to xlsx', _HtmlToXlsxPrope
   return entity.__entitySet === 'templates' && entity.recipe === 'html-to-xlsx';
 });
 
-_jsreportStudio2.default.addApiSpec({
-  template: {
-    htmlToXlsx: {
-      htmlEngine: '...'
-    }
-  }
-});
-
 _jsreportStudio2.default.runListeners.push(function (request, entities) {
   if (request.template.recipe !== 'html-to-xlsx') {
     return;

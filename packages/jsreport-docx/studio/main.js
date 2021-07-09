@@ -133,18 +133,6 @@ _jsreportStudio2.default.entityEditorComponentKeyResolvers.push(function (entity
   }
 });
 
-_jsreportStudio2.default.addApiSpec({
-  template: {
-    docx: {
-      templateAsset: {
-        encoding: '...',
-        content: '...'
-      },
-      templateAssetShortid: '...'
-    }
-  }
-});
-
 var pendingModalsLaunch = [];
 
 var pendingModalsInterval = setInterval(function () {

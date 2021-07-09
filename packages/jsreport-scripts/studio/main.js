@@ -141,15 +141,6 @@ _jsreportStudio2.default.addEditorComponent('scripts', _ScriptEditor2.default, f
   return { content: reformatter(entity.content, 'js') };
 });
 
-_jsreportStudio2.default.addApiSpec({
-  template: {
-    scripts: [{
-      shortid: '...',
-      content: 'function beforeRender...'
-    }]
-  }
-});
-
 _jsreportStudio2.default.runListeners.push(function (request, entities) {
   if (!request.template.scripts) {
     return;
