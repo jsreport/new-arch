@@ -414,7 +414,7 @@ export default () => {
 
   configuration.previewComponents['report-profile'] = {
     component: ReportProfilePreviewType,
-    defaultActiveTab: 'profile',
+    defaultActiveTab: 'report',
     tabs: [{ name: 'report', title: 'report' }, { name: 'profile', title: 'profile' }],
     actions: [{
       component: DownloadPreviewAction
