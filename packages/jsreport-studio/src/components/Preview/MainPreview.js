@@ -1,6 +1,7 @@
 import React, { Fragment, useCallback, useMemo } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import Preview from './Preview'
+import UndockNewTab from './MenuActions/UndockNewTab'
 import ClearAction from './MenuActions/ClearAction'
 import { actions as editorActions } from '../../redux/editor'
 import { previewComponents } from '../../lib/configuration'
@@ -12,6 +13,9 @@ const MainPreview = () => {
   const actions = useMemo(() => {
     return [
       ...(previewComponents[preview.type].actions || []),
+      {
+        component: UndockNewTab
+      },
       {
         component: ClearAction
       }

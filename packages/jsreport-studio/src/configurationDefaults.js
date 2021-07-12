@@ -69,8 +69,6 @@ export default () => {
     onNew: (options) => openModal(NewFolderModal, options)
   }
 
-  configuration.sharedComponents.EntityTree = EntityTree
-
   // default filter by name strategy
   configuration.entityTreeFilterItemResolvers.push((entity, entitySets, filterInfo) => {
     const { name } = filterInfo
@@ -399,7 +397,7 @@ export default () => {
       component: UploadProfilePreviewAction
     }, {
       component: OpenNewTabPreviewAction
-    }] // { component: UndockNewTab }
+    }]
   }
 
   configuration.previewComponents.profile = {
@@ -424,7 +422,7 @@ export default () => {
       component: UploadProfilePreviewAction
     }, {
       component: OpenNewTabPreviewAction
-    }] // { component: UndockNewTab }
+    }]
   }
 
   configuration.initializeListeners.push(() => {

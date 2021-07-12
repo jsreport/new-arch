@@ -1,5 +1,5 @@
 
-const OpenNewTabAction = ({ id, completed, data, closeMenu }) => {
+function OpenNewTabAction ({ id, completed, data, closeMenu }) {
   const { template, reportFile } = data
   const enabled = completed && reportFile != null
 
