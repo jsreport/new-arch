@@ -129,7 +129,7 @@ module.exports = ({ logger, accessKeyId, secretAccessKey, bucket, lock = {}, s3O
         const newName = key.replace(p, pp)
         await s3.copyObjectP({
           Bucket: bucket,
-          CopySource: `/${bucket}/${key}`,
+          CopySource: `/${bucket}/${encodeURIComponent(key)}`,
           Key: newName
         })
       }))
@@ -162,7 +162,7 @@ module.exports = ({ logger, accessKeyId, secretAccessKey, bucket, lock = {}, s3O
     },
     copyFile: (p, pp) => s3.copyObjectP({
       Bucket: bucket,
-      CopySource: `/${bucket}/${p}`,
+      CopySource: `/${bucket}/${encodeURIComponent(p)}`,
       Key: pp
     }),
     path: {
