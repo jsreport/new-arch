@@ -151,37 +151,6 @@ _jsreportStudio2.default.addPropertiesComponent('chrome image', _ChromeImageProp
   return entity.__entitySet === 'templates' && entity.recipe === 'chrome-image';
 });
 
-_jsreportStudio2.default.addApiSpec({
-  template: {
-    chrome: {
-      scale: 1,
-      displayHeaderFooter: false,
-      printBackground: false,
-      landscape: false,
-      pageRanges: '...',
-      format: '...',
-      width: '...',
-      height: '...',
-      marginTop: '...',
-      marginRight: '...',
-      marginBottom: '...',
-      marginLeft: '...',
-      mediaType: 'print|screen'
-    },
-    chromeImage: {
-      type: 'jpeg|png',
-      quality: 80,
-      fullPage: false,
-      clipX: 0,
-      clipY: 0,
-      clipWidth: 800,
-      clipHeight: 800,
-      omitBackground: false,
-      mediaType: 'print|screen'
-    }
-  }
-});
-
 _jsreportStudio2.default.addEditorComponent(Constants.CHROME_TAB_EDITOR, _ChromeEditor2.default);
 _jsreportStudio2.default.addTabTitleComponent(Constants.CHROME_TAB_TITLE, _ChromeTitle2.default);
 _jsreportStudio2.default.entityTreeIconResolvers.push(function (entity) {

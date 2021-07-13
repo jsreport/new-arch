@@ -336,7 +336,10 @@ class MainReporter extends Reporter {
         throw this.createError('Request aborted by client')
       }
 
+      let isDataStoredInWorker = false
+
       if (req.rawContent) {
+        isDataStoredInWorker = true
         const result = await worker.execute({
           actionName: 'parse',
           req,
@@ -349,6 +352,12 @@ class MainReporter extends Reporter {
 
       res = { meta: {} }
       req = Request(req, parentReq)
+
+      if (isDataStoredInWorker) {
+        // we unset this because we want the Request() call in worker to evaluate the data
+        // and determine if the original was empty or not
+        delete req.context.originalInputDataIsEmpty
+      }
 
       // TODO: we will probably validate in the thread
       if (this.entityTypeValidator.getSchema('TemplateType') != null) {
