@@ -21,8 +21,6 @@ describe('reporter', () => {
       }
     }
 
-    safeUnlink(path.join(__dirname, 'prod.config.json'))
-    safeUnlink(path.join(__dirname, 'dev.config.json'))
     safeUnlink(path.join(__dirname, 'jsreport.config.json'))
     safeUnlink(path.join(__dirname, 'custom.config.json'))
 
@@ -606,59 +604,6 @@ describe('reporter', () => {
     extensionInitialized.should.be.eql(true)
   })
 
-  it('should parse dev.config.json when loadConfig and NODE_ENV=development', async () => {
-    fs.writeFileSync(path.join(__dirname, 'dev.config.json'), JSON.stringify({ test: 'dev' }))
-    process.env.NODE_ENV = 'development'
-    reporter = core({
-      discover: false,
-      rootDirectory: path.join(__dirname),
-      loadConfig: true
-    })
-
-    await reporter.init()
-    reporter.options.test.should.be.eql('dev')
-  })
-
-  it('should parse prod.config.json when loadConfig and NODE_ENV=production', async () => {
-    fs.writeFileSync(path.join(__dirname, 'prod.config.json'), JSON.stringify({ test: 'prod' }))
-    process.env.NODE_ENV = 'production'
-    process.env.mode = 'production'
-    reporter = core({
-      discover: false,
-      rootDirectory: path.join(__dirname),
-      loadConfig: true
-    })
-
-    await reporter.init()
-    reporter.options.test.should.be.eql('prod')
-  })
-
-  it('should parse jsreport.config.json when loadConfig and no ENV config files exist', async () => {
-    fs.writeFileSync(path.join(__dirname, 'jsreport.config.json'), JSON.stringify({ test: 'jsreport' }))
-    reporter = core({
-      discover: false,
-      rootDirectory: path.join(__dirname),
-      loadConfig: true
-    })
-
-    await reporter.init()
-    reporter.options.test.should.be.eql('jsreport')
-  })
-
-  it('should parse config with priority to ENV based file when loadConfig', async () => {
-    process.env.NODE_ENV = null
-    fs.writeFileSync(path.join(__dirname, 'dev.config.json'), JSON.stringify({ test: 'dev' }))
-    fs.writeFileSync(path.join(__dirname, 'jsreport.config.json'), JSON.stringify({ test: 'jsreport' }))
-    reporter = core({
-      discover: false,
-      rootDirectory: path.join(__dirname),
-      loadConfig: true
-    })
-
-    await reporter.init()
-    reporter.options.test.should.be.eql('dev')
-  })
-
   it('should parse config from absolute configFile option when loadConfig', async () => {
     fs.writeFileSync(path.join(__dirname, 'custom.config.json'), JSON.stringify({ test: 'custom' }))
     reporter = core({
@@ -705,7 +650,6 @@ describe('reporter', () => {
 
   it('should parse env options into reporter options when loadConfig', async () => {
     process.env.httpPort = 4000
-    process.env.NODE_ENV = 'development'
     reporter = core({
       discover: false,
       rootDirectory: path.join(__dirname),
@@ -718,7 +662,6 @@ describe('reporter', () => {
 
   it('should parse env options and sanitize earlier options with schema into reporter options when loadConfig', async () => {
     process.env.allowLocalFilesAccess = 'true'
-    process.env.NODE_ENV = 'development'
     reporter = core({
       discover: false,
       rootDirectory: path.join(__dirname),
@@ -749,7 +692,6 @@ describe('reporter', () => {
 
   it('should use options provided as argument  when loadConfig', async () => {
     delete process.env.httpPort
-    process.env.NODE_ENV = 'development'
     reporter = core({
       discover: false,
       rootDirectory: path.join(__dirname),

@@ -107,7 +107,6 @@ exports.handler = (argv) => {
 
     winser.install({
       path: pathToApp,
-      env: ['NODE_ENV=' + (process.env.NODE_ENV != null ? process.env.NODE_ENV : 'development')],
       autostart: true
     }, (err) => {
       if (err) {

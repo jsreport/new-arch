@@ -36,5 +36,3 @@ studio/main.js.map
 # jsreport files
 /data
 logs
-dev.config.json
-prod.config.json

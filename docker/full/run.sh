@@ -14,9 +14,7 @@ if [ "$(ls -A /jsreport)" ]; then
   if [ ! -f "/jsreport/jsreport.config.json" ]; then
     cp "/app/jsreport.config.json" "/jsreport/jsreport.config.json"
   fi
-
-  ln -s "/jsreport/prod.config.json" "/app/prod.config.json"
-  ln -s "/jsreport/dev.config.json" "/app/dev.config.json"
+ 
   ln -s "/jsreport/license-key.txt" "/app/license-key.txt"
   ln -s "/jsreport/jsreport.license.json" "/app/jsreport.license.json"
 

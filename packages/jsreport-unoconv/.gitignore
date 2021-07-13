@@ -35,5 +35,3 @@ node_modules
 # jsreport files
 data
 logs
-dev.config.json
-prod.config.json

@@ -38,7 +38,7 @@ describe('studio', () => {
   it('allow customize studio browser title using values from reporter instance', async () => {
     await prepareReporter({
       // eslint-disable-next-line
-      title: 'version: ${jsreport.version}, mode: ${jsreport.options.mode}'
+      title: 'version: ${jsreport.version}'
     })
 
     const res = await request(reporter.express.app).get('/')
@@ -46,7 +46,7 @@ describe('studio', () => {
     const regexp = /<title>(.+)<\/title>/g
     const title = regexp.exec(html)[1]
 
-    should(title).be.eql(`version: ${reporter.version}, mode: ${reporter.options.mode}`)
+    should(title).be.eql(`version: ${reporter.version}`)
   })
 
   describe('theme', () => {

@@ -9,8 +9,7 @@ const { ignoreInitialSchemaProperties } = require('./optionsSchema')
 const {
   getDefaultLoadConfig,
   getDefaultTempDirectory,
-  getDefaultRootDirectory,
-  getDefaultMode
+  getDefaultRootDirectory
 } = require('./defaults')
 
 /**
@@ -110,14 +109,9 @@ async function loadConfig (defaults, options, loadExternal = true) {
   const nconfInstance = new nconf.Provider()
 
   let rootDirectory = options.rootDirectory || defaults.rootDirectory || getDefaultRootDirectory()
-  let mode = options.mode || getDefaultMode()
 
   if (options.rootDirectory) {
     loadedOptions.rootDirectory = options.rootDirectory
-  }
-
-  if (options.mode) {
-    loadedOptions.mode = options.mode
   }
 
   // we use `.defaults({ store: <value> }` because nconf has problems reading objects with `store`
@@ -193,10 +187,6 @@ async function loadConfig (defaults, options, loadExternal = true) {
     rootDirectory = nfn.get('rootDirectory')
   }
 
-  if (nfn.get('mode') != null) {
-    mode = nfn.get('mode')
-  }
-
   // the highest priority for applied config file has file specified using configFile option
   const configFileParam = nfn.get('configFile')
 
@@ -214,38 +204,9 @@ async function loadConfig (defaults, options, loadExternal = true) {
     if (nfn.get('rootDirectory') != null) {
       rootDirectory = nfn.get('rootDirectory')
     }
-
-    if (nfn.get('mode') != null) {
-      mode = nfn.get('mode')
-    }
   }
 
   if (loadExternal) {
-    // if the configFile was not specified, try to apply config file based on the mode
-    if (!appliedConfigFile) {
-      let envBasedConfigFile = 'dev.config.json'
-      if (mode === 'production') {
-        envBasedConfigFile = 'prod.config.json'
-      }
-
-      if (mode === 'test') {
-        envBasedConfigFile = 'test.config.json'
-      }
-
-      if (fs.existsSync(path.join(rootDirectory, envBasedConfigFile))) {
-        appliedConfigFile = envBasedConfigFile
-        nfn.file({ file: path.join(rootDirectory, envBasedConfigFile) })
-
-        if (nfn.get('rootDirectory') != null) {
-          rootDirectory = nfn.get('rootDirectory')
-        }
-
-        if (nfn.get('mode') != null) {
-          mode = nfn.get('mode')
-        }
-      }
-    }
-
     // no config file applied so far, lets try to apply the default jsreport.config.json
     if (!appliedConfigFile) {
       if (fs.existsSync(path.join(rootDirectory, 'jsreport.config.json'))) {
@@ -254,10 +215,6 @@ async function loadConfig (defaults, options, loadExternal = true) {
 
         if (nfn.get('rootDirectory') != null) {
           rootDirectory = nfn.get('rootDirectory')
-        }
-
-        if (nfn.get('mode') != null) {
-          mode = nfn.get('mode')
         }
       }
     }
@@ -272,7 +229,6 @@ async function loadConfig (defaults, options, loadExternal = true) {
   loadedOptions = extend(true, {}, options, loadedOptions)
 
   options.rootDirectory = rootDirectory
-  options.mode = mode
 
   return [loadedOptions, appliedConfigFile]
 }

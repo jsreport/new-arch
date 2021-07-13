@@ -15,7 +15,7 @@ module.exports = (reporter, definition) => {
   const diff2htmlStyle = fs.readFileSync(path.join(__dirname, '../static/diff.css')).toString()
   const mainCssFilename = findMainCssFilename()
   const extensionsJsChunkName = findExtensionsJsChunkName()
-  const themeManager = ThemeManager(reporter.options.mode !== 'jsreport-development', reporter.logger.warn)
+  const themeManager = ThemeManager(process.env.NODE_ENV !== 'jsreport-development', reporter.logger.warn)
 
   reporter.studio = {
     getAllThemes: themeManager.getAllThemes,
@@ -80,7 +80,7 @@ module.exports = (reporter, definition) => {
   reporter.on('express-configure', () => {
     const extsInNormalMode = []
 
-    if (reporter.options.mode !== 'jsreport-development') {
+    if (process.env.NODE_ENV !== 'jsreport-development') {
       let webpackJsWrap
 
       if (fs.existsSync(path.join(distPath, 'extensions.client.js'))) {
@@ -184,7 +184,7 @@ module.exports = (reporter, definition) => {
       }
     })
 
-    if (reporter.options.mode === 'jsreport-development') {
+    if (process.env.NODE_ENV === 'jsreport-development') {
       const webpack = require('jsreport-studio-dev').deps.webpack
 
       const webpackConfig = require('../webpack/dev.config')(
@@ -496,7 +496,7 @@ module.exports = (reporter, definition) => {
   })
 
   function findMainCssFilename () {
-    if (reporter.options.mode === 'jsreport-development') {
+    if (process.env.NODE_ENV === 'jsreport-development') {
       return 'main.dev.css'
     } else {
       const staticFiles = fs.readdirSync(distPath)
@@ -506,7 +506,7 @@ module.exports = (reporter, definition) => {
   }
 
   function findExtensionsJsChunkName () {
-    if (reporter.options.mode === 'jsreport-development') {
+    if (process.env.NODE_ENV === 'jsreport-development') {
       return 'studio-extensions.client.dev.js'
     } else {
       const staticFiles = fs.readdirSync(distPath)
@@ -587,7 +587,7 @@ module.exports = (reporter, definition) => {
       })
     }
 
-    if (reporter.options.mode === 'jsreport-development') {
+    if (process.env.NODE_ENV === 'jsreport-development') {
       tryRead()
     } else {
       fs.readFile(indexHtml, 'utf8', send)

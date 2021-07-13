@@ -30,7 +30,6 @@ module.exports = (reporter) => {
         const extensions = await discover({
           logger: reporter.logger,
           rootDirectory: reporter.options.rootDirectory,
-          mode: reporter.options.mode,
           tempCoreDirectory: reporter.options.tempCoreDirectory,
           useExtensionsLocationCache: reporter.options.useExtensionsLocationCache
         })

@@ -112,10 +112,6 @@ node_modules
 
 tools/snapshots
 
-# jsreport extra config files
-prod.config.json
-dev.config.json
-
 # exe compilation
 jsreportPkgConfig.json
 jsreportStartup.js

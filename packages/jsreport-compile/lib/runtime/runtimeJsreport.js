@@ -37,11 +37,9 @@ module.exports = (options) => {
       mkdirp.sync(path.dirname(jsreport.options.logger.file.filename))
     }
 
-    const defaultLevel = jsreport.options.mode === 'production' ? 'info' : 'debug'
-
     jsreport.options.logger.console = Object.assign({
       transport: 'console',
-      level: defaultLevel,
+      level: 'debug',
       timestamp: true,
       colorize: true
     }, jsreport.options.logger.console)
@@ -49,7 +47,7 @@ module.exports = (options) => {
     if (jsreport.options.logger.file) {
       jsreport.options.logger.file = Object.assign({
         transport: 'file',
-        level: defaultLevel,
+        level: 'debug',
         filename: 'logs/reporter.log',
         maxsize: 10485760,
         json: false

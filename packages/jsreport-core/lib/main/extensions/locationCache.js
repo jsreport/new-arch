@@ -8,7 +8,7 @@ module.exports = (config) => {
 
   return {
     async get () {
-      if (config.mode === 'jsreport-development' || config.useExtensionsLocationCache === false) {
+      if (process.env.NODE_ENV === 'jsreport-development' || config.useExtensionsLocationCache === false) {
         config.logger.info('Skipping extensions location cache when NODE_ENV=jsreport-development or when option useExtensionsLocationCache === false, crawling now')
 
         return fileUtils.walkSync(config.rootDirectory, 'jsreport.config.js')

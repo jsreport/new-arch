@@ -27,8 +27,6 @@ build/Release
 node_modules
 
 # configuration files
-dev.config.json
-prod.config.json
 jsreport.config.json
 
 .idea

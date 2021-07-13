@@ -25,11 +25,11 @@ async function run () {
 
   childProcess.execSync(`${packageManager} install`, { stdio: 'inherit' })
 
-  console.log(`copying files for executable compilation. ${packageManager === 'npm' ? 'node_modules' : 'packages'}/jsreport-cli/example.config.json -> dev.config.json, executable-license.txt -> license.txt`)
+  console.log(`copying files for executable compilation. ${packageManager === 'npm' ? 'node_modules' : 'packages'}/jsreport-cli/example.config.json -> jsreport.config.json, executable-license.txt -> license.txt`)
 
   const configFile = {
-    name: 'dev.config.json',
-    path: path.join(__dirname, 'dev.config.json')
+    name: 'jsreport.config.json',
+    path: path.join(__dirname, 'jsreport.config.json')
   }
 
   const licenseFile = {
@@ -123,7 +123,7 @@ function getResolutionsForDuplicatedPackages () {
     estraverse: '5.2.0',
     'bn.js': '5.2.0',
     'get-stream': '5.2.0',
-    fsevents: '2.3.2',
+    /* fsevents: '2.3.2', */
     chokidar: '3.5.1',
     cookie: '0.4.1',
     qs: '6.10.1',

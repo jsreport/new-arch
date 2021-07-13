@@ -9,8 +9,6 @@ if (fs.existsSync('c:\\jsreport')) {
     fs.copyFileSync('c:\\app\\jsreport.config.json', 'c:\\jsreport\\jsreport.config.json')
   }
 
-  fs.symlinkSync('c:\\jsreport\\prod.config.json', 'c:\\app\\prod.config.json')
-  fs.symlinkSync('c:\\jsreport\\dev.config.json', 'c:\\app\\dev.config.json')
   fs.symlinkSync('c:\\jsreport\\license-key.txt', 'c:\\app\\license-key.txt')
   fs.symlinkSync('c:\\jsreport\\jsreport.license.json', 'c:\\app\\jsreport.license.json')
 

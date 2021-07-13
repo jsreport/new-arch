@@ -36,6 +36,4 @@ node_modules
 .idea
 
 # configuration files
-dev.config.json
-prod.config.json
 jsreport.config.json

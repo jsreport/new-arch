@@ -9,10 +9,6 @@ exports.getDefaultRootDirectory = () => {
   return path.join(__dirname, '../../../../')
 }
 
-exports.getDefaultMode = () => {
-  return process.env.JSREPORT_ENV || process.env.NODE_ENV || 'development'
-}
-
 exports.getDefaultLoadConfig = () => {
   return false
 }

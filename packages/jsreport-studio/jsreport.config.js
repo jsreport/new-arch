@@ -13,7 +13,7 @@ module.exports = {
             type: 'string',
             description: 'The browser title that will be shown in studio, it accepts es6 template string for dynamic values',
             // eslint-disable-next-line no-template-curly-in-string
-            default: 'jsreport ${jsreport.version} ${jsreport.options.mode}'
+            default: 'jsreport ${jsreport.version}'
           },
           theme: {
             type: 'object',

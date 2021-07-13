@@ -1,5 +1,3 @@
 node_modules
 .git
-dev.config.json
-prod.config.json
 jsreport.config.json

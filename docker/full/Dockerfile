@@ -70,7 +70,6 @@ COPY docker/default/run.sh run.sh
 
 RUN chown -R jsreport:jsreport /app
 
-ENV NODE_ENV production
 ENV chrome_launchOptions_executablePath google-chrome-stable
 ENV chrome_launchOptions_args --no-sandbox,--disable-dev-shm-usage
 

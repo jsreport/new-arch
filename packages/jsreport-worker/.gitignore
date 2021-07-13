@@ -40,6 +40,4 @@ jspm_packages
 .idea
 
 # config
-dev.config.json
-prod.config.json
 jsreport.config.json

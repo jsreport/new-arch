@@ -41,8 +41,6 @@ webpack-assets.json
 webpack-stats.json
 npm-debug.log
 
-dev.config.json
-prod.config.json
 jsreport.config.json
 
 data

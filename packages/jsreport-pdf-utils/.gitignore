@@ -59,8 +59,6 @@ typings/
 .env
 
 # configuration files
-dev.config.json
-prod.config.json
 jsreport.config.json
 
 data

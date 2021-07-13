@@ -25,7 +25,6 @@ async function verifyLicenseKey (reporter, definition, key) {
   const count = await reporter.documentStore.collection('templates').count({})
   return processVerification(reporter, definition, {
     licenseKey: trimmedKey,
-    mode: reporter.options.mode,
     numberOfTemplates: count,
     version: reporter.version,
     hostId: hostId

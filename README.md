@@ -26,8 +26,6 @@ see [https://jsreport.net/on-prem](http://jsreport.net/on-prem)
 > **jsreport configure**<br/>
 > **jsreport start**
 
-To change environment use cmd `set NODE_ENV=development` or use options your IDE provides. If you don't specify node environment jsreport assumes `development` as default.
-
 ## Documentation
 
 see [https://jsreport.net/learn](https://jsreport.net/learn) for an overview of concepts, guides, clients and general documentation.

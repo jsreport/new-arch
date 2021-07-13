@@ -50,8 +50,6 @@ COPY --chown=jsreport:jsreport packages/jsreport-worker/build/package.build.json
 RUN yarn install --production
 COPY --chown=jsreport:jsreport packages/jsreport-worker /app
 
-ENV NODE_ENV production
-
 ENV extensions_browserClient /app/packages/jsreport-browser-client
 ENV extensions_chromePdf /app/packages/jsreport-chrome-pdf
 ENV extensions_docx /app/packages/jsreport-docx

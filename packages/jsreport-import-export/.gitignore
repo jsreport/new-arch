@@ -46,5 +46,3 @@ jspm_packages
 data
 
 jsreport.config.json
-dev.config.json
-prod.config.json
