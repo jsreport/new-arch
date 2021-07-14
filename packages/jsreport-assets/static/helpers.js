@@ -5,3 +5,5 @@ function asset (path, encoding) {
   const jsreport = require('jsreport-proxy')
   return jsreport.assets.read(path, encoding)
 }
+
+await require('jsreport-proxy').assets.evaluateShared(__topLevelFunctions)

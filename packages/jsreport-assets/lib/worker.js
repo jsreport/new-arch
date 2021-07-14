@@ -77,20 +77,6 @@ module.exports = (reporter, definition) => {
   reporter.beforeRenderListeners.insert({ after: 'scripts' }, definition.name, this, async (req, res) => {
     req.template.helpers += '\n' + assetHelpers
 
-    const sharedHelpersAssets = await reporter.documentStore.collection('assets').find({ isSharedHelper: true }, req)
-
-    if (sharedHelpersAssets.length > 0 && typeof req.template.helpers === 'object') {
-      reporter.logger.warn('Cannot add shared helpers when passing helpers as object', req)
-    } else {
-      const assetContents = await Promise.map(sharedHelpersAssets, (a) => readAsset(reporter, definition, a._id, null, 'utf8', req))
-      req.template.helpers = req.template.helpers || ''
-      assetContents.forEach((ac) => {
-        if (req.template.helpers.indexOf(ac.content) === -1) {
-          req.template.helpers += '\n' + ac.content
-        }
-      })
-    }
-
     req.template.content = await evaluateAssets(reporter, definition, req.template.content, req)
 
     if (req.template.helpers && typeof req.template.helpers === 'string') {
@@ -124,13 +110,37 @@ module.exports = (reporter, definition) => {
         return r.content
       },
 
+      evaluateShared: async (__additionalTopLevelFunctions) => {
+        const sharedHelpersAssets = await reporter.documentStore.collection('assets').find({ isSharedHelper: true }, req)
+        for (const a of sharedHelpersAssets) {
+          const asset = await readAsset(reporter, definition, a._id, null, 'utf8', req)
+          const functionNames = getTopLevelFunctions(asset.content.toString(), {})
+          const userCode = `(() => { ${asset.content.toString()}; 
+            __topLevelFunctions = {...__topLevelFunctions, ${functionNames.map(h => `"${h}": ${h}`).join(',')}}
+            })()`
+          await runInSandbox(userCode, {
+            filename: a.name,
+            source: userCode
+          })
+        }
+      },
+
+      registerHelpers: async (path) => {
+        const asset = await readAsset(reporter, definition, null, path, 'utf8', req)
+
+        const functionNames = getTopLevelFunctions(asset.content.toString(), {})
+        const userCode = `(() => { ${asset.content.toString()}; 
+            __topLevelFunctions = {...__topLevelFunctions, ${functionNames.map(h => `"${h}": ${h}`).join(',')}}
+            })()`
+        await runInSandbox(userCode, {
+          filename: asset.name,
+          source: userCode
+        })
+      },
+
       require: async (path) => {
         const r = await readAsset(reporter, definition, null, path, 'utf8', req)
 
-        // here we are outside of the vm2, so we can't simply do new Function(userCode)
-
-        // APPROACH 1 - use existing vm2
-        // problem is that the error doesn't rise here but in the outer vm2 script, so we don't get proper error message
         const userCode = [
           `;(() => { function moduleWrap(exports, require, module, __filename, __dirname) { ${r.content} \n};\n`,
           `const m = { exports: { }};
@@ -145,27 +155,46 @@ module.exports = (reporter, definition) => {
         })
 
         return result
-
-        // I tried also the "nesting" option for the vm2, but it didn't solve the problem, although I may used it wrongly
-
-        // APPROACH 2 - use new v2
-        // same problem as the previous approach
-        // the nodejs vm doesn't have this problem, when I run one script that calls dynamic code creating another script which throws, I am still able to catch the inner one
-        /* const userCode = `function evaluate() { function moduleWrap(exports, require, module, __filename, __dirname) { ${r.content} };
-          const m = { exports: { }};
-          const r = moduleWrap(m.exports, require, m);
-          return m.exports;
-        }
-        `
-
-        return await reporter.runInSandbox({
-          context,
-          userCode,
-          executionFn: ({ topLevelFunctions }) => {
-            return topLevelFunctions.evaluate()
-          }
-        }, req) */
       }
     }
   })
+}
+
+function getTopLevelFunctions (code) {
+  // lazy load to speed up boot
+  const parser = require('@babel/parser')
+  const traverse = require('@babel/traverse').default
+
+  const names = []
+  try {
+    const ast = parser.parse(code, {
+      sourceType: 'script',
+      allowReturnOutsideFunction: false,
+      allowAwaitOutsideFunction: true,
+      plugins: [
+        'classProperties',
+        'classPrivateProperties',
+        'classPrivateMethods',
+        'doExpressions',
+        'functionBind',
+        'throwExpressions',
+        'topLevelAwait'
+      ]
+    })
+
+    // traverse only function declaration that are defined
+    // at the top level of program
+    traverse(ast, {
+      FunctionDeclaration: (path) => {
+        if (path.parent.type === 'Program') {
+          names.push(path.node.id.name)
+        }
+      }
+    })
+  } catch (e) {
+    // we let the error handling for later eval
+    return []
+  }
+
+  return names
 }

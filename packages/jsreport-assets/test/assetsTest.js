@@ -67,6 +67,32 @@ describe('assets', function () {
     res.content.toString().should.be.eql('hello')
   })
 
+  it('should extract static asset which is marked as shared helper and dont break stack traces', async () => {
+    await reporter.documentStore.collection('assets').insert({
+      name: 'foo.js',
+      isSharedHelper: true,
+      content: `async function foo() {  
+        await new Promise((resolve, reject) => {
+          reject(new Error('fail'))
+        }, 100) 
+      }`
+    })
+
+    try {
+      await reporter.render({
+        template: {
+          content: '{{:~foo()}}',
+          recipe: 'html',
+          engine: 'jsrender'
+        }
+      })
+      throw new Error('should have failed')
+    } catch (e) {
+      e.entity.name.should.be.eql('foo.js')
+      e.lineNumber.should.be.eql(3)
+    }
+  })
+
   it('should extract static asset as base64 when @encoding=base64', async () => {
     await reporter.documentStore.collection('assets').insert({
       name: 'foo.html',
@@ -1180,26 +1206,52 @@ describe('assets', function () {
         }`
       })
 
+      await reporter.documentStore.collection('templates').insert({
+        name: 'mytemplate',
+        content: '{{:~helper()}}',
+        recipe: 'html',
+        engine: 'jsrender',
+        helpers: `
+          const jsreport = require('jsreport-proxy')
+          const foo = await jsreport.assets.require('foo.js')
+          function helper() {
+            return foo.fn()
+          }
+        `
+      })
+
       try {
         await reporter.render({
-          template: {
-            content: '{{:~helper()}}',
-            recipe: 'html',
-            engine: 'jsrender',
-            helpers: `
-              const jsreport = require('jsreport-proxy')
-              const foo = await jsreport.assets.require('foo.js')
-              function helper() {
-                return foo.fn()
-              }
-            `
-          }
+          template: { name: 'mytemplate' }
         })
         throw new Error('should have failed')
       } catch (e) {
         e.message.should.containEql('throw new Error')
         e.lineNumber.should.be.eql(2)
+        e.entity.name.should.be.eql('foo.js')
       }
+    })
+
+    it('should expose jsreport.assets.registerHelpers', async () => {
+      await reporter.documentStore.collection('assets').insert({
+        name: 'foo.js',
+        content: `function fn() {
+          return new Promise((resolve) => setTimeout(() => resolve('foo'), 100))
+        }`
+      })
+
+      const res = await reporter.render({
+        template: {
+          content: '{{:~fn()}}',
+          recipe: 'html',
+          engine: 'jsrender',
+          helpers: `
+            const jsreport = require('jsreport-proxy')
+            await jsreport.assets.registerHelpers('foo.js')            
+          `
+        }
+      })
+      res.content.toString().should.be.eql('foo')
     })
   })
 })

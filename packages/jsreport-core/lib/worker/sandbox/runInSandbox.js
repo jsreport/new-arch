@@ -23,6 +23,7 @@ module.exports = (reporter) => {
     context.__rootDirectory = reporter.options.rootDirectory
     context.__parentModuleDirectory = reporter.options.parentModuleDirectory
     context.setTimeout = setTimeout
+    context.__topLevelFunctions = {}
     context.__handleError = (err) => handleError(reporter, err)
 
     const { run, restore, sandbox } = safeSandbox(context, {
@@ -67,11 +68,14 @@ module.exports = (reporter) => {
     const functionsCode = `return {${functionNames.map(h => `"${h}": ${h}`).join(',')}}`
     const executionCode = `;(async () => { ${userCode}; ${functionsCode} })()
         .then((topLevelFunctions) => ${executionFnName}({
-            topLevelFunctions,
+            topLevelFunctions: {
+                ...topLevelFunctions,
+                ...__topLevelFunctions 
+            },
             require,
             console,
             restore: __restore,
-            context: this
+            context: this            
         })).catch(__handleError);`
 
     return run(executionCode, {
