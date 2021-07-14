@@ -21,6 +21,10 @@ module.exports = (reporter) => {
   const profilerAppendChain = new Map()
 
   async function emitProfiles (events, req) {
+    if (events.length === 0) {
+      return
+    }
+
     for (const m of events) {
       if (m.type === 'log') {
         reporter.logger[m.level](m.message, { ...req, ...m.meta, timestamp: m.timestamp })
