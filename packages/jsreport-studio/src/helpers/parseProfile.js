@@ -20,11 +20,12 @@ async function parseProfile (profileStreamReader, onProfileMessage) {
 
     if (pending !== '') {
       chunkStr = pending + chunkStr
+      pending = ''
     }
 
     let messages = chunkStr.split('\n')
 
-    if (messages.length > 1 && messages[messages.length - 1] !== '') {
+    if (messages.length > 0 && messages[messages.length - 1] !== '') {
       pending = messages.pop()
     }
 
