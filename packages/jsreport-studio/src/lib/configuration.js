@@ -83,6 +83,21 @@ export let subscribeToThemeChange = (fn) => {
   return () => { _themeChangedListeners = _themeChangedListeners.filter((s) => s !== fn) }
 }
 
+export let _tabActiveHandlers = []
+
+export let subscribeToTabActiveEvent = (el, fnHandler) => {
+  const handler = {
+    el,
+    fn: fnHandler
+  }
+
+  _tabActiveHandlers.push(handler)
+
+  return () => {
+    _tabActiveHandlers = _tabActiveHandlers.filter(h => h !== handler)
+  }
+}
+
 export let triggerThemeChange = (data) => { _themeChangedListeners.forEach((fn) => fn(data)) }
 
 export let referencesLoader = null
@@ -97,5 +112,3 @@ export function rootPath () {
   let _rootPath = window.location.pathname.indexOf('/studio') === -1 ? window.location.pathname : window.location.pathname.substring(0, window.location.pathname.indexOf('/studio'))
   return _rootPath[_rootPath.length - 1] === '/' ? _rootPath.substring(0, _rootPath.length - 1) : _rootPath
 }
-
-export let sharedComponents = {}

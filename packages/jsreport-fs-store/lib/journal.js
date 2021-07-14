@@ -18,6 +18,10 @@ module.exports = ({
 
     const versionInFile = (await fs.readFile('fs.version')).toString()
 
+    if (versionInFile.trim() === '') {
+      return 0
+    }
+
     return parseInt(versionInFile, 10)
   }
 

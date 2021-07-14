@@ -433,9 +433,9 @@ class Studio {
    * Open and activate new editor tab
    *
    * @example
-   * //open entity editor
+   * // open entity editor
    * Studio.openTab({ _id: 'myentityid' })
-   * //open custom page
+   * // open custom page
    * Studio.openTab({ key: 'StartupPage', editorComponentKey: 'startup', title: 'Statup' })
    *
    * @param {Object} tab
@@ -670,11 +670,6 @@ class Studio {
    */
   resolveEntityPath (entity) {
     return storeMethods.resolveEntityPath(entity)
-  }
-
-  relativizeUrl (path) {
-    console.trace('relativizeUrl is deprecated, use resolveUrl')
-    return resolveUrl(path)
   }
 
   /**

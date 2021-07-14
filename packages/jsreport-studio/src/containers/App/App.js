@@ -11,14 +11,14 @@ import Toolbar from '../../components/Toolbar/Toolbar'
 import SplitPane from '../../components/common/SplitPane/SplitPane'
 import EditorTabs from '../../components/Tabs/EditorTabs'
 import TabTitles from '../../components/Tabs/TabTitles'
-import { openTab, activateUndockMode, desactivateUndockMode } from '../../redux/editor/actions'
+import { openTab, desactivateUndockMode } from '../../redux/editor/actions'
 import storeMethods from '../../redux/methods'
 import Modal from '../Modal/Modal'
 import RestoreDockConfirmationModal from '../../components/Modals/RestoreDockConfirmationModal'
 import { openModal } from '../../helpers/openModal'
 import openStartup from '../../helpers/openStartup'
 import runLastActiveTemplate from '../../helpers/runLastActiveTemplate'
-import { previewWindows, getPreviewWindowOptions } from '../../helpers/previewWindow'
+import { openPreviewWindow, previewWindows, getPreviewWindowOptions } from '../../helpers/previewWindow'
 
 import {
   registerCollapseLeftHandler,
@@ -33,11 +33,11 @@ class App extends Component {
     this.leftPaneRef = React.createRef()
     this.previewPaneRef = React.createRef()
 
-    this.handlePreviewCollapsing = this.handlePreviewCollapsing.bind(this)
-    this.handlePreviewDocking = this.handlePreviewDocking.bind(this)
-    this.handlePreviewUndocking = this.handlePreviewUndocking.bind(this)
-    this.handlePreviewUndocked = this.handlePreviewUndocked.bind(this)
     this.isPreviewUndockeable = this.isPreviewUndockeable.bind(this)
+    this.handlePreviewCollapsing = this.handlePreviewCollapsing.bind(this)
+    this.handlePreviewBeforeCollapseChange = this.handlePreviewBeforeCollapseChange.bind(this)
+    this.handlePreviewCollapseChange = this.handlePreviewCollapseChange.bind(this)
+    this.renderCollapsedIcon = this.renderCollapsedIcon.bind(this)
   }
 
   componentDidMount () {
@@ -106,39 +106,58 @@ class App extends Component {
     return true
   }
 
-  handlePreviewDocking () {
-    // close all preview windows when docking
-    if (Object.keys(previewWindows).length) {
-      Object.keys(previewWindows).forEach((id) => {
-        if (previewWindows[id] != null) {
-          previewWindows[id].close()
-          delete previewWindows[id]
-        }
-      })
-    }
+  handlePreviewBeforeCollapseChange (collapsed) {
+    const isUndockeable = this.isPreviewUndockeable()
+    const undockMode = storeMethods.getEditorUndockMode()
 
-    this.props.desactivateUndockMode()
+    if (isUndockeable && undockMode && !collapsed) {
+      // close all preview windows when docking
+      if (Object.keys(previewWindows).length) {
+        Object.keys(previewWindows).forEach((id) => {
+          if (previewWindows[id] != null) {
+            previewWindows[id].close()
+            delete previewWindows[id]
+          }
+        })
+      }
+
+      this.props.desactivateUndockMode()
+    }
   }
 
-  handlePreviewUndocking () {
-    const activeTabWithEntity = storeMethods.getEditorActiveTabWithEntity()
-    const lastActiveTemplate = storeMethods.getEditorLastActiveTemplate()
+  handlePreviewCollapseChange (collapsed) {
+    const isUndockeable = this.isPreviewUndockeable()
+    const undockMode = storeMethods.getEditorUndockMode()
 
-    if (
-      activeTabWithEntity &&
-      activeTabWithEntity.entity &&
-      activeTabWithEntity.entity.__entitySet === 'templates'
-    ) {
-      this.props.activateUndockMode()
+    if (isUndockeable && undockMode && collapsed) {
+      const lastActiveTemplate = storeMethods.getEditorLastActiveTemplate()
+      const windowOpts = getPreviewWindowOptions(lastActiveTemplate != null ? lastActiveTemplate.shortid : undefined)
 
-      return getPreviewWindowOptions(lastActiveTemplate != null ? lastActiveTemplate.shortid : undefined)
+      if (!windowOpts) {
+        return
+      }
+
+      // opening the window when setState is done..
+      // giving it the chance to clear the previous iframe
+      openPreviewWindow(windowOpts)
+      runLastActiveTemplate()
     }
-
-    return false
   }
 
-  handlePreviewUndocked () {
-    runLastActiveTemplate()
+  renderCollapsedIcon () {
+    const isUndockeable = this.isPreviewUndockeable()
+    const undockMode = storeMethods.getEditorUndockMode()
+
+    if (!isUndockeable || !undockMode) {
+      return null
+    }
+
+    return (
+      <span>
+        <i className='fa fa-window-maximize' />
+        {' '}
+      </span>
+    )
   }
 
   render () {
@@ -173,12 +192,11 @@ class App extends Component {
                       ref={this.previewPaneRef}
                       primary='second'
                       collapsedText='preview'
+                      renderCollapsedIcon={this.renderCollapsedIcon}
                       collapsable='second'
-                      undockeable={this.isPreviewUndockeable}
                       onCollapsing={this.handlePreviewCollapsing}
-                      onDocking={this.handlePreviewDocking}
-                      onUndocking={this.handlePreviewUndocking}
-                      onUndocked={this.handlePreviewUndocked}
+                      onBeforeCollapseChange={this.handlePreviewBeforeCollapseChange}
+                      onCollapseChange={this.handlePreviewCollapseChange}
                       resizerClassName='resizer'
                     >
                       <EditorTabs />
@@ -197,6 +215,5 @@ class App extends Component {
 
 export default connect(undefined, {
   openTab,
-  activateUndockMode,
   desactivateUndockMode
 })(App)

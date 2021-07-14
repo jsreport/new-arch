@@ -3,7 +3,6 @@ import PropTypes from 'prop-types'
 import React, { Component } from 'react'
 import Pane from './Pane'
 import Resizer from './Resizer'
-import { openPreviewWindow } from '../../../helpers/previewWindow'
 import { _splitResizeHandlers } from '../../../lib/configuration'
 
 class SplitPane extends Component {
@@ -26,32 +25,6 @@ class SplitPane extends Component {
     this.onMouseDown = this.onMouseDown.bind(this)
     this.onMouseMove = this.onMouseMove.bind(this)
     this.onMouseUp = this.onMouseUp.bind(this)
-  }
-
-  static propTypes = {
-    primary: PropTypes.oneOf(['first', 'second']),
-    minSize: PropTypes.number,
-    defaultSize: PropTypes.string,
-    size: PropTypes.number,
-    allowResize: PropTypes.bool,
-    resizerClassName: PropTypes.string,
-    split: PropTypes.oneOf(['vertical', 'horizontal']),
-    onDragStarted: PropTypes.func,
-    onDragFinished: PropTypes.func,
-    onCollapsing: PropTypes.func,
-    onDocking: PropTypes.func,
-    onUndocking: PropTypes.func,
-    onUndocked: PropTypes.func
-  }
-
-  static defaultProps = {
-    split: 'vertical',
-    minSize: 50,
-    allowResize: true,
-    primary: 'first',
-    collapsable: 'second',
-    undockeable: false,
-    defaultSize: '50%'
   }
 
   componentDidMount () {
@@ -110,30 +83,18 @@ class SplitPane extends Component {
         }
 
         return this.props.onCollapsing(...payload)
+      } else if (eventName === 'beforeCollapseChange') {
+        if (typeof this.props.onBeforeCollapseChange !== 'function') {
+          return
+        }
+
+        return this.props.onBeforeCollapseChange(...payload)
       } else if (eventName === 'collapseChange') {
         if (typeof this.props.onCollapseChange !== 'function') {
           return
         }
 
         return this.props.onCollapseChange(...payload)
-      } else if (eventName === 'docking') {
-        if (typeof this.props.onDocking !== 'function') {
-          return
-        }
-
-        return this.props.onDocking(...payload)
-      } else if (eventName === 'undocking') {
-        if (typeof this.props.onUndocking !== 'function') {
-          return
-        }
-
-        return this.props.onUndocking(...payload)
-      } else if (eventName === 'undocked') {
-        if (typeof this.props.onUndocked !== 'function') {
-          return
-        }
-
-        return this.props.onUndocked(...payload)
       }
     } finally {
       const listeners = this.getExternalEventListeners(eventName)
@@ -170,7 +131,7 @@ class SplitPane extends Component {
     Object.assign(into, obj)
   }
 
-  collapse (v, undockeable, undocked) {
+  collapse (v) {
     const shouldCollapseAsync = (this.props.onCollapsing != null) ? this.triggerEvent('collapsing', v) : true
 
     Promise.resolve(shouldCollapseAsync).then((shouldCollapse) => {
@@ -200,16 +161,13 @@ class SplitPane extends Component {
           resized: true,
           collapsed: v,
           draggedSize: this.lastSize,
-          position: this.lastSize,
-          undocked: undocked
+          position: this.lastSize
         }
 
-        if (undockeable && undocked === false) {
-          this.triggerEvent('docking')
-        }
+        this.triggerEvent('beforeCollapseChange', v)
 
         this.setState(stateToUpdate, () => {
-          this.triggerEvent('collapseChange')
+          this.triggerEvent('collapseChange', v)
         })
       } else {
         if (ref1) {
@@ -224,54 +182,26 @@ class SplitPane extends Component {
           collapsed: v,
           resized: true,
           draggedSize: undefined,
-          position: undefined,
-          undocked: undocked
+          position: undefined
         }
 
-        if (undockeable && undocked === true) {
-          const windowOpts = (this.props.onUndocking != null) ? this.triggerEvent('undocking') : null
+        this.triggerEvent('beforeCollapseChange', v)
 
-          if (!windowOpts) {
-            return
-          }
-
-          if (ref1) {
-            ref1.setState({
-              size: undefined
-            })
-          }
-
-          if (ref2) {
-            ref2.setState({
-              size: 0
-            })
-          }
-
-          this.setState(stateToUpdate, () => {
-            // opening the window when setState is done..
-            // giving it the chance to clear the previous iframe
-            const nWindow = openPreviewWindow(windowOpts)
-
-            this.triggerEvent('undocked', windowOpts.id, nWindow)
-            this.triggerEvent('collapseChange')
-          })
-        } else {
-          if (ref1) {
-            ref1.setState({
-              size: undefined
-            })
-          }
-
-          if (ref2) {
-            ref2.setState({
-              size: 0
-            })
-          }
-
-          this.setState(stateToUpdate, () => {
-            this.triggerEvent('collapseChange')
+        if (ref1) {
+          ref1.setState({
+            size: undefined
           })
         }
+
+        if (ref2) {
+          ref2.setState({
+            size: 0
+          })
+        }
+
+        this.setState(stateToUpdate, () => {
+          this.triggerEvent('collapseChange', v)
+        })
       }
 
       this.triggerEvent('dragFinished')
@@ -350,23 +280,8 @@ class SplitPane extends Component {
     }
   }
 
-  renderPane (type, undockeable, pane) {
-    const { collapsable } = this.props
-    const { undocked } = this.state
-
-    if (collapsable === type) {
-      if (!undockeable) {
-        return pane
-      }
-
-      if (undocked) {
-        return null
-      }
-
-      return pane
-    } else {
-      return pane
-    }
+  renderPane (type, pane) {
+    return pane
   }
 
   render () {
@@ -374,12 +289,12 @@ class SplitPane extends Component {
       split,
       allowResize,
       resizerClassName,
+      renderCollapsedIcon,
       collapsedText,
-      collapsable,
-      undockeable
+      collapsable
     } = this.props
 
-    const { collapsed, undocked } = this.state
+    const { collapsed } = this.state
     const disabledClass = allowResize ? '' : 'disabled'
 
     const style = {
@@ -406,19 +321,18 @@ class SplitPane extends Component {
 
     const children = this.props.children
     const classes = ['SplitPane', this.props.className, split, disabledClass]
-    const undockSupported = (typeof undockeable === 'function' ? undockeable() : undockeable)
 
     return (
       <div className={classes.join(' ')} style={style} ref={this.splitPaneRef}>
         {this.renderPane(
           'first',
-          undockSupported,
           <Pane ref={this.pane1Ref} key='pane1' className='Pane1' split={split}>{children[0]}</Pane>
         )}
         <Resizer
           ref={this.resizerRef}
           key='resizer'
           collapsable={collapsable}
+          renderCollapsedIcon={renderCollapsedIcon}
           collapsedText={collapsedText}
           className={disabledClass + ' ' + resizerClassName}
           // eslint-disable-next-line
@@ -426,17 +340,38 @@ class SplitPane extends Component {
           collapsed={collapsed}
           split={split}
           collapse={this.collapse}
-          undockeable={undockSupported}
-          undocked={undocked}
         />
         {this.renderPane(
           'second',
-          undockSupported,
           <Pane ref={this.pane2Ref} key='pane2' className='Pane2' split={split}>{children[1]}</Pane>
         )}
       </div>
     )
   }
+}
+
+SplitPane.propTypes = {
+  primary: PropTypes.oneOf(['first', 'second']),
+  minSize: PropTypes.number,
+  defaultSize: PropTypes.string,
+  size: PropTypes.number,
+  allowResize: PropTypes.bool,
+  resizerClassName: PropTypes.string,
+  split: PropTypes.oneOf(['vertical', 'horizontal']),
+  onDragStarted: PropTypes.func,
+  onDragFinished: PropTypes.func,
+  onCollapsing: PropTypes.func,
+  onBeforeCollapseChange: PropTypes.func,
+  onCollapseChange: PropTypes.func
+}
+
+SplitPane.defaultProps = {
+  split: 'vertical',
+  minSize: 50,
+  allowResize: true,
+  primary: 'first',
+  collapsable: 'second',
+  defaultSize: '50%'
 }
 
 export default SplitPane

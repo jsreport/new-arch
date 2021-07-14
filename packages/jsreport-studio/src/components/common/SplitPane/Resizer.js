@@ -20,9 +20,8 @@ class Resizer extends Component {
       collapsed,
       collapse,
       collapsedText,
-      collapsable,
-      undocked,
-      undockeable
+      renderCollapsedIcon,
+      collapsable
     } = this.props
 
     const classes = ['Resizer', split, className]
@@ -31,12 +30,9 @@ class Resizer extends Component {
 
     if (collapsed) {
       toggleButtonEl = (
-        <div className='pane-holder' onClick={(e) => collapse(false, undockeable, undocked ? false : null)}>
-          {undockeable && undocked && (
-            <span>
-              <i className='fa fa-window-maximize' />
-              {' '}
-            </span>
+        <div className='pane-holder' onClick={(e) => collapse(false)}>
+          {renderCollapsedIcon != null && (
+            renderCollapsedIcon()
           )}
           {collapsedText}
         </div>
@@ -46,7 +42,7 @@ class Resizer extends Component {
         <div
           title='Minimize pane'
           className={'docker ' + (collapsable === 'first' ? 'left' : '')}
-          onClick={(e) => collapse(true, undockeable, null)}
+          onClick={(e) => collapse(true)}
         >
           <i className={'fa ' + (collapsable === 'first' ? 'fa-long-arrow-left' : 'fa-long-arrow-right')} />
         </div>
@@ -61,16 +57,6 @@ class Resizer extends Component {
       >
         <div className='resizer-line' />
         {toggleButtonEl}
-        {!collapsed && undockeable && (
-          <div
-            title='Undock preview pane into extra browser tab'
-            className={'docker ' + (collapsable === 'first' ? 'left' : '')}
-            style={{ top: '35px' }}
-            onClick={(e) => collapse(true, undockeable, true)}
-          >
-            <i className='fa fa-window-restore' />
-          </div>
-        )}
       </div>
     )
   }
