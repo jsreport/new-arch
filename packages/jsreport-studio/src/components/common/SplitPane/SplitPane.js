@@ -3,7 +3,6 @@ import PropTypes from 'prop-types'
 import React, { Component } from 'react'
 import Pane from './Pane'
 import Resizer from './Resizer'
-import { openPreviewWindow } from '../../../helpers/previewWindow'
 import { _splitResizeHandlers } from '../../../lib/configuration'
 
 class SplitPane extends Component {
@@ -26,30 +25,6 @@ class SplitPane extends Component {
     this.onMouseDown = this.onMouseDown.bind(this)
     this.onMouseMove = this.onMouseMove.bind(this)
     this.onMouseUp = this.onMouseUp.bind(this)
-  }
-
-  static propTypes = {
-    primary: PropTypes.oneOf(['first', 'second']),
-    minSize: PropTypes.number,
-    defaultSize: PropTypes.string,
-    size: PropTypes.number,
-    allowResize: PropTypes.bool,
-    resizerClassName: PropTypes.string,
-    split: PropTypes.oneOf(['vertical', 'horizontal']),
-    onDragStarted: PropTypes.func,
-    onDragFinished: PropTypes.func,
-    onCollapsing: PropTypes.func,
-    onBeforeCollapseChange: PropTypes.func,
-    onCollapseChange: PropTypes.func
-  }
-
-  static defaultProps = {
-    split: 'vertical',
-    minSize: 50,
-    allowResize: true,
-    primary: 'first',
-    collapsable: 'second',
-    defaultSize: '50%'
   }
 
   componentDidMount () {
@@ -108,7 +83,7 @@ class SplitPane extends Component {
         }
 
         return this.props.onCollapsing(...payload)
-      } else if (eventName === 'beforeCollapseChange')  {
+      } else if (eventName === 'beforeCollapseChange') {
         if (typeof this.props.onBeforeCollapseChange !== 'function') {
           return
         }
@@ -373,6 +348,30 @@ class SplitPane extends Component {
       </div>
     )
   }
+}
+
+SplitPane.propTypes = {
+  primary: PropTypes.oneOf(['first', 'second']),
+  minSize: PropTypes.number,
+  defaultSize: PropTypes.string,
+  size: PropTypes.number,
+  allowResize: PropTypes.bool,
+  resizerClassName: PropTypes.string,
+  split: PropTypes.oneOf(['vertical', 'horizontal']),
+  onDragStarted: PropTypes.func,
+  onDragFinished: PropTypes.func,
+  onCollapsing: PropTypes.func,
+  onBeforeCollapseChange: PropTypes.func,
+  onCollapseChange: PropTypes.func
+}
+
+SplitPane.defaultProps = {
+  split: 'vertical',
+  minSize: 50,
+  allowResize: true,
+  primary: 'first',
+  collapsable: 'second',
+  defaultSize: '50%'
 }
 
 export default SplitPane

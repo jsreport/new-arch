@@ -9,7 +9,14 @@ import { reformat } from '../../redux/editor/actions'
 import reformatter from '../../helpers/reformatter'
 import { getCurrentTheme } from '../../helpers/theme'
 import LinterWorker from './workers/linter.worker'
-import { textEditorInstances, textEditorInitializeListeners, textEditorCreatedListeners, subscribeToThemeChange, subscribeToSplitPaneEvents } from '../../lib/configuration.js'
+import {
+  textEditorInstances,
+  textEditorInitializeListeners,
+  textEditorCreatedListeners,
+  subscribeToThemeChange,
+  subscribeToSplitPaneEvents,
+  subscribeToTabActiveEvent
+} from '../../lib/configuration'
 
 const lastTextEditorMounted = {
   timeoutId: null,
@@ -17,14 +24,6 @@ const lastTextEditorMounted = {
 }
 
 class TextEditor extends Component {
-  static propTypes = {
-    readOnly: PropTypes.bool,
-    value: PropTypes.string,
-    onUpdate: PropTypes.func.isRequired,
-    mode: PropTypes.string.isRequired,
-    name: PropTypes.string.isRequired
-  }
-
   constructor (props) {
     super(props)
 
@@ -51,10 +50,12 @@ class TextEditor extends Component {
       trailing: true
     })
 
-    this.unsubscribe = subscribeToSplitPaneEvents(this.monacoRef.current.containerElement, {
+    this.unsubscribeSplitPaneEvents = subscribeToSplitPaneEvents(this.monacoRef.current.containerElement, {
       change: this.throttledCalculateEditorLayout,
       collapseChange: this.calculateEditorLayout
     })
+
+    this.unsubscribeTabActiveEvent = subscribeToTabActiveEvent(this.monacoRef.current.containerElement, this.calculateEditorLayout)
 
     window.addEventListener('resize', this.throttledCalculateEditorLayout)
 
@@ -87,7 +88,8 @@ class TextEditor extends Component {
 
     this.oldCode = null
 
-    this.unsubscribe()
+    this.unsubscribeSplitPaneEvents()
+    this.unsubscribeTabActiveEvent()
 
     window.removeEventListener('resize', this.throttledCalculateEditorLayout)
 
@@ -474,6 +476,14 @@ class TextEditor extends Component {
       />
     )
   }
+}
+
+TextEditor.propTypes = {
+  readOnly: PropTypes.bool,
+  value: PropTypes.string,
+  onUpdate: PropTypes.func.isRequired,
+  mode: PropTypes.string.isRequired,
+  name: PropTypes.string.isRequired
 }
 
 export default connect(undefined, {

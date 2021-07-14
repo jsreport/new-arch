@@ -83,6 +83,21 @@ export let subscribeToThemeChange = (fn) => {
   return () => { _themeChangedListeners = _themeChangedListeners.filter((s) => s !== fn) }
 }
 
+export let _tabActiveHandlers = []
+
+export let subscribeToTabActiveEvent = (el, fnHandler) => {
+  const handler = {
+    el,
+    fn: fnHandler
+  }
+
+  _tabActiveHandlers.push(handler)
+
+  return () => {
+    _tabActiveHandlers = _tabActiveHandlers.filter(h => h !== handler)
+  }
+}
+
 export let triggerThemeChange = (data) => { _themeChangedListeners.forEach((fn) => fn(data)) }
 
 export let referencesLoader = null

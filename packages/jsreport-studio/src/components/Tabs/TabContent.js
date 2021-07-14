@@ -1,6 +1,23 @@
 import React, { Component } from 'react'
+import { _tabActiveHandlers } from '../../lib/configuration'
 
 class TabContent extends Component {
+  constructor (props) {
+    super(props)
+    this.tabRef = React.createRef()
+  }
+
+  componentDidUpdate (prevProps) {
+    if (this.props.active && !prevProps.active) {
+      for (const handler of _tabActiveHandlers) {
+        if (this.tabRef.current.contains(handler.el)) {
+          console.log('running tab active listener')
+          handler.fn()
+        }
+      }
+    }
+  }
+
   shouldComponentUpdate (nextProps) {
     return this.props.active || nextProps.active
   }
@@ -9,7 +26,7 @@ class TabContent extends Component {
     const { active } = this.props
 
     return (
-      <div className='block' style={{ display: active ? 'flex' : 'none' }}>
+      <div ref={this.tabRef} className='block' style={{ display: active ? 'flex' : 'none' }}>
         {this.props.children}
       </div>
     )
