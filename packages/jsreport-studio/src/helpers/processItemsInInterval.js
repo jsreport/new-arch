@@ -13,7 +13,14 @@ function processItemsInInterval ({ baseInterval, queue, fulfilledCheck, handler 
     let nextInterval = baseInterval
 
     if (queue.length > 0) {
-      const nextIntervalFromHandler = handler(queue, isFulfilled)
+      let nextIntervalFromHandler
+
+      try {
+        nextIntervalFromHandler = handler(queue, isFulfilled)
+      } catch (handlerErr) {
+        processingExecution.reject(handlerErr)
+        return
+      }
 
       if (nextIntervalFromHandler != null) {
         nextInterval = nextIntervalFromHandler

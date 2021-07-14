@@ -64,15 +64,7 @@ async function openProfileFromStreamReader (getStreamReader, templateInfo) {
       }
 
       for (const rawMessage of toProcess) {
-        let message
-
-        try {
-          message = JSON.parse(rawMessage)
-        } catch (e) {
-          console.error(`Unable to parse profile message. raw: ${rawMessage}`, e)
-          continue
-        }
-
+        const message = JSON.parse(rawMessage)
         previewData = addProfileEvent(previewData, message)
       }
 
@@ -101,11 +93,39 @@ async function openProfileFromStreamReader (getStreamReader, templateInfo) {
   }
 
   parsing = false
-  await messagesProcessingPromise
 
-  if (parseErr) {
-    methods.updatePreview(previewId, { completed: true })
-    throw parseErr
+  let processingErr
+
+  try {
+    await messagesProcessingPromise
+  } catch (err) {
+    const newError = new Error(`Failed to process/parse a message in profile. ${err.message}`)
+    Object.assign(newError, err)
+    processingErr = newError
+  }
+
+  if (parseErr || processingErr) {
+    const errorMsg = parseErr ? parseErr.message : processingErr.messages
+    const errorStack = parseErr ? parseErr.stack : processingErr.stack
+
+    previewData = addProfileEvent(previewData, {
+      type: 'error',
+      message: errorMsg,
+      stack: errorStack
+    })
+
+    methods.updatePreview(previewId, {
+      data: previewData,
+      completed: true
+    })
+
+    if (parseErr) {
+      throw parseErr
+    }
+
+    if (processingErr) {
+      throw processingErr
+    }
   }
 }
 

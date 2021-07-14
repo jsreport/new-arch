@@ -114,12 +114,7 @@ class Startup extends Component {
         shortid: p.template.shortid
       })
     } catch (e) {
-      const newError = new Error(`Open profile "${p._id}" failed. ${e.message}`)
-
-      newError.stack = e.stack
-      Object.assign(newError, e)
-
-      throw newError
+      console.warn(`Error while trying to open profile "${p._id}"`, e)
     } finally {
       this.setState({
         loadingProfile: false
@@ -164,7 +159,7 @@ class Startup extends Component {
   }
 
   renderRequestsCountChart (profiles) {
-    const successfullRequests = profiles.filter(p => p.state === 'success').reduce((t, a) => {
+    const successfullyRequests = profiles.filter(p => p.state === 'success').reduce((t, a) => {
       const minutes = Math.round(a.timestamp / (1000 * 60))
       t[minutes] = t[minutes] || 0
       t[minutes]++
@@ -182,14 +177,14 @@ class Startup extends Component {
       <Line
         data={{
           datasets: [{
-            label: 'successfull requests',
+            label: 'successfully requests',
             borderColor: 'green',
-            data: Object.keys(successfullRequests).map(r => ({
+            data: Object.keys(successfullyRequests).map(r => ({
               x: new Date(r * 1000 * 60),
-              y: successfullRequests[r]
+              y: successfullyRequests[r]
             }))
           }, {
-            label: 'failed request',
+            label: 'failed requests',
             borderColor: 'red',
             data: Object.keys(failedRequests).map(r => ({
               x: new Date(r * 1000 * 60),
