@@ -102,7 +102,8 @@ module.exports = (reporter, definition) => {
 
   reporter.extendProxy((proxy, req, {
     runInSandbox,
-    context
+    context,
+    getTopLevelFunctions
   }) => {
     proxy.assets = {
       read: async (path, encoding) => {
@@ -114,7 +115,7 @@ module.exports = (reporter, definition) => {
         const sharedHelpersAssets = await reporter.documentStore.collection('assets').find({ isSharedHelper: true }, req)
         for (const a of sharedHelpersAssets) {
           const asset = await readAsset(reporter, definition, a._id, null, 'utf8', req)
-          const functionNames = getTopLevelFunctions(asset.content.toString(), {})
+          const functionNames = getTopLevelFunctions(asset.content.toString())
           const userCode = `(() => { ${asset.content.toString()}; 
             __topLevelFunctions = {...__topLevelFunctions, ${functionNames.map(h => `"${h}": ${h}`).join(',')}}
             })()`
@@ -128,7 +129,7 @@ module.exports = (reporter, definition) => {
       registerHelpers: async (path) => {
         const asset = await readAsset(reporter, definition, null, path, 'utf8', req)
 
-        const functionNames = getTopLevelFunctions(asset.content.toString(), {})
+        const functionNames = getTopLevelFunctions(asset.content.toString())
         const userCode = `(() => { ${asset.content.toString()}; 
             __topLevelFunctions = {...__topLevelFunctions, ${functionNames.map(h => `"${h}": ${h}`).join(',')}}
             })()`
@@ -158,43 +159,4 @@ module.exports = (reporter, definition) => {
       }
     }
   })
-}
-
-function getTopLevelFunctions (code) {
-  // lazy load to speed up boot
-  const parser = require('@babel/parser')
-  const traverse = require('@babel/traverse').default
-
-  const names = []
-  try {
-    const ast = parser.parse(code, {
-      sourceType: 'script',
-      allowReturnOutsideFunction: false,
-      allowAwaitOutsideFunction: true,
-      plugins: [
-        'classProperties',
-        'classPrivateProperties',
-        'classPrivateMethods',
-        'doExpressions',
-        'functionBind',
-        'throwExpressions',
-        'topLevelAwait'
-      ]
-    })
-
-    // traverse only function declaration that are defined
-    // at the top level of program
-    traverse(ast, {
-      FunctionDeclaration: (path) => {
-        if (path.parent.type === 'Program') {
-          names.push(path.node.id.name)
-        }
-      }
-    })
-  } catch (e) {
-    // we let the error handling for later eval
-    return []
-  }
-
-  return names
 }

@@ -4,8 +4,6 @@ const { customAlphabet } = require('nanoid')
 const nanoid = customAlphabet('abcdefghijklmnopqrstuvwxyz', 10)
 
 module.exports = (reporter) => {
-  const functionsCache = LRU({ max: 100 })
-
   return ({
     context,
     userCode,
@@ -59,11 +57,11 @@ module.exports = (reporter) => {
       }
     })
 
-    jsreportProxy = reporter.createProxy({ req, runInSandbox: run, context: sandbox })
+    jsreportProxy = reporter.createProxy({ req, runInSandbox: run, context: sandbox, getTopLevelFunctions })
 
     sandbox.__restore = restore
 
-    const functionNames = getTopLevelFunctions(userCode, functionsCache)
+    const functionNames = getTopLevelFunctions(userCode)
 
     const functionsCode = `return {${functionNames.map(h => `"${h}": ${h}`).join(',')}}`
     const executionCode = `;(async () => { ${userCode}; ${functionsCode} })()
@@ -123,11 +121,12 @@ function handleError (reporter, errValue) {
   })
 }
 
-function getTopLevelFunctions (code, cache) {
+const functionsCache = LRU({ max: 100 })
+function getTopLevelFunctions (code) {
   const key = `functions:${code}`
 
-  if (cache.has(key)) {
-    return cache.get(key)
+  if (functionsCache.has(key)) {
+    return functionsCache.get(key)
   }
 
   // lazy load to speed up boot
@@ -165,6 +164,6 @@ function getTopLevelFunctions (code, cache) {
     return []
   }
 
-  cache.set(key, names)
+  functionsCache.set(key, names)
   return names
 }
