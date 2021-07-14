@@ -330,7 +330,7 @@ class MainReporter extends Reporter {
       }
     }
 
-    let res
+    const res = { meta: {} }
     try {
       if (workerAborted) {
         throw this.createError('Request aborted by client')
@@ -350,7 +350,6 @@ class MainReporter extends Reporter {
         req = result
       }
 
-      res = { meta: {} }
       req = Request(req, parentReq)
 
       if (isDataStoredInWorker) {

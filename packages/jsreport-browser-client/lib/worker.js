@@ -1,17 +1,4 @@
-/*!
- * Copyright(c) 2018 Jan Blaha
- *
- * This extension adds jsreport-html recipe.
- */
-const path = require('path')
-
 module.exports = (reporter, definition) => {
-  const distPath = path.dirname(require.resolve('jsreport-browser-client-dist'))
-
-  if (reporter.documentStore.model.entityTypes['TemplateType']) {
-    reporter.documentStore.model.entityTypes['TemplateType'].omitDataFromOutput = { type: 'Edm.Boolean' }
-  }
-
   function recipe (request, response) {
     response.meta.contentType = 'text/html'
     response.meta.fileExtension = 'html'
@@ -45,17 +32,11 @@ module.exports = (reporter, definition) => {
 
     const content = response.content.toString()
     const endBody = content.search(/<\/body\s*>/)
-    response.content = endBody === -1 ? (script + content) : content.substring(0, endBody) + script + content.substring(endBody)
+    response.content = Buffer.from(endBody === -1 ? (script + content) : content.substring(0, endBody) + script + content.substring(endBody))
   }
 
   reporter.extensionsManager.recipes.push({
     name: 'html-with-browser-client',
     execute: recipe
-  })
-
-  reporter.on('express-configure', (app) => {
-    app.get('/extension/browser-client/public/js/jsreport.min.js', (req, res, next) => {
-      res.sendFile(path.join(distPath, 'jsreport.min.js'))
-    })
   })
 }
