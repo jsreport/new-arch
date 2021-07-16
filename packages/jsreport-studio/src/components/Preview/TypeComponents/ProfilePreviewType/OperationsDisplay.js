@@ -105,13 +105,7 @@ const OperationsDisplay = React.memo(function OperationsDisplay (props) {
 
   return (
     <div className={styles.profileOperations}>
-      {profileErrorEvent && renderErrorModal != null && (
-        <div className={styles.profileOperationsErrorModal}>
-          <div className={styles.profileOperationsErrorModalContent}>
-            {renderErrorModal(profileErrorEvent)}
-          </div>
-        </div>
-      )}
+      {renderErrorModal(profileErrorEvent)}
       <ReactFlowProvider>
         <ReactFlow
           elements={elements}

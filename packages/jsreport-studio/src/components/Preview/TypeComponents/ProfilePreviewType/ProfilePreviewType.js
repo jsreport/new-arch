@@ -1,15 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import SplitPane from '../../../common/SplitPane/SplitPane'
 import OperationsDisplay from './OperationsDisplay'
-import { useDispatch } from 'react-redux'
 import LogsDisplay from './LogsDisplay'
 import ProfileInspectModal from '../../../Modals/ProfileInspectModal'
 import ProfileErrorModal from '../../../Modals/ProfileErrorModal'
-import { actions as editorActions } from '../../../../redux/editor'
 import usePrevious from '../../../../hooks/usePrevious'
-import storeMethods from '../../../../redux/methods'
+import useOpenErrorLine from '../../useOpenErrorLine'
+import useRenderErrorModal from '../../useRenderErrorModal'
 import { openModal } from '../../../../helpers/openModal'
-import { findTextEditor, selectLine as selectLineInTextEditor } from '../../../../helpers/textEditorInstance'
 import getStateAtProfileOperation from '../../../../helpers/getStateAtProfileOperation'
 import getLogNodeId from './getLogNodeId'
 import styles from '../../Preview.css'
@@ -17,57 +15,10 @@ import styles from '../../Preview.css'
 const ProfilePreviewType = React.memo(function ProfilePreviewType (props) {
   const { data } = props
   const { template, profileOperations, profileLogs, profileErrorEvent } = data
-  const [showErrorModal, setShowErrorModal] = useState(true)
   const [activeElement, setActiveElement] = useState(null)
   const prevActiveElement = usePrevious(activeElement)
-  const dispatch = useDispatch()
-
-  const openErrorLine = useCallback((error) => {
-    dispatch(editorActions.openTab({ shortid: error.entity.shortid })).then(() => {
-      setTimeout(() => {
-        const entity = storeMethods.getEntityByShortid(error.entity.shortid)
-        const contentIsTheSame = entity.content === error.entity.content
-        const entityEditor = findTextEditor(error.property === 'content' ? entity._id : `${entity._id}_helpers`)
-
-        if (entityEditor != null && contentIsTheSame) {
-          selectLineInTextEditor(entityEditor, { lineNumber: error.lineNumber })
-        }
-      }, 300)
-    })
-  }, [dispatch])
-
-  const renderErrorModal = useCallback((error) => {
-    const showGoToLineButton = (
-      error.entity != null &&
-      (error.property === 'content' || error.property === 'helpers') &&
-      error.lineNumber != null
-    )
-
-    return (
-      <ProfileErrorModal
-        close={() => setShowErrorModal(false)}
-        options={{
-          title: 'preview error',
-          error,
-          containerStyle: { maxWidth: 'none', maxHeight: '320px' },
-          renderCustomButtons: showGoToLineButton
-            ? () => {
-                return (
-                  <button
-                    className='button confirmation'
-                    onClick={() => {
-                      openErrorLine(error)
-                    }}
-                  >
-                    Go to error line
-                  </button>
-                )
-              }
-            : undefined
-        }}
-      />
-    )
-  }, [openErrorLine])
+  const openErrorLine = useOpenErrorLine()
+  const { renderErrorModal } = useRenderErrorModal(openErrorLine)
 
   const handleCanvasClick = useCallback(() => {
     setActiveElement(null)
@@ -244,7 +195,7 @@ const ProfilePreviewType = React.memo(function ProfilePreviewType (props) {
           profileErrorEvent={profileErrorEvent}
           onCanvasClick={handleCanvasClick}
           onElementClick={handleElementClick}
-          renderErrorModal={showErrorModal ? renderErrorModal : undefined}
+          renderErrorModal={renderErrorModal}
         />
         <LogsDisplay
           logs={profileLogs}
