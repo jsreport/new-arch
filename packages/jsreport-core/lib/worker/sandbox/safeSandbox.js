@@ -163,11 +163,11 @@ module.exports = (_sandbox, options = {}) => {
     unproxyValue: (value) => {
       return getOriginalFromProxy(proxiesInVM, customProxies, value)
     },
-    run: async (code, { filename, source } = {}) => {
+    run: async (code, { filename, source, entity } = {}) => {
       const script = new VMScript(code, filename)
 
       if (filename != null && source != null) {
-        sourceFilesInfo.set(filename, { filename, source })
+        sourceFilesInfo.set(filename, { filename, source, entity })
       }
 
       // NOTE: if we need to upgrade vm2 we will need to check the source of this function
@@ -293,6 +293,18 @@ function decorateErrorMessage (e, sourceFilesInfo) {
         current.getLineNumber() != null
       ) {
         if (i === 0) {
+          const entityAtFile = sourceFilesInfo.get(current.getFileName()).entity
+
+          if (entityAtFile != null) {
+            e.entity = {
+              shortid: entityAtFile.shortid,
+              name: entityAtFile.name,
+              content: entityAtFile.content
+            }
+
+            e.property = 'content'
+          }
+
           e.lineNumber = current.getLineNumber()
         }
         suffix += `(${current.getFileName()} line ${current.getLineNumber()}:${current.getColumnNumber()})`

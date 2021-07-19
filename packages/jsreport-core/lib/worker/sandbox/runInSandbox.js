@@ -68,12 +68,12 @@ module.exports = (reporter) => {
         .then((topLevelFunctions) => ${executionFnName}({
             topLevelFunctions: {
                 ...topLevelFunctions,
-                ...__topLevelFunctions 
+                ...__topLevelFunctions
             },
             require,
             console,
             restore: __restore,
-            context: this            
+            context: this
         })).catch(__handleError);`
 
     return run(executionCode, {

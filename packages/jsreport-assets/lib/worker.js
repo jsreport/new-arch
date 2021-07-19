@@ -111,17 +111,18 @@ module.exports = (reporter, definition) => {
         return r.content
       },
 
-      evaluateShared: async (__additionalTopLevelFunctions) => {
+      evaluateShared: async () => {
         const sharedHelpersAssets = await reporter.documentStore.collection('assets').find({ isSharedHelper: true }, req)
         for (const a of sharedHelpersAssets) {
           const asset = await readAsset(reporter, definition, a._id, null, 'utf8', req)
           const functionNames = getTopLevelFunctions(asset.content.toString())
-          const userCode = `(() => { ${asset.content.toString()}; 
+          const userCode = `(() => { ${asset.content.toString()};
             __topLevelFunctions = {...__topLevelFunctions, ${functionNames.map(h => `"${h}": ${h}`).join(',')}}
             })()`
           await runInSandbox(userCode, {
             filename: a.name,
-            source: userCode
+            source: userCode,
+            entity: a
           })
         }
       },
@@ -130,12 +131,13 @@ module.exports = (reporter, definition) => {
         const asset = await readAsset(reporter, definition, null, path, 'utf8', req)
 
         const functionNames = getTopLevelFunctions(asset.content.toString())
-        const userCode = `(() => { ${asset.content.toString()}; 
+        const userCode = `(() => { ${asset.content.toString()};
             __topLevelFunctions = {...__topLevelFunctions, ${functionNames.map(h => `"${h}": ${h}`).join(',')}}
             })()`
         await runInSandbox(userCode, {
-          filename: asset.name,
-          source: userCode
+          filename: asset.filename,
+          source: userCode,
+          entity: asset.entity
         })
       },
 
@@ -152,7 +154,8 @@ module.exports = (reporter, definition) => {
 
         const result = await runInSandbox(userCode, {
           filename: path,
-          source: userCode
+          source: userCode,
+          entity: r.entity
         })
 
         return result

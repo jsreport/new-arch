@@ -104,15 +104,21 @@ module.exports = async function executeScript (reporter, script, method, req, re
       }, {})
     }, req)
   } catch (e) {
+    const nestedErrorWithEntity = e.entity != null
+
     const scriptPath = script._id ? await reporter.folders.resolveEntityPath(script, 'scripts', req) : 'anonymous'
+
     e.message = `Error when evaluating custom script ${scriptPath}\n` + e.message
-    if (script.shortid) {
-      e.entity = {
-        shortid: script.shortid,
-        name: script.name,
-        content: script.content
+
+    if (!nestedErrorWithEntity) {
+      if (script.shortid) {
+        e.entity = {
+          shortid: script.shortid,
+          name: script.name,
+          content: script.content
+        }
+        e.property = 'content'
       }
-      e.property = 'content'
     }
 
     throw e

@@ -127,15 +127,19 @@ async function readAsset (reporter, definition, id, name, encoding, req) {
       })
     }
 
-    return asset.link
-      ? {
-          content: resolveAssetLink(reporter, definition, req, asset.link),
-          filename: name
-        }
-      : {
-          content: resolveAssetLink(reporter, definition, req, name),
-          filename: name
-        }
+    if (asset.link) {
+      return {
+        content: resolveAssetLink(reporter, definition, req, asset.link),
+        filename: name,
+        entity: asset
+      }
+    }
+
+    return {
+      content: resolveAssetLink(reporter, definition, req, name),
+      filename: name,
+      entity: asset
+    }
   }
 
   if (asset.link) {
@@ -151,7 +155,8 @@ async function readAsset (reporter, definition, id, name, encoding, req) {
     return {
       content: escape(Buffer.from(file.content).toString(encoding), file.filename),
       filename: file.filename,
-      modified: file.modified
+      modified: file.modified,
+      entity: asset
     }
   }
 
@@ -161,7 +166,8 @@ async function readAsset (reporter, definition, id, name, encoding, req) {
     content: escape(buf.toString(encoding), asset.name),
     buffer: buf,
     filename: asset.name,
-    modified: asset.modificationDate || new Date()
+    modified: asset.modificationDate || new Date(),
+    entity: asset
   }
 }
 

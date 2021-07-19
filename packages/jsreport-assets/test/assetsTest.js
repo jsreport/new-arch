@@ -67,14 +67,14 @@ describe('assets', function () {
     res.content.toString().should.be.eql('hello')
   })
 
-  it('should extract static asset which is marked as shared helper and dont break stack traces', async () => {
+  it('should extract static asset which is marked as shared helper and don\'t break stack traces', async () => {
     await reporter.documentStore.collection('assets').insert({
       name: 'foo.js',
       isSharedHelper: true,
-      content: `async function foo() {  
+      content: `async function foo() {
         await new Promise((resolve, reject) => {
           reject(new Error('fail'))
-        }, 100) 
+        }, 100)
       }`
     })
 
@@ -1247,7 +1247,7 @@ describe('assets', function () {
           engine: 'jsrender',
           helpers: `
             const jsreport = require('jsreport-proxy')
-            await jsreport.assets.registerHelpers('foo.js')            
+            await jsreport.assets.registerHelpers('foo.js')
           `
         }
       })
