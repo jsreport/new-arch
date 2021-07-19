@@ -1,6 +1,6 @@
 const Transaction = require('./transaction')
 const Persistence = require('./persistence')
-const { uid } = require('./customUtils')
+const { uid, lock } = require('./customUtils')
 const mingo = require('@jsreport/mingo')
 const Promise = require('bluebird')
 const documentModel = require('./documentModel')
@@ -64,11 +64,12 @@ module.exports = ({
 
       this.journal = Journal({
         fs: this.fs,
-        transaction: this.transaction,
+        getCurrentDocuments: this.transaction.getCurrentDocuments.bind(this.transaction),
         reload: this.reload.bind(this),
         logger,
         queue: this.queue
       })
+      this.transaction.journal = this.journal
 
       if (externalModificationsSync) {
         this.externalModificationsSync = ExternalModificationsSync({
@@ -79,18 +80,20 @@ module.exports = ({
           logger,
           onModification: (e) => {
             this.emit('external-modification', e)
-            return this.reload()
+            return this.queue.push(() => lock(this.fs, () => this.reload()))
           }
         })
       }
 
       await this.fs.init()
 
-      await this.transaction.init()
+      await lock(this.fs, async () => {
+        await this.transaction.init()
 
-      await this.reload()
+        await this.reload()
 
-      await this.journal.init()
+        await this.journal.init()
+      })
 
       if (externalModificationsSync) {
         await this.externalModificationsSync.init()
@@ -103,23 +106,14 @@ module.exports = ({
       logger.info('fs store is initialized successfully')
     },
 
-    async reload (opts = {}) {
-      const afterCb = opts.afterCb
-      const immediate = opts.immediate === true
-
+    async reload () {
       logger.info('fs store is loading data')
 
-      return this.transaction.operation({ immediate }, async (documents) => {
-        const _documents = await this.persistence.load()
-
-        Object.keys(documents).forEach(k => delete documents[k])
-        Object.keys(this.documentsModel.entitySets).forEach(e => (documents[e] = []))
-        _documents.forEach(d => documents[d.$entitySet].push(d))
-
-        if (afterCb) {
-          await afterCb()
-        }
-      })
+      const documents = this.transaction.getCurrentDocuments()
+      const _documents = await this.persistence.load()
+      Object.keys(documents).forEach(k => delete documents[k])
+      Object.keys(this.documentsModel.entitySets).forEach(e => (documents[e] = []))
+      _documents.forEach(d => documents[d.$entitySet].push(d))
     },
 
     beginTransaction () {
@@ -127,8 +121,7 @@ module.exports = ({
     },
 
     async commitTransaction (tran) {
-      await this.transaction.commit(tran)
-      return this.journal.commit()
+      return this.transaction.commit(tran)
     },
 
     sync () {
@@ -253,10 +246,11 @@ module.exports = ({
           return
         }
         compactIsQueued = true
-        return Promise.resolve(this.transaction.operation((documents) => this.persistence.compact(documents)))
+        return this.queue.push(() => lock(this.fs, () => this.persistence.compact(this.transaction.getCurrentDocuments())))
           .catch((e) => logger.warn('fs store compaction failed, but no problem, it will retry the next time.' + e.message))
           .finally(() => (compactIsQueued = false))
       }
+
       this.autoCompactionInterval = setInterval(compact, compactionInterval).unref()
       // make sure we cleanup also when process just renders and exit
       // like when using jsreport.exe render

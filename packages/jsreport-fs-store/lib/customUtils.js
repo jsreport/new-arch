@@ -126,7 +126,7 @@ async function retry (fn, maxCount = 10) {
 async function copy (fs, psource, ptarget, ignore = [], replace = false) {
   let dirEntries = await fs.readdir(psource)
   await fs.mkdir(ptarget)
-  const filesIgnore = ['storage', 'fs.lock', '.tran'].concat(ignore)
+  const filesIgnore = ['storage', 'fs.lock', 'fs.journal', 'fs.version', '.tran'].concat(ignore)
 
   const filesFilter = (f) => !filesIgnore.includes(f)
 

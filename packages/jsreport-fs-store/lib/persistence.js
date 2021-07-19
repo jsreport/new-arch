@@ -113,7 +113,7 @@ async function load (fs, directory, model, documents, parentDirectoryEntity) {
 
   documents.push(...loadedDocuments)
 
-  let dirNames = contentStats.filter((e) => e.stat.isDirectory() && e.name !== 'storage').map((e) => e.name)
+  let dirNames = contentStats.filter((e) => e.stat.isDirectory() && e.name !== 'storage' && !e.name.startsWith('~.tran')).map((e) => e.name)
 
   for (const dir of dirNames.filter((n) => n.startsWith('~'))) {
     // inconsistent tmp entity, remove...

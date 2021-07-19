@@ -618,6 +618,7 @@ describe('load cleanup', () => {
         sync: { provider: 'fs' },
         resolveFileExtension: store.resolveFileExtension.bind(store),
         compactionEnabled: true,
+        compactionInterval: 5000,
         createError: m => new Error(m)
       })
     )
@@ -626,7 +627,7 @@ describe('load cleanup', () => {
 
   afterEach(async () => {
     await rimrafAsync(path.join(__dirname, 'dataToCleanupCopy'))
-    return store.provider.close()
+    await store.provider.close()
   })
 
   it('should load commited changes ~c~c', async () => {

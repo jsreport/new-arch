@@ -16,16 +16,14 @@ module.exports = ({ queue, persistence, fs, logger }) => {
     },
 
     async init () {
-      return lock(fs, async () => {
-        if (await fs.exists(transactionDirectory)) {
-          if (await fs.exists(transactionConsistencyFile)) {
-            await copy(fs, transactionDirectory, '', [transactionDirectory], true)
-            await fs.remove(transactionConsistencyFile)
-          }
-
-          await fs.remove(transactionDirectory)
+      if (await fs.exists(transactionDirectory)) {
+        if (await fs.exists(transactionConsistencyFile)) {
+          await copy(fs, transactionDirectory, '', [transactionDirectory], true)
+          await fs.remove(transactionConsistencyFile)
         }
-      })
+
+        await fs.remove(transactionDirectory)
+      }
     },
 
     begin () {
@@ -39,13 +37,12 @@ module.exports = ({ queue, persistence, fs, logger }) => {
     },
 
     async operation (opts, fn) {
-      const immediate = opts.immediate === true
       if (fn == null) {
         fn = opts
       }
 
       if (opts.transaction) {
-        const transactionExecute = () => {
+        return queue.push(() => {
           // the transaction operations shouldn't do real writes to the disk, just memory changes
           // we store the function call so we can replay it during commit to the disk
           const persistenceStub = {
@@ -56,24 +53,13 @@ module.exports = ({ queue, persistence, fs, logger }) => {
 
           opts.transaction.operations.push(fn)
           return fn(opts.transaction.documents, persistenceStub)
-        }
-
-        if (immediate) {
-          return transactionExecute()
-        }
-
-        return queue.push(transactionExecute)
+        })
       }
 
-      const execute = () => {
+      return queue.push(() => lock(fs, () => {
+        this.journal.sync()
         return fn(commitedDocuments, persistence)
-      }
-
-      if (immediate) {
-        return execute()
-      }
-
-      return queue.push(() => lock(fs, execute))
+      }))
     },
 
     async commit (transaction) {
@@ -108,6 +94,8 @@ module.exports = ({ queue, persistence, fs, logger }) => {
           })
 
           commitedDocuments = documentsClone
+
+          await this.journal.commit()
         } finally {
           await infiniteRetry(async () => {
             await fs.remove(transactionDirectory)
