@@ -1,4 +1,4 @@
-import React, {Component} from 'react'
+import React, { Component } from 'react'
 import Studio from 'jsreport-studio'
 
 const EntityRefSelect = Studio.EntityRefSelect
@@ -30,7 +30,7 @@ class ImportFinishedModal extends Component {
             <div>
               <i>Some errors/warnings happened during the import:</i>
             </div>
-            <textarea style={{width: '100%', boxSizing: 'border-box'}} rows='10' readOnly value={log} />
+            <textarea style={{ width: '100%', boxSizing: 'border-box' }} rows='10' readOnly value={log} />
           </div>
         )}
         <div className='form-group'>
