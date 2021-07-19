@@ -47,6 +47,9 @@ function mergePage (finalDoc, contentPage, xobj, mergeToFront, pageHelpInfo) {
     }
   } else {
     mergeStream = xobj.contents.object.content
+    if (mergeStream.content.length === 0) {
+      return
+    }
     mergeStream.content = zlib.unzipSync(mergeStream.content).toString('latin1')
   }
 

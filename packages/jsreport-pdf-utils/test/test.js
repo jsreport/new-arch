@@ -360,6 +360,20 @@ describe('pdf utils', () => {
     parsedPdf.pages[0].text.includes('header').should.be.ok()
   })
 
+  it('merge shouldnt fail when merging into empty content', async () => {
+    await jsreport.render({
+      template: {
+        content: 'content<div style="page-break-before: always;">content2',
+        engine: 'none',
+        recipe: 'chrome-pdf',
+        pdfOperations: [
+          { type: 'prepend', template: { content: 'hello', engine: 'none', recipe: 'chrome-pdf' } },
+          { type: 'merge', mergeWholeDocument: true, template: { content: '<style> html { overflow: hidden; } </style><div style="visibility: hidden;">&nbsp;</div><div style="page-break-before: always;"></div><div style="visibility: hidden;">&nbsp;</div>', engine: 'none', recipe: 'chrome-pdf' } }
+        ]
+      }
+    })
+  })
+
   it('append operation be able to append pages from another template', async () => {
     await jsreport.documentStore.collection('templates').insert({
       content: 'anotherpage',
