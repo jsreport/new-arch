@@ -346,9 +346,9 @@ describe('html to xlsx conversion with strategy', () => {
     commonConversion(extractImplementation(chromeEval))
   })
 
-  describe('phantom-strategy', () => {
-    commonConversion(extractImplementation(phantomEval))
-  })
+  // describe('phantom-strategy', () => {
+  //   commonConversion(extractImplementation(phantomEval))
+  // })
 
   function commonConversion (pageEval) {
     let conversion

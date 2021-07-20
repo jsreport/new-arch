@@ -1,12 +1,12 @@
 process.env.jsreportTest = true
 
-var util = require('util')
-var path = require('path')
-var fs = require('fs')
-var childProcess = require('child_process')
-var compile = require('../')
-var unlinkAsync = util.promisify(fs.unlink)
-var readFileAsync = util.promisify(fs.readFile)
+const util = require('util')
+const path = require('path')
+const fs = require('fs')
+const childProcess = require('child_process')
+const compile = require('../')
+const unlinkAsync = util.promisify(fs.unlink)
+const readFileAsync = util.promisify(fs.readFile)
 
 require('should')
 
@@ -32,17 +32,29 @@ async function jsreportExe (args) {
 }
 
 describe('compilation', function () {
-  var jsreport
+  const originalCWD = process.cwd()
+  let jsreport
 
   before(function () {
+    // change cwd to root directory of monorepo
+    process.chdir(path.join(__dirname, '../../../'))
+
+    const input = path.join(__dirname, 'entry.js')
+    const output = path.join(__dirname, 'exe')
+
     return unlinkAsync(path.join(__dirname, 'exe')).catch(function (e) {}).then(function () {
       return compile({
-        nodeVersion: '10',
-        input: 'test/entry.js',
-        output: 'test/exe',
+        nodeVersion: '14',
+        input,
+        output,
+        debug: true,
         handleArguments: false
       })
     })
+  })
+
+  after(function () {
+    process.chdir(originalCWD)
   })
 
   it('should initialize jsreport instance', async function () {

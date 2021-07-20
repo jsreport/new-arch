@@ -1,6 +1,6 @@
-var jsreportInstance = require('jsreport-core')({
-  discover: true
-})
+const jsreportInstance = require('jsreport-core')({
+  discover: false
+}).use(require('jsreport-express')())
 
 if (require.main !== module) {
   module.exports = jsreportInstance

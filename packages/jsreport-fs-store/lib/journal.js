@@ -91,6 +91,7 @@ module.exports = ({
         const lines = journalContent.toString().split('\n')
         let needsReload = false
 
+        // eslint-disable-next-line no-unused-vars
         for (const line of lines) {
           if (line === '') {
             continue
@@ -169,6 +170,7 @@ module.exports = ({
         const journalContent = await fs.readFile('fs.journal')
         const lines = journalContent.toString().split('\n')
         let changes = false
+        // eslint-disable-next-line no-unused-vars
         for (const line of lines) {
           if (line === '') {
             continue

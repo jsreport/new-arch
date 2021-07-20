@@ -19,7 +19,8 @@ module.exports = {
         properties: {
           accountName: { type: 'string' },
           accountKey: { type: 'string' },
-          container: { type: 'string' }
+          container: { type: 'string' },
+          connectionString: { type: 'string' }
         }
       }
     }

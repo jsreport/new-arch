@@ -27,8 +27,8 @@ function deepGet (doc, path) {
 }
 
 function deepDelete (doc, path) {
-  var paths = path.split('.')
-  for (var i = 0; i < paths.length && doc; i++) {
+  const paths = path.split('.')
+  for (let i = 0; i < paths.length && doc; i++) {
     if (i === paths.length - 1) {
       delete doc[paths[i]]
     } else {
@@ -49,9 +49,7 @@ function deepSet (doc, path, val) {
 }
 
 function serialize (obj, prettify = true) {
-  var res
-
-  var originalDateToJSON = Date.prototype.toJSON
+  const originalDateToJSON = Date.prototype.toJSON
   const originalBufferToJSON = Buffer.prototype.toJSON
 
   // Keep track of the fact that this is a Date object
@@ -63,7 +61,7 @@ function serialize (obj, prettify = true) {
     return { $$buffer: this.toString('base64') }
   }
 
-  res = JSON.stringify(obj, function (k, v) {
+  const res = JSON.stringify(obj, function (k, v) {
     if (typeof v === 'undefined') {
       return null
     }
@@ -110,7 +108,7 @@ function parse (rawData) {
 
 async function retry (fn, maxCount = 10) {
   let error
-  for (var i = 0; i < maxCount; i++) {
+  for (let i = 0; i < maxCount; i++) {
     try {
       const res = await fn()
       return res
@@ -139,6 +137,7 @@ async function copy (fs, psource, ptarget, ignore = [], replace = false) {
 
     targetDirEntries = targetDirEntries.filter(filesFilter)
 
+    // eslint-disable-next-line no-unused-vars
     for (const f of targetDirEntries) {
       await fs.remove(f)
     }

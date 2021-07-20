@@ -1,92 +1,40 @@
 {
-  "author": {
-    "name": "Jan Blaha",
-    "email": "jan.blaha@hotmail.com"
-  },
-  "bugs": {
-    "url": "https://github.com/jsreport/jsreport/issues"
-  },
-  "bundleDependencies": false,
-  "contributors": [
-    {
-      "name": "BJR Matos",
-      "email": "bjrmatos@gmail.com",
-      "url": "https://github.com/bjrmatos"
-    },
-    {
-      "name": "Jan Blaha"
-    }
-  ],
-  "dependencies": {
-    "handlebars": "4.7.6",
-    "jsreport-studio-dev": "file:packages/jsreport-studio-dev",
-    "mkdirp": "0.5.5",
-    "node.extend.without.arrays": "1.1.6",
-    "puppeteer": "9.1.1",
-    "semver": "6.3.0"
-  },
-  "deprecated": false,
+  "name": "jsreport",
+  "private": true,
   "description": "javascript based business reporting",
-  "devDependencies": {
-    "archiver": "3.0.0",
-    "cross-env": "5.2.1",
-    "eslint": "5.16.0",
-    "eslint-config-standard": "12.0.0",
-    "eslint-config-standard-react": "7.0.2",
-    "in-publish": "2.0.1",
-    "mocha": "6.2.0",
-    "npm-run-all": "4.1.5",
-    "rimraf": "2.6.3",
-    "should": "13.2.3",
-    "standard": "16.0.3"
-  },
-  "engines": {
-    "node": ">=8.9"
-  },
-  "files": [
-    "lib",
-    "index.js",
-    "config.md",
-    "example.server.js"
-  ],
-  "homepage": "https://github.com/jsreport/jsreport",
-  "jsreport": {
-    "entryPoint": "server.js"
-  },
   "keywords": [
     "report",
     "business",
     "javascript"
   ],
-  "license": "LGPL",
-  "main": "index.js",
-  "name": "jsreport",
-  "repository": {
-    "type": "git",
-    "url": "git+ssh://git@github.com/jsreport/jsreport.git"
-  },
-  "scripts": {
-    "compile": "node compile.js",
-    "start": "set ASYNC_RENDER=true&&node server.js",
-    "test": "node scripts/test.js",
-    "performance": "node --expose-gc --max-old-space-size=100 tools/performance.js"
-  },
-  "standard": {
-    "ignore": [
-      "data/**"
-    ],
-    "env": [
-      "mocha",
-      "browser",
-      "node"
-    ]
-  },
-  "version": "2.11.0",
-  "private": true,
   "workspaces": {
     "packages": [
       "packages/*"
     ]
   },
-  "resolutions": {}
+  "scripts": {
+    "compile": "node scripts/compile.js",
+    "performance": "node --expose-gc --max-old-space-size=100 tools/performance.js",
+    "start": "cross-env ASYNC_RENDER=true node server.js",
+    "test": "node scripts/test.js"
+  },
+  "resolutions": {},
+  "dependencies": {
+    "jsreport-studio-dev": "1.6.0"
+  },
+  "devDependencies": {
+    "archiver": "3.0.0",
+    "cross-env": "5.2.1",
+    "standard": "16.0.3"
+  },
+  "standard": {
+    "ignore": [
+      "data/**"
+    ],
+    "env": {
+      "mocha": true,
+      "browser": true,
+      "node": true
+    }
+  }
 }

@@ -3,47 +3,140 @@
 // here we concat values from these splitted node and put it to one node
 // so handlebars can correctly run
 module.exports = (files) => {
-  for (const doc of files.filter(f => f.path.includes('ppt/slides/slide')).map(f => f.doc)) {
-    const elements = doc.getElementsByTagName('a:t')
+  for (const f of files.filter(f => f.path.endsWith('.xml'))) {
+    concatTextNodes(f.doc, f.doc.getElementsByTagName('a:t'))
+  }
+}
 
-    const toRemove = []
-    let startIndex = -1
-    let tag = ''
+function concatTextNodes (doc, elements) {
+  const toRemove = []
+  const lastIndex = elements.length - 1
+  let startIndex = -1
+  let shouldPreserveSpace = false
+  let tag = ''
 
-    for (let i = 0; i < elements.length; i++) {
-      const value = elements[i].textContent
+  for (let i = 0; i < elements.length; i++) {
+    const value = elements[i].textContent
+    let concatenating = startIndex !== -1
+    let toEvaluate = value
+    let validSiblings = false
 
-      if (startIndex !== -1) {
-        tag += value
+    if (concatenating) {
+      if (elements[i].parentNode.previousSibling.localName === 'r') {
+        validSiblings = elements[i].parentNode.previousSibling === elements[i - 1].parentNode
+      } else {
+        // ignore w:proofErr, w:bookmarkStart and other similar self-closed siblings tags
+        let currentNode = elements[i].parentNode
+        const previousSiblings = []
 
-        if (!value && elements[i].getAttribute('xml:space') === 'preserve') {
-          tag += ' '
+        while (currentNode && currentNode.previousSibling != null) {
+          if (currentNode.previousSibling.localName === 'r') {
+            previousSiblings.push(currentNode.previousSibling)
+          }
+
+          currentNode = currentNode.previousSibling
         }
 
-        if (tag.endsWith('}}')) {
-          elements[startIndex].textContent = tag
-          startIndex = -1
-        }
-
-        toRemove.push(i)
-        continue
-      }
-
-      const indexStart = value.indexOf('{')
-      if (indexStart !== -1) {
-        if (value.endsWith('}}')) {
-          elements[i].textContent = value + '$$$tag$$$'
-          continue
-        }
-        startIndex = i
-        tag = value
+        validSiblings = previousSiblings.some((s) => s === elements[i - 1].parentNode)
       }
     }
 
-    for (const r of toRemove) {
-      // in docx we for now remove w:t, so the text block, however in pptx we remove a:r, so the parent of the a:t text block
-      // pptx fails to load slide if there are a:r without a:t
-      elements[r].parentNode.parentNode.removeChild(elements[r].parentNode)
+    // checking that nodes are valid siblings for the concat to be valid, if they are not siblings stop
+    // concatenation at current index, this prevents concatenating text with bad syntax with lists
+    if (concatenating && !validSiblings) {
+      elements[startIndex].textContent = tag
+      concatenating = false
+      tag = ''
+      shouldPreserveSpace = false
+      startIndex = -1
+    }
+
+    if (concatenating) {
+      const hasPreserveSpace = elements[i].getAttribute('xml:space') === 'preserve'
+      toEvaluate = tag + value
+
+      if (hasPreserveSpace) {
+        // if one of the nodes we are about to concat has the xml:space="preserve" then
+        // enable this flag to later evaluate if the text node should include the xml:space="preserve" or not
+        shouldPreserveSpace = true
+      }
+
+      // if the node is empty but contain the preserve attribute then it is considered to be a space
+      // so we need to add an space to the evaluated text for handlebars to recognize correctly the space
+      if (!value && hasPreserveSpace) {
+        toEvaluate += ' '
+      }
+    }
+
+    const openTags = matchRegExp(toEvaluate, '{', 'g')
+    const closingTags = matchRegExp(toEvaluate, '}', 'g')
+
+    if (
+      (openTags.length > 0 && openTags.length === closingTags.length) ||
+      // if it is incomplete and we are already on last node
+      (concatenating && i === lastIndex)
+    ) {
+      tag = ''
+
+      if (concatenating) {
+        const affectedTextNode = elements[startIndex]
+        affectedTextNode.textContent = toEvaluate
+
+        if (
+          shouldPreserveSpace &&
+          (
+            affectedTextNode.textContent.startsWith(' ') ||
+            affectedTextNode.textContent.endsWith(' ')
+          )
+        ) {
+          // if the nodes inside the concat had the preserve attribute we check here
+          // if the text content starts or ends with space, if yes we add the preserve attribute
+          // because it is important to have this attribute for MS Word to render starting/ending space
+          // in text node
+          affectedTextNode.setAttribute('xml:space', 'preserve')
+        } else if (
+          affectedTextNode.getAttribute('xml:space') === 'preserve' &&
+          !affectedTextNode.textContent.startsWith(' ') &&
+          !affectedTextNode.textContent.endsWith(' ')
+        ) {
+          // the text node no longer needs the preserve attribute
+          affectedTextNode.removeAttribute('xml:space')
+        }
+
+        startIndex = -1
+        toRemove.push(i)
+      }
+
+      shouldPreserveSpace = false
+    } else if (openTags.length > 0 && openTags.length !== closingTags.length) {
+      tag = toEvaluate
+
+      if (concatenating) {
+        toRemove.push(i)
+      } else {
+        startIndex = i
+      }
     }
   }
+
+  for (const r of toRemove) {
+    elements[r].parentNode.parentNode.removeChild(elements[r].parentNode)
+  }
+}
+
+function matchRegExp (str, pattern, flags) {
+  let f = flags || ''
+  let r = new RegExp(pattern, 'g' + f.replace(/g/g, ''))
+  let a = []
+  let m
+
+  // eslint-disable-next-line no-cond-assign
+  while (m = r.exec(str)) {
+    a.push({
+      index: m.index,
+      offset: r.lastIndex
+    })
+  }
+
+  return a
 }

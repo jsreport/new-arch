@@ -70,6 +70,7 @@ async function parseFiles (fs, parentDirectory, documentsModel, files) {
 
   document.name = fs.path.basename(parentDirectory)
 
+  // eslint-disable-next-line no-unused-vars
   for (const prop of entityType.documentProperties) {
     const matchingDocumentFile = files.find((f) => {
       const fileWithoutExtension = f.substring(0, f.lastIndexOf('.'))
@@ -89,12 +90,13 @@ async function parseFiles (fs, parentDirectory, documentsModel, files) {
   return [document]
 }
 
-async function load (fs, directory, model, documents, parentDirectoryEntity) {
+async function load (fs, directory, model, documents, { loadConcurrency, parentDirectoryEntity }) {
   const dirEntries = await fs.readdir(directory)
-  const contentStats = await Promise.all(dirEntries.map(async (e) => ({ name: e, stat: await fs.stat(fs.path.join(directory, e)) })))
+  const contentStats = await Promise.map(dirEntries, async (e) => ({ name: e, stat: await fs.stat(fs.path.join(directory, e)) }), { concurrency: loadConcurrency })
 
   const loadedDocuments = await parseFiles(fs, directory, model, contentStats.filter((e) => !e.stat.isDirectory()).map(e => e.name))
 
+  // eslint-disable-next-line no-unused-vars
   for (const d of loadedDocuments) {
     if (parentDirectoryEntity && !d.folder) {
       d.folder = { shortid: parentDirectoryEntity.shortid }
@@ -115,6 +117,7 @@ async function load (fs, directory, model, documents, parentDirectoryEntity) {
 
   let dirNames = contentStats.filter((e) => e.stat.isDirectory() && e.name !== 'storage' && !e.name.startsWith('~.tran')).map((e) => e.name)
 
+  // eslint-disable-next-line no-unused-vars
   for (const dir of dirNames.filter((n) => n.startsWith('~'))) {
     // inconsistent tmp entity, remove...
     if (dir.startsWith('~~')) {
@@ -140,7 +143,7 @@ async function load (fs, directory, model, documents, parentDirectoryEntity) {
     }
   }
 
-  await Promise.all(dirNames.map((n) => load(fs, fs.path.join(directory, n), model, documents, parentDirectoryEntity)))
+  await Promise.map(dirNames, (n) => load(fs, fs.path.join(directory, n), model, documents, { parentDirectoryEntity, loadConcurrency }), { concurrency: loadConcurrency })
   return documents
 }
 
@@ -244,6 +247,7 @@ async function loadFlatDocument (fs, file, documents, corruptAlertThreshold) {
   const resultDocs = {}
   let corruptItems = -1 // Last line of every data file is usually blank so not really corrupt
 
+  // eslint-disable-next-line no-unused-vars
   for (const docContent of contents) {
     try {
       const doc = parse(docContent)
@@ -281,6 +285,8 @@ async function loadFlatDocuments (fs, documentsModel, documents, corruptAlertThr
   const flatFilesToLoad = contentStats.filter(e => !e.stat.isDirectory() && documentsModel.entitySets[e.name]).map(e => e.name)
 
   const compactionNeedResults = {}
+
+  // eslint-disable-next-line no-unused-vars
   for (const file of flatFilesToLoad.filter(f => !f.startsWith('~'))) {
     const { doesNeedCompaction } = await loadFlatDocument(fs, file, documents, corruptAlertThreshold)
     compactionNeedResults[file] = doesNeedCompaction
@@ -296,6 +302,7 @@ async function compactFlatFiles (fs, model, memoryDocumentsByEntitySet, corruptA
   Object.keys(model.entitySets).forEach(e => (documentsByEntitySet[e] = []))
   documents.forEach(d => documentsByEntitySet[d.$entitySet].push(d))
 
+  // eslint-disable-next-line no-unused-vars
   for (const es of Object.keys(documentsByEntitySet)) {
     if (model.entitySets[es].splitIntoDirectories) {
       continue
@@ -317,20 +324,20 @@ async function compactFlatFiles (fs, model, memoryDocumentsByEntitySet, corruptA
   }
 }
 
-module.exports = ({ fs, documentsModel, corruptAlertThreshold, resolveFileExtension }) => ({
+module.exports = ({ fs, documentsModel, corruptAlertThreshold, resolveFileExtension, loadConcurrency = 8 }) => ({
   update: (doc, originalDoc, documents, rootDirectory = '') => persist(fs, resolveFileExtension, documentsModel, doc, originalDoc, documents, rootDirectory),
   insert: (doc, documents, rootDirectory = '') => persist(fs, resolveFileExtension, documentsModel, doc, null, documents, rootDirectory),
   remove: (doc, documents, rootDirectory = '') => remove(fs, documentsModel, doc, documents, rootDirectory),
   reload: async (doc, documents) => {
     const loadedDocuments = []
     const docPath = fs.path.join(getDirectoryPath(fs, documentsModel, doc, documents), doc.name)
-    await load(fs, docPath, documentsModel, loadedDocuments)
+    await load(fs, docPath, documentsModel, loadedDocuments, { loadConcurrency })
 
     return loadedDocuments.length !== 1 ? null : loadedDocuments[0]
   },
   load: async () => {
     const documents = []
-    await load(fs, '', documentsModel, documents)
+    await load(fs, '', documentsModel, documents, { loadConcurrency })
     await loadFlatDocuments(fs, documentsModel, documents, corruptAlertThreshold)
     return documents
   },

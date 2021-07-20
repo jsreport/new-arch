@@ -2,33 +2,30 @@
   "name": "jsreport-mssql-store",
   "version": "1.5.0",
   "description": "Extension allowing to store template in Microsoft SQL Server",
-  "main": "index.js",
-  "scripts": {
-    "test": "mocha test/test.js --timeout=18000 && standard"
-  },
-  "standard": {
-    "env": [
-      "mocha",
-      "node"
-    ]
+  "homepage": "https://github.com/jsreport/jsreport-mssql-store#readme",
+  "bugs": {
+    "url": "https://github.com/jsreport/jsreport-mssql-store/issues"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/jsreport/jsreport-mssql-store.git"
   },
   "author": "Jan Blaha",
-  "bugs": {
-    "url": "https://github.com/jsreport/jsreport-mssql-store/issues"
+  "main": "index.js",
+  "files": [
+    "lib",
+    "index.js",
+    "jsreport.config.js"
+  ],
+  "scripts": {
+    "test": "mocha test/test.js --timeout=18000 && standard"
   },
-  "homepage": "https://github.com/jsreport/jsreport-mssql-store#readme",
   "dependencies": {
-    "jsreport-sql-store": "1.4.1",
+    "jsreport-sql-store": "1.4.2",
     "mssql": "6.3.1",
     "semaphore-async-await": "1.5.1"
   },
   "devDependencies": {
-    "eslint": "7.22.0",
-    "eslint-config-standard": "16.0.2",
     "jsreport-core": "2.10.1",
     "mocha": "8.3.2",
     "should": "13.2.3",
@@ -37,9 +34,10 @@
   "engines": {
     "node": ">=8.9"
   },
-  "files": [
-    "lib",
-    "index.js",
-    "jsreport.config.js"
-  ]
+  "standard": {
+    "env": [
+      "mocha",
+      "node"
+    ]
+  }
 }

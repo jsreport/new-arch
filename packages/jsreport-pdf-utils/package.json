@@ -1,14 +1,41 @@
 {
-  "author": {
-    "name": "Jan Blaha"
-  },
+  "name": "jsreport-pdf-utils",
+  "version": "1.11.0",
+  "description": "jsreport extension providing pdf operations like merge or concatenation",
+  "keywords": [
+    "jsreport",
+    "pdf"
+  ],
+  "homepage": "https://github.com/jsreport/jsreport-pdf-utils",
   "bugs": {
     "url": "https://github.com/jsreport/jsreport-pdf-utils/issues"
   },
-  "bundleDependencies": false,
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/jsreport/jsreport-pdf-utils.git"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "Jan Blaha"
+  },
+  "main": "index.js",
+  "files": [
+    "lib",
+    "studio",
+    "index.js",
+    "jsreport.config.js"
+  ],
+  "scripts": {
+    "build": "jsreport-studio-build",
+    "lint": "standard",
+    "prepublishOnly": "jsreport-studio-build",
+    "start": "jsreport-studio-start --httpPort 5488",
+    "test": "set DEBUG=jsreport&& mocha test --timeout=20000 && standard",
+    "test-full": "set DEBUG=jsreport&&set TEST_FULL=true&& mocha test --timeout=20000 && standard"
+  },
   "dependencies": {
     "cheerio": "0.22.0",
-    "jsreport-pdfjs": "0.5.1",
+    "jsreport-pdfjs": "0.5.3",
     "lodash.omit": "4.5.0",
     "nanoid": "3.1.12",
     "node-forge": "0.10.0",
@@ -17,15 +44,9 @@
     "parse-color": "1.0.0",
     "pdfjs-dist": "2.0.489"
   },
-  "deprecated": false,
-  "description": "jsreport extension providing pdf operations like merge or concatenation",
   "devDependencies": {
     "babel-eslint": "10.1.0",
-    "eslint": "7.16.0",
-    "eslint-config-standard": "16.0.2",
-    "eslint-config-standard-jsx": "10.0.0",
-    "eslint-plugin-babel": "5.3.1",
-    "handlebars": "4.7.6",
+    "handlebars": "4.7.7",
     "jsreport-assets": "1.7.0",
     "jsreport-child-templates": "1.4.0",
     "jsreport-chrome-pdf": "1.10.0",
@@ -43,35 +64,9 @@
   "engines": {
     "node": ">=8.9"
   },
-  "files": [
-    "lib",
-    "studio",
-    "index.js",
-    "jsreport.config.js"
-  ],
-  "homepage": "https://github.com/jsreport/jsreport-pdf-utils",
-  "keywords": [
-    "jsreport",
-    "pdf"
-  ],
-  "license": "MIT",
-  "main": "index.js",
-  "name": "jsreport-pdf-utils",
-  "repository": {
-    "type": "git",
-    "url": "git+ssh://git@github.com/jsreport/jsreport-pdf-utils.git"
-  },
-  "scripts": {
-    "build": "jsreport-studio-build",
-    "lint": "standard",
-    "prepublishOnly": "jsreport-studio-build",
-    "start": "jsreport-studio-start --httpPort 5488",
-    "test": "set DEBUG=jsreport&& mocha test --timeout=20000 && standard",
-    "test-full": "set DEBUG=jsreport&&set TEST_FULL=true&& mocha test --timeout=20000 && standard"
-  },
   "standard": {
     "ignore": [
-      "main.js"
+      "studio/main.js"
     ],
     "parser": "babel-eslint",
     "env": {
@@ -79,6 +74,5 @@
       "mocha": true,
       "browser": true
     }
-  },
-  "version": "1.10.1"
+  }
 }

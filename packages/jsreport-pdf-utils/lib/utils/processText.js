@@ -3,9 +3,11 @@
 
 const CMapFactory = require('pdfjs-dist/lib/core/cmap.js').CMapFactory
 const StringStream = require('pdfjs-dist/lib/core/stream.js').StringStream
+const unicode = require('pdfjs-dist/lib/core/unicode')
 const zlib = require('zlib')
 const FormsProcessor = require('./formsProcessor')
 const HIDDEN_TEXT_SIZE = 1.1
+const normalizedUnicodes = unicode.getNormalizedUnicodes()
 
 function chunkArray (myArray, chunkSize) {
   let index = 0
@@ -40,6 +42,30 @@ function getAllIndexes (arr, marks) {
   }
 
   return indexes
+}
+
+async function createCMap (stream) {
+  const cmap = await CMapFactory.create({
+    encoding: stream
+  })
+
+  const map = new Array(cmap.length)
+
+  cmap.forEach(function (charCode, token) {
+    const str = []
+    for (let k = 0; k < token.length; k += 2) {
+      const w1 = token.charCodeAt(k) << 8 | token.charCodeAt(k + 1)
+      if ((w1 & 0xF800) !== 0xD800) {
+        str.push(w1)
+        continue
+      }
+      k += 2
+      const w2 = token.charCodeAt(k) << 8 | token.charCodeAt(k + 1)
+      str.push(((w1 & 0x3ff) << 10) + (w2 & 0x3ff) + 0x10000)
+    }
+    map[charCode] = String.fromCharCode.apply(String, str)
+  })
+  return map
 }
 
 async function processStream (doc, streamObject, { page, pages, pageIndex, cmapCache, formsProcessor, removeHiddenMarks, hiddenPageFields }) {
@@ -164,9 +190,7 @@ async function processStream (doc, streamObject, { page, pages, pageIndex, cmapC
         if (cmap == null) {
           cmapContentStr = zlib.unzipSync(cmapStream.content.content).toString('latin1')
           const stream = new StringStream(cmapContentStr)
-          cmap = await CMapFactory.create({
-            encoding: stream
-          })
+          cmap = await createCMap(stream)
           cmapCache.set(cmapStream, cmap)
         }
       } catch (e) {
@@ -177,19 +201,22 @@ async function processStream (doc, streamObject, { page, pages, pageIndex, cmapC
 
       let charIndex = trimStart + 1
       for (const charSeq of chunkArray(hexes, 4)) {
-        let ch = cmap.lookup(parseInt(charSeq, 16))
+        const ch = cmap[parseInt(charSeq, 16)]
         if (ch == null) {
           continue
         }
 
-        if (ch.charCodeAt(0) === 0) {
-          ch = ch.substring(1)
+        if (normalizedUnicodes[ch] !== undefined) {
+          // chrome sometimes, like in alpine linux, puts double ff into single char ligerature
+          const chars = normalizedUnicodes[ch]
+          text += chars
+          for (const char of chars) {
+            details.push({ lineIndex, charIndex, ch: char, position: currentPosition, length: charSeq.length })
+          }
+        } else {
+          text += ch
+          details.push({ lineIndex, charIndex, ch, position: currentPosition, length: charSeq.length })
         }
-
-        // cmap returns some kind of double characters when encoding national chars like š, so we throw away the second
-        text += ch.substring(0, 1)
-
-        details.push({ lineIndex, charIndex, ch, position: currentPosition, length: charSeq.length })
 
         charIndex += 4
       }
@@ -219,6 +246,8 @@ async function processStream (doc, streamObject, { page, pages, pageIndex, cmapC
             page: pages[pageIndex].object,
             hiddenPageFields
           })
+        } else {
+          console.warn(`Unable to find form element ${trimmedText} information on context, skipping`)
         }
       }
     }

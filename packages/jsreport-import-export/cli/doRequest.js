@@ -6,6 +6,8 @@ async function doRequest (options = {}) {
     url: options.url,
     method: options.method || 'GET',
     timeout: 0,
+    maxContentLength: Infinity,
+    maxBodyLength: Infinity,
     responseType: options.responseType || 'json'
   }
 

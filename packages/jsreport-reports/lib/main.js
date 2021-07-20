@@ -69,6 +69,12 @@ class Reports {
         })
       }
 
+      if (!report.public && req.url.indexOf('reports/public') > -1) {
+        throw this.reporter.createError('Unauthorized', {
+          code: 'UNAUTHORIZED'
+        })
+      }
+
       if (report.state !== 'success') {
         let errMsg = `Report ${req.params.id} wasn't successfull`
 
@@ -121,12 +127,19 @@ class Reports {
       }
     })
 
-    app.get('/reports/:id/status', async (req, res, next) => {
+    app.get('/reports(/public)?/:id/status', async (req, res, next) => {
       try {
         const report = await this.reporter.documentStore.collection('reports').findOne({ _id: req.params.id }, req)
+
         if (report == null) {
           throw this.reporter.createError(`Report ${req.params.id} not found`, {
             statusCode: 404
+          })
+        }
+
+        if (!report.public && req.url.indexOf('reports/public') > -1) {
+          throw this.reporter.createError('Unauthorized', {
+            code: 'UNAUTHORIZED'
           })
         }
 
@@ -140,16 +153,8 @@ class Reports {
           return res.send(`Report generation failed.${' ' + (report.error || '')}`)
         }
 
-        let link = req.protocol + '://' + req.headers.host
-        const pathnameParts = url.parse(req.originalUrl).pathname.split('/')
-
-        pathnameParts[pathnameParts.length - 1] = 'content'
-
-        if (report.public === true) {
-          pathnameParts.splice(pathnameParts.length - 2, 0, 'public')
-        }
-
-        link += pathnameParts.join('/')
+        const baseLink = `${req.protocol}://req.headers.host`
+        const link = baseLink + new url.URL(req.originalUrl, baseLink).pathname.replace('/status', '/content')
 
         res.setHeader('Report-State', report.state)
         res.setHeader('Location', link)
@@ -222,18 +227,23 @@ class Reports {
 
     const r = await this.reporter.documentStore.collection('reports').insert({
       reportName: response.meta.reportName,
-      state: 'planned'
+      state: 'planned',
+      public: request.options.reports != null ? request.options.reports.public : false
     }, request)
 
     if (request.context.http) {
-      response.meta.headers.Location = `${request.context.http.baseUrl}/reports/${r._id}/status`
+      if (request.options.reports && request.options.reports.public) {
+        response.meta.headers['Location'] = `${request.context.http.baseUrl}/reports/public/${r._id}/status`
+      } else {
+        response.meta.headers['Location'] = `${request.context.http.baseUrl}/reports/${r._id}/status`
+      }
     }
 
     const asyncRequest = extend(true, {}, _omit(request, 'data'))
 
     // start a fresh context so we don't inherit logs, etc
     asyncRequest.context = extend(true, {}, _omit(asyncRequest.context, 'logs'))
-    asyncRequest.options.reports = extend(true, {}, response.meta.reportsOptions)
+    asyncRequest.options.reports = extend(true, {}, request.options.reports)
     asyncRequest.options.reports.save = true
 
     if (!request.context.originalInputDataIsEmpty) {

@@ -14,6 +14,8 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
 # Runtime data
 pids
+**/test/temp/**
+!**/test/temp/.gitkeep
 *.pid
 *.seed
 *.pid.lock
@@ -113,6 +115,7 @@ node_modules
 tools/snapshots
 
 # exe compilation
+executable.config.json
 jsreportPkgConfig.json
 jsreportStartup.js
 exe-temp-resources

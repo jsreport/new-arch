@@ -8,7 +8,7 @@ module.exports = async (files) => {
   documentFile.data = await recursiveStringReplaceAsync(
     documentFile.data.toString(),
     '<w:p[^>]*__block_helper_container__="true"[^>]*>',
-    '</w:p>',
+    '<!--__block_helper_container__--></w:p>',
     'g',
     async (val, content, hasNestedMatch) => {
       const doc = new DOMParser().parseFromString(val)
@@ -57,6 +57,14 @@ module.exports = async (files) => {
       const childContentNodesLeft = nodeListToArray(paragraphNode.childNodes).filter((node) => {
         return ['w:r', 'w:fldSimple', 'w:hyperlink'].includes(node.nodeName)
       })
+
+      if (
+        paragraphNode.lastChild != null &&
+        paragraphNode.lastChild.nodeName === '#comment' &&
+        paragraphNode.lastChild.nodeValue === '__block_helper_container__'
+      ) {
+        paragraphNode.removeChild(paragraphNode.lastChild)
+      }
 
       if (childContentNodesLeft.length === 0) {
         // if there are no more content nodes in the paragraph then remove it

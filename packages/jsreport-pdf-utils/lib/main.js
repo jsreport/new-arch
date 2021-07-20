@@ -51,14 +51,14 @@ module.exports = (reporter, definition) => {
   }
 
   reporter.documentStore.on('before-init', () => {
-    if (reporter.documentStore.model.entityTypes['AssetType']) {
+    if (reporter.documentStore.model.entityTypes.AssetType) {
       reporter.documentStore.registerComplexType('PdfSignAssetType', {
         passwordRaw: { type: 'Edm.String', visible: false },
         passwordSecure: { type: 'Edm.String', encrypted: true, visible: false },
         passwordFilled: { type: 'Edm.Boolean' }
       })
 
-      reporter.documentStore.model.entityTypes['AssetType'].pdfSign = { type: 'jsreport.PdfSignAssetType' }
+      reporter.documentStore.model.entityTypes.AssetType.pdfSign = { type: 'jsreport.PdfSignAssetType' }
     }
   })
 

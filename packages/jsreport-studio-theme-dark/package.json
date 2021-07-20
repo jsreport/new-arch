@@ -1,13 +1,25 @@
 {
+  "name": "jsreport-studio-theme-dark",
+  "version": "0.3.0",
+  "description": "dark theme for jsreport studio",
+  "keywords": [
+    "jsreport",
+    "jsreport-studio"
+  ],
+  "homepage": "https://github.com/jsreport/jsreport-studio-theme-dark",
+  "bugs": {
+    "url": "https://github.com/jsreport/jsreport-studio-theme-dark/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jsreport/jsreport-studio-theme-dark.git"
+  },
+  "license": "MIT",
   "author": {
     "name": "BJR Matos",
     "email": "bjrmatos@gmail.com",
     "url": "https://github.com/bjrmatos"
   },
-  "bugs": {
-    "url": "https://github.com/jsreport/jsreport-studio-theme-dark/issues"
-  },
-  "bundleDependencies": false,
   "contributors": [
     {
       "name": "BJR Matos",
@@ -19,39 +31,24 @@
       "email": "jan.blaha@hotmail.com"
     }
   ],
-  "deprecated": false,
-  "description": "dark theme for jsreport studio",
-  "devDependencies": {
-    "babel-eslint": "10.0.2",
-    "eslint": "6.1.0",
-    "eslint-plugin-babel": "5.3.0",
-    "jsreport-studio-dev": "1.6.0",
-    "standard": "13.1.0"
-  },
-  "engines": {
-    "node": ">=8.9"
-  },
+  "main": "index.js",
   "files": [
     "lib",
     "index.js",
     "jsreport.config.js"
   ],
-  "homepage": "https://github.com/jsreport/jsreport-studio-theme-dark",
-  "keywords": [
-    "jsreport",
-    "jsreport-studio"
-  ],
-  "license": "MIT",
-  "main": "index.js",
-  "name": "jsreport-studio-theme-dark",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/jsreport/jsreport-studio-theme-dark.git"
-  },
   "scripts": {
     "run": "jsreport-studio-start --run-only",
     "start": "jsreport-studio-start",
     "test": "echo \"No tests here :)\""
+  },
+  "devDependencies": {
+    "babel-eslint": "10.0.2",
+    "jsreport-studio-dev": "1.6.0",
+    "standard": "13.1.0"
+  },
+  "engines": {
+    "node": ">=8.9"
   },
   "standard": {
     "parser": "babel-eslint",
@@ -60,6 +57,5 @@
       "mocha": true,
       "browser": true
     }
-  },
-  "version": "0.3.0"
+  }
 }

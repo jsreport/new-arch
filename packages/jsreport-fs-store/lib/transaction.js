@@ -71,11 +71,15 @@ module.exports = ({ queue, persistence, fs, logger }) => {
           await copy(fs, '', transactionDirectory)
 
           const documentsClone = cloneDocuments(commitedDocuments)
+
+          // eslint-disable-next-line no-unused-vars
           for (const op of transaction.operations) {
             await op(documentsClone, persistence, transactionDirectory)
           }
 
+          // eslint-disable-next-line no-unused-vars
           for (const entitySet in documentsClone) {
+            // eslint-disable-next-line no-unused-vars
             for (const transactionEntity of documentsClone[entitySet]) {
               const commitedEntity = commitedDocuments[entitySet].find(e => e._id)
               if (commitedEntity &&

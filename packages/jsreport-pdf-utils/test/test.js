@@ -4,6 +4,7 @@ const fs = require('fs')
 const path = require('path')
 const pdfjs = require('jsreport-pdfjs')
 const { extractSignature } = require('node-signpdf/dist/helpers')
+const processText = require('../lib/utils/processText.js')
 const should = require('should')
 
 describe('pdf utils', () => {
@@ -693,6 +694,26 @@ describe('pdf utils', () => {
     parsedPdf.pages.should.have.length(2)
   })
 
+  it('should be able to add meta to pdf with empty font name', async () => {
+    jsreport.afterRenderListeners.insert(0, 'test', (req, res) => {
+      if (req.template.content === 'main') {
+        res.content = fs.readFileSync(path.join(__dirname, 'empty-name.pdf'))
+      }
+    })
+
+    const r = await jsreport.render({
+      template: {
+        content: 'main',
+        engine: 'none',
+        recipe: 'chrome-pdf',
+        pdfMeta: {
+          title: 'Hello'
+        }
+      }
+    })
+    fs.writeFileSync('out.pdf', r.content)
+  })
+
   it('should be able to merge none jsreport produced pdf', async () => {
     jsreport.tests.afterRenderListeners.insert(0, 'test', (req, res) => {
       if (req.template.content === 'replace') {
@@ -951,14 +972,37 @@ describe('pdf utils', () => {
   it('should be able to add outlines', async () => {
     const result = await jsreport.render({
       template: {
-        content: ' <a href=\'#foo\' data-pdf-outline data-pdf-outline-text=\'foo\'>foo</a><h1 id=\'foo\'>hello</h1>',
+        content: `
+          <a href='#parent' data-pdf-outline data-pdf-outline-text='parent'>
+            parent
+          </a><br>
+          <a href='#nested' data-pdf-outline data-pdf-outline-parent='parent' data-pdf-outline-text='nested'>
+            nested
+          </a>
+          <a href='#nested-nested' data-pdf-outline data-pdf-outline-parent='nested' data-pdf-outline-text='nested-nested'>
+            nested nested
+          </a>
+          <a href='#nested-nested2' data-pdf-outline data-pdf-outline-parent='nested' data-pdf-outline-text='nested-nested2'>
+          nested nested2
+        </a>
+          <h1 id='parent'>parent</h1>
+          <h1 id='nested'>nested</h1>
+          <h1 id='nested-nested'>nested-nested</h1>
+          <h1 id='nested-nested2'>nested-nested2</h1>
+        `,
         name: 'content',
         engine: 'none',
         recipe: 'chrome-pdf'
       }
     })
 
-    result.content.toString().should.containEql('/Outlines')
+    require('fs').writeFileSync('out.pdf', result.content)
+
+    const doc = new pdfjs.ExternalDocument(result.content)
+
+    const outlines = doc.catalog.get('Outlines').object
+    outlines.properties.get('Count').should.be.eql(-1)
+    doc.catalog.get('Outlines').object.properties.get('First').object.properties.get('First').object.properties.get('Count').should.be.eql(-2)
   })
 
   it('should be able to add outlines through child template', async () => {
@@ -1458,6 +1502,22 @@ describe('pdf utils', () => {
     should(acroForm).not.be.null()
   })
 
+  it('pdfSign should throw nice error when cert too long for placeholder', async () => {
+    return jsreport.render({
+      template: {
+        content: 'Hello',
+        engine: 'none',
+        recipe: 'chrome-pdf',
+        pdfSign: {
+          certificateAsset: {
+            content: fs.readFileSync(path.join(__dirname, 'longcert.p12')),
+            password: 'password'
+          }
+        }
+      }
+    }).should.be.rejectedWith(/maxSignaturePlaceholderLength/)
+  })
+
   it('pdfSign should work together with pdf password', async () => {
     const result = await jsreport.render({
       template: {
@@ -1820,6 +1880,108 @@ describe('pdf utils', () => {
 
     const acroForm = doc.catalog.get('AcroForm').object
     acroForm.properties.get('Fields').should.have.length(2)
+  })
+
+  it('pdfFormField with append operation', async () => {
+    const result = await jsreport.render({
+      template: {
+        recipe: 'chrome-pdf',
+        engine: 'handlebars',
+        content: "Page1 {{{pdfFormField name='a' type='text' width='200px' height='20px'}}}",
+        pdfOperations: [{
+          type: 'append',
+          template: {
+            content: "Page2 {{{pdfFormField name='b' type='text' width='200px' height='20px'}}}",
+            engine: 'handlebars',
+            recipe: 'chrome-pdf'
+          }
+        }]
+      }
+    })
+
+    const doc = new pdfjs.ExternalDocument(result.content)
+
+    const acroForm = doc.catalog.get('AcroForm').object
+    acroForm.properties.get('Fields').should.have.length(2)
+  })
+
+  describe('processText with pdf from alpine', () => {
+    it('should deal with double f ligature and remove hidden mark', async () => {
+      const content = fs.readFileSync(path.join(__dirname, 'alpine.pdf'))
+      const external = new pdfjs.ExternalDocument(content)
+      const document = new pdfjs.Document({
+        external
+      })
+      await processText(
+        document,
+        external,
+        {
+          removeHiddenMarks: true,
+          hiddenPageFields: {
+            ff2181tsdwkqil98bfi73sks: Buffer.from(JSON.stringify({
+              height: 20,
+              width: 100,
+              type: 'text',
+              name: 'test'
+            })).toString('base64')
+          }
+        }
+      )
+
+      document.addPagesOf(external)
+      const buffer = await document.asBuffer()
+
+      const newExt = new pdfjs.ExternalDocument(buffer)
+
+      const acroForm = newExt.catalog.get('AcroForm').object
+      should(acroForm).not.be.null()
+      const field = acroForm.properties.get('Fields')[0].object
+      field.properties.get('T').toString().should.be.eql('(test)')
+
+      const parsedPdf = await parsePdf(buffer, {
+        includeText: true
+      })
+      parsedPdf.pages[0].text.replace(/ /g, '').should.be.eql('čbeforeafterč')
+      fs.writeFileSync('out.pdf', buffer)
+    })
+  })
+
+  describe('pdf utils with maxSignaturePlaceholderLength', () => {
+    let jsreport
+    beforeEach(async () => {
+      jsreport = await JsReport()
+        .use(require('../')({
+          maxSignaturePlaceholderLength: 16384
+        }))
+        .use(require('jsreport-chrome-pdf')())
+        .init()
+    })
+    afterEach(() => jsreport && jsreport.close())
+
+    it('pdfSign should sign output pdf', async () => {
+      const result = await jsreport.render({
+        template: {
+          content: 'Hello',
+          engine: 'none',
+          recipe: 'chrome-pdf',
+          pdfSign: {
+            certificateAsset: {
+              content: fs.readFileSync(path.join(__dirname, 'longcert.p12')),
+              password: 'password'
+            }
+          }
+        }
+      })
+      require('fs').writeFileSync('out.pdf', result.content)
+      const { signature, signedData } = extractSignature(result.content)
+      signature.should.be.of.type('string')
+      signedData.should.be.instanceOf(Buffer)
+
+      const doc = new pdfjs.ExternalDocument(result.content)
+
+      const acroForm = doc.catalog.get('AcroForm').object
+      should(acroForm).not.be.null()
+    })
   })
 
   it('should not fail when main and appended template has printBackground=true', async () => {

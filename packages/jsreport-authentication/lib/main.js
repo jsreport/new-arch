@@ -22,6 +22,7 @@ const { shouldDelegateTokenAuth, hasBearerSchema, authenticateToken } = require(
 const viewsPath = path.join(__dirname, '../public/views')
 const basicSchemaReg = /Basic/i
 const bearerSchemaReg = /Bearer/i
+// eslint-disable-next-line
 const absoluteUrlReg = new RegExp('^(?:[a-z]+:)?//', 'i')
 
 function addPassport (reporter, app, admin, definition) {
@@ -233,9 +234,7 @@ function addPassport (reporter, app, admin, definition) {
 function configureRoutes (reporter, app, admin, definition) {
   app.use((req, res, next) => {
     const publicRoute = reporter.authentication.publicRoutes.find((r) => req.url.startsWith(r))
-
-    const pathname = url.parse(req.url).pathname
-
+    const pathname = new url.URL(req.url, `${req.protocol}://${req.hostname}`).pathname
     req.isPublic = publicRoute || pathname.endsWith('.js') || pathname.endsWith('.css')
     next()
   })

@@ -488,7 +488,7 @@ class MainReporter extends Reporter {
       const result = await worker.execute({
         actionName,
         data,
-        // we set just known props, to avoid clonning failures on expres req properties
+        // we set just known props, to avoid clonning failures on express req properties
         req: {
           context: req.context,
           template: req.template,

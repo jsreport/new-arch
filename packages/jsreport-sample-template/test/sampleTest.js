@@ -16,11 +16,12 @@ describe('sample', function () {
   let reporter
 
   beforeEach(() => {
-    rimraf.sync(path.join(__dirname, '../data'))
+    rimraf.sync(path.join(__dirname, './data'))
+
     reporter = jsreport({
+      rootDirectory: __dirname,
       allowLocalFilesAccess: true,
-      store: { provider: 'fs' },
-      templatingEngines: { strategy: 'in-process' }
+      store: { provider: 'fs' }
     })
 
     reporter.use(data())
@@ -42,7 +43,9 @@ describe('sample', function () {
   })
 
   afterEach(() => {
-    return reporter.close()
+    if (reporter) {
+      return reporter.close()
+    }
   })
 
   it('should be able to render all sample templates', async () => {

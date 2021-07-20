@@ -1,16 +1,34 @@
 {
-  "author": {
-    "name": "Jan Blaha"
-  },
+  "name": "jsreport-base",
+  "version": "2.0.2",
+  "description": "jsreport extension automatically adding html base tag",
+  "keywords": [
+    "jsreport",
+    "base"
+  ],
+  "homepage": "https://github.com/jsreport/jsreport-base",
   "bugs": {
     "url": "https://github.com/jsreport/jsreport-base/issues"
   },
-  "bundleDependencies": false,
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/jsreport/jsreport-base.git"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "Jan Blaha"
+  },
+  "files": [
+    "lib",
+    "index.js",
+    "jsreport.config.js"
+  ],
+  "scripts": {
+    "test": "mocha test --timeout 5000 && standard",
+    "test:watch": "mocha test --watch"
+  },
   "dependencies": {},
-  "deprecated": false,
-  "description": "jsreport extension automatically adding html base tag",
   "devDependencies": {
-    "eslint": "4.19.1",
     "jsreport-core": "2.10.1",
     "mocha": "5.1.1",
     "should": "13.2.1",
@@ -19,30 +37,9 @@
   "engines": {
     "node": ">=8.9"
   },
-  "files": [
-    "lib",
-    "index.js",
-    "jsreport.config.js"
-  ],
-  "homepage": "https://github.com/jsreport/jsreport-base",
-  "keywords": [
-    "jsreport",
-    "base"
-  ],
-  "license": "MIT",
-  "name": "jsreport-base",
-  "repository": {
-    "type": "git",
-    "url": "git+ssh://git@github.com/jsreport/jsreport-base.git"
-  },
-  "scripts": {
-    "test": "mocha test --timeout 5000 && standard",
-    "test:watch": "mocha test --watch"
-  },
   "standard": {
     "env": {
       "mocha": true
     }
-  },
-  "version": "2.0.2"
+  }
 }

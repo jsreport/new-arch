@@ -1,32 +1,11 @@
 {
   "name": "jsreport-version-control",
-  "version": "1.6.0",
+  "version": "1.6.2",
   "description": "jsreport extension adding support for versioning templates and other entities",
-  "main": "index.js",
-  "scripts": {
-    "test": "set DEBUG=jsreport && mocha test --timeout 5000 && standard",
-    "start": "jsreport-studio-start --httpPort 5488",
-    "build": "jsreport-studio-build",
-    "prepublish": "in-publish && jsreport-studio-build || not-in-publish"
-  },
   "keywords": [
     "jsreport",
     "pdf"
   ],
-  "standard": {
-    "ignore": [
-      "main.js"
-    ],
-    "parser": "babel-eslint",
-    "env": {
-      "node": true,
-      "mocha": true,
-      "browser": true
-    }
-  },
-  "engines": {
-    "node": ">=14.x.x"
-  },
   "homepage": "https://github.com/jsreport/jsreport-version-control",
   "repository": {
     "type": "git",
@@ -34,12 +13,33 @@
   },
   "license": "MIT",
   "author": "Jan Blaha",
+  "main": "index.js",
+  "files": [
+    "lib",
+    "studio",
+    "test",
+    "index.js",
+    "jsreport.config.js"
+  ],
+  "scripts": {
+    "build": "jsreport-studio-build",
+    "prepublish": "in-publish && jsreport-studio-build || not-in-publish",
+    "start": "jsreport-studio-start --httpPort 5488",
+    "test": "set DEBUG=jsreport && mocha test --timeout 5000 && standard"
+  },
+  "dependencies": {
+    "bluebird": "3.5.4",
+    "bytes": "3.0.0",
+    "diff": "3.5.0",
+    "diff-match-patch": "1.0.5",
+    "isbinaryfile": "3.0.3",
+    "lodash.omit": "4.5.0",
+    "mime-types": "2.1.27",
+    "nanoid": "3.1.22",
+    "node.extend.without.arrays": "1.1.6"
+  },
   "devDependencies": {
     "babel-eslint": "10.0.1",
-    "eslint": "5.11.0",
-    "eslint-config-standard-jsx": "6.0.2",
-    "eslint-plugin-babel": "5.3.1",
-    "eslint-plugin-standard": "4.0.1",
     "in-publish": "2.0.1",
     "jsreport-assets": "1.7.0",
     "jsreport-authentication": "2.6.1",
@@ -55,22 +55,18 @@
     "standard": "12.0.1",
     "supertest": "3.4.2"
   },
-  "dependencies": {
-    "bluebird": "3.5.4",
-    "bytes": "3.0.0",
-    "diff": "3.5.0",
-    "diff-match-patch": "1.0.5",
-    "isbinaryfile": "3.0.3",
-    "lodash.omit": "4.5.0",
-    "mime-types": "2.1.27",
-    "nanoid": "3.1.22",
-    "node.extend.without.arrays": "1.1.6"
+  "engines": {
+    "node": ">=14.x.x"
   },
-  "files": [
-    "lib",
-    "studio",
-    "test",
-    "index.js",
-    "jsreport.config.js"
-  ]
+  "standard": {
+    "ignore": [
+      "studio/main.js"
+    ],
+    "parser": "babel-eslint",
+    "env": {
+      "node": true,
+      "mocha": true,
+      "browser": true
+    }
+  }
 }

@@ -1,5 +1,6 @@
-const azure = require('azure-storage')
 const stream = require('stream')
+const { BlobServiceClient, StorageSharedKeyCredential } = require('@azure/storage-blob')
+const { DefaultAzureCredential } = require('@azure/identity')
 
 module.exports = function (reporter, definition) {
   if (reporter.options.blobStorage.provider !== 'azure-storage') {
@@ -7,70 +8,46 @@ module.exports = function (reporter, definition) {
     return
   }
 
-  const options = Object.assign({}, definition.options)
-  // avoid exposing connection string through /api/extensions
-  definition.options = {}
+  definition.options.container = definition.options.container || 'jsreport'
 
-  options.container = options.container || 'jsreport'
+  let blobServiceClient
 
-  if (!options.accountName) {
-    throw new Error('accountName must be provided to jsreport-azure-storage')
+  if (definition.options.connectionString) {
+    blobServiceClient = BlobServiceClient.fromConnectionString(definition.options.connectionString)
+  } else {
+    let credentials
+
+    if (definition.options.accountKey) {
+      credentials = new StorageSharedKeyCredential(definition.options.accountName, definition.options.accountKey)
+    } else {
+      credentials = new DefaultAzureCredential()
+    }
+
+    blobServiceClient = new BlobServiceClient(
+      `https://${definition.options.accountName}.blob.core.windows.net`,
+      credentials
+    )
   }
 
-  if (!options.accountKey) {
-    throw new Error('accountKey must be provided to jsreport-azure-storage')
-  }
-
-  const blobService = azure.createBlobService(options.accountName, options.accountKey)
+  const containerClient = blobServiceClient.getContainerClient(definition.options.container)
 
   reporter.blobStorage.registerProvider({
-    init: () => new Promise((resolve, reject) => {
-      blobService.createContainerIfNotExists(options.container, (err) => {
-        if (err) {
-          return reject(err)
-        }
-        return resolve()
-      })
-    }),
+    init: () => containerClient.createIfNotExists(),
     read: async (blobName) => {
-      const stream = blobService.createReadStream(options.container, blobName)
-      const bufs = []
-      return new Promise((resolve, reject) => {
-        stream.on('error', (e) => {
-          if (e.code === 'NotFound') {
-            return resolve(null)
-          }
-          reject(e)
-        })
-        stream.on('data', (b) => bufs.push(b))
-        stream.on('end', () => resolve(Buffer.concat(bufs)))
-      })
+      try {
+        const res = await containerClient.getBlockBlobClient(blobName).download()
+        return res.readableStreamBody
+      } catch (e) {
+        const r = stream.Readable()
+        r._read = () => {}
+        process.nextTick(() => r.emit('error', e))
+        return r
+      }
     },
-    write: (blobName, buffer) => {
-      return new Promise((resolve, reject) => {
-        const s = new stream.Readable()
-        s._read = () => {}
-        s.push(buffer)
-        s.push(null)
-        blobService.createBlockBlobFromStream(options.container, blobName, s, buffer.length, (err, responseBlob, response) => {
-          if (err) {
-            return reject(err)
-          }
-
-          resolve(blobName)
-        })
-      })
+    write: async (blobName, buffer) => {
+      await containerClient.getBlockBlobClient(blobName).upload(buffer, Buffer.byteLength(buffer))
+      return blobName
     },
-    remove: (blobName) => {
-      return new Promise((resolve, reject) => {
-        blobService.deleteBlob(options.container, blobName, (err) => {
-          if (err) {
-            return reject(err)
-          }
-
-          resolve()
-        })
-      })
-    }
+    remove: (blobName) => containerClient.getBlockBlobClient(blobName).deleteIfExists(blobName)
   })
 }

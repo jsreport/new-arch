@@ -1,12 +1,38 @@
 {
+  "name": "jsreport-html-to-xlsx",
+  "version": "2.8.4",
+  "description": "jsreport recipe capable of converting html into excel",
+  "keywords": [
+    "jsreport",
+    "xlsx"
+  ],
+  "homepage": "https://github.com/jsreport/jsreport-html-to-xlsx",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/jsreport/jsreport-html-to-xlsx.git"
+  },
+  "license": "LGPL",
   "author": {
     "name": "Jan Blaha",
     "email": "jan.blaha@hotmail.com"
   },
-  "bundleDependencies": false,
-  "contributos": [
+  "contributors": [
     "BJR Matos <bjrmatos@gmail.com> (https://github.com/bjrmatos)"
   ],
+  "files": [
+    "lib",
+    "studio",
+    "static",
+    "index.js",
+    "jsreport.config.js"
+  ],
+  "scripts": {
+    "build": "jsreport-studio-build",
+    "prepublishOnly": "jsreport-studio-build",
+    "prepublish": "in-publish && jsreport-studio-build || not-in-publish",
+    "start": "jsreport-studio-start --httpPort 5488",
+    "test": "mocha test --timeout 8000 && standard"
+  },
   "dependencies": {
     "chrome-page-eval": "1.3.0",
     "html-to-xlsx": "2.0.3",
@@ -16,13 +42,9 @@
     "opentype.js": "1.1.0",
     "phantom-page-eval": "1.2.0"
   },
-  "deprecated": false,
-  "description": "jsreport recipe capable of converting html into excel",
   "devDependencies": {
     "babel-eslint": "10.1.0",
-    "eslint": "7.11.0",
-    "eslint-plugin-babel": "5.3.1",
-    "handlebars": "4.7.6",
+    "handlebars": "4.7.7",
     "in-publish": "2.0.1",
     "jsreport-core": "2.10.1",
     "jsreport-handlebars": "2.1.0",
@@ -36,40 +58,14 @@
   "engines": {
     "node": ">=8.9"
   },
-  "files": [
-    "lib",
-    "studio",
-    "static",
-    "index.js",
-    "jsreport.config.js"
-  ],
-  "homepage": "https://github.com/jsreport/jsreport-html-to-xlsx",
-  "keywords": [
-    "jsreport",
-    "xlsx"
-  ],
-  "license": "LGPL",
-  "name": "jsreport-html-to-xlsx",
-  "repository": {
-    "type": "git",
-    "url": "git+ssh://git@github.com/jsreport/jsreport-html-to-xlsx.git"
-  },
-  "scripts": {
-    "build": "jsreport-studio-build",
-    "prepublish": "in-publish && jsreport-studio-build || not-in-publish",
-    "prepublishOnly": "jsreport-studio-build",
-    "start": "jsreport-studio-start --httpPort 5488",
-    "test": "mocha test --timeout 8000 && standard"
-  },
   "standard": {
     "ignore": [
-      "main.js"
+      "studio/main.js"
     ],
     "parser": "babel-eslint",
     "env": {
       "node": true,
       "mocha": true
     }
-  },
-  "version": "2.8.3"
+  }
 }

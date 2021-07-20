@@ -1,13 +1,25 @@
 {
+  "name": "jsreport-static-pdf",
+  "version": "0.4.0",
+  "description": "jsreport recipe which loads pdf from static source",
+  "keywords": [
+    "jsreport",
+    "pdf"
+  ],
+  "homepage": "https://github.com/jsreport/jsreport-static-pdf",
+  "bugs": {
+    "url": "https://github.com/jsreport/jsreport-static-pdf/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/jsreport/jsreport-static-pdf.git"
+  },
+  "license": "MIT",
   "author": {
     "name": "BJR Matos",
     "email": "bjrmatos@gmail.com",
     "url": "https://github.com/bjrmatos"
   },
-  "bugs": {
-    "url": "https://github.com/jsreport/jsreport-static-pdf/issues"
-  },
-  "bundleDependencies": false,
   "contributors": [
     {
       "name": "BJR Matos",
@@ -19,18 +31,26 @@
       "email": "jan.blaha@hotmail.com"
     }
   ],
+  "main": "index.js",
+  "files": [
+    "lib",
+    "studio",
+    "index.js",
+    "jsreport.config.js"
+  ],
+  "scripts": {
+    "build": "jsreport-studio-build",
+    "prepublishOnly": "jsreport-studio-build",
+    "start": "jsreport-studio-start --httpPort 3000",
+    "test": "mocha test --timeout 8000 && standard"
+  },
   "dependencies": {
     "file-type": "11.1.0"
   },
-  "deprecated": false,
-  "description": "jsreport recipe which loads pdf from static source",
   "devDependencies": {
     "babel-eslint": "10.0.1",
-    "eslint": "5.16.0",
-    "eslint-config-standard-jsx": "6.0.2",
-    "eslint-plugin-babel": "5.3.0",
-    "jsreport-assets": "1.6.0",
-    "jsreport-chrome-pdf": "1.8.0",
+    "jsreport-assets": "1.7.0",
+    "jsreport-chrome-pdf": "1.10.0",
     "jsreport-core": "2.10.1",
     "jsreport-studio-dev": "1.6.0",
     "mocha": "6.1.4",
@@ -41,33 +61,9 @@
   "engines": {
     "node": ">=8.9"
   },
-  "files": [
-    "lib",
-    "studio",
-    "index.js",
-    "jsreport.config.js"
-  ],
-  "homepage": "https://github.com/jsreport/jsreport-static-pdf",
-  "keywords": [
-    "jsreport",
-    "pdf"
-  ],
-  "license": "MIT",
-  "main": "index.js",
-  "name": "jsreport-static-pdf",
-  "repository": {
-    "type": "git",
-    "url": "git+ssh://git@github.com/jsreport/jsreport-static-pdf.git"
-  },
-  "scripts": {
-    "build": "jsreport-studio-build",
-    "prepublishOnly": "jsreport-studio-build",
-    "start": "jsreport-studio-start --httpPort 3000",
-    "test": "mocha test --timeout 8000 && standard"
-  },
   "standard": {
     "ignore": [
-      "main.js"
+      "studio/main.js"
     ],
     "parser": "babel-eslint",
     "env": {
@@ -75,6 +71,5 @@
       "mocha": true,
       "browser": true
     }
-  },
-  "version": "0.4.0"
+  }
 }

@@ -56,7 +56,8 @@ module.exports = ({
         documentsModel: this.documentsModel,
         fs: this.fs,
         corruptAlertThreshold,
-        resolveFileExtension
+        resolveFileExtension,
+        loadConcurrency: persistence.loadConcurrency
       })
 
       this.queue = Queue(persistenceQueueWaitingTimeout)
@@ -174,6 +175,7 @@ module.exports = ({
           return 'insert'
         }
 
+        // eslint-disable-next-line no-unused-vars
         for (const doc of toUpdate) {
           await persistence.update(extend(true, {}, omit(doc, '$$etag'), u.$set || {}), doc, documents, rootDirectoy)
 
@@ -201,6 +203,7 @@ module.exports = ({
       return this.transaction.operation(opts, async (documents, persistence, rootDirectoy) => {
         const toRemove = mingo.find(documents[entitySet], q).all()
 
+        // eslint-disable-next-line no-unused-vars
         for (const doc of toRemove) {
           await persistence.remove(doc, documents, rootDirectoy)
         }
@@ -211,6 +214,7 @@ module.exports = ({
           return
         }
 
+        // eslint-disable-next-line no-unused-vars
         for (const doc of toRemove) {
           await this.journal.remove(doc, opts)
         }

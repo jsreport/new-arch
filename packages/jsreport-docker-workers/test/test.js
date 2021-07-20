@@ -89,7 +89,7 @@ describe.only('docker manager', () => {
           })
           executed = true
         } else {
-          reqData.actionName.should.be.eql('release')
+          reqData.systemAction.should.be.eql('release')
           ctx.response.status = 201
           ctx.body = '{}'
         }

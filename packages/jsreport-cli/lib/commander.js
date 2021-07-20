@@ -593,9 +593,9 @@ async function startProccesing (commander, logger, args) {
   const verboseMode = userArgv.verbose || userArgv.b
 
   if (userArgv._.length === 0) {
-    const willShowHelpExplicetly = commander._showHelpWhenNoCommand && !versionRequired && !helpRequired
+    const willShowHelpExplicitly = commander._showHelpWhenNoCommand && !versionRequired && !helpRequired
 
-    commander.emit('started', null, { handled: versionRequired || helpRequired || willShowHelpExplicetly, mainCommand: null })
+    commander.emit('started', null, { handled: versionRequired || helpRequired || willShowHelpExplicitly, mainCommand: null })
 
     commander.emit('parsing', args, commander.context)
 
@@ -605,7 +605,7 @@ async function startProccesing (commander, logger, args) {
       instance = await getInstance(commander, commander._jsreportInstance, () => {}, commander.cwd)
     } catch (e) {}
 
-    if (instance && (helpRequired || willShowHelpExplicetly)) {
+    if (instance && (helpRequired || willShowHelpExplicitly)) {
       await findAndLoadExtensionsCommands(instance, commander, verboseMode)
     }
 
@@ -643,7 +643,7 @@ async function startProccesing (commander, logger, args) {
       }
 
       if (
-        willShowHelpExplicetly &&
+        willShowHelpExplicitly &&
         !args.includes('--help') &&
         !args.includes('-h')
       ) {

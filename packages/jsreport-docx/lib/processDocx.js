@@ -46,7 +46,9 @@ module.exports = (reporter) => async (inputs, req) => {
       }
     }, req)
 
-    const contents = newContent.toString().split('$$$docxFile$$$')
+    // we remove NUL unicode characters, which is the only character that is ilegal in XML
+    // eslint-disable-next-line no-control-regex
+    const contents = newContent.toString().replace(/\u0000/g, '').split('$$$docxFile$$$')
 
     for (let i = 0; i < filesToRender.length; i++) {
       filesToRender[i].data = contents[i]
@@ -57,7 +59,7 @@ module.exports = (reporter) => async (inputs, req) => {
         filesToRender[i].doc = new DOMParser().parseFromString(contents[i])
       } else {
         // we remove the .doc for the word/document.xml file to be clear that it should not be used
-        // for any of postprocess steps, instead when dealing with that document we should executation search/replace
+        // for any of postprocess steps, instead when dealing with that document we should execute search/replace
         // based on string and regexp.
         delete filesToRender[i].doc
       }

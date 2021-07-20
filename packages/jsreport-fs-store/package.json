@@ -1,11 +1,36 @@
 {
-  "author": {
-    "name": "Jan Blaha"
-  },
+  "name": "jsreport-fs-store",
+  "version": "2.9.2",
+  "description": "File system based templates store",
+  "keywords": [
+    "jsreport",
+    "pdf"
+  ],
+  "homepage": "https://github.com/jsreport/jsreport-fs-store",
   "bugs": {
     "url": "https://github.com/jsreport/jsreport-fs-store/issues"
   },
-  "bundleDependencies": false,
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/jsreport/jsreport-fs-store.git"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "Jan Blaha"
+  },
+  "files": [
+    "lib",
+    "studio",
+    "index.js",
+    "jsreport.config.js"
+  ],
+  "scripts": {
+    "build": "jsreport-studio-build",
+    "prepublish": "in-publish && jsreport-studio-build || not-in-publish",
+    "run": "npm run build && jsreport-studio-start --httpPort 5488 --run-only",
+    "start": "jsreport-studio-start --httpPort 5488",
+    "test": "set DEBUG=jsreport && mocha --timeout 15000 test && standard"
+  },
   "dependencies": {
     "@jsreport/mingo": "2.4.1",
     "bluebird": "3.7.2",
@@ -18,13 +43,8 @@
     "rimraf": "3.0.2",
     "socket.io": "2.4.1"
   },
-  "deprecated": false,
-  "description": "File system based templates store",
   "devDependencies": {
     "babel-eslint": "10.0.3",
-    "eslint": "6.7.2",
-    "eslint-config-standard-jsx": "8.1.0",
-    "eslint-plugin-babel": "5.3.1",
     "in-publish": "2.0.1",
     "jsreport-core": "2.10.1",
     "jsreport-express": "2.8.1",
@@ -35,34 +55,10 @@
     "should": "13.2.3",
     "sinon": "9.2.2",
     "socket.io-client": "2.4.0",
-    "standard": "14.3.1"
+    "standard": "16.0.3"
   },
   "engines": {
     "node": ">=8.9"
-  },
-  "files": [
-    "lib",
-    "studio",
-    "index.js",
-    "jsreport.config.js"
-  ],
-  "homepage": "https://github.com/jsreport/jsreport-fs-store",
-  "keywords": [
-    "jsreport",
-    "pdf"
-  ],
-  "license": "MIT",
-  "name": "jsreport-fs-store",
-  "repository": {
-    "type": "git",
-    "url": "git+ssh://git@github.com/jsreport/jsreport-fs-store.git"
-  },
-  "scripts": {
-    "build": "jsreport-studio-build",
-    "prepublish": "in-publish && jsreport-studio-build || not-in-publish",
-    "run": "npm run build && jsreport-studio-start --httpPort 5488 --run-only",
-    "start": "jsreport-studio-start --httpPort 5488",
-    "test": "set DEBUG=jsreport && mocha --timeout 15000 test && standard"
   },
   "standard": {
     "ignore": [
@@ -74,6 +70,5 @@
       "mocha": true,
       "browser": true
     }
-  },
-  "version": "2.9.1"
+  }
 }

@@ -322,7 +322,7 @@ module.exports = (reporter, options) => {
       }
 
       if (newCommit.changes.length === 0) {
-        throw new Error('Can not save an empty commit, there is no changes to commit')
+        throw new Error('Can not save an empty commit, there are no changes to commit')
       }
 
       const version = await reporter.documentStore.collection('versions').insert({

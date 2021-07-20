@@ -1,22 +1,41 @@
 {
-  "author": {
-    "name": "Jan Blaha"
-  },
+  "name": "jsreport-reports",
+  "version": "2.5.2",
+  "description": "jsreport extension adding support for storing rendering outputs for later use",
+  "keywords": [
+    "jsreport"
+  ],
+  "homepage": "https://github.com/jsreport/jsreport-reports",
   "bugs": {
     "url": "https://github.com/jsreport/jsreport-reports/issues"
   },
-  "bundleDependencies": false,
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/jsreport/jsreport-reports.git"
+  },
+  "license": "LGPL",
+  "author": {
+    "name": "Jan Blaha"
+  },
+  "files": [
+    "lib",
+    "studio",
+    "index.js",
+    "jsreport.config.js"
+  ],
+  "scripts": {
+    "build": "jsreport-studio-build",
+    "prepublish": "in-publish && jsreport-studio-build || not-in-publish",
+    "run": "npm run build && jsreport-studio-start --httpPort 5488 --run-only",
+    "start": "jsreport-studio-start --httpPort 5488",
+    "test": "set DEBUG=jsreport&&mocha test --timeout=10000 && standard"
+  },
   "dependencies": {
     "lodash.omit": "4.5.0",
     "node.extend.without.arrays": "1.1.6"
   },
-  "deprecated": false,
-  "description": "jsreport extension adding support for storing rendering outputs for later use",
   "devDependencies": {
     "babel-eslint": "8.2.6",
-    "eslint": "5.4.0",
-    "eslint-config-standard-jsx": "5.0.0",
-    "eslint-plugin-babel": "5.1.0",
     "in-publish": "2.0.1",
     "jsreport-core": "2.10.1",
     "jsreport-express": "2.8.1",
@@ -30,32 +49,9 @@
   "engines": {
     "node": ">=8.9"
   },
-  "files": [
-    "lib",
-    "studio",
-    "index.js",
-    "jsreport.config.js"
-  ],
-  "homepage": "https://github.com/jsreport/jsreport-reports",
-  "keywords": [
-    "jsreport"
-  ],
-  "license": "LGPL",
-  "name": "jsreport-reports",
-  "repository": {
-    "type": "git",
-    "url": "git+ssh://git@github.com/jsreport/jsreport-reports.git"
-  },
-  "scripts": {
-    "build": "jsreport-studio-build",
-    "prepublish": "in-publish && jsreport-studio-build || not-in-publish",
-    "run": "npm run build && jsreport-studio-start --httpPort 5488 --run-only",
-    "start": "jsreport-studio-start --httpPort 5488",
-    "test": "set DEBUG=jsreport&&mocha test --timeout=10000 && standard"
-  },
   "standard": {
     "ignore": [
-      "main.js"
+      "studio/main.js"
     ],
     "parser": "babel-eslint",
     "env": {
@@ -63,6 +59,5 @@
       "mocha": true,
       "browser": true
     }
-  },
-  "version": "2.5.1"
+  }
 }

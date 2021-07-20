@@ -1,11 +1,36 @@
 {
-  "author": {
-    "name": "Jan Blaha"
-  },
+  "name": "jsreport-authentication",
+  "version": "2.6.1",
+  "description": "jsreport extension adding user authentication",
+  "keywords": [
+    "jsreport",
+    "authentication"
+  ],
+  "homepage": "https://github.com/jsreport/jsreport-authentication",
   "bugs": {
     "url": "https://github.com/jsreport/jsreport-authentication/issues"
   },
-  "bundleDependencies": false,
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/jsreport/jsreport-authentication.git"
+  },
+  "license": "LGPL",
+  "author": {
+    "name": "Jan Blaha"
+  },
+  "files": [
+    "lib",
+    "public",
+    "studio",
+    "index.js",
+    "jsreport.config.js"
+  ],
+  "scripts": {
+    "build": "jsreport-studio-build",
+    "prepublish": "in-publish && jsreport-studio-build || not-in-publish",
+    "start": "jsreport-studio-start --httpPort 5488",
+    "test": "mocha \"./test/*.spec.js\" --timeout 10000 --exit && standard"
+  },
   "dependencies": {
     "axios": "0.19.2",
     "body-parser": "1.19.0",
@@ -17,13 +42,8 @@
     "passport-local": "1.0.0",
     "password-hash": "1.2.2"
   },
-  "deprecated": false,
-  "description": "jsreport extension adding user authentication",
   "devDependencies": {
     "babel-eslint": "10.1.0",
-    "eslint": "7.16.0",
-    "eslint-config-standard-jsx": "10.0.0",
-    "eslint-plugin-babel": "5.3.1",
     "express": "4.17.1",
     "in-publish": "2.0.1",
     "jsreport-core": "2.10.1",
@@ -38,33 +58,9 @@
   "engines": {
     "node": ">=8.9"
   },
-  "files": [
-    "lib",
-    "public",
-    "studio",
-    "index.js",
-    "jsreport.config.js"
-  ],
-  "homepage": "https://github.com/jsreport/jsreport-authentication",
-  "keywords": [
-    "jsreport",
-    "authentication"
-  ],
-  "license": "LGPL",
-  "name": "jsreport-authentication",
-  "repository": {
-    "type": "git",
-    "url": "git+ssh://git@github.com/jsreport/jsreport-authentication.git"
-  },
-  "scripts": {
-    "build": "jsreport-studio-build",
-    "prepublish": "in-publish && jsreport-studio-build || not-in-publish",
-    "start": "jsreport-studio-start --httpPort 5488",
-    "test": "mocha \"./test/*.spec.js\" --timeout 10000 --exit && standard"
-  },
   "standard": {
     "ignore": [
-      "main.js",
+      "studio/main.js",
       "public/**"
     ],
     "parser": "babel-eslint",
@@ -73,6 +69,5 @@
       "mocha": true,
       "browser": true
     }
-  },
-  "version": "2.6.1"
+  }
 }

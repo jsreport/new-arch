@@ -1,4 +1,4 @@
-const jsreport = require('./')({
+const jsreport = require('jsreport')({
   rootDirectory: __dirname
 })
 

@@ -1,16 +1,27 @@
 {
+  "name": "jsreport-cli",
+  "version": "2.2.5",
+  "description": "Command line interface for jsreport",
+  "keywords": [
+    "jsreport",
+    "cli",
+    "commands",
+    "jsreport commands"
+  ],
+  "homepage": "https://github.com/jsreport/jsreport-cli",
+  "bugs": {
+    "url": "https://github.com/jsreport/jsreport-cli/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jsreport/jsreport-cli.git"
+  },
+  "license": "MIT",
   "author": {
     "name": "BJR Matos",
     "email": "bjrmatos@gmail.com",
     "url": "https://github.com/bjrmatos"
   },
-  "bin": {
-    "jsreport": "cli.js"
-  },
-  "bugs": {
-    "url": "https://github.com/jsreport/jsreport-cli/issues"
-  },
-  "bundleDependencies": false,
   "contributors": [
     {
       "name": "BJR Matos",
@@ -21,6 +32,26 @@
       "name": "Jan Blaha"
     }
   ],
+  "main": "index.js",
+  "bin": {
+    "jsreport": "cli.js"
+  },
+  "files": [
+    "lib",
+    "studio",
+    "index.js",
+    "cli.js",
+    "test/testUtils.js",
+    "example.server.js",
+    "example.config.json",
+    "jsreport.config.js"
+  ],
+  "scripts": {
+    "prepublish": "in-publish && standard || not-in-publish",
+    "start": "cross-env JSREPORT_CLI_DEV=enabled node cli.js",
+    "test": "mocha --recursive \"./test/*.spec.js\" \"./test/commands/**/*.spec.js\" --timeout 28000 --exit",
+    "test:watch": "mocha --recursive \"./test/*.spec.js\" \"./test/commands/**/*.spec.js\" --timeout 28000 --exit --watch"
+  },
   "dependencies": {
     "chalk": "2.4.2",
     "cliui": "4.1.0",
@@ -28,7 +59,7 @@
     "ip-address": "5.8.9",
     "is-absolute-url": "2.1.0",
     "is-promise": "2.1.0",
-    "jsreport-client": "1.2.0",
+    "jsreport-client": "1.2.1",
     "liftoff": "3.0.0",
     "lockfile": "1.0.4",
     "lodash.omit": "4.5.0",
@@ -42,20 +73,18 @@
     "winser-with-api": "1.0.1",
     "yargs": "13.2.4"
   },
-  "deprecated": false,
-  "description": "Command line interface for jsreport",
   "devDependencies": {
     "babel-eslint": "8.2.2",
     "cross-env": "5.2.1",
     "eslint": "4.18.1",
     "eslint-plugin-babel": "5.3.1",
     "execa": "1.0.0",
-    "handlebars": "4.7.6",
+    "handlebars": "4.7.7",
     "in-publish": "2.0.1",
-    "jsreport-authentication": "2.6.0",
+    "jsreport-authentication": "2.6.1",
     "jsreport-core": "2.10.1",
-    "jsreport-express": "2.8.0",
-    "jsreport-fs-store": "2.9.1",
+    "jsreport-express": "2.8.1",
+    "jsreport-fs-store": "2.9.2",
     "jsreport-handlebars": "2.1.0",
     "mkdirp": "0.5.5",
     "mocha": "5.2.0",
@@ -66,41 +95,11 @@
     "standard": "11.0.0",
     "std-mocks": "1.0.1"
   },
-  "engines": {
-    "node": ">=8.9"
-  },
-  "files": [
-    "lib",
-    "studio",
-    "index.js",
-    "cli.js",
-    "test/testUtils.js",
-    "example.server.js",
-    "example.config.json",
-    "jsreport.config.js"
-  ],
-  "homepage": "https://github.com/jsreport/jsreport-cli",
-  "keywords": [
-    "jsreport",
-    "cli",
-    "commands",
-    "jsreport commands"
-  ],
-  "license": "MIT",
-  "main": "index.js",
-  "name": "jsreport-cli",
   "optionalDependencies": {
     "winser-with-api": "1.0.1"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/jsreport/jsreport-cli.git"
-  },
-  "scripts": {
-    "prepublish": "in-publish && standard || not-in-publish",
-    "start": "cross-env JSREPORT_CLI_DEV=enabled node cli.js",
-    "test": "mocha --recursive \"./test/*.spec.js\" \"./test/commands/**/*.spec.js\" --timeout 28000 --exit",
-    "test:watch": "mocha --recursive \"./test/*.spec.js\" \"./test/commands/**/*.spec.js\" --timeout 28000 --exit --watch"
+  "engines": {
+    "node": ">=8.9"
   },
   "standard": {
     "parser": "babel-eslint",
@@ -108,6 +107,5 @@
       "node": true,
       "mocha": true
     }
-  },
-  "version": "2.2.5"
+  }
 }

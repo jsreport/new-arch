@@ -46,7 +46,7 @@ module.exports = async function scriptCommitProcessing ({ commitMessage, version
     }
 
     // entity is equal so it was not modified, don't adding change
-    if (deepEqual(entity, s.entity)) {
+    if (deepEqual(omit(entity, '__entityPath'), s.entity)) {
       return res
     }
 

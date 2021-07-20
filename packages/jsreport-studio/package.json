@@ -1,11 +1,46 @@
 {
-  "author": {
-    "name": "Jan Blaha"
-  },
+  "name": "jsreport-studio",
+  "version": "2.10.1",
+  "description": "jsreport templates editor and designer",
+  "keywords": [
+    "jsreport"
+  ],
+  "homepage": "https://github.com/jsreport/jsreport-studio",
   "bugs": {
     "url": "https://github.com/jsreport/jsreport-studio/issues"
   },
-  "bundleDependencies": false,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jsreport/jsreport-studio.git"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "Jan Blaha"
+  },
+  "main": "src/server.js",
+  "files": [
+    "lib",
+    "shared",
+    "src",
+    "static",
+    "webpack",
+    ".babelrc",
+    "index.js",
+    "jsreport.config.js"
+  ],
+  "scripts": {
+    "build": "npm run build-eslint-browser && jsreport-studio-build --config webpack/prod.config.js --stats.modules=false",
+    "build-eslint-browser": "jsreport-studio-build --config webpack/eslint-browser.config.js --stats.modules=false",
+    "check-build-eslint-browser": "ok-file static/dist/eslint-browser.js && not-in-publish || npm run build-eslint-browser",
+    "docs": "jsdoc2md src/Studio.js > static/Studio.md",
+    "prepublish": "in-publish && npm run build || not-in-publish",
+    "run": "npm run build && jsreport-studio-start --run-only",
+    "server-test": "mocha test/server",
+    "start": "npm run check-build-eslint-browser && jsreport-studio-start --ignore-jsreport-studio-install",
+    "test": "npm run ui-test && npm run server-test",
+    "test:watch": "npm test -- --watch",
+    "ui-test": "mocha test/ui/.setup.js test/ui --recursive --require babel-core/register --require mocha-clean --require ignore-styles"
+  },
   "dependencies": {
     "bluebird": "3.5.4",
     "compression": "1.7.4",
@@ -15,8 +50,6 @@
     "serve-favicon": "2.5.0",
     "serve-static": "1.14.1"
   },
-  "deprecated": false,
-  "description": "jsreport templates editor and designer",
   "devDependencies": {
     "@seznam/compose-react-refs": "1.0.4",
     "babel-eslint": "8.2.1",
@@ -82,44 +115,10 @@
   "engines": {
     "node": ">=8.9"
   },
-  "files": [
-    "lib",
-    "shared",
-    "src",
-    "static",
-    "webpack",
-    ".babelrc",
-    "index.js",
-    "jsreport.config.js"
-  ],
-  "homepage": "https://github.com/jsreport/jsreport-studio",
-  "keywords": [
-    "jsreport"
-  ],
-  "license": "MIT",
-  "main": "src/server.js",
-  "name": "jsreport-studio",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/jsreport/jsreport-studio.git"
-  },
-  "scripts": {
-    "build": "npm run build-eslint-browser && jsreport-studio-build --config webpack/prod.config.js --stats.modules=false",
-    "build-eslint-browser": "jsreport-studio-build --config webpack/eslint-browser.config.js --stats.modules=false",
-    "check-build-eslint-browser": "ok-file static/dist/eslint-browser.js && not-in-publish || npm run build-eslint-browser",
-    "docs": "jsdoc2md src/Studio.js > static/Studio.md",
-    "prepublish": "in-publish && npm run build || not-in-publish",
-    "run": "npm run build && jsreport-studio-start --run-only",
-    "server-test": "mocha test/server",
-    "start": "npm run check-build-eslint-browser && jsreport-studio-start --ignore-jsreport-studio-install",
-    "test": "npm run ui-test && npm run server-test",
-    "test:watch": "npm test -- --watch",
-    "ui-test": "mocha test/ui/.setup.js test/ui --recursive --require babel-core/register --require mocha-clean --require ignore-styles"
-  },
   "standard": {
     "ignore": [
       "static/**",
-      "extensions.js",
+      "src/extensions.js",
       "webpack/**"
     ],
     "global": [
@@ -132,6 +131,5 @@
       "browser": true
     },
     "parser": "babel-eslint"
-  },
-  "version": "2.10.1"
+  }
 }

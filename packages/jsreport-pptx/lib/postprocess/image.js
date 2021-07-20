@@ -22,7 +22,8 @@ module.exports = (files) => {
 
     const relsDoc = files.find(f => f.path === `ppt/slides/_rels/slide${slideNumber}.xml.rels`).doc
 
-    const imagesEl = doc.getElementsByTagName('pptxImage')
+    const imagesEl = nodeListToArray(doc.getElementsByTagName('pptxImage'))
+
     for (let i = 0; i < imagesEl.length; i++) {
       const el = imagesEl[i]
       const imageSrc = el.getAttribute('src')
@@ -42,19 +43,19 @@ module.exports = (files) => {
 
       relsDoc.getElementsByTagName('Relationships')[0].appendChild(relEl)
 
-      const ppic = el.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode
-      const blip = ppic.getElementsByTagName('a:blip')[0]
+      const grpSp = el.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode
+      const blip = grpSp.getElementsByTagName('a:blip')[0]
       blip.setAttribute('r:embed', `rId${imagesStartId}`)
 
       const imageDimension = sizeOf(imageBuffer)
       const imageWidthEMU = Math.round(imageDimension.width * 914400 / 96)
       const imageHeightEMU = Math.round(imageDimension.height * 914400 / 96)
 
-      const aExt = ppic.getElementsByTagName('a:ext')[0]
+      const aExt = grpSp.getElementsByTagName('a:ext')[0]
       aExt.setAttribute('cx', imageWidthEMU)
       aExt.setAttribute('cy', imageHeightEMU)
 
-      ppic.removeChild(el.parentNode.parentNode.parentNode.parentNode.parentNode)
+      grpSp.removeChild(el.parentNode.parentNode.parentNode.parentNode.parentNode)
     }
   }
 }

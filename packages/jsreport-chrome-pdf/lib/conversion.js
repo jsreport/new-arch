@@ -175,7 +175,12 @@ module.exports = async ({ reporter, getBrowser, htmlUrl, strategy, timeout, req,
         throw reporter.createError(`chrome.mediaType must be equal to 'screen' or 'print'`, { weak: true })
       }
 
-      await page.emulateMediaType(optionsToUse.mediaType)
+      // emulateMedia has been renamed emulateMediaType in puppeteer 5.0.0 so we check existence of the method name accordingly
+      if (page.emulateMedia != null) {
+        await page.emulateMedia(optionsToUse.mediaType)
+      } else {
+        await page.emulateMediaType(optionsToUse.mediaType)
+      }
     }
 
     if (executionInfo.error) {

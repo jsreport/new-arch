@@ -5,9 +5,9 @@
 
 > jsreport extension adding support for storing blobs in azure storage
 
-Some of the jsreport extensions requires a blob storage for storing binary objects. This implementation stores these objects like output reports inside cost effective azure blob storage.
+Some of the jsreport extensions require a blob storage for storing binary objects. This implementation stores these objects like output reports inside cost-effective azure blob storage.
 
-See the blob sorages general documentation
+See the blob storages general documentation
 https://jsreport.net/learn/blob-storages
 
 See how to persist jsreport output reports
@@ -19,19 +19,22 @@ https://jsreport.net/learn/reports
 
 ## Configuration
 
-Required options are:
 - `accountName`:  azure blob storage account name
 - `accountKey`:  azure blob storage account key
-
-Optionally you can set
+- `connectionString`: azure blob storage connection string
 - `container`: azure blob storage container, this defaults to jsreport
 
-You can pass these options into jsreport in following ways:
+You have three options:
+1. Set just `connectionString`
+2. Set `accountName` and `accountKey`
+3. Set only `accountName` and let storage connect using azure managed identity
+
+You can pass the options into jsreport in the following ways:
 
 - Through global `blobStorage` options
 ```js
 {
-	"blobStorage": {  
+	"blobStorage": {
 		"provider": "azure-storage"
 	},
 	"extensions": {

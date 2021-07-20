@@ -43,6 +43,7 @@ module.exports = ({ dataDirectory, lock }) => ({
       const readDirMemoryState = async (sp, dp) => {
         this.memoryState[dp] = { isDirectory: true }
         const contents = await fs.readdirAsync(sp)
+        // eslint-disable-next-line no-unused-vars
         for (const c of contents) {
           const stat = await fs.statAsync(path.join(sp, c))
           if (stat.isDirectory()) {
@@ -87,6 +88,7 @@ module.exports = ({ dataDirectory, lock }) => ({
     await mkdirpAsync(path.join(dataDirectory, p))
   },
   async remove (p) {
+    // eslint-disable-next-line no-unused-vars
     for (const c in this.memoryState) {
       if (c.startsWith(path.join(dataDirectory, p, '/')) || c === path.join(dataDirectory, p)) {
         delete this.memoryState[c]

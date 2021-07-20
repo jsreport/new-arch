@@ -32,7 +32,8 @@ const jsreportPackages = [
   'jsreport-text',
   'jsreport-unoconv',
   'jsreport-version-control',
-  'jsreport-xlsx'
+  'jsreport-xlsx',
+  'jsreport'
 ]
 
 const failedPackages = []
