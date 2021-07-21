@@ -482,12 +482,18 @@ class AssetEditor extends Component {
     }
 
     const content = ((entity.content || entity.forceUpdate) ? entity.content : this.state.content) || ''
+    let text
+    try {
+      text = decodeURIComponent(escape(atob(content)))
+    } catch (e) {
+      return this.renderBinary(entity)
+    }
 
     return (
       <TextEditor
         name={entity._id}
         mode={mode}
-        value={decodeURIComponent(escape(atob(content)))}
+        value={text}
         onUpdate={(v) => this.props.onUpdate(Object.assign({}, entity, { content: btoa(unescape(encodeURIComponent(v))), forceUpdate: true }))}
       />
     )
