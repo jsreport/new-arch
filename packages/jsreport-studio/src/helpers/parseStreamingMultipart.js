@@ -30,7 +30,7 @@ async function parseStreamingMultipart (response, onFile) {
     finalDelimiterBuf: new TextEncoder().encode(finalDelimiter)
   }
 
-  return reader.read().then(async function sendNext ({ value, done }) {
+  return reader.read().then(function sendNext ({ done, value }) {
     if (done) {
       return
     }
@@ -56,7 +56,7 @@ function parseMultipartHttp (parsingProgress, textDecoder, buffer, boundaryInfo,
   if (parsingProgress.state === 'initial') {
     const boundaryDelimiterBuf = boundaryInfo.delimiterBuf
     const boundaryDelimiterByteLength = boundaryDelimiterBuf.byteLength
-    const finalBoundaryDelimeterBuf = boundaryInfo.finalDelimiterBuf
+    const finalBoundaryDelimiterBuf = boundaryInfo.finalDelimiterBuf
     let results = []
 
     // check the expected bytes that should contain the boundary delimiters
@@ -65,7 +65,7 @@ function parseMultipartHttp (parsingProgress, textDecoder, buffer, boundaryInfo,
     if (arrayBufferEqual(expectedBoundaryBuf.buffer, boundaryDelimiterBuf.buffer)) {
       results = parseUntilDelimiter(chunk.slice(boundaryDelimiterByteLength), concatUInt8Array(NEW_LINE_BUF, NEW_LINE_BUF))
     } else {
-      if (arrayBufferEqual(chunk.buffer, finalBoundaryDelimeterBuf.buffer)) {
+      if (arrayBufferEqual(chunk.buffer, finalBoundaryDelimiterBuf.buffer)) {
         results = null
         parsingProgress.pending = new Uint8Array(0)
       } else if (chunk.length > boundaryDelimiterByteLength) {

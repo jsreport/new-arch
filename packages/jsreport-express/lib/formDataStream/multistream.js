@@ -55,8 +55,15 @@ class MultiStream extends Readable {
     if (this._forwarding || !this._drained || !this._current) return
     this._forwarding = true
 
-    var chunk
-    while (this._drained && (chunk = this._current.read()) !== null) {
+    let chunk
+
+    while (this._drained) {
+      chunk = this._current.read()
+
+      if (chunk == null) {
+        break
+      }
+
       this._drained = this.push(chunk)
     }
 
@@ -79,6 +86,12 @@ class MultiStream extends Readable {
   }
 
   _next () {
+    // don't try to pull next stream if the current one have
+    // not finished
+    if (this._current != null) {
+      return
+    }
+
     this._current = null
 
     if (typeof this._queue === 'function') {
@@ -89,7 +102,7 @@ class MultiStream extends Readable {
         this._gotNextStream(stream)
       })
     } else {
-      var stream = this._queue.shift()
+      let stream = this._queue.shift()
 
       if (typeof stream === 'function') {
         stream = this._toStreams2(stream())

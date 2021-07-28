@@ -11,7 +11,6 @@ class TabContent extends Component {
     if (this.props.active && !prevProps.active) {
       for (const handler of _tabActiveHandlers) {
         if (this.tabRef.current.contains(handler.el)) {
-          console.log('running tab active listener')
           handler.fn()
         }
       }
